@@ -161,6 +161,36 @@
         // สำหรับปุ่ม "ฟังแล้วเขียน" ในแท็บ "ฝึกเขียน" กันสับสนว่าเป็นฟีเจอร์เดียวกัน
         const EarIcon = icon('ear', 'w-3.5 h-3.5');
 
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // ภาษา UI (ไทย/อังกฤษ) — แปลเฉพาะกรอบ UI ของหน้า (ปุ่ม/หัวข้อ/ข้อความแจ้ง/คำสั่งในโจทย์) ส่วนเนื้อหา
+        // (คำศัพท์/วลี/ประโยคตัวอย่าง/บทอ่านบทฟัง/ชื่อหมวดบทเรียน/โจทย์และตัวเลือก/ข้อความที่ผู้ใช้พิมพ์)
+        // เป็นเนื้อหา ไม่แปล (data-i18n-skip) · ภาษาที่กำลังเรียน (lang-*) ไม่เกี่ยวกับภาษา UI
+        //   tx('ข้อความไทย', {vars}) — ใช้ "ข้อความไทยต้นฉบับ" เป็นคีย์ (th เหมือนเดิมทุกตัวอักษร) อังกฤษอยู่ใน LP_EN
+        //   ไม่มีคำแปล = ใช้ข้อความไทยเดิม (ไม่หายเงียบ) · ตัวแปรใน {…} · สถานะที่เก็บใน state เก็บเป็นข้อความไทย
+        //   ต้นฉบับ (หรือ [ข้อความ, vars]) แล้วแปลตอนแสดงผล จึงแปลสดตอนสลับภาษาโดยไม่ต้องรีเซ็ตสถานะ
+        // ไม่แตะ: prompt ที่ส่ง AI · ข้อความที่ใช้แยกวิเคราะห์ผล AI · ค่าที่เก็บลง storage (lang-practice:*)
+        // ══════════════════════════════════════════════════════════════════════════════════
+        window.OME_PAGE_LIVE_LANG = true;
+        /* LP_EN:BEGIN */
+        const LP_EN = {};
+        /* LP_EN:END */
+        const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
+            'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
+            'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
+            'lang-ru': 'Russian' };
+        function tx(s, vars) {
+            const o = (OME_I18N.lang() === 'en' && Object.prototype.hasOwnProperty.call(LP_EN, s)) ? LP_EN[s] : s;
+            return vars ? o.replace(/\{(\w+)\}/g, (m, n) => (Object.prototype.hasOwnProperty.call(vars, n) ? vars[n] : m)) : o;
+        }
+        // ข้อความที่เก็บใน state: สตริงไทยต้นฉบับ หรือ [สตริงไทย, vars] — แปลตอนแสดง
+        function txs(x) { return !x ? '' : Array.isArray(x) ? tx(x[0], x[1]) : tx(x); }
+        // ชื่อภาษาที่แสดงบน UI (ชื่อเก็บในข้อมูล LANGS[id].title เป็นไทย — ใช้เป็นคีย์/ส่ง AI ต่อไป)
+        function langTitle(id) { return OME_I18N.lang() === 'en' && LANG_EN[id] ? LANG_EN[id] : (LANGS[id] ? LANGS[id].title : id); }
+        // ชื่อส่วนข้อสอบ เช่น '듣기 (ฟัง)' / 'ฟัง (听力)' — ส่วนที่เป็นไทยแปลตามภาษา UI ส่วนชื่อของข้อสอบจริงคงเดิม
+        function secTitle(t) { return OME_I18N.lang() === 'en' ? String(t).replace(/[ก-๙][ก-๙+\- ]*[ก-๙]|[ก-๙]/g, m => tx(m)) : t; }
+        // ตัวเลขที่ผู้ใช้เห็น (th = เลขไทยไม่ใช้ — ใช้เลขอารบิกเหมือนเดิม) · วันเวลาตามภาษา UI
+        function fmtDateTime(ts) { return OME_I18N.date(ts, { dateStyle: 'medium', timeStyle: 'medium' }); }
+
         // ── ตรวจว่าเบราว์เซอร์/อุปกรณ์มีเสียงอ่าน (TTS voice) ของภาษานั้นจริงไหม — ภาษาที่คนใช้น้อย
         //    (พม่า/เขมร/ลาว และบางส่วนของอาหรับ/เวียดนาม/มาเลย์) มักไม่มีเสียงติดตั้งมาให้ในเบราว์เซอร์/OS
         //    ส่วนใหญ่ ก่อนหน้านี้ speak() เงียบไม่มีเสียงเฉยๆ (catch(e){} เปล่า) ผู้เรียนกดปุ่ม "ฟังอีกครั้ง"
@@ -352,13 +382,13 @@
             return (
                 <div className="mt-2 text-sm font-mono leading-relaxed break-all">
                     <div>
-                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">คุณพิมพ์:</span>
+                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">{tx('คุณพิมพ์:')}</span>
                         {typedDiff.map((c, i) => (
                             <span key={i} className={c.same ? 'text-gray-500' : 'bg-red-100 text-red-700 rounded-sm'}>{c.ch}</span>
                         ))}
                     </div>
                     <div>
-                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">ที่ถูกต้อง:</span>
+                        <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">{tx('ที่ถูกต้อง:')}</span>
                         {correctDiff.map((c, i) => (
                             <span key={i} className={c.same ? 'text-gray-700' : 'bg-green-100 text-green-700 font-bold rounded-sm'}>{c.ch}</span>
                         ))}
@@ -976,8 +1006,8 @@
         function friendlyChatError(rawMessage) {
             const msg = rawMessage || '';
             if (/bad_alloc|Can't create a session|out of memory/i.test(msg)) {
-                return 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/' +
-                    'โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วลองใหม่อีกครั้ง';
+                // คืนข้อความไทยต้นฉบับ (คีย์ของ tx) — ผู้เรียกแสดงผ่าน txs()
+                return 'โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วลองใหม่อีกครั้ง';
             }
             return msg;
         }
@@ -994,6 +1024,8 @@
         const DRIVE_FOLDER_NAME = 'OME_Progress';
         const DRIVE_FILE_NAME = 'language-progress.json';
 
+        // ข้อผิดพลาดของ Drive: พก [ข้อความไทยต้นฉบับ, vars] ไปกับ error — บรรทัดสถานะแปลตอนแสดง (แปลสดตอนสลับภาษา)
+        const dErr = (k, vars) => Object.assign(new Error(tx(k, vars)), { txs: [k, vars] });
         const DriveSync = {
             tokenClient: null,
             accessToken: null,
@@ -1001,7 +1033,7 @@
             ensureAuth() {
                 return new Promise((resolve, reject) => {
                     if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(new Error('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
+                        reject(dErr('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
                         return;
                     }
                     if (!this.tokenClient) {
@@ -1023,7 +1055,7 @@
                 const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw dErr('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})', { c: res.status });
                 const data = await res.json();
                 if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
                 const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
@@ -1031,7 +1063,7 @@
                     headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
                 });
-                if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+                if (!createRes.ok) throw dErr('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})', { c: createRes.status });
                 const createData = await createRes.json();
                 this.folderId = createData.id;
                 return this.folderId;
@@ -1040,14 +1072,14 @@
                 const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw dErr('ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})', { c: res.status });
                 const data = await res.json();
                 return (data.files && data.files[0]) || null;
             },
             async downloadFile(fileId) {
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw dErr('ดาวน์โหลดไม่สำเร็จ (HTTP {c})', { c: res.status });
                 return res.json();
             },
             async uploadFile(name, folderId, existingId, obj) {
@@ -1060,7 +1092,7 @@
                     : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
                 const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
                     headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw dErr('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})', { c: res.status });
                 return res.json();
             },
         };
@@ -1177,7 +1209,7 @@
                         style={{ width: '100%', height: (height || 220) + 'px', touchAction: 'none', background: '#fff', borderRadius: '12px', border: '2px solid #e5e7eb', display: 'block' }}
                         onPointerDown={start} onPointerMove={move} onPointerUp={finish} onPointerLeave={finish} onPointerCancel={finish}
                     />
-                    <button type="button" onClick={clear} className="mt-1.5 text-xs font-semibold text-gray-400 hover:text-gray-600">ล้างกระดาน</button>
+                    <button type="button" onClick={clear} className="btn ghost sm mt-1.5">{tx('ล้างกระดาน')}</button>
                 </div>
             );
         }
@@ -1200,7 +1232,7 @@
                     <div className="hangul-stroke-svg mx-auto" style={{ width: 160, height: 160 }}
                         dangerouslySetInnerHTML={{ __html: svg }} />
                     <p className="text-[10px] text-gray-400 text-center mt-1 leading-relaxed">
-                        ภาพลำดับขีดจาก <a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener" className="underline">Hangeul Stroke Order</a> โดย Adam Stone (CC BY-SA 4.0)
+                        {tx('ภาพลำดับขีดจาก')} <a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener" className="underline">Hangeul Stroke Order</a> {tx('โดย Adam Stone (CC BY-SA 4.0)')}
                     </p>
                 </div>
             );
@@ -1340,7 +1372,7 @@
                 <div className="mb-3">
                     <HangulStrokeDiagram char={char} />
                     <p className="text-[11px] text-gray-400 text-center mb-1.5 min-h-[3.2em] flex items-center justify-center px-2">
-                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ ${strokeIdx + 1}/${strokes.length} ในกรอบนี้`}
+                        {finished ? tx('เขียนครบทุกขีดแล้ว 🎉') : tx('ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ {i}/{n} ในกรอบนี้', { i: strokeIdx + 1, n: strokes.length })}
                     </p>
                     <svg ref={svgRef} viewBox="0 0 100 100"
                         className="mx-auto block rounded-xl border-2 touch-none"
@@ -1354,9 +1386,9 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">ยังไม่ตรง ลองใหม่อีกครั้ง</span>}
-                        {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
-                        {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
+                        {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
                 </div>
             );
@@ -1529,7 +1561,7 @@
                 <div className="mb-3">
                     <RuStrokeDiagram upperChar={upperChar} />
                     <p className="text-[11px] text-gray-400 text-center mb-1.5 min-h-[3.2em] flex items-center justify-center px-2">
-                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ ${strokeIdx + 1}/${strokes.length} ในกรอบนี้`}
+                        {finished ? tx('เขียนครบทุกขีดแล้ว 🎉') : tx('ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ {i}/{n} ในกรอบนี้', { i: strokeIdx + 1, n: strokes.length })}
                     </p>
                     <svg ref={svgRef} viewBox="0 0 100 100"
                         className="mx-auto block rounded-xl border-2 touch-none"
@@ -1543,9 +1575,9 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">ยังไม่ตรง ลองใหม่อีกครั้ง</span>}
-                        {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
-                        {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
+                        {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
                 </div>
             );
@@ -2090,7 +2122,7 @@
                 <div className="mb-3">
                     <LatinStrokeDiagram upperChar={upperChar} pathsData={pathsData} />
                     <p className="text-[11px] text-gray-400 text-center mb-1.5 min-h-[3.2em] flex items-center justify-center px-2">
-                        {finished ? 'เขียนครบทุกขีดแล้ว 🎉' : `ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ ${strokeIdx + 1}/${strokes.length} ในกรอบนี้`}
+                        {finished ? tx('เขียนครบทุกขีดแล้ว 🎉') : tx('ดูภาพลำดับขีดด้านบนเป็นตัวช่วย แล้วลองลากขีดที่ {i}/{n} ในกรอบนี้', { i: strokeIdx + 1, n: strokes.length })}
                     </p>
                     <svg ref={svgRef} viewBox="0 0 100 100"
                         className="mx-auto block rounded-xl border-2 touch-none"
@@ -2104,9 +2136,9 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">ยังไม่ตรง ลองใหม่อีกครั้ง</span>}
-                        {!finished && <button type="button" onClick={skipStroke} className="text-[11px] text-gray-400 hover:text-gray-600 underline">ข้ามขีดนี้</button>}
-                        {finished && <button type="button" onClick={restart} className="text-[11px] text-brand font-semibold hover:opacity-80">ลากใหม่อีกรอบ</button>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
+                        {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
                 </div>
             );
@@ -2165,26 +2197,26 @@
             };
             const startQuiz = () => {
                 setMode('quiz');
-                setQuizMsg(`ลองลากตาม ${char} ดูสิ`);
+                setQuizMsg(['ลองลากตาม {c} ดูสิ', { c: char }]);
                 writerRef.current && writerRef.current.quiz({
-                    onCorrectStroke: (info) => setQuizMsg(`✅ ถูกต้อง (ขีดที่ ${info.strokeNum + 1})`),
+                    onCorrectStroke: (info) => setQuizMsg(['✅ ถูกต้อง (ขีดที่ {n})', { n: info.strokeNum + 1 }]),
                     onMistake: () => setQuizMsg('❌ ยังไม่ตรง ลองดูเส้นจางๆ แล้วลากตามอีกครั้ง'),
-                    onComplete: (summary) => setQuizMsg(summary.totalMistakes === 0 ? '🎉 ถูกทุกขีดเลย!' : `🎉 พลาด ${summary.totalMistakes} ครั้งระหว่างทาง`),
+                    onComplete: (summary) => setQuizMsg(summary.totalMistakes === 0 ? '🎉 ถูกทุกขีดเลย!' : ['🎉 พลาด {n} ครั้งระหว่างทาง', { n: summary.totalMistakes }]),
                 });
             };
 
-            if (libErr) return <p className="text-xs text-gray-400 mt-2">โหลดแผนภาพลำดับขีดไม่สำเร็จ ลองรีเฟรชหน้าใหม่</p>;
+            if (libErr) return <p className="text-xs text-gray-400 mt-2">{tx('โหลดแผนภาพลำดับขีดไม่สำเร็จ ลองรีเฟรชหน้าใหม่')}</p>;
 
             return (
                 <div>
                     <div ref={containerRef} className="mx-auto rounded-xl border-2 border-gray-100 bg-white" style={{ width: dim, height: dim }}></div>
                     <div className="flex items-center justify-center gap-1.5 mt-1.5 flex-wrap">
                         <button type="button" onClick={playAnimation}
-                            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition ${mode === 'view' ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>▶ ดู</button>
+                            className="chip" aria-pressed={mode === 'view'}>{tx('▶ ดู')}</button>
                         <button type="button" onClick={startQuiz}
-                            className={`text-[11px] font-semibold px-2.5 py-1 rounded-full border transition ${mode === 'quiz' ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>✏️ ลองเขียน</button>
+                            className="chip" aria-pressed={mode === 'quiz'}>{tx('✏️ ลองเขียน')}</button>
                     </div>
-                    {quizMsg && <p className="text-[11px] text-center text-gray-500 mt-1 max-w-[140px]">{quizMsg}</p>}
+                    {quizMsg && <p className="text-xs text-center text-gray-500 mt-1 max-w-[140px]">{txs(quizMsg)}</p>}
                 </div>
             );
         }
@@ -2206,14 +2238,14 @@
         //    (ที่เคยปนอยู่ในคิวเดียวกับตัวอักษร) ยังฝึกได้อยู่ ไม่ใช่หายไปเฉยๆ แค่แยกเป็นโหมดที่ต้องกดเลือกเอง
         function PoolModeToggle({ mode, setMode }) {
             return (
-                <div className="inline-flex rounded-lg bg-gray-100 p-0.5 mb-3">
+                <div className="segmented mb-3">
                     <button type="button" onClick={() => setMode('script')}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold transition ${mode === 'script' ? 'bg-white text-brand shadow-sm' : 'text-gray-400'}`}>
-                        <TypeIcon /> ตัวอักษร
+                        aria-pressed={mode === 'script'}>
+                        <TypeIcon /> {tx('ตัวอักษร')}
                     </button>
                     <button type="button" onClick={() => setMode('word')}
-                        className={`flex items-center gap-1 px-3 py-1.5 rounded-md text-xs font-bold transition ${mode === 'word' ? 'bg-white text-brand shadow-sm' : 'text-gray-400'}`}>
-                        <BookIcon /> คำศัพท์
+                        aria-pressed={mode === 'word'}>
+                        <BookIcon /> {tx('คำศัพท์')}
                     </button>
                 </div>
             );
@@ -2243,14 +2275,14 @@
             if (!queue.length) return (
                 <div>
                     <PoolModeToggle mode={poolMode} setMode={setPoolMode} />
-                    <p className="text-sm text-gray-400">{poolMode === 'word' ? 'ยังไม่มีคำศัพท์ให้ฝึก' : 'ยังไม่มีตัวอักษรให้ฝึก'}</p>
+                    <p className="text-sm text-gray-400">{poolMode === 'word' ? tx('ยังไม่มีคำศัพท์ให้ฝึก') : tx('ยังไม่มีตัวอักษรให้ฝึก')}</p>
                 </div>
             );
             const item = queue[qIdx % queue.length];
             const c = item.extra;
             const langCode = LANGS[langId].code;
             const reading = c.pinyin || c.reading;
-            const readingLabel = langId === 'lang-jp' ? 'โรมาจิ' : langId === 'lang-yue' ? 'จยุตผิง' : 'pinyin';
+            const readingLabel = langId === 'lang-jp' ? tx('โรมาจิ') : langId === 'lang-yue' ? tx('จยุตผิง') : 'pinyin';
 
             const checkReading = () => setReadingResult(gradeAnswer(readingTyped, reading));
             const next = () => { setQIdx(i => i + 1); setRevealed(false); setReadingTyped(''); setReadingResult(null); };
@@ -2260,23 +2292,23 @@
                 <div>
                     <PoolModeToggle mode={poolMode} setMode={setPoolMode} />
                     <div className="text-xs font-bold text-gray-400 uppercase mb-3">
-                        {c.set} · {poolMode === 'script' ? 'ทั้งหมด' : 'ค้างทวน'} {queue.length} ตัว
+                        <span data-i18n-skip>{c.set}</span> · {poolMode === 'script' ? tx('ทั้งหมด') : tx('ค้างทวน')} {tx('{n} ตัว', { n: queue.length })}
                     </div>
                     <div className="text-center py-6">
                         <div className="text-7xl font-bold text-gray-900 mb-4 pt-3 leading-[1.3]">{c.char}</div>
                         {!revealed ? (
                             <button onClick={() => { setRevealed(true); speak(c.char, langCode); }}
-                                className="px-5 py-2.5 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                                แตะเพื่อดูคำอ่าน/ความหมาย
+                                className="btn">
+                                {tx('แตะเพื่อดูคำอ่าน/ความหมาย')}
                             </button>
                         ) : (
                             <div className="space-y-1">
                                 <p className="text-xl font-bold text-gray-800">{reading}</p>
                                 {c.meaningTh && <p className="text-gray-500">{c.meaningTh}</p>}
-                                {c.radical && <p className="text-xs text-gray-400 mt-2">ราก: {c.radical} ({c.radicalMeaningTh}) · {c.strokeCount} ขีด</p>}
-                                {!c.radical && c.strokeCount && <p className="text-xs text-gray-400 mt-2">{c.strokeCount} ขีด</p>}
-                                <button onClick={() => speak(c.char, langCode)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold">
-                                    <Volume2 /> ฟังอีกครั้ง
+                                {c.radical && <p className="text-sm text-gray-400 mt-2"><span data-i18n-skip>{tx('ราก: {r} ({m}) · {n} ขีด', { r: c.radical, m: c.radicalMeaningTh, n: c.strokeCount })}</span></p>}
+                                {!c.radical && c.strokeCount && <p className="text-sm text-gray-400 mt-2">{tx('{n} ขีด', { n: c.strokeCount })}</p>}
+                                <button onClick={() => speak(c.char, langCode)} className="btn ghost sm mt-2">
+                                    <Volume2 /> {tx('ฟังอีกครั้ง')}
                                 </button>
                                 <StrokeOrderDiagram char={c.char} langId={langId} />
                             </div>
@@ -2286,31 +2318,31 @@
                     {revealed && (
                         <>
                             <div className="border-t border-gray-100 pt-4 mt-2">
-                                <p className="text-sm font-semibold text-gray-700 mb-2">พิมพ์คำอ่าน ({readingLabel}) ของตัวนี้:</p>
+                                <p className="text-sm font-semibold text-gray-700 mb-2">{tx('พิมพ์คำอ่าน ({label}) ของตัวนี้:', { label: readingLabel })}</p>
                                 <div className="flex gap-2">
                                     <input value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && !readingResult && checkReading()}
-                                        disabled={!!readingResult} placeholder={langId === 'lang-jp' ? 'เช่น a' : 'เช่น nǐ'}
-                                        className="flex-1 border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-2.5 text-base disabled:bg-gray-50" />
+                                        disabled={!!readingResult} placeholder={langId === 'lang-jp' ? tx('เช่น a') : tx('เช่น nǐ')}
+                                        className="input flex-1" />
                                     {!readingResult && (
                                         <button onClick={checkReading} disabled={!readingTyped.trim()}
-                                            className="px-4 rounded-xl font-bold bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจ</button>
+                                            className="btn primary">{tx('ตรวจ')}</button>
                                     )}
                                 </div>
                                 {readingResult && (
                                     <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-green-600' : readingResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
-                                        {readingResult === 'correct' ? '✅ ถูกต้อง' : readingResult === 'almost' ? '🟡 เกือบถูก' : `❌ ที่ถูกคือ ${reading}`}
+                                        {readingResult === 'correct' ? tx('✅ ถูกต้อง') : readingResult === 'almost' ? tx('🟡 เกือบถูก') : tx('❌ ที่ถูกคือ {a}', { a: reading })}
                                     </p>
                                 )}
                             </div>
 
                             <div className="mt-6">
-                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน?</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('จำตัวนี้ได้แค่ไหน?')}</p>
                                 <div className="grid grid-cols-4 gap-2">
-                                    <button onClick={() => rate(1)} className="py-2.5 rounded-xl font-bold text-xs bg-red-100 text-red-700">ลืมแล้ว</button>
-                                    <button onClick={() => rate(2)} className="py-2.5 rounded-xl font-bold text-xs bg-orange-100 text-orange-700">ยาก</button>
-                                    <button onClick={() => rate(3)} className="py-2.5 rounded-xl font-bold text-xs bg-green-100 text-green-700">จำได้ (+10)</button>
-                                    <button onClick={() => rate(4)} className="py-2.5 rounded-xl font-bold text-xs bg-teal-100 text-teal-700">ง่ายมาก (+10)</button>
+                                    <button onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
+                                    <button onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
+                                    <button onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
+                                    <button onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
                                 </div>
                             </div>
                         </>
@@ -2340,9 +2372,9 @@
             return (
                 <div className="mb-4 rounded-xl border border-gray-200 overflow-hidden">
                     <button type="button" onClick={() => setOpen(o => !o)}
-                        className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-gray-50 hover:bg-gray-100 text-left">
-                        <span className="text-sm font-bold text-gray-700">📐 กฎการวางวรรณยุกต์ 6 เสียง (thanh điệu)</span>
-                        <span className="text-gray-400 text-xs">{open ? 'ซ่อน ▲' : 'ดู ▼'}</span>
+                        className="btn ghost w-full justify-between">
+                        <span className="text-sm font-bold text-gray-700">{tx('📐 กฎการวางวรรณยุกต์ 6 เสียง (thanh điệu)')}</span>
+                        <span className="text-gray-500 text-xs">{open ? tx('ซ่อน ▲') : tx('ดู ▼')}</span>
                     </button>
                     {open && (
                         <div className="p-4 space-y-5">
@@ -2358,7 +2390,7 @@
                                 ))}
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">ลำดับการตัดสินใจ</p>
+                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">{tx('ลำดับการตัดสินใจ')}</p>
                                 <div className="space-y-2">
                                     {VN_TONE_DATA.rules.map(r => (
                                         <div key={r.step} className="flex gap-2.5 text-sm">
@@ -2373,7 +2405,7 @@
                                 </div>
                             </div>
                             <div>
-                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">ข้อยกเว้น (ตัวหลอก)</p>
+                                <p className="text-xs font-bold text-gray-500 uppercase mb-2">{tx('ข้อยกเว้น (ตัวหลอก)')}</p>
                                 <div className="space-y-2">
                                     {VN_TONE_DATA.exceptions.map((ex, i) => (
                                         <div key={i} className="rounded-lg bg-amber-50 border border-amber-100 p-2.5">
@@ -2410,14 +2442,14 @@
                 <div>
                     <PoolModeToggle mode={poolMode} setMode={setPoolMode} />
                     {langId === 'lang-vn' && <VnToneGuide />}
-                    <p className="text-sm text-gray-400">{poolMode === 'word' ? 'ยังไม่มีคำศัพท์ให้ฝึก' : 'ยังไม่มีตัวอักษรให้ฝึก'}</p>
+                    <p className="text-sm text-gray-400">{poolMode === 'word' ? tx('ยังไม่มีคำศัพท์ให้ฝึก') : tx('ยังไม่มีตัวอักษรให้ฝึก')}</p>
                 </div>
             );
             const item = queue[qIdx % queue.length];
             const c = item.extra;
             const langCode = LANGS[langId].code;
             const readingLabelSuffix = langId === 'lang-kr' ? ' (romaja)' : '';
-            const readingPlaceholder = langId === 'lang-kr' ? 'เช่น g/k' : 'เช่น ei';
+            const readingPlaceholder = langId === 'lang-kr' ? tx('เช่น g/k') : tx('เช่น ei');
 
             const checkReading = () => setReadingResult(gradeAnswer(readingTyped, c.reading));
             const next = () => { setQIdx(i => i + 1); setRevealed(false); setReadingTyped(''); setReadingResult(null); };
@@ -2429,23 +2461,23 @@
                     <PoolModeToggle mode={poolMode} setMode={setPoolMode} />
                     {langId === 'lang-vn' && <VnToneGuide />}
                     <div className="text-xs font-bold text-gray-400 uppercase mb-3">
-                        {c.set} · {poolMode === 'script' ? 'ทั้งหมด' : 'ค้างทวน'} {queue.length} ตัว
+                        <span data-i18n-skip>{c.set}</span> · {poolMode === 'script' ? tx('ทั้งหมด') : tx('ค้างทวน')} {tx('{n} ตัว', { n: queue.length })}
                     </div>
                     <div className="text-center py-6">
                         <div className="text-7xl font-bold text-gray-900 mb-4 pt-3 leading-[1.3]">{c.char}</div>
                         {!revealed ? (
                             <button onClick={() => { setRevealed(true); speak(c.char, langCode); }}
-                                className="px-5 py-2.5 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                                แตะเพื่อดูชื่อ/คำอ่าน
+                                className="btn">
+                                {tx('แตะเพื่อดูชื่อ/คำอ่าน')}
                             </button>
                         ) : (
                             <div className="space-y-1">
                                 <p className="text-xl font-bold text-gray-800">{c.name}</p>
-                                {c.reading && <p className="text-gray-500 text-sm">เสียง: {c.reading}</p>}
+                                {c.reading && <p className="text-gray-500 text-sm">{tx('เสียง:')} <span data-i18n-skip>{c.reading}</span></p>}
                                 {c.note && <p className="text-xs text-gray-400 mt-1">{c.note}</p>}
-                                {c.formedFrom && <p className="text-xs text-gray-400 mt-2">ประกอบจาก: {c.formedFrom}</p>}
-                                <button onClick={() => speak(c.char, langCode)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold">
-                                    <Volume2 /> ฟังอีกครั้ง
+                                {c.formedFrom && <p className="text-sm text-gray-400 mt-2">{tx('ประกอบจาก:')} <span data-i18n-skip>{c.formedFrom}</span></p>}
+                                <button onClick={() => speak(c.char, langCode)} className="btn ghost sm mt-2">
+                                    <Volume2 /> {tx('ฟังอีกครั้ง')}
                                 </button>
                                 <div className="mt-4 max-w-xs mx-auto">
                                     {langId === 'lang-kr' && KR_STROKE_PATHS[c.char] ? (
@@ -2478,32 +2510,32 @@
                         <>
                             {c.reading && (
                                 <div className="border-t border-gray-100 pt-4 mt-2">
-                                    <p className="text-sm font-semibold text-gray-700 mb-2">พิมพ์คำอ่าน{readingLabelSuffix}ของตัวนี้:</p>
+                                    <p className="text-sm font-semibold text-gray-700 mb-2">{tx('พิมพ์คำอ่านของตัวนี้:')}{readingLabelSuffix}</p>
                                     <div className="flex gap-2">
                                         <input value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && !readingResult && checkReading()}
                                             disabled={!!readingResult} placeholder={readingPlaceholder}
-                                            className="flex-1 border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-2.5 text-base disabled:bg-gray-50" />
+                                            className="input flex-1" />
                                         {!readingResult && (
                                             <button onClick={checkReading} disabled={!readingTyped.trim()}
-                                                className="px-4 rounded-xl font-bold bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจ</button>
+                                                className="btn primary">{tx('ตรวจ')}</button>
                                         )}
                                     </div>
                                     {readingResult && (
                                         <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-green-600' : readingResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
-                                            {readingResult === 'correct' ? '✅ ถูกต้อง' : readingResult === 'almost' ? '🟡 เกือบถูก' : `❌ ที่ถูกคือ ${c.reading}`}
+                                            {readingResult === 'correct' ? tx('✅ ถูกต้อง') : readingResult === 'almost' ? tx('🟡 เกือบถูก') : tx('❌ ที่ถูกคือ {a}', { a: c.reading })}
                                         </p>
                                     )}
                                 </div>
                             )}
 
                             <div className="mt-6">
-                                <p className="text-xs text-gray-400 mb-2">จำตัวนี้ได้แค่ไหน?</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('จำตัวนี้ได้แค่ไหน?')}</p>
                                 <div className="grid grid-cols-4 gap-2">
-                                    <button onClick={() => rate(1)} className="py-2.5 rounded-xl font-bold text-xs bg-red-100 text-red-700">ลืมแล้ว</button>
-                                    <button onClick={() => rate(2)} className="py-2.5 rounded-xl font-bold text-xs bg-orange-100 text-orange-700">ยาก</button>
-                                    <button onClick={() => rate(3)} className="py-2.5 rounded-xl font-bold text-xs bg-green-100 text-green-700">จำได้ (+10)</button>
-                                    <button onClick={() => rate(4)} className="py-2.5 rounded-xl font-bold text-xs bg-teal-100 text-teal-700">ง่ายมาก (+10)</button>
+                                    <button onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
+                                    <button onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
+                                    <button onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
+                                    <button onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
                                 </div>
                             </div>
                         </>
@@ -2535,7 +2567,7 @@
                     const t = (r || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
-                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+                }).catch(e => setOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
             const submit = () => {
@@ -2550,7 +2582,7 @@
                     if (!msg || msg.jobId !== jobId) return;
                     if (msg.type === 'model-progress') {
                         const pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-                        setFeedback('⏳ กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct);
+                        setFeedback(['⏳ กำลังโหลดโมเดล (ครั้งแรกเท่านั้น) {f} {p}', { f: msg.file, p: pct }]);
                     } else if (msg.type === 'fallback') {
                         setFeedback('⚠️ ' + msg.message);
                     } else if (msg.type === 'token') {
@@ -2578,37 +2610,37 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">แต่งประโยคภาษา{lang.title}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-1">{tx('แต่งประโยคภาษา{l}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ', { l: langTitle(langId) })}</h3>
 
-                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                    <div className="segmented mb-2">
                         <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
-                            className={`p-2 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                            aria-pressed={inputMode === 'type'}><KeyboardIcon /></button>
                         <button type="button" onClick={() => setInputMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
-                            className={`p-2 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                            aria-pressed={inputMode === 'write'}><PencilSmallIcon /></button>
                     </div>
 
                     {inputMode === 'type' ? (
                         <textarea value={text} onChange={e => setText(e.target.value)} rows={4}
-                            placeholder={`เขียนเป็นภาษา${lang.title}ตรงนี้...`}
-                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y" />
+                            placeholder={tx('เขียนเป็นภาษา{l}ตรงนี้...', { l: langTitle(langId) })}
+                            className="textarea w-full resize-y" />
                     ) : (
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
-                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
-                            {text && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{text}"</p>}
+                            {text && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{text}</span>"</p>}
                         </div>
                     )}
 
                     <button onClick={submit} disabled={!text.trim() || status === 'loading'}
-                        className="mt-3 px-5 py-2.5 rounded-xl font-bold text-sm bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">
-                        {status === 'loading' ? 'กำลังตรวจ...' : 'ส่งให้ AI ตรวจ (+15 XP)'}
+                        className="btn primary mt-3">
+                        {status === 'loading' ? tx('กำลังตรวจ...') : tx('ส่งให้ AI ตรวจ (+15 XP)')}
                     </button>
-                    {status === 'error' && <AiFeedbackErrorNote>{errMsg}</AiFeedbackErrorNote>}
+                    {status === 'error' && <AiFeedbackErrorNote>{txs(errMsg)}</AiFeedbackErrorNote>}
                     {feedback && (
-                        <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{feedback}</div>
+                        <div className="mt-4 p-4 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(feedback)}</div>
                     )}
                 </div>
             );
@@ -2630,7 +2662,7 @@
 
             useEffect(() => { setText(''); setChecked(null); setAiFeedback(''); setAiStatus(''); setInputMode('type'); setOcrStatus(''); }, [langId]);
 
-            if (!words.length) return <p className="text-sm text-gray-400">ยังไม่มีคำศัพท์ให้ทวนตอนนี้</p>;
+            if (!words.length) return <p className="text-sm text-gray-400">{tx('ยังไม่มีคำศัพท์ให้ทวนตอนนี้')}</p>;
 
             const runOcr = () => {
                 if (!canvasEl) return;
@@ -2645,7 +2677,7 @@
                     const t = (r || '').trim();
                     if (t) { setText(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนส่งตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
-                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+                }).catch(e => setOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
             const checkUsage = () => {
@@ -2689,7 +2721,7 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-1">แต่งประโยคภาษา{lang.title} โดยใช้คำเหล่านี้ให้ได้มากที่สุด</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-1">{tx('แต่งประโยคภาษา{l} โดยใช้คำเหล่านี้ให้ได้มากที่สุด', { l: langTitle(langId) })}</h3>
                     <div className="flex flex-wrap gap-2 my-3">
                         {words.map(w => {
                             const used = checked && checked.find(c => c.key === w.key);
@@ -2700,41 +2732,41 @@
                             );
                         })}
                     </div>
-                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                    <div className="segmented mb-2">
                         <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
-                            className={`p-2 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                            aria-pressed={inputMode === 'type'}><KeyboardIcon /></button>
                         <button type="button" onClick={() => setInputMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
-                            className={`p-2 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                            aria-pressed={inputMode === 'write'}><PencilSmallIcon /></button>
                     </div>
 
                     {inputMode === 'type' ? (
                         <textarea value={text} onChange={e => setText(e.target.value)} rows={3}
-                            placeholder={`แต่งประโยคภาษา${lang.title}ที่นี่...`}
-                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y" />
+                            placeholder={tx('แต่งประโยคภาษา{l}ที่นี่...', { l: langTitle(langId) })}
+                            className="textarea w-full resize-y" />
                     ) : (
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
-                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
-                            {text && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{text}"</p>}
+                            {text && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{text}</span>"</p>}
                         </div>
                     )}
                     <div className="flex flex-wrap gap-2 mt-3">
                         <button onClick={checkUsage} disabled={!text.trim()}
-                            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจว่าใช้คำครบไหม</button>
+                            className="btn primary">{tx('ตรวจว่าใช้คำครบไหม')}</button>
                         <button onClick={checkWithAi} disabled={!text.trim() || aiStatus === 'loading'}
-                            className="px-4 py-2.5 rounded-xl font-bold text-sm border-2 border-brand text-brand disabled:opacity-40">
-                            {aiStatus === 'loading' ? 'กำลังตรวจ...' : 'ตรวจไวยากรณ์ด้วย AI'}
+                            className="btn">
+                            {aiStatus === 'loading' ? tx('กำลังตรวจ...') : tx('ตรวจไวยากรณ์ด้วย AI')}
                         </button>
                     </div>
                     {checked && (
                         <p className="text-sm mt-3 font-semibold text-gray-700">
-                            ใช้คำครบ {checked.filter(c => c.used).length}/{checked.length} คำ {checked.every(c => c.used) ? '🎉 ครบทุกคำ!' : ''}
+                            {tx('ใช้คำครบ {a}/{b} คำ', { a: checked.filter(c => c.used).length, b: checked.length })} {checked.every(c => c.used) ? tx('🎉 ครบทุกคำ!') : ''}
                         </p>
                     )}
-                    {aiFeedback && <div className="mt-3 p-4 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{aiFeedback}</div>}
+                    {aiFeedback && <div className="mt-3 p-4 rounded-xl bg-gray-50 border border-gray-100 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(aiFeedback)}</div>}
                 </div>
             );
         }
@@ -2753,7 +2785,7 @@
 
             useEffect(() => { setQIdx(0); setTyped(''); setResult(null); setInputMode('type'); setOcrStatus(''); }, [langId]);
 
-            if (!words.length) return <p className="text-sm text-gray-400">ยังไม่มีคำศัพท์ให้ทวนตอนนี้</p>;
+            if (!words.length) return <p className="text-sm text-gray-400">{tx('ยังไม่มีคำศัพท์ให้ทวนตอนนี้')}</p>;
             const item = words[qIdx % words.length];
 
             const runOcr = () => {
@@ -2769,7 +2801,7 @@
                     const t = (r || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจคำตอบ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
-                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+                }).catch(e => setOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
             const check = () => {
@@ -2783,44 +2815,44 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">ฟังเสียงแล้วพิมพ์เป็นภาษา{lang.title} ตามที่ได้ยิน:</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{tx('ฟังเสียงแล้วพิมพ์เป็นภาษา{l} ตามที่ได้ยิน:', { l: langTitle(langId) })}</h3>
                     <button onClick={() => speak(item.word, lang.code)}
-                        className="flex items-center gap-2 px-5 py-3 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                        <Volume2 /> กดฟังเสียง (ฟังซ้ำได้)
+                        className="btn mb-4">
+                        <Volume2 /> {tx('กดฟังเสียง (ฟังซ้ำได้)')}
                     </button>
 
-                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                    <div className="segmented mb-2">
                         <button type="button" onClick={() => setInputMode('type')} disabled={!!result} title="พิมพ์" aria-label="พิมพ์"
-                            className={`p-2 disabled:opacity-40 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                            aria-pressed={inputMode === 'type'}><KeyboardIcon /></button>
                         <button type="button" onClick={() => setInputMode('write')} disabled={!!result} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
-                            className={`p-2 disabled:opacity-40 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                            aria-pressed={inputMode === 'write'}><PencilSmallIcon /></button>
                     </div>
 
                     {inputMode === 'type' ? (
                         <input value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
-                            disabled={!!result} placeholder="พิมพ์คำที่ได้ยิน..."
-                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50" />
+                            disabled={!!result} placeholder={tx('พิมพ์คำที่ได้ยิน...')}
+                            className="input w-full" />
                     ) : (
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
-                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
-                            {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
+                            {typed && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{typed}</span>"</p>}
                         </div>
                     )}
                     {result && (
                         <div className={`mt-4 p-4 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : result === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
-                            <p className="text-sm text-gray-700">คำตอบที่ถูกต้องคือ <strong>{item.word}</strong> ({item.thai})</p>
+                            <p className="text-sm text-gray-700">{tx('คำตอบที่ถูกต้องคือ')} <strong data-i18n-skip>{item.word}</strong> (<span data-i18n-skip>{item.thai}</span>)</p>
                             {result !== 'correct' && <SpellDiff typed={typed} correct={item.word} />}
                         </div>
                     )}
                     {!result ? (
                         <button onClick={check} disabled={!typed.trim()}
-                            className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                            className="btn primary lg w-full mt-4">{tx('ตรวจคำตอบ')}</button>
                     ) : (
-                        <button onClick={next} className="mt-4 w-full py-3 rounded-xl font-bold bg-brand text-white">ข้อต่อไป</button>
+                        <button onClick={next} className="btn primary lg w-full mt-4">{tx('ข้อต่อไป')}</button>
                     )}
                 </div>
             );
@@ -2855,7 +2887,7 @@
                     const t = (r || '').trim();
                     if (t) { setTyped(prev => (prev ? prev + ' ' : '') + t); setInputMode('type'); setOcrStatus('✅ แปลงเป็นข้อความแล้ว — ตรวจทานความถูกต้องก่อนกดตรวจ'); }
                     else setOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
-                }).catch(e => setOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+                }).catch(e => setOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
             const checkHeuristic = () => {
@@ -2910,50 +2942,50 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-2">แปลประโยคนี้เป็นภาษา{lang.title}:</h3>
-                    <p className="text-xl font-bold text-gray-900 mb-4">{item.thai}</p>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-2">{tx('แปลประโยคนี้เป็นภาษา{l}:', { l: langTitle(langId) })}</h3>
+                    <p className="text-xl font-bold text-gray-900 mb-4" data-i18n-skip>{item.thai}</p>
 
-                    <div className="flex rounded-full border border-gray-200 overflow-hidden w-fit mb-2">
+                    <div className="segmented mb-2">
                         <button type="button" onClick={() => setInputMode('type')} title="พิมพ์" aria-label="พิมพ์"
-                            className={`p-2 ${inputMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                            aria-pressed={inputMode === 'type'}><KeyboardIcon /></button>
                         <button type="button" onClick={() => setInputMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
-                            className={`p-2 ${inputMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                            aria-pressed={inputMode === 'write'}><PencilSmallIcon /></button>
                     </div>
 
                     {inputMode === 'type' ? (
                         <textarea value={typed} onChange={e => setTyped(e.target.value)} rows={2}
-                            placeholder={`พิมพ์คำแปลภาษา${lang.title}...`}
-                            className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-base resize-y" />
+                            placeholder={tx('พิมพ์คำแปลภาษา{l}...', { l: langTitle(langId) })}
+                            className="textarea w-full resize-y" />
                     ) : (
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ</button>
-                                {ocrStatus && <span className="text-xs text-gray-400">{ocrStatus}</span>}
+                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
-                            {typed && <p className="text-xs text-gray-500 mt-2">ข้อความล่าสุด: "{typed}"</p>}
+                            {typed && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{typed}</span>"</p>}
                         </div>
                     )}
                     <div className="flex flex-wrap gap-2 mt-3">
                         <button onClick={checkHeuristic} disabled={!typed.trim()}
-                            className="px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-900 text-white disabled:bg-gray-200 disabled:text-gray-400">ตรวจแบบเร็ว</button>
+                            className="btn primary">{tx('ตรวจแบบเร็ว')}</button>
                         <button onClick={checkWithAi} disabled={!typed.trim() || aiStatus === 'loading'}
-                            className="px-4 py-2.5 rounded-xl font-bold text-sm border-2 border-brand text-brand disabled:opacity-40">
-                            {aiStatus === 'loading' ? 'กำลังตรวจ...' : 'ตรวจด้วย AI (แม่นกว่า)'}
+                            className="btn">
+                            {aiStatus === 'loading' ? tx('กำลังตรวจ...') : tx('ตรวจด้วย AI (แม่นกว่า)')}
                         </button>
-                        <button onClick={next} className="px-4 py-2.5 rounded-xl font-bold text-sm text-gray-500 hover:text-gray-700">ข้าม/ข้อใหม่</button>
+                        <button onClick={next} className="btn ghost">{tx('ข้าม/ข้อใหม่')}</button>
                     </div>
                     {heuristicResult && (
                         <p className={`text-sm mt-3 font-semibold ${heuristicResult === 'correct' ? 'text-green-600' : heuristicResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
-                            {heuristicResult === 'correct' ? '✅ ตรงตัวอย่างอ้างอิง (+10 XP)' : heuristicResult === 'almost' ? '🟡 ใกล้เคียง' : '❌ ไม่ตรงตัวอย่างอ้างอิง'}
-                            <span className="block text-gray-400 font-normal mt-1">
-                                ตัวอย่างคำแปล: {item.target} — (ยังไม่ใช้ AI เช็คแค่ตรงตัวอย่างนี้เป๊ะๆ อาจฟ้องผิดทั้งที่ความหมายถูกได้ ลองกด "ตรวจด้วย AI" เพื่อความแม่นยำกว่า)
+                            {heuristicResult === 'correct' ? tx('✅ ตรงตัวอย่างอ้างอิง (+10 XP)') : heuristicResult === 'almost' ? tx('🟡 ใกล้เคียง') : tx('❌ ไม่ตรงตัวอย่างอ้างอิง')}
+                            <span className="block text-gray-500 font-normal mt-1">
+                                {tx('ตัวอย่างคำแปล:')} <span data-i18n-skip>{item.target}</span>
                             </span>
                         </p>
                     )}
                     {aiFeedback && (
-                        <div className={`mt-3 p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed ${aiVerdict === 'correct' ? 'bg-green-50 border-green-100 text-green-800' : aiVerdict === 'wrong' ? 'bg-red-50 border-red-100 text-red-800' : 'bg-gray-50 border-gray-100 text-gray-700'}`}>
-                            {aiFeedback}
+                        <div className={`mt-3 p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed ${aiVerdict === 'correct' ? 'bg-green-50 border-green-100 text-green-800' : aiVerdict === 'wrong' ? 'bg-red-50 border-red-100 text-red-800' : 'bg-gray-50 border-gray-100 text-gray-700'}`} data-i18n-skip>
+                            {txs(aiFeedback)}
                         </div>
                     )}
                 </div>
@@ -3008,11 +3040,11 @@
                         <div>
                             <div className="flex items-center justify-between gap-3 flex-wrap">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-xs text-gray-400 font-semibold shrink-0">กำลังฝึกเขียน:</span>
+                                    <span className="text-xs text-gray-400 font-semibold shrink-0">{tx('กำลังฝึกเขียน:')}</span>
                                     <span className="px-3 py-1.5 rounded-full text-sm font-bold bg-brandLight text-brand truncate">{lang.title}</span>
                                 </div>
                                 <button type="button" onClick={() => setLangPickerOpen(o => !o)}
-                                    className="shrink-0 text-xs font-semibold text-gray-500 hover:text-brand border border-gray-200 hover:border-brand rounded-full px-3 py-1.5 transition">
+                                    className="btn sm shrink-0">
                                     {langPickerOpen ? 'ปิด' : 'เปลี่ยนภาษา'}
                                 </button>
                             </div>
@@ -3020,7 +3052,7 @@
                                 <div className="flex flex-wrap gap-2 mt-3 p-3 bg-white border border-gray-200 rounded-xl">
                                     {LANG_IDS.map(id => (
                                         <button key={id} onClick={() => { setLangId(id); setLangPickerOpen(false); }}
-                                            className={`relative px-3 py-1.5 rounded-full text-xs font-semibold border transition ${langId === id ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}>
+                                            className="chip relative" aria-pressed={langId === id}>
                                             {LANGS[id].title}
                                             {dueCounts && dueCounts[id] > 0 && (
                                                 <span className={`ml-1.5 inline-flex items-center justify-center min-w-[15px] h-[15px] px-0.5 rounded-full text-[9px] font-bold leading-none ${langId === id ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
@@ -3036,14 +3068,14 @@
                         {modeNotice && (
                             <div className="flex items-center justify-between gap-3 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-3 py-2">
                                 <span>ℹ️ {modeNotice}</span>
-                                <button type="button" onClick={() => setModeNotice('')} className="text-amber-500 hover:text-amber-700 font-bold shrink-0">✕</button>
+                                <button type="button" onClick={() => setModeNotice('')} className="btn ghost icon sm shrink-0" aria-label={tx('ปิด')}>✕</button>
                             </div>
                         )}
 
-                        <div className="flex rounded-xl border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
+                        <div className="segmented flex-wrap">
                             {SUB_MODES.map(m => (
                                 <button key={m.key} onClick={() => setSubMode(m.key)}
-                                    className={`px-3 py-1.5 flex items-center gap-1.5 ${subMode === m.key ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
+                                    aria-pressed={subMode === m.key}>
                                     <m.Icon /> {m.label}
                                     {m.srsBased && langDue > 0 && (
                                         <span className={`text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-0.5 leading-none ${subMode === m.key ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
@@ -3276,8 +3308,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบ HSK/BCT รองรับเฉพาะภาษาจีนตอนนี้</p>
-                            <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีน</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบ HSK/BCT รองรับเฉพาะภาษาจีนตอนนี้')}</p>
+                            <button onClick={() => setLangId('lang-cn')} className="btn primary">{tx('สลับไปภาษาจีน')}</button>
                         </div>
                     </div>
                 );
@@ -3288,14 +3320,14 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบภาษาจีน (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">เลือกประเภทข้อสอบก่อน:</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">{tx('ข้อสอบภาษาจีน (จำลอง)')}</h2>
+                            <p className="text-sm text-gray-500 mb-5">{tx('เลือกประเภทข้อสอบก่อน:')}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button onClick={() => setExamType('hsk')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                <button onClick={() => setExamType('hsk')} className="stat-card">
                                     <div className="text-lg font-bold text-brand mb-1">HSK</div>
                                     <div className="text-xs text-gray-500">วัดระดับภาษาจีนทั่วไป ใช้สมัครเรียนต่อ/ยื่นวีซ่าทำงานในจีน — มี 3 ระดับ</div>
                                 </button>
-                                <button onClick={() => setExamType('bct')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                <button onClick={() => setExamType('bct')} className="stat-card">
                                     <div className="text-lg font-bold text-brand mb-1">BCT</div>
                                     <div className="text-xs text-gray-500">ภาษาจีนธุรกิจ (ประชุม/อีเมล/เจรจา) เหมาะกับคนทำงานสายติดต่อธุรกิจกับจีน — มี 2 ระดับ</div>
                                 </button>
@@ -3320,13 +3352,13 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6">
-                            <button onClick={() => setExamType(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เปลี่ยนประเภทข้อสอบ</button>
+                            <button onClick={() => setExamType(null)} className="btn ghost sm mb-3">{tx('← เปลี่ยนประเภทข้อสอบ')}</button>
                             <h2 className="text-xl font-bold text-gray-800 mb-1">{examType === 'bct' ? 'ข้อสอบ BCT (จำลอง)' : 'ข้อสอบ HSK (จำลอง)'}</h2>
                             <p className="text-sm text-gray-500 mb-5">โครงสร้าง/จำนวนข้อยึดตามข้อสอบ{examType === 'bct' ? ' BCT' : ' HSK 2.0'} ทางการจริง เลือกระดับที่จะทดสอบ:</p>
                             <div className={`grid grid-cols-1 ${examType === 'bct' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                                 {levels.map(({ lvl, info }) => (
                                     <button key={lvl} onClick={() => start(examType, lvl)}
-                                        className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-center transition bg-white">
+                                        className="stat-card text-center items-center">
                                         <div className="text-2xl font-bold text-brand mb-1">{examType === 'bct' ? `BCT (${lvl})` : `HSK${lvl}`}</div>
                                         <div className="text-xs text-gray-400">{info}</div>
                                     </button>
@@ -3373,9 +3405,9 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ระดับเดิม</button>
-                                <button onClick={backToLevels} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เลือกระดับใหม่</button>
-                                <button onClick={backToType} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เปลี่ยนเป็น{examType === 'bct' ? ' HSK' : ' BCT'}</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ระดับเดิม')}</button>
+                                <button onClick={backToLevels} className="btn">{tx('เลือกระดับใหม่')}</button>
+                                <button onClick={backToType} className="btn">เปลี่ยนเป็น{examType === 'bct' ? ' HSK' : ' BCT'}</button>
                             </div>
                         </div>
                     </div>
@@ -3392,7 +3424,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -3500,21 +3532,21 @@
                         {/* ── listen-tf / listen-mc: มีปุ่มฟังเสียงแทนการโชว์ตัวอักษรจีนตรงๆ (จำลองส่วนฟัง) ── */}
                         {(q.type === 'listen-tf' || q.type === 'listen-mc') && (
                             <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                <p className="text-xs text-gray-400 mb-3">🎧 กดฟังแล้วตอบ</p>
-                                <button onClick={() => speak(q.word, 'zh')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                                    <Volume2 /> ฟังเสียง (ฟังซ้ำได้)
+                                <p className="text-xs text-gray-400 mb-3">{tx('🎧 กดฟังแล้วตอบ')}</p>
+                                <button onClick={() => speak(q.word, 'zh')} className="btn">
+                                    <Volume2 /> {tx('ฟังเสียง (ฟังซ้ำได้)')}
                                 </button>
                             </div>
                         )}
 
                         {q.type === 'listen-tf' && (
                             <>
-                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => pickTf(true)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
                                     <button onClick={() => pickTf(false)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -3525,12 +3557,12 @@
                                     <div className="text-4xl font-bold text-gray-900 mb-2">{q.word}</div>
                                     <div className="text-sm text-gray-400">{q.pinyin}</div>
                                 </div>
-                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => pickTf(true)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
                                     <button onClick={() => pickTf(false)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -3543,7 +3575,7 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-5xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'zh')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'zh')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -3555,17 +3587,17 @@
                                     <div className="text-2xl font-bold text-gray-900 mb-1">{q.thai}</div>
                                     {q.type === 'write-pinyin-char' && <div className="text-sm text-gray-400">พินอิน: {q.pinyin}</div>}
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกตัวอักษรจีนที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกตัวอักษรจีนที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
 
                         {q.type === 'write-order' && (
                             <>
-                                <p className="text-center text-gray-700 mb-1">เรียงคำให้เป็นประโยคที่แปลว่า:</p>
+                                <p className="text-center text-gray-700 mb-1">{tx('เรียงคำให้เป็นประโยคที่แปลว่า:')}</p>
                                 <p className="text-center font-bold text-gray-900 mb-4">"{q.thai}"</p>
                                 <div className="min-h-[64px] bg-white rounded-xl border-2 border-dashed border-gray-200 p-3 mb-3 flex flex-wrap gap-2 items-center">
-                                    {placedIdx.length === 0 && <span className="text-xs text-gray-300">แตะคำด้านล่างเพื่อเรียงประโยคที่นี่</span>}
+                                    {placedIdx.length === 0 && <span className="text-xs text-gray-300">{tx('แตะคำด้านล่างเพื่อเรียงประโยคที่นี่')}</span>}
                                     {placedIdx.map((idx, i) => (
                                         <span key={i} className="px-3 py-1.5 rounded-lg bg-brandLight text-brand font-semibold text-sm">{q.scrambled[idx]}</span>
                                     ))}
@@ -3574,14 +3606,14 @@
                                     {q.scrambled.map((chunk, idx) => (
                                         !placedIdx.includes(idx) && (
                                             <button key={idx} onClick={() => tapChunk(idx)} disabled={answered}
-                                                className="px-3 py-1.5 rounded-lg border-2 border-gray-200 hover:border-brand text-sm font-semibold text-gray-700 bg-white">{chunk}</button>
+                                                className="btn">{chunk}</button>
                                         )
                                     ))}
                                 </div>
                                 <div className="flex gap-2 mb-2">
-                                    <button onClick={undoChunk} disabled={answered || !placedIdx.length} className="px-4 py-2 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold disabled:opacity-40">ย้อนกลับ 1 คำ</button>
+                                    <button onClick={undoChunk} disabled={answered || !placedIdx.length} className="btn">{tx('ย้อนกลับ 1 คำ')}</button>
                                     <button onClick={submitOrder} disabled={answered || placedIdx.length !== q.chunks.length}
-                                        className="flex-1 py-2 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                                        className="btn primary flex-1">{tx('ตรวจคำตอบ')}</button>
                                 </div>
                                 {answered && (
                                     <p className={`text-sm text-center font-semibold ${placedIdx.map(i => q.scrambled[i]).join('') === q.chunks.join('') ? 'text-green-600' : 'text-red-600'}`}>
@@ -3597,22 +3629,22 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={4} disabled={answered}
                                     placeholder="เขียนเป็นภาษาจีนตรงนี้..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -4179,8 +4211,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาอังกฤษ</p>
-                            <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาอังกฤษ</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาอังกฤษ')}</p>
+                            <button onClick={() => setLangId('lang-en')} className="btn primary">{tx('สลับไปภาษาอังกฤษ')}</button>
                         </div>
                     </div>
                 );
@@ -4190,14 +4222,14 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6">
-                            <h2 className="text-xl font-bold text-gray-800 mb-1">ข้อสอบภาษาอังกฤษ (จำลอง)</h2>
-                            <p className="text-sm text-gray-500 mb-5">เลือกประเภทข้อสอบก่อน:</p>
+                            <h2 className="text-xl font-bold text-gray-800 mb-1">{tx('ข้อสอบภาษาอังกฤษ (จำลอง)')}</h2>
+                            <p className="text-sm text-gray-500 mb-5">{tx('เลือกประเภทข้อสอบก่อน:')}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button onClick={() => start('ielts')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                <button onClick={() => start('ielts')} className="stat-card">
                                     <div className="text-lg font-bold text-brand mb-1">IELTS</div>
                                     <div className="text-xs text-gray-500">วัดระดับภาษาอังกฤษทั่วไป ใช้เรียนต่อ/ยื่นวีซ่า — Listening 40 + Reading 40 + Writing Task 1&amp;2 + Speaking (ฝึกพูด ไม่ให้คะแนน)</div>
                                 </button>
-                                <button onClick={() => start('toeic')} className="p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                <button onClick={() => start('toeic')} className="stat-card">
                                     <div className="text-lg font-bold text-brand mb-1">TOEIC</div>
                                     <div className="text-xs text-gray-500">ภาษาอังกฤษใช้ทำงาน (บริบทออฟฟิศ/ธุรกิจ) — Listening 100 + Reading 100 = 200 ข้อเต็ม ตามโครงสร้างจริง</div>
                                 </button>
@@ -4243,8 +4275,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ชุดเดิม</button>
-                                <button onClick={backToType} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">เปลี่ยนเป็น{examType === 'toeic' ? ' IELTS' : ' TOEIC'}</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ชุดเดิม')}</button>
+                                <button onClick={backToType} className="btn">เปลี่ยนเป็น{examType === 'toeic' ? ' IELTS' : ' TOEIC'}</button>
                             </div>
                         </div>
                     </div>
@@ -4261,7 +4293,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -4358,21 +4390,21 @@
 
                         {(q.type === 'listen-tf' || q.type === 'listen-mc') && (
                             <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                <p className="text-xs text-gray-400 mb-3">🎧 กดฟังแล้วตอบ</p>
-                                <button onClick={() => speak(q.word, 'en')} className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                                    <Volume2 /> ฟังเสียง (ฟังซ้ำได้)
+                                <p className="text-xs text-gray-400 mb-3">{tx('🎧 กดฟังแล้วตอบ')}</p>
+                                <button onClick={() => speak(q.word, 'en')} className="btn">
+                                    <Volume2 /> {tx('ฟังเสียง (ฟังซ้ำได้)')}
                                 </button>
                             </div>
                         )}
 
                         {q.type === 'listen-tf' && (
                             <>
-                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> ใช่หรือไม่?</p>
+                                <p className="text-center text-gray-700 mb-4">ความหมายคือ <span className="font-bold">"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => pickTf(true)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>✅ ถูก</button>
+                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
                                     <button onClick={() => pickTf(false)} disabled={answered}
-                                        className={`py-3 rounded-xl font-bold text-sm border-2 transition ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'border-gray-200 text-gray-400') : 'border-gray-200 hover:border-brand text-gray-700 bg-white'}`}>❌ ผิด</button>
+                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -4385,7 +4417,7 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'en')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'en')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -4396,7 +4428,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-2xl font-bold text-gray-900 mb-1">{q.thai}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำภาษาอังกฤษที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำภาษาอังกฤษที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4406,7 +4438,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่างได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่างได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4422,10 +4454,10 @@
                                     <ToeicPhotoIllustration id={q.svg} />
                                 </div>
                                 <button onClick={() => q.choices.forEach((c, i) => setTimeout(() => speakVoice(c, 'en', q.voiceSlot), i * 2600))}
-                                    className="mb-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand bg-brand/10 rounded-full px-3 py-1.5">
-                                    <Volume2 /> ฟังอีกครั้ง (A-D)
+                                    className="btn sm mb-3">
+                                    <Volume2 /> {tx('ฟังอีกครั้ง (A-D)')}
                                 </button>
-                                <p className="text-xs text-gray-400 mb-2">เลือกประโยคภาษาอังกฤษที่ตรงกับภาพนี้:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกประโยคภาษาอังกฤษที่ตรงกับภาพนี้:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4433,9 +4465,9 @@
                         {q.type === 'qr-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังคำถามแล้วเลือกคำตอบที่เหมาะสม</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังคำถามแล้วเลือกคำตอบที่เหมาะสม')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.q}</div>
-                                    <button onClick={() => speakVoice(q.q, 'en', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.q, 'en', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -4444,12 +4476,12 @@
                         {q.type === 'dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700">{ln}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln, 'en', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -4459,9 +4491,9 @@
                         {q.type === 'talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'en', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'en', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -4507,17 +4539,17 @@
                                 <p className="text-gray-600 text-sm mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={7} disabled={answered}
                                     placeholder="Write your summary in English here..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -4528,33 +4560,33 @@
                                     {IELTS_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'en')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'en')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — Cue Card</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{IELTS_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(IELTS_SPEAKING.part2, 'en')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(IELTS_SPEAKING.part2, 'en')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — Discussion</p>
                                     {IELTS_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'en')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'en')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -4564,7 +4596,7 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
@@ -4575,22 +4607,22 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={8} disabled={answered}
                                     placeholder="Write your essay in English here..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -4823,8 +4855,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาญี่ปุ่น</p>
-                            <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาญี่ปุ่น</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาญี่ปุ่น')}</p>
+                            <button onClick={() => setLangId('lang-jp')} className="btn primary">{tx('สลับไปภาษาญี่ปุ่น')}</button>
                         </div>
                     </div>
                 );
@@ -4834,10 +4866,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ JLPT N5 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ N5</div>
-                                <div className="text-xs text-gray-500">文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ JLPT N5 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ N5')}</div>
+                                <div className="text-xs text-gray-500">{tx('文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ')}</div>
                             </button>
                         </div>
                     </div>
@@ -4854,7 +4886,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ JLPT N5</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ JLPT N5')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (คะแนนดิบ — JLPT จริงให้คะแนนแยกวิชาและมีเกณฑ์ผ่านขั้นต่ำต่อวิชา ไม่ใช่คะแนนรวมแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -4879,8 +4911,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -4897,7 +4929,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -4950,9 +4982,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-4xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'ja')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ja')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำอ่าน (ひらがな) ที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำอ่าน (ひらがな) ที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4962,9 +4994,9 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
                                     <div className="text-sm text-gray-400 mb-2">{q.reading}</div>
-                                    <button onClick={() => speak(q.word, 'ja')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ja')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4974,7 +5006,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-2xl font-bold text-gray-900 mb-1">{q.thai}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำภาษาญี่ปุ่นที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำภาษาญี่ปุ่นที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -4984,7 +5016,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -5013,12 +5045,12 @@
                         {q.type === 'jp-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ja', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -5028,16 +5060,16 @@
                         {q.type === 'jp-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'ja', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'ja', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -5279,8 +5311,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาเกาหลี</p>
-                            <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเกาหลี</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาเกาหลี')}</p>
+                            <button onClick={() => setLangId('lang-kr')} className="btn primary">{tx('สลับไปภาษาเกาหลี')}</button>
                         </div>
                     </div>
                 );
@@ -5290,10 +5322,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ TOPIK I (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ TOPIK I</div>
-                                <div className="text-xs text-gray-500">듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ TOPIK I (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ TOPIK I')}</div>
+                                <div className="text-xs text-gray-500">{tx('듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -5310,7 +5342,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ TOPIK I</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ TOPIK I')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (คะแนนดิบ — TOPIK I จริงให้คะแนนแยกวิชาและมีเกณฑ์ผ่านขั้นต่ำตามระดับ ไม่ใช่คะแนนรวมแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -5335,8 +5367,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -5353,7 +5385,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -5406,9 +5438,9 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
                                     <div className="text-sm text-gray-400 mb-2">{q.romaja}</div>
-                                    <button onClick={() => speak(q.word, 'ko')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ko')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -5418,7 +5450,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -5436,9 +5468,9 @@
                         {q.type === 'kr-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'ko', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'ko', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -5447,12 +5479,12 @@
                         {q.type === 'kr-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ko', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -5462,9 +5494,9 @@
                         {q.type === 'kr-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'ko', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'ko', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -5472,7 +5504,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -5729,8 +5761,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาเยอรมัน</p>
-                            <button onClick={() => setLangId('lang-de')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเยอรมัน</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาเยอรมัน')}</p>
+                            <button onClick={() => setLangId('lang-de')} className="btn primary">{tx('สลับไปภาษาเยอรมัน')}</button>
                         </div>
                     </div>
                 );
@@ -5740,10 +5772,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ Goethe-Zertifikat A1 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ Goethe A1</div>
-                                <div className="text-xs text-gray-500">Hören 15 + Lesen 15 + Schreiben 1 + Sprechen 1 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ Goethe-Zertifikat A1 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ Goethe A1')}</div>
+                                <div className="text-xs text-gray-500">{tx('Hören 15 + Lesen 15 + Schreiben 1 + Sprechen 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -5764,7 +5796,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ Goethe A1</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ Goethe A1')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Hören/Lesen — Schreiben/Sprechen ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -5789,8 +5821,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -5807,7 +5839,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -5893,9 +5925,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'de')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'de')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -5905,7 +5937,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -5923,9 +5955,9 @@
                         {q.type === 'de-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'de', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'de', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -5934,12 +5966,12 @@
                         {q.type === 'de-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'de', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -5949,9 +5981,9 @@
                         {q.type === 'de-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'de', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'de', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -5964,17 +5996,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Schreiben Sie Ihre Nachricht hier auf Deutsch..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -5985,33 +6017,33 @@
                                     {DE_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'de')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'de')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Teil 2 — Informationen erfragen und geben</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{DE_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(DE_SPEAKING.part2, 'de')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(DE_SPEAKING.part2, 'de')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Teil 3 — Bitte formulieren</p>
                                     {DE_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'de')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'de')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -6021,13 +6053,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -6281,8 +6313,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาฝรั่งเศส</p>
-                            <button onClick={() => setLangId('lang-fr')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาฝรั่งเศส</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาฝรั่งเศส')}</p>
+                            <button onClick={() => setLangId('lang-fr')} className="btn primary">{tx('สลับไปภาษาฝรั่งเศส')}</button>
                         </div>
                     </div>
                 );
@@ -6292,10 +6324,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ DELF A1 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ DELF A1</div>
-                                <div className="text-xs text-gray-500">Compréhension orale 15 + écrite 15 + Production écrite 1 + orale 1 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ DELF A1 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ DELF A1')}</div>
+                                <div className="text-xs text-gray-500">{tx('Compréhension orale 15 + écrite 15 + Production écrite 1 + orale 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -6315,7 +6347,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ DELF A1</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ DELF A1')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Compréhension orale/écrite — Production écrite/orale ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -6340,8 +6372,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -6358,7 +6390,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -6444,9 +6476,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'fr')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'fr')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -6456,7 +6488,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -6474,9 +6506,9 @@
                         {q.type === 'fr-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'fr', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'fr', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -6485,12 +6517,12 @@
                         {q.type === 'fr-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'fr', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -6500,9 +6532,9 @@
                         {q.type === 'fr-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'fr', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'fr', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -6515,17 +6547,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Écrivez votre texte ici en français..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -6536,33 +6568,33 @@
                                     {FR_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'fr')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'fr')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Partie 2 — Échange d'informations</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{FR_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(FR_SPEAKING.part2, 'fr')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(FR_SPEAKING.part2, 'fr')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Partie 3 — Dialogue simulé</p>
                                     {FR_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'fr')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'fr')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -6572,13 +6604,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -6825,8 +6857,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาอิตาลี</p>
-                            <button onClick={() => setLangId('lang-it')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาอิตาลี</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาอิตาลี')}</p>
+                            <button onClick={() => setLangId('lang-it')} className="btn primary">{tx('สลับไปภาษาอิตาลี')}</button>
                         </div>
                     </div>
                 );
@@ -6836,10 +6868,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ PLIDA A1 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ PLIDA A1</div>
-                                <div className="text-xs text-gray-500">Ascolto 15 + Lettura 15 + Scrittura 1 + Parlato 1 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ PLIDA A1 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ PLIDA A1')}</div>
+                                <div className="text-xs text-gray-500">{tx('Ascolto 15 + Lettura 15 + Scrittura 1 + Parlato 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -6859,7 +6891,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ PLIDA A1</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ PLIDA A1')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Ascolto/Lettura — Scrittura/Parlato ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -6884,8 +6916,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -6902,7 +6934,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -6988,9 +7020,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'it')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'it')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -7000,7 +7032,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -7018,9 +7050,9 @@
                         {q.type === 'it-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'it', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'it', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -7029,12 +7061,12 @@
                         {q.type === 'it-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'it', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -7044,9 +7076,9 @@
                         {q.type === 'it-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'it', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'it', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -7059,17 +7091,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Scriva il Suo testo qui in italiano..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -7080,33 +7112,33 @@
                                     {IT_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'it')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'it')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Parlare di un argomento</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{IT_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(IT_SPEAKING.part2, 'it')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(IT_SPEAKING.part2, 'it')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Fare una richiesta</p>
                                     {IT_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'it')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'it')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -7116,13 +7148,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -7376,8 +7408,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาสเปน</p>
-                            <button onClick={() => setLangId('lang-es')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาสเปน</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาสเปน')}</p>
+                            <button onClick={() => setLangId('lang-es')} className="btn primary">{tx('สลับไปภาษาสเปน')}</button>
                         </div>
                     </div>
                 );
@@ -7387,10 +7419,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ DELE A1 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ DELE A1</div>
-                                <div className="text-xs text-gray-500">Comprensión auditiva 15 + de lectura 15 + Expresión escrita 1 + oral 1 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ DELE A1 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ DELE A1')}</div>
+                                <div className="text-xs text-gray-500">{tx('Comprensión auditiva 15 + de lectura 15 + Expresión escrita 1 + oral 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -7410,7 +7442,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ DELE A1</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ DELE A1')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Comprensión auditiva/de lectura — Expresión escrita/oral ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -7435,8 +7467,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -7453,7 +7485,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -7539,9 +7571,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'es')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'es')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -7551,7 +7583,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -7569,9 +7601,9 @@
                         {q.type === 'es-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'es', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'es', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -7580,12 +7612,12 @@
                         {q.type === 'es-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'es', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -7595,9 +7627,9 @@
                         {q.type === 'es-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'es', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'es', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -7610,17 +7642,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Escriba su texto aquí en español..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -7631,33 +7663,33 @@
                                     {ES_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'es')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'es')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Hablar de un tema</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{ES_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(ES_SPEAKING.part2, 'es')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(ES_SPEAKING.part2, 'es')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Hacer una petición</p>
                                     {ES_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'es')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'es')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -7667,13 +7699,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -7930,8 +7962,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาโปรตุเกส</p>
-                            <button onClick={() => setLangId('lang-pt')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาโปรตุเกส</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาโปรตุเกส')}</p>
+                            <button onClick={() => setLangId('lang-pt')} className="btn primary">{tx('สลับไปภาษาโปรตุเกส')}</button>
                         </div>
                     </div>
                 );
@@ -7941,10 +7973,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ CELPE-Bras (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มฝึก CELPE-Bras</div>
-                                <div className="text-xs text-gray-500">Compreensão 30 (แบบฝึกหัดเสริม) + Parte Escrita 1 + Parte Oral 1 ส่วน</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ CELPE-Bras (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มฝึก CELPE-Bras')}</div>
+                                <div className="text-xs text-gray-500">{tx('Compreensão 30 (แบบฝึกหัดเสริม) + Parte Escrita 1 + Parte Oral 1 ส่วน')}</div>
                             </button>
                         </div>
                     </div>
@@ -7964,7 +7996,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลฝึก CELPE-Bras</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลฝึก CELPE-Bras')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Compreensão แบบฝึกหัดเสริม — Parte Escrita/Oral ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-1 gap-2 mb-5">
@@ -7989,8 +8021,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ฝึกใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('ฝึกใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -8007,7 +8039,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -8093,9 +8125,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'pt-BR')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'pt-BR')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -8105,7 +8137,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -8123,9 +8155,9 @@
                         {q.type === 'pt-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'pt-BR', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'pt-BR', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -8134,12 +8166,12 @@
                         {q.type === 'pt-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'pt-BR', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -8149,9 +8181,9 @@
                         {q.type === 'pt-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'pt-BR', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'pt-BR', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -8164,17 +8196,17 @@
                                 <p className="text-gray-700 font-semibold mb-3 whitespace-pre-wrap">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Escreva seu texto aqui em português..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -8185,33 +8217,33 @@
                                     {PT_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'pt-BR')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'pt-BR')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Troca de informações</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{PT_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(PT_SPEAKING.part2, 'pt-BR')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(PT_SPEAKING.part2, 'pt-BR')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Interpretação</p>
                                     {PT_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'pt-BR')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'pt-BR')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -8221,13 +8253,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -8499,8 +8531,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษารัสเซีย</p>
-                            <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษารัสเซีย</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษารัสเซีย')}</p>
+                            <button onClick={() => setLangId('lang-ru')} className="btn primary">{tx('สลับไปภาษารัสเซีย')}</button>
                         </div>
                     </div>
                 );
@@ -8510,10 +8542,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ТРКИ-1</div>
-                                <div className="text-xs text-gray-500">Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ ТРКИ-1')}</div>
+                                <div className="text-xs text-gray-500">{tx('Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -8533,7 +8565,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ ТРКИ-1</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ ТРКИ-1')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Лексика. Грамматика/Чтение/Аудирование — Письмо/Говорение ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -8558,8 +8590,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -8576,7 +8608,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -8662,9 +8694,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'ru')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ru')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -8674,7 +8706,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -8692,9 +8724,9 @@
                         {q.type === 'ru-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'ru', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'ru', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -8703,12 +8735,12 @@
                         {q.type === 'ru-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ru', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -8718,9 +8750,9 @@
                         {q.type === 'ru-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'ru', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'ru', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -8733,17 +8765,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Напишите текст здесь на русском языке..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -8754,33 +8786,33 @@
                                     {RU_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'ru')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'ru')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Часть 2 — Разговор на тему</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{RU_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(RU_SPEAKING.part2, 'ru')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(RU_SPEAKING.part2, 'ru')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Часть 3 — Просьба</p>
                                     {RU_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'ru')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'ru')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -8790,13 +8822,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -9059,8 +9091,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาอาหรับ</p>
-                            <button onClick={() => setLangId('lang-ar')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาอาหรับ</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาอาหรับ')}</p>
+                            <button onClick={() => setLangId('lang-ar')} className="btn primary">{tx('สลับไปภาษาอาหรับ')}</button>
                         </div>
                     </div>
                 );
@@ -9070,10 +9102,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ ALPT (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ ALPT</div>
-                                <div className="text-xs text-gray-500">Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ ALPT (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ ALPT')}</div>
+                                <div className="text-xs text-gray-500">{tx('Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -9093,7 +9125,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ ALPT</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ ALPT')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Structure & Vocabulary/Reading/Listening — Writing/Speaking ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -9118,8 +9150,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -9136,7 +9168,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -9222,9 +9254,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" dir="rtl">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'ar')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ar')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -9234,7 +9266,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" dir="rtl">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -9252,9 +9284,9 @@
                         {q.type === 'ar-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2" dir="rtl">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'ar', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'ar', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -9263,12 +9295,12 @@
                         {q.type === 'ar-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4" dir="rtl">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ar', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -9278,9 +9310,9 @@
                         {q.type === 'ar-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4" dir="rtl">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'ar', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'ar', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -9293,17 +9325,17 @@
                                 <p className="text-gray-700 font-semibold mb-3" dir="rtl">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered} dir="rtl"
                                     placeholder="اكتب النص هنا باللغة العربية..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -9314,33 +9346,33 @@
                                     {AR_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700" dir="rtl">{p}</span>
-                                            <button onClick={() => speak(p, 'ar')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'ar')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — الحديث عن موضوع</p>
                                     <p className="text-sm text-gray-700 leading-relaxed" dir="rtl">{AR_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(AR_SPEAKING.part2, 'ar')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(AR_SPEAKING.part2, 'ar')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — طلب</p>
                                     {AR_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700" dir="rtl">{p}</span>
-                                            <button onClick={() => speak(p, 'ar')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'ar')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -9350,13 +9382,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -9616,8 +9648,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">ข้อสอบชุดนี้รองรับเฉพาะภาษาเวียดนาม</p>
-                            <button onClick={() => setLangId('lang-vn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเวียดนาม</button>
+                            <p className="text-gray-500 mb-4">{tx('ข้อสอบชุดนี้รองรับเฉพาะภาษาเวียดนาม')}</p>
+                            <button onClick={() => setLangId('lang-vn')} className="btn primary">{tx('สลับไปภาษาเวียดนาม')}</button>
                         </div>
                     </div>
                 );
@@ -9627,10 +9659,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">ข้อสอบ VLPT (จำลอง)</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มสอบ VLPT</div>
-                                <div className="text-xs text-gray-500">Nghe + Đọc + Viết + Nói ครบ 4 ส่วน ตามโครงสร้างจริง</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ VLPT (จำลอง)')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ VLPT')}</div>
+                                <div className="text-xs text-gray-500">{tx('Nghe + Đọc + Viết + Nói ครบ 4 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
                     </div>
@@ -9650,7 +9682,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลสอบ VLPT</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ VLPT')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง (เฉพาะ Nghe/Đọc — Viết/Nói ไม่มีคะแนนดิบแบบนี้)</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -9675,8 +9707,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">สอบใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเลือกสอบ</button>
+                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -9693,7 +9725,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -9779,9 +9811,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-2">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'vi')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'vi')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -9791,7 +9823,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -9809,9 +9841,9 @@
                         {q.type === 'vn-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'vi', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'vi', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -9820,12 +9852,12 @@
                         {q.type === 'vn-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'vi', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -9835,9 +9867,9 @@
                         {q.type === 'vn-talk-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทพูดสั้น</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทพูดสั้น')}</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{q.text}</p>
-                                    <button onClick={() => speakVoice(q.text, 'vi', q.voiceSlot)} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทพูดอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.text, 'vi', q.voiceSlot)} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทพูดอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -9850,17 +9882,17 @@
                                 <p className="text-gray-700 font-semibold mb-3">{q.prompt}</p>
                                 <textarea value={essayText} onChange={e => setEssayText(e.target.value)} rows={6} disabled={answered}
                                     placeholder="Viết nội dung bằng tiếng Việt ở đây..."
-                                    className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm resize-y disabled:bg-gray-50 mb-3" />
+                                    className="textarea w-full resize-y mb-3" />
                                 {!answered && (
                                     <div className="flex gap-2 mb-3">
                                         <button onClick={submitEssay} disabled={!essayText.trim() || essayStatus === 'loading'}
-                                            className="flex-1 py-2.5 rounded-xl bg-gray-900 text-white text-sm font-bold disabled:bg-gray-200 disabled:text-gray-400">
+                                            className="btn primary flex-1">
                                             {essayStatus === 'loading' ? 'กำลังตรวจ (ครั้งแรกอาจช้า)...' : 'ส่งให้ AI ตรวจ'}
                                         </button>
-                                        <button onClick={skipEssay} className="px-4 py-2.5 rounded-xl border-2 border-gray-200 text-gray-500 text-xs font-semibold">ข้ามข้อนี้</button>
+                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
-                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{essayFeedback}</div>}
+                                {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
                             </>
                         )}
 
@@ -9871,33 +9903,33 @@
                                     {VN_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'vi')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'vi')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Phần 2 — Trao đổi thông tin</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{VN_SPEAKING.part2}</p>
-                                    <button onClick={() => speak(VN_SPEAKING.part2, 'vi')} className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟัง</button>
+                                    <button onClick={() => speak(VN_SPEAKING.part2, 'vi')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
                                     <p className="text-xs font-bold text-brand uppercase mb-2">Phần 3 — Yêu cầu</p>
                                     {VN_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
-                                            <button onClick={() => speak(p, 'vi')} className="shrink-0 text-brand"><Volume2 /></button>
+                                            <button onClick={() => speak(p, 'vi')} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex flex-col items-center gap-3 mb-4">
                                     {!spIsRecording ? (
-                                        <button onClick={spStartRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                            <MicIcon /> เริ่มอัดเสียงซ้อมพูด
+                                        <button onClick={spStartRecording} className="btn danger lg">
+                                            <MicIcon /> {tx('เริ่มอัดเสียงซ้อมพูด')}
                                         </button>
                                     ) : (
-                                        <button onClick={spStopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                            ⏹ หยุดอัด
+                                        <button onClick={spStopRecording} className="btn primary lg">
+                                            {tx('⏹ หยุดอัด')}
                                         </button>
                                     )}
                                 </div>
@@ -9907,13 +9939,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ฝึกเสร็จแล้ว</button>
+                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -10093,8 +10125,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาฮินดี</p>
-                            <button onClick={() => setLangId('lang-in')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาฮินดี</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษาฮินดี')}</p>
+                            <button onClick={() => setLangId('lang-in')} className="btn primary">{tx('สลับไปภาษาฮินดี')}</button>
                         </div>
                     </div>
                 );
@@ -10104,10 +10136,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาฮินดี</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาฮินดี')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
@@ -10132,7 +10164,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -10157,8 +10189,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -10175,7 +10207,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10228,9 +10260,9 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
                                     <div className="text-sm text-gray-400 mb-2">{q.translit}</div>
-                                    <button onClick={() => speak(q.word, 'hi')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'hi')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10240,7 +10272,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10258,9 +10290,9 @@
                         {q.type === 'hi-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'hi', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'hi', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -10269,12 +10301,12 @@
                         {q.type === 'hi-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'hi', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -10282,7 +10314,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -10446,8 +10478,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษามาเลย์</p>
-                            <button onClick={() => setLangId('lang-my')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษามาเลย์</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษามาเลย์')}</p>
+                            <button onClick={() => setLangId('lang-my')} className="btn primary">{tx('สลับไปภาษามาเลย์')}</button>
                         </div>
                     </div>
                 );
@@ -10457,16 +10489,16 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษามาเลย์</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">Mendengar (ฟัง) 14 + Membaca (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษามาเลย์')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('Mendengar (ฟัง) 14 + Membaca (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
                                 แบบทดสอบชุดนี้<b>ไม่ได้จำลองข้อสอบทางการชุดใดชุดหนึ่ง</b> — เพราะภาษามาเลย์ไม่มีข้อสอบวัดระดับสำหรับ
                                 ชาวต่างชาติที่เป็นมาตรฐานสากลเปิดเผยโครงสร้างชัดเจนแบบ CEFR/HSK/TOPIK ให้อ้างอิง (มีแต่ MUET ซึ่งเป็น
-                                ข้อสอบภาษา<u>อังกฤษ</u>สำหรับคนมาเลเซียเอง ไม่ใช่ข้อสอบภาษามาเลย์สำหรับชาวต่างชาติ) จึงออกแบบโครงสร้าง
+                                ข้อสอบภาษา<u>{tx('อังกฤษ')}</u>สำหรับคนมาเลเซียเอง ไม่ใช่ข้อสอบภาษามาเลย์สำหรับชาวต่างชาติ) จึงออกแบบโครงสร้าง
                                 และเนื้อหาเองทั้งหมดเป็นแบบทดสอบความเข้าใจทั่วไป<br />
                                 <b>ความแตกต่างจากข้อสอบจริง</b>: Mendengar (ฟัง) แสดงบทพูดเป็นตัวอักษรคู่กับเสียงด้วยเพื่อช่วยผู้เริ่มต้นตามทัน
                             </p>
@@ -10485,7 +10517,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -10510,8 +10542,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -10528,7 +10560,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10580,9 +10612,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'ms')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'ms')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10592,7 +10624,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10610,9 +10642,9 @@
                         {q.type === 'my-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'ms', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'ms', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -10621,12 +10653,12 @@
                         {q.type === 'my-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'ms', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -10634,7 +10666,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -10797,8 +10829,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาพม่า</p>
-                            <button onClick={() => setLangId('lang-mm')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาพม่า</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษาพม่า')}</p>
+                            <button onClick={() => setLangId('lang-mm')} className="btn primary">{tx('สลับไปภาษาพม่า')}</button>
                         </div>
                     </div>
                 );
@@ -10808,10 +10840,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาพม่า</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาพม่า')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
@@ -10835,7 +10867,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -10860,8 +10892,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -10878,7 +10910,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10930,9 +10962,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'my')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'my')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10942,7 +10974,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -10960,9 +10992,9 @@
                         {q.type === 'mm-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'my', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'my', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -10971,12 +11003,12 @@
                         {q.type === 'mm-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'my', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -10984,7 +11016,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -11146,8 +11178,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาเขมร</p>
-                            <button onClick={() => setLangId('lang-kh')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาเขมร</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษาเขมร')}</p>
+                            <button onClick={() => setLangId('lang-kh')} className="btn primary">{tx('สลับไปภาษาเขมร')}</button>
                         </div>
                     </div>
                 );
@@ -11157,10 +11189,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาเขมร</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">ការស្តាប់ (ฟัง) 14 + ការអាន (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาเขมร')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('ការស្តាប់ (ฟัง) 14 + ការអាន (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
@@ -11184,7 +11216,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -11209,8 +11241,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11227,7 +11259,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11279,9 +11311,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'km')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'km')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -11291,7 +11323,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -11309,9 +11341,9 @@
                         {q.type === 'kh-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'km', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'km', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -11320,12 +11352,12 @@
                         {q.type === 'kh-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'km', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -11333,7 +11365,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -11496,8 +11528,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาลาว</p>
-                            <button onClick={() => setLangId('lang-la')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาลาว</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษาลาว')}</p>
+                            <button onClick={() => setLangId('lang-la')} className="btn primary">{tx('สลับไปภาษาลาว')}</button>
                         </div>
                     </div>
                 );
@@ -11507,10 +11539,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาลาว</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาลาว')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK/DELE/PLIDA/ТРКИ ในเว็บนี้ตรงที่
@@ -11534,7 +11566,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -11559,8 +11591,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11577,7 +11609,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11629,9 +11661,9 @@
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
-                                    <button onClick={() => speak(q.word, 'lo')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'lo')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -11641,7 +11673,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -11659,9 +11691,9 @@
                         {q.type === 'la-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'lo', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'lo', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -11670,12 +11702,12 @@
                         {q.type === 'la-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'lo', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -11683,7 +11715,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -11858,8 +11890,8 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">แบบทดสอบชุดนี้รองรับเฉพาะภาษาจีนกวางตุ้ง</p>
-                            <button onClick={() => setLangId('lang-yue')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกวางตุ้ง</button>
+                            <p className="text-gray-500 mb-4">{tx('แบบทดสอบชุดนี้รองรับเฉพาะภาษาจีนกวางตุ้ง')}</p>
+                            <button onClick={() => setLangId('lang-yue')} className="btn primary">{tx('สลับไปภาษาจีนกวางตุ้ง')}</button>
                         </div>
                     </div>
                 );
@@ -11869,10 +11901,10 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-5">แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง</h2>
-                            <button onClick={start} className="w-full p-5 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">เริ่มทำแบบทดสอบ</div>
-                                <div className="text-xs text-gray-500">聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ</div>
+                            <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง')}</h2>
+                            <button onClick={start} className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                                <div className="text-xs text-gray-500">{tx('聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                             <p className="text-xs text-gray-400 leading-relaxed text-left">
                                 <b>หมายเหตุสำคัญ</b>: ต่างจากข้อสอบ HSK/TOEIC/IELTS/JLPT/TOPIK ในเว็บนี้ตรงที่แบบทดสอบชุดนี้
@@ -11897,7 +11929,7 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
-                            <h2 className="text-xl font-bold text-gray-800 mb-2">ผลแบบทดสอบ</h2>
+                            <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
                             <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct}% ถูกต้อง</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
@@ -11922,8 +11954,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm">ทำใหม่ (สุ่มโจทย์ใหม่)</button>
-                                <button onClick={backToStart} className="px-5 py-2.5 rounded-xl border-2 border-gray-200 text-gray-600 font-bold text-sm hover:border-brand">กลับหน้าเริ่มต้น</button>
+                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11940,7 +11972,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{section.title}</h2>
                             <p className="text-gray-500 mb-6">{section.questions.length} ข้อ</p>
-                            <button onClick={() => setShowIntro(false)} className="px-6 py-3 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">เริ่มทำส่วนนี้</button>
+                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11993,9 +12025,9 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-3xl font-bold text-gray-900 mb-1">{q.word}</div>
                                     <div className="text-sm text-gray-400 mb-2">{q.jyutping}</div>
-                                    <button onClick={() => speak(q.word, 'zh-HK')} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังเสียง</button>
+                                    <button onClick={() => speak(q.word, 'zh-HK')} className="btn ghost sm"><Volume2 /> {tx('ฟังเสียง')}</button>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกความหมายภาษาไทยที่ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกความหมายภาษาไทยที่ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -12005,7 +12037,7 @@
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                                     <div className="text-lg font-semibold text-gray-900">{q.sentence}</div>
                                 </div>
-                                <p className="text-xs text-gray-400 mb-2">เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:</p>
+                                <p className="text-xs text-gray-400 mb-2">{tx('เลือกคำที่เติมในช่องว่าง（＿）ได้ถูกต้อง:')}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
                         )}
@@ -12023,9 +12055,9 @@
                         {q.type === 'yue-response-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
-                                    <p className="text-xs text-gray-400 mb-3">🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด</p>
+                                    <p className="text-xs text-gray-400 mb-3">{tx('🎧 ฟังประโยค แล้วเลือกคำตอบที่เหมาะสมที่สุด')}</p>
                                     <div className="text-lg font-semibold text-gray-900 mb-2">{q.phrase}</div>
-                                    <button onClick={() => speakVoice(q.phrase, 'zh-HK', q.voiceSlot)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังอีกครั้ง</button>
+                                    <button onClick={() => speakVoice(q.phrase, 'zh-HK', q.voiceSlot)} className="btn ghost sm"><Volume2 /> {tx('ฟังอีกครั้ง')}</button>
                                 </div>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
                             </>
@@ -12034,12 +12066,12 @@
                         {q.type === 'yue-dialogue-mc' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">🎧 บทสนทนา (สลับผู้พูด 2 คน)</p>
+                                    <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">{tx('🎧 บทสนทนา (สลับผู้พูด 2 คน)')}</p>
                                     <div className="space-y-1">
                                         {q.lines.map((ln, i) => <p key={i} className="text-sm text-gray-700"><b>{ln.speaker}:</b> {ln.text}</p>)}
                                     </div>
                                     <button onClick={() => q.lines.forEach((ln, i) => setTimeout(() => speakVoice(ln.text, 'zh-HK', q.dialogueSlot * 2 + (i % 2)), i * 1800))}
-                                        className="mt-2 inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังบทสนทนาอีกครั้ง</button>
+                                        className="btn ghost sm mt-2"><Volume2 /> {tx('ฟังบทสนทนาอีกครั้ง')}</button>
                                 </div>
                                 <p className="text-gray-700 font-semibold mb-3">{q.q}</p>
                                 <McChoices choices={q.choices} correct={q.correct} selected={userAnswer} onPick={pickMc} />
@@ -12047,7 +12079,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="mt-4 w-full py-3 rounded-xl font-bold bg-gray-900 text-white">
+                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? 'ดูผลสอบ' : 'ไปส่วนต่อไป') : 'ข้อต่อไป'}
                             </button>
                         )}
@@ -12497,11 +12529,11 @@
             if (passageIdx === null) {
                 return (
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">ฟังเรื่องสั้น</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('ฟังเรื่องสั้น')}</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
-                                    className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    className="stat-card">
                                     <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{p.level}</span>
                                     <div className="font-semibold text-gray-800">{p.title}</div>
                                     <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
@@ -12523,13 +12555,13 @@
 
             return (
                 <div>
-                    <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
+                    <button onClick={() => setPassageIdx(null)} className="btn ghost sm mb-3">{tx('← เลือกเรื่องอื่น')}</button>
                     <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
                         <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{passage.level}</span>
                     </div>
-                    <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                        <Volume2 /> ฟังทั้งเรื่อง
+                    <button onClick={playAll} className="btn mb-4">
+                        <Volume2 /> {tx('ฟังทั้งเรื่อง')}
                     </button>
                     <div className="space-y-2 mb-5">
                         {passage.lines.map((l, i) => (
@@ -12539,14 +12571,14 @@
                                     <div className="font-medium text-gray-800">{l.target}</div>
                                     {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
                                 </div>
-                                <button onClick={() => speak(l.target, langCode)} className="shrink-0 text-brand"><Volume2 /></button>
-                                <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
+                                <button onClick={() => speak(l.target, langCode)} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
+                                <button onClick={() => toggleReveal(i)} className="btn ghost sm shrink-0">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
                             </div>
                         ))}
                     </div>
 
                     {!showQuiz ? (
-                        <button onClick={() => setShowQuiz(true)} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ทำคำถามความเข้าใจ</button>
+                        <button onClick={() => setShowQuiz(true)} className="btn primary lg w-full">{tx('ทำคำถามความเข้าใจ')}</button>
                     ) : (
                         <div className="space-y-4">
                             {passage.questions.map((q, i) => (
@@ -12570,7 +12602,7 @@
                             ))}
                             {!checked ? (
                                 <button onClick={checkQuiz} disabled={Object.keys(answers).length < passage.questions.length}
-                                    className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                                    className="btn primary lg w-full">{tx('ตรวจคำตอบ')}</button>
                             ) : (
                                 <p className="text-sm font-semibold text-center text-gray-700">
                                     ถูก {passage.questions.filter((q, i) => answers[i] === q.correct).length}/{passage.questions.length} ข้อ
@@ -12706,25 +12738,25 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">พูดตาม (Shadowing)</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('พูดตาม (Shadowing)')}</h3>
 
                     <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                         <div className="text-2xl font-bold text-gray-900 mb-1">{current.target}</div>
                         <div className="text-sm text-gray-400 mb-3">{current.thai}</div>
-                        <button onClick={() => speak(current.target, langCode)} className="inline-flex items-center gap-1 text-xs text-brand font-semibold"><Volume2 /> ฟังต้นฉบับ</button>
+                        <button onClick={() => speak(current.target, langCode)} className="btn ghost sm"><Volume2 /> {tx('ฟังต้นฉบับ')}</button>
                     </div>
 
                     <div className="flex flex-col items-center gap-3 mb-4">
                         {!isRecording ? (
-                            <button onClick={startRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-bold text-sm hover:opacity-90">
-                                <MicIcon /> เริ่มอัดเสียง
+                            <button onClick={startRecording} className="btn danger lg">
+                                <MicIcon /> {tx('เริ่มอัดเสียง')}
                             </button>
                         ) : (
-                            <button onClick={stopRecording} className="flex items-center gap-2 px-6 py-3 rounded-full bg-gray-900 text-white font-bold text-sm">
-                                ⏹ หยุดอัด
+                            <button onClick={stopRecording} className="btn primary lg">
+                                {tx('⏹ หยุดอัด')}
                             </button>
                         )}
-                        {status === 'transcribing' && <p className="text-xs text-gray-400">⏳ กำลังถอดเสียง (ครั้งแรกอาจช้า เพราะกำลังโหลดโมเดล)...</p>}
+                        {status === 'transcribing' && <p className="text-xs text-gray-400">{tx('⏳ กำลังถอดเสียง (ครั้งแรกอาจช้า เพราะกำลังโหลดโมเดล)...')}</p>}
                     </div>
 
                     {recordedUrl && (
@@ -12735,7 +12767,7 @@
 
                     {status === 'done' && (
                         <div className={`p-4 rounded-xl border mb-4 ${grade === 'correct' ? 'bg-green-50 border-green-100' : grade === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
-                            <p className="text-xs text-gray-400 mb-1">ระบบได้ยินว่า:</p>
+                            <p className="text-xs text-gray-400 mb-1">{tx('ระบบได้ยินว่า:')}</p>
                             <p className="font-semibold text-gray-800 mb-2">{transcript || '(ไม่ได้ยินเสียงพูด)'}</p>
                             <p className="text-sm font-semibold">
                                 {grade === 'correct' ? '✅ ใกล้เคียงต้นฉบับมาก' : grade === 'almost' ? '🟡 ใกล้เคียง แต่ยังไม่ตรงทั้งหมด' : '❌ ยังต่างจากต้นฉบับพอสมควร'}
@@ -12744,7 +12776,7 @@
                     )}
                     {status === 'error' && <p className="text-sm text-red-600 mb-4">❌ {transcript}</p>}
 
-                    <button onClick={next} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ประโยคต่อไป</button>
+                    <button onClick={next} className="btn primary lg w-full">{tx('ประโยคต่อไป')}</button>
                 </div>
             );
         }
@@ -13211,11 +13243,11 @@
             if (passageIdx === null) {
                 return (
                     <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-4">อ่านเรื่องยาว</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('อ่านเรื่องยาว')}</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {passages.map((p, i) => (
                                 <button key={i} onClick={() => { setPassageIdx(i); setRevealedLines([]); setShowQuiz(false); setAnswers({}); setChecked(false); }}
-                                    className="p-4 rounded-xl border-2 border-gray-200 hover:border-brand text-left transition bg-white">
+                                    className="stat-card">
                                     <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{p.level}</span>
                                     <div className="font-semibold text-gray-800">{p.title}</div>
                                     <div className="text-xs text-gray-400">{p.lines.length} ประโยค · {p.questions.length} คำถาม</div>
@@ -13237,13 +13269,13 @@
 
             return (
                 <div>
-                    <button onClick={() => setPassageIdx(null)} className="text-xs font-semibold text-gray-400 hover:text-gray-700 mb-3">← เลือกเรื่องอื่น</button>
+                    <button onClick={() => setPassageIdx(null)} className="btn ghost sm mb-3">{tx('← เลือกเรื่องอื่น')}</button>
                     <div className="flex items-center justify-between mb-1">
                         <h3 className="text-lg font-semibold text-gray-800">{passage.title}</h3>
                         <span className="text-[10px] font-bold text-brand uppercase">{levelBadge}{passage.level}</span>
                     </div>
-                    <button onClick={playAll} className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                        <Volume2 /> อ่านออกเสียงทั้งเรื่อง
+                    <button onClick={playAll} className="btn mb-4">
+                        <Volume2 /> {tx('อ่านออกเสียงทั้งเรื่อง')}
                     </button>
                     <div className="space-y-2 mb-5 leading-relaxed">
                         {passage.lines.map((l, i) => (
@@ -13252,14 +13284,14 @@
                                     <div className="font-medium text-gray-800 text-base">{l.target}</div>
                                     {revealedLines.includes(i) && <div className="text-sm text-gray-500 mt-0.5">{l.thai}</div>}
                                 </div>
-                                <button onClick={() => speak(l.target, langCode)} className="shrink-0 text-brand"><Volume2 /></button>
-                                <button onClick={() => toggleReveal(i)} className="shrink-0 text-xs font-semibold text-gray-400 hover:text-gray-700">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
+                                <button onClick={() => speak(l.target, langCode)} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
+                                <button onClick={() => toggleReveal(i)} className="btn ghost sm shrink-0">{revealedLines.includes(i) ? 'ซ่อน' : 'แปล'}</button>
                             </div>
                         ))}
                     </div>
 
                     {!showQuiz ? (
-                        <button onClick={() => setShowQuiz(true)} className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm">ทำคำถามความเข้าใจ</button>
+                        <button onClick={() => setShowQuiz(true)} className="btn primary lg w-full">{tx('ทำคำถามความเข้าใจ')}</button>
                     ) : (
                         <div className="space-y-4">
                             {passage.questions.map((q, i) => (
@@ -13283,7 +13315,7 @@
                             ))}
                             {!checked ? (
                                 <button onClick={checkQuiz} disabled={Object.keys(answers).length < passage.questions.length}
-                                    className="w-full py-3 rounded-xl font-bold bg-gray-900 text-white text-sm disabled:bg-gray-200 disabled:text-gray-400">ตรวจคำตอบ</button>
+                                    className="btn primary lg w-full">{tx('ตรวจคำตอบ')}</button>
                             ) : (
                                 <p className="text-sm font-semibold text-center text-gray-700">
                                     ถูก {passage.questions.filter((q, i) => answers[i] === q.correct).length}/{passage.questions.length} ข้อ
@@ -13621,13 +13653,13 @@
             if (finished) {
                 return (
                     <div className="text-center py-6">
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">ตัวเลข-วันที่-เวลา</h3>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-1">{tx('ตัวเลข-วันที่-เวลา')}</h3>
                         <p className="text-3xl font-extrabold text-brand my-4">{score}/{queue.length}</p>
                         <p className="text-sm text-gray-500 mb-6">ตอบถูก {score} จาก {queue.length} ข้อ</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                             {NUMBERS_DATES_CATS.map(c => (
                                 <button key={c.key} onClick={() => restart(c.key)}
-                                    className="px-4 py-2 rounded-xl bg-gray-900 text-white font-bold text-xs hover:opacity-80">ฝึกใหม่ · {c.label}</button>
+                                    className="btn primary sm">ฝึกใหม่ · {c.label}</button>
                             ))}
                         </div>
                     </div>
@@ -13637,14 +13669,14 @@
             return (
                 <div>
                     <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-lg font-semibold text-gray-800">ตัวเลข-วันที่-เวลา</h3>
+                        <h3 className="text-lg font-semibold text-gray-800">{tx('ตัวเลข-วันที่-เวลา')}</h3>
                         <span className="text-xs font-semibold text-gray-400">ข้อ {qIdx + 1}/{queue.length}</span>
                     </div>
                     <p className="text-xs text-gray-400 mb-4">ฝึกอ่าน/แปลงตัวเลข วันในสัปดาห์ เวลา และวันที่เป็นภาษา{LANGS[langId].title} — เลือกหมวดที่ต้องการฝึกได้</p>
                     <div className="flex flex-wrap gap-1.5 mb-5">
                         {NUMBERS_DATES_CATS.map(c => (
                             <button key={c.key} onClick={() => restart(c.key)}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold border transition ${catKey === c.key ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-500 hover:border-brand'}`}>
+                                className="chip" aria-pressed={catKey === c.key}>
                                 {c.label}
                             </button>
                         ))}
@@ -13660,8 +13692,8 @@
 
                     {selected != null && (
                         <div className="mt-4 flex items-center justify-between gap-3">
-                            <button onClick={() => speak(current.target, langCode)} className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand"><Volume2 /> ฟังคำตอบที่ถูกต้อง</button>
-                            <button onClick={next} className="px-5 py-2.5 rounded-xl bg-gray-900 text-white font-bold text-sm hover:opacity-80">
+                            <button onClick={() => speak(current.target, langCode)} className="btn ghost sm"><Volume2 /> {tx('ฟังคำตอบที่ถูกต้อง')}</button>
+                            <button onClick={next} className="btn primary">
                                 {qIdx + 1 >= queue.length ? 'ดูผลสรุป' : 'ข้อต่อไป'}
                             </button>
                         </div>
@@ -16675,22 +16707,22 @@
                 return (
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-6 text-center">
-                            <p className="text-gray-500 mb-4">โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย ฮินดี อาหรับ และเวียดนามตอนนี้</p>
+                            <p className="text-gray-500 mb-4">{tx('โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย ฮินดี อาหรับ และเวียดนามตอนนี้')}</p>
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={() => setLangId('lang-cn')} className="px-5 py-2.5 rounded-xl bg-brand text-white font-bold text-sm hover:opacity-80">สลับไปภาษาจีนกลาง</button>
-                                <button onClick={() => setLangId('lang-en')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอังกฤษ</button>
-                                <button onClick={() => setLangId('lang-jp')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาญี่ปุ่น</button>
-                                <button onClick={() => setLangId('lang-kr')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเกาหลี</button>
-                                <button onClick={() => setLangId('lang-yue')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาจีนกวางตุ้ง</button>
-                                <button onClick={() => setLangId('lang-de')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเยอรมัน</button>
-                                <button onClick={() => setLangId('lang-fr')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาฝรั่งเศส</button>
-                                <button onClick={() => setLangId('lang-it')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอิตาลี</button>
-                                <button onClick={() => setLangId('lang-es')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาสเปน</button>
-                                <button onClick={() => setLangId('lang-pt')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาโปรตุเกส</button>
-                                <button onClick={() => setLangId('lang-ru')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษารัสเซีย</button>
-                                <button onClick={() => setLangId('lang-in')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาฮินดี</button>
-                                <button onClick={() => setLangId('lang-ar')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาอาหรับ</button>
-                                <button onClick={() => setLangId('lang-vn')} className="px-5 py-2.5 rounded-xl border-2 border-brand text-brand font-bold text-sm hover:bg-brandLight">สลับไปภาษาเวียดนาม</button>
+                                <button onClick={() => setLangId('lang-cn')} className="btn primary">{tx('สลับไปภาษาจีนกลาง')}</button>
+                                <button onClick={() => setLangId('lang-en')} className="btn">{tx('สลับไปภาษาอังกฤษ')}</button>
+                                <button onClick={() => setLangId('lang-jp')} className="btn">{tx('สลับไปภาษาญี่ปุ่น')}</button>
+                                <button onClick={() => setLangId('lang-kr')} className="btn">{tx('สลับไปภาษาเกาหลี')}</button>
+                                <button onClick={() => setLangId('lang-yue')} className="btn">{tx('สลับไปภาษาจีนกวางตุ้ง')}</button>
+                                <button onClick={() => setLangId('lang-de')} className="btn">{tx('สลับไปภาษาเยอรมัน')}</button>
+                                <button onClick={() => setLangId('lang-fr')} className="btn">{tx('สลับไปภาษาฝรั่งเศส')}</button>
+                                <button onClick={() => setLangId('lang-it')} className="btn">{tx('สลับไปภาษาอิตาลี')}</button>
+                                <button onClick={() => setLangId('lang-es')} className="btn">{tx('สลับไปภาษาสเปน')}</button>
+                                <button onClick={() => setLangId('lang-pt')} className="btn">{tx('สลับไปภาษาโปรตุเกส')}</button>
+                                <button onClick={() => setLangId('lang-ru')} className="btn">{tx('สลับไปภาษารัสเซีย')}</button>
+                                <button onClick={() => setLangId('lang-in')} className="btn">{tx('สลับไปภาษาฮินดี')}</button>
+                                <button onClick={() => setLangId('lang-ar')} className="btn">{tx('สลับไปภาษาอาหรับ')}</button>
+                                <button onClick={() => setLangId('lang-vn')} className="btn">{tx('สลับไปภาษาเวียดนาม')}</button>
                             </div>
                         </div>
                     </div>
@@ -16703,20 +16735,20 @@
                         {/* แยกเป็น 2 กลุ่มเพราะ "ตัวเลข-วันที่" เป็นแบบฝึกหัดคำศัพท์ ไม่ใช่ทักษะฟัง/พูด/อ่าน
                             เหมือน 3 ปุ่มแรก — ทำเป็นคนละ pill กันให้เห็นชัดว่าเป็นคนละหมวด ไม่ใช่ทักษะที่ 4 */}
                         <div className="flex items-center gap-3 flex-wrap">
-                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit flex-wrap bg-white">
-                                <button onClick={() => setSubMode('listening')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'listening' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                    <Volume2 /> ฟังเรื่องสั้น
+                            <div className="segmented flex-wrap">
+                                <button onClick={() => setSubMode('listening')} aria-pressed={subMode === 'listening'}>
+                                    <Volume2 /> {tx('ฟังเรื่องสั้น')}
                                 </button>
-                                <button onClick={() => setSubMode('shadowing')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'shadowing' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                    <MicIcon /> พูดตาม
+                                <button onClick={() => setSubMode('shadowing')} aria-pressed={subMode === 'shadowing'}>
+                                    <MicIcon /> {tx('พูดตาม')}
                                 </button>
-                                <button onClick={() => setSubMode('reading')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'reading' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                    <BookOpen /> อ่านเรื่องยาว
+                                <button onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
+                                    <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
                             </div>
-                            <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold w-fit bg-white">
-                                <button onClick={() => setSubMode('numbers')} className={`px-4 py-2 flex items-center gap-1.5 ${subMode === 'numbers' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>
-                                    <HashIcon /> ตัวเลข-วันที่ <span className="font-normal opacity-70">(แบบฝึกหัดเสริม)</span>
+                            <div className="segmented">
+                                <button onClick={() => setSubMode('numbers')} aria-pressed={subMode === 'numbers'}>
+                                    <HashIcon /> ตัวเลข-วันที่ <span className="font-normal opacity-70">{tx('(แบบฝึกหัดเสริม)')}</span>
                                 </button>
                             </div>
                         </div>
@@ -16845,7 +16877,7 @@
                         updateNote((prevText ? prevText + '\n' : '') + t);
                         setNoteOcrStatus('✅ แปลงเป็นข้อความเพิ่มต่อท้ายโน้ตแล้ว — ตรวจทานอีกครั้งในโหมด "พิมพ์"');
                     } else setNoteOcrStatus('⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่');
-                }).catch(e => setNoteOcrStatus('❌ แปลงไม่สำเร็จ: ' + (e && e.message ? e.message : e)));
+                }).catch(e => setNoteOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
             const syncNow = async () => {
@@ -17072,7 +17104,7 @@
                             </div>
                             <nav className="space-y-1 mb-6">
                                 {filteredLangIds.length === 0 && (
-                                    <p className="text-xs text-gray-400 px-3 py-2">ไม่พบภาษาที่ตรงกับคำค้นหา</p>
+                                    <p className="text-xs text-gray-400 px-3 py-2">{tx('ไม่พบภาษาที่ตรงกับคำค้นหา')}</p>
                                 )}
                                 {(() => {
                                     // ── กลุ่ม "จีน" — จีนกลาง (lang-cn) กับจีนกวางตุ้ง (lang-yue) เป็นคนละภาษา
@@ -17114,7 +17146,7 @@
                                         return (
                                             <div key={id}>
                                                 {isZhGroup && (
-                                                    <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">จีน</div>
+                                                    <div className="px-3 pt-1 pb-0.5 text-[10px] font-bold text-gray-400 uppercase tracking-wider">{tx('จีน')}</div>
                                                 )}
                                                 {renderLangRow(id)}
                                                 {isZhGroup && filteredLangIds.includes('lang-yue') && renderLangRow('lang-yue')}
@@ -17124,7 +17156,7 @@
                                 })()}
                             </nav>
 
-                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">คะแนนสะสม</div>
+                            <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 px-2">{tx('คะแนนสะสม')}</div>
                             <div className="flex items-center gap-2 text-sm px-3 py-2.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-700 font-bold">
                                 <Brain className="w-4 h-4" /> {xp} XP
                             </div>
@@ -17133,7 +17165,7 @@
                                 <span>{streak.count} วันติดต่อกัน</span>
                             </div>
                             {streak.count > 0 && !practicedToday && (
-                                <p className="text-[11px] text-orange-500 mt-1.5 px-1 leading-snug">🔥 วันนี้ยังไม่ได้ฝึกเลย ฝึกอีกนิดเพื่อรักษาสถิติไว้!</p>
+                                <p className="text-[11px] text-orange-500 mt-1.5 px-1 leading-snug">{tx('🔥 วันนี้ยังไม่ได้ฝึกเลย ฝึกอีกนิดเพื่อรักษาสถิติไว้!')}</p>
                             )}
                             {streak.longest > streak.count && (
                                 <p className="text-[11px] text-gray-400 mt-1.5 px-1">สถิติสูงสุด {streak.longest} วัน</p>
@@ -17152,13 +17184,13 @@
                                     onClick={() => setView('stream')}
                                     className={`h-full flex items-center text-sm font-semibold border-b-2 transition-colors ${view === 'stream' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
-                                    สตรีม
+                                    {tx('สตรีม')}
                                 </button>
                                 <button
                                     onClick={() => setView('practice')}
                                     className={`h-full flex items-center text-sm font-semibold border-b-2 transition-colors ${view === 'practice' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
-                                    ฝึกฝน
+                                    {tx('ฝึกฝน')}
                                 </button>
                                 <button
                                     onClick={() => setView('writing')}
@@ -17176,14 +17208,14 @@
                                     title="รองรับภาษาจีนกลาง (HSK/BCT), อังกฤษ (IELTS/TOEIC), ญี่ปุ่น (JLPT), เกาหลี (TOPIK), จีนกวางตุ้ง (แบบทดสอบความเข้าใจ), เยอรมัน (Goethe A1), ฝรั่งเศส (DELF A1), อิตาลี (PLIDA A1), สเปน (DELE A1) และโปรตุเกส (CELPE-Bras) — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${(view === 'hsk' || view === 'enexam' || view === 'jpexam' || view === 'krexam' || view === 'yueexam' || view === 'deexam' || view === 'frexam' || view === 'itexam' || view === 'esexam' || view === 'ptexam' || view === 'ruexam' || view === 'hiexam' || view === 'arexam' || view === 'vnexam' || view === 'myexam' || view === 'mmexam' || view === 'khexam' || view === 'laexam') ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
-                                    <HskIcon /> ข้อสอบ
+                                    <HskIcon /> {tx('ข้อสอบ')}
                                 </button>
                                 <button
                                     onClick={goListen}
                                     title="รองรับภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน และโปรตุเกส — ภาษาอื่นจะสลับเป็นจีนกลางให้อัตโนมัติ"
                                     className={`h-full flex items-center gap-1.5 text-sm font-semibold border-b-2 transition-colors ${view === 'listen' ? 'border-brand text-brand' : 'border-transparent text-gray-400 hover:text-gray-600'}`}
                                 >
-                                    <ListenIcon /> ฟัง-พูด
+                                    <ListenIcon /> {tx('ฟัง-พูด')}
                                 </button>
                             </div>
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -17195,7 +17227,7 @@
                                     {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
                                 </button>
                                 {syncStatus && <span className="hidden sm:inline text-xs text-gray-400">{syncStatus}</span>}
-                                <a href="./index.html" className="text-xs font-semibold text-gray-400 hover:text-gray-700">&larr; กลับ Tanot</a>
+                                <a href="./index.html" className="text-xs font-semibold text-gray-400 hover:text-gray-700">{tx('← กลับ Tanot')}</a>
                             </div>
                         </header>
 
@@ -17204,11 +17236,11 @@
                             <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
                                 <div className="rounded-2xl bg-gradient-to-br from-brand to-[var(--ome-brand-dk)] p-6 sm:p-8 text-white shadow-lg">
                                     <p className="text-xs uppercase tracking-widest text-teal-100 mb-2">Language Practice</p>
-                                    <h2 className="text-2xl font-bold mb-2">ฝึกภาษาแบบพิมพ์คำแปล</h2>
+                                    <h2 className="text-2xl font-bold mb-2">{tx('ฝึกภาษาแบบพิมพ์คำแปล')}</h2>
                                     <div className="mt-6 flex items-center gap-4 flex-wrap">
                                         <div className="flex-1 min-w-[200px] max-w-xs">
                                             <div className="flex justify-between text-xs text-teal-100 mb-1">
-                                                <span>ความคืบหน้ารวม</span><span>{doneCategories}/{totalCategories}</span>
+                                                <span>{tx('ความคืบหน้ารวม')}</span><span>{doneCategories}/{totalCategories}</span>
                                             </div>
                                             <div className="h-2 bg-white/20 rounded-full overflow-hidden">
                                                 <div className="h-full bg-amber-400 rounded-full transition-all" style={{width: `${totalCategories ? (doneCategories / totalCategories * 100) : 0}%`}}></div>
@@ -17243,13 +17275,13 @@
                                             <button onClick={() => goWriting('lang-cn')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">ลำดับขีด + ออกเสียง</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ HSK/BCT</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ HSK/BCT')}</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17269,19 +17301,19 @@
                                             <button onClick={() => goWriting('lang-en')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z ชื่อ・เสียงตัวอักษร</div>
                                             </button>
                                             <button onClick={() => goWriting('lang-en')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><PenToolIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">แต่งประโยคอิสระ</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('แต่งประโยคอิสระ')}</div>
                                                 <div className="text-[11px] text-gray-400">AI ตรวจแก้ไวยากรณ์</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ IELTS/TOEIC</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ IELTS/TOEIC')}</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17301,13 +17333,13 @@
                                             <button onClick={() => goWriting('lang-jp')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">ฮิรางานะ・คาตากานะ・คันจิ</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ JLPT N5</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ JLPT N5')}</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17327,13 +17359,13 @@
                                             <button onClick={() => goWriting('lang-kr')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกฮันกึล</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกฮันกึล')}</div>
                                                 <div className="text-[11px] text-gray-400">พยัญชนะ・สระ 40 ตัว</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ TOPIK I</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ TOPIK I')}</div>
                                                 <div className="text-[11px] text-gray-400">จำลองข้อสอบจริง</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17353,13 +17385,13 @@
                                             <button onClick={() => goWriting('lang-yue')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">ตัวเต็ม (繁體) 60 ตัว</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">แบบทดสอบความเข้าใจ</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('แบบทดสอบความเข้าใจ')}</div>
                                                 <div className="text-[11px] text-gray-400">คำศัพท์・ไวยากรณ์・ฟัง・อ่าน 44 ข้อ</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17379,13 +17411,13 @@
                                             <button onClick={() => goWriting('lang-de')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z + Ä・Ö・Ü・ß</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ Goethe A1</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ Goethe A1')}</div>
                                                 <div className="text-[11px] text-gray-400">Hören・Lesen・Schreiben・Sprechen</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17405,13 +17437,13 @@
                                             <button onClick={() => goWriting('lang-fr')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z + é・è・ê・à・ç・œ</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ DELF A1</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ DELF A1')}</div>
                                                 <div className="text-[11px] text-gray-400">Compréhension orale・écrite・Production écrite・orale</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17431,13 +17463,13 @@
                                             <button onClick={() => goWriting('lang-it')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z + à・è・é・ì・ò・ù</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ PLIDA A1</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ PLIDA A1')}</div>
                                                 <div className="text-[11px] text-gray-400">Ascolto・Lettura・Scrittura・Parlato</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17457,13 +17489,13 @@
                                             <button onClick={() => goWriting('lang-es')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z + ñ・á・é・í・ó・ú</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ DELE A1</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ DELE A1')}</div>
                                                 <div className="text-[11px] text-gray-400">Comprensión auditiva・de lectura・Expresión escrita・oral</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17483,13 +17515,13 @@
                                             <button onClick={() => goWriting('lang-pt')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">A-Z + ã・õ・ç・â・é・ó</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ CELPE-Bras</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ CELPE-Bras')}</div>
                                                 <div className="text-[11px] text-gray-400">Compreensão・Parte Escrita・Parte Oral</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17509,13 +17541,13 @@
                                             <button onClick={() => goWriting('lang-ru')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">ซีริลลิก 33 ตัว А-Я</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ ТРКИ-1 / TORFL A1</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ ТРКИ-1 / TORFL A1')}</div>
                                                 <div className="text-[11px] text-gray-400">Лексика. Грамматика・Чтение・Аудирование・Письмо・Говорение</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17535,13 +17567,13 @@
                                             <button onClick={() => goWriting('lang-in')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">เทวนาครี 46 ตัว สระ+พยัญชนะ</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">แบบทดสอบความเข้าใจภาษาฮินดี</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('แบบทดสอบความเข้าใจภาษาฮินดี')}</div>
                                                 <div className="text-[11px] text-gray-400">सुनना (ฟัง)・पढ़ना (อ่าน)</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17561,13 +17593,13 @@
                                             <button onClick={() => goWriting('lang-ar')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">อักษรอาหรับ 28 ตัว (รูปเดี่ยว)</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ ALPT</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ ALPT')}</div>
                                                 <div className="text-[11px] text-gray-400">Structure & Vocabulary・Reading・Listening・Writing・Speaking</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17587,13 +17619,13 @@
                                             <button onClick={() => goWriting('lang-vn')}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><BrushIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ฝึกเขียนตัวอักษร</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ฝึกเขียนตัวอักษร')}</div>
                                                 <div className="text-[11px] text-gray-400">อักษรเวียดนาม 29 ตัว (ă・â・đ・ê・ô・ơ・ư)</div>
                                             </button>
                                             <button onClick={goExam}
                                                 className="text-left bg-white rounded-lg border border-gray-200 p-3.5 hover:border-brand hover:shadow-sm transition">
                                                 <div className="text-brand mb-2"><HskIcon /></div>
-                                                <div className="text-sm font-bold text-gray-800">ข้อสอบ VLPT</div>
+                                                <div className="text-sm font-bold text-gray-800">{tx('ข้อสอบ VLPT')}</div>
                                                 <div className="text-[11px] text-gray-400">Nghe・Đọc・Viết・Nói</div>
                                             </button>
                                             <button onClick={goListen}
@@ -17631,9 +17663,9 @@
 
                                 <div className="grid grid-cols-1 gap-6">
                                     <div className="bg-white rounded-xl border border-gray-200 p-5">
-                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><BookOpen /> หมวดที่ยังไม่เสร็จ</h3>
+                                        <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2"><BookOpen /> {tx('หมวดที่ยังไม่เสร็จ')}</h3>
                                         {todoCategories.length === 0 ? (
-                                            <p className="text-sm text-gray-400">ฝึกครบทุกหมวดแล้ว เยี่ยมมาก!</p>
+                                            <p className="text-sm text-gray-400">{tx('ฝึกครบทุกหมวดแล้ว เยี่ยมมาก!')}</p>
                                         ) : (
                                             <div className="space-y-1">
                                                 {todoCategories.slice(0, 6).map(c => (
@@ -17663,7 +17695,7 @@
                                             <button
                                                 key={c}
                                                 onClick={() => selectCategory(c)}
-                                                className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${category === c ? 'bg-brand text-white border-brand' : 'border-gray-200 text-gray-600 hover:border-brand'}`}
+                                                className="chip" aria-pressed={category === c}
                                             >
                                                 {c}{isCategoryDone(langId, c) ? ' ✓' : ''}
                                             </button>
@@ -17680,7 +17712,7 @@
                                                     <div className="font-semibold text-gray-800">{p.target}</div>
                                                     <div className="text-sm text-gray-500">{p.thai}</div>
                                                 </div>
-                                                <button onClick={() => speak(p.target, lang.code)} className="shrink-0 p-2 rounded-full hover:bg-white text-brand">
+                                                <button onClick={() => speak(p.target, lang.code)} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}>
                                                     <Volume2 />
                                                 </button>
                                             </div>
@@ -17690,11 +17722,11 @@
                                     <div className="mt-6 pt-4 border-t border-gray-200">
                                         <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
                                             <h4 className="text-sm font-bold text-gray-700 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {lang.title}</h4>
-                                            <div className="flex rounded-full border border-gray-200 overflow-hidden shrink-0">
+                                            <div className="segmented shrink-0">
                                                 <button type="button" onClick={() => setNoteMode('type')} title="พิมพ์" aria-label="พิมพ์"
-                                                    className={`p-1.5 ${noteMode === 'type' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><KeyboardIcon /></button>
+                                                    aria-pressed={noteMode === 'type'}><KeyboardIcon /></button>
                                                 <button type="button" onClick={() => setNoteMode('write')} title="เขียนด้วยมือ" aria-label="เขียนด้วยมือ"
-                                                    className={`p-1.5 ${noteMode === 'write' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}><PencilSmallIcon /></button>
+                                                    aria-pressed={noteMode === 'write'}><PencilSmallIcon /></button>
                                             </div>
                                         </div>
                                         <p className="text-xs text-gray-400 mb-2 min-h-[1rem]">
@@ -17706,15 +17738,15 @@
                                                 onChange={e => updateNote(e.target.value)}
                                                 rows={4}
                                                 placeholder="เช่น เทคนิคจำคำศัพท์ ไวยากรณ์ที่มักสับสน ฯลฯ"
-                                                className="w-full border-2 border-gray-200 focus:border-brand outline-none rounded-xl p-3 text-sm text-gray-700 resize-y font-sans leading-relaxed"
+                                                className="textarea w-full resize-y"
                                             />
                                         ) : (
                                             <div>
                                                 <HandwritingCanvas key={langId} value={(notes[langId] && notes[langId].drawing) || ''}
                                                     onChange={updateNoteDrawing} onReady={setNoteCanvasEl} height={220} />
                                                 <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                                    <button type="button" onClick={runNoteOcr} className="text-xs font-semibold text-brand hover:opacity-80">✨ แปลงเป็นข้อความ เพิ่มต่อท้ายโน้ต</button>
-                                                    {noteOcrStatus && <span className="text-xs text-gray-400">{noteOcrStatus}</span>}
+                                                    <button type="button" onClick={runNoteOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ เพิ่มต่อท้ายโน้ต')}</button>
+                                                    {noteOcrStatus && <span className="text-sm text-gray-500">{txs(noteOcrStatus)}</span>}
                                                 </div>
                                             </div>
                                         )}
@@ -17725,13 +17757,13 @@
                             <div className="w-full md:w-1/2 md:h-full bg-white p-4 sm:p-8 md:overflow-y-auto">
                                 <div className="animate-fade-in">
                                     <div className="flex items-center justify-between gap-2 flex-wrap mb-6">
-                                        <div className="flex rounded-full border border-gray-200 overflow-hidden text-xs font-bold">
+                                        <div className="segmented">
                                             <button onClick={() => selectMode('translate')}
-                                                className={`px-3 py-1.5 ${mode === 'translate' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>พิมพ์คำแปล</button>
+                                                aria-pressed={mode === 'translate'}>{tx('พิมพ์คำแปล')}</button>
                                             <button onClick={() => selectMode('dictation')}
-                                                className={`px-3 py-1.5 ${mode === 'dictation' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>ฟังแล้วพิมพ์</button>
+                                                aria-pressed={mode === 'dictation'}>{tx('ฟังแล้วพิมพ์')}</button>
                                             <button onClick={() => selectMode('flashcard')}
-                                                className={`px-3 py-1.5 ${mode === 'flashcard' ? 'bg-brand text-white' : 'text-gray-500 hover:bg-gray-50'}`}>การ์ดคำ</button>
+                                                aria-pressed={mode === 'flashcard'}>{tx('การ์ดคำ')}</button>
                                         </div>
                                         <span className="text-sm font-semibold text-gray-500">ข้อ {index + 1} จาก {list.length}</span>
                                     </div>
@@ -17744,7 +17776,7 @@
                                             >
                                                 {!flashFlipped ? (
                                                     <>
-                                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">แตะการ์ดเพื่อดูคำตอบ</p>
+                                                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">{tx('แตะการ์ดเพื่อดูคำตอบ')}</p>
                                                         <p className="text-2xl font-bold text-gray-900">{current.thai}</p>
                                                     </>
                                                 ) : (
@@ -17756,9 +17788,9 @@
                                             </button>
                                             {flashFlipped && (
                                                 <div className="flex items-center gap-3 mt-6">
-                                                    <button onClick={() => speak(current.target, lang.code)} className="shrink-0 p-3 rounded-xl border-2 border-gray-200 text-brand hover:border-brand"><Volume2 /></button>
-                                                    <button onClick={() => markFlashcard(true)} className="flex-1 py-3 rounded-xl font-bold bg-green-500 text-white shadow-sm">จำได้ (+10 XP)</button>
-                                                    <button onClick={() => markFlashcard(false)} className="flex-1 py-3 rounded-xl font-bold bg-gray-200 text-gray-600">ยังไม่ได้</button>
+                                                    <button onClick={() => speak(current.target, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
+                                                    <button onClick={() => markFlashcard(true)} className="flex-1 py-3 rounded-xl font-bold bg-green-500 text-white shadow-sm">{tx('จำได้ (+10 XP)')}</button>
+                                                    <button onClick={() => markFlashcard(false)} className="flex-1 py-3 rounded-xl font-bold bg-gray-200 text-gray-600">{tx('ยังไม่ได้')}</button>
                                                 </div>
                                             )}
                                         </>
@@ -17778,7 +17810,7 @@
                                                     </h3>
                                                     <button onClick={() => speak(current.target, lang.code)}
                                                         className="flex items-center gap-2 px-5 py-3 mb-6 rounded-xl bg-brandLight text-brand font-bold text-sm hover:opacity-80">
-                                                        <Volume2 /> กดฟังเสียง (ฟังซ้ำได้)
+                                                        <Volume2 /> {tx('กดฟังเสียง (ฟังซ้ำได้)')}
                                                     </button>
                                                 </>
                                             )}
@@ -17795,7 +17827,7 @@
                                                     className="flex-1 border-2 border-gray-200 focus:border-brand outline-none rounded-xl px-4 py-3 text-base disabled:bg-gray-50"
                                                 />
                                                 {mode === 'translate' && (
-                                                    <button onClick={() => speak(current.target, lang.code)} className="shrink-0 p-3 rounded-xl border-2 border-gray-200 text-brand hover:border-brand">
+                                                    <button onClick={() => speak(current.target, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}>
                                                         <Volume2 />
                                                     </button>
                                                 )}
@@ -17808,7 +17840,7 @@
                                                         {result === 'correct' ? 'ถูกต้อง! (+20 XP)' : result === 'almost' ? 'เกือบถูก! ต่างแค่นิดเดียว (+10 XP)' : 'ยังไม่ถูก — คำนี้จะไปอยู่ในลิสต์ทบทวน'}
                                                     </h4>
                                                     <p className="text-sm text-gray-700 leading-relaxed">
-                                                        <strong>คำตอบที่ถูกต้องคือ:</strong> {current.target}
+                                                        <strong>{tx('คำตอบที่ถูกต้องคือ:')}</strong> {current.target}
                                                         {mode === 'dictation' && <span className="block text-gray-500 mt-1">ความหมาย: {current.thai}</span>}
                                                     </p>
                                                     {result !== 'correct' && (mode === 'translate' || mode === 'dictation') && <SpellDiff typed={typed} correct={current.target} />}
@@ -17821,11 +17853,11 @@
                                                     disabled={!typed.trim()}
                                                     className={`mt-8 w-full py-3 rounded-xl font-bold transition-all shadow-sm ${typed.trim() ? 'bg-gray-900 text-white hover:bg-black' : 'bg-gray-200 text-gray-400 cursor-not-allowed'}`}
                                                 >
-                                                    ตรวจคำตอบ
+                                                    {tx('ตรวจคำตอบ')}
                                                 </button>
                                             ) : (
                                                 <button onClick={nextPhrase} className="mt-6 w-full py-3 rounded-xl font-bold bg-brand text-white hover:bg-teal-700 transition-all shadow-sm">
-                                                    ข้อต่อไป
+                                                    {tx('ข้อต่อไป')}
                                                 </button>
                                             )}
                                         </>
