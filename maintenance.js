@@ -18,16 +18,561 @@
   var K = { sites: 'tanot:mnt:sites', assets: 'tanot:mnt:assets', plans: 'tanot:mnt:plans', settings: 'tanot:mnt:settings',
     device: 'tanot:mnt:device', ui: 'tanot:mnt:ui', draft: 'tanot:mnt:draft' };
 
+  /* ── ภาษา: พจนานุกรม th/en ของหน้า (ns 'mnt') — HTML ใช้ data-i18n="mnt.<คีย์>" · ค่า th ตรงกับข้อความเดิมทุกตัวอักษร (spec ค้นข้อความไทย)
+     ข้อมูลที่เก็บลง storage/ไฟล์ส่งออก (ป้ายความถี่ใน mnt-calc, ชื่อแผนตั้งต้น) ไม่เปลี่ยนตามภาษา แปลเฉพาะตอนแสดง ── */
+  var T = OME_I18N.scope('mnt', {
+  th: {
+    title: 'บันทึกงานบำรุงรักษา',
+    offline: 'ออฟไลน์',
+    addAsset: 'เพิ่มอุปกรณ์',
+    scan: 'สแกน',
+    printQr: 'พิมพ์ป้าย QR',
+    site: 'สถานที่',
+    addSite: 'เพิ่มสถานที่',
+    plans: 'แผน PM',
+    addPlan: 'เพิ่มแผน',
+    batch: 'ตรวจทั้งสถานที่',
+    compMonthly: 'Compliance รายเดือน',
+    reportFault: 'แจ้งซ่อม',
+    importFrom: 'นำเข้าจาก est-cost',
+    inputFile: 'ไฟล์ input (.xlsx)',
+    import: 'นำเข้า',
+    exportXlsx: 'ส่งออก Excel',
+    from: 'ตั้งแต่',
+    to: 'ถึง',
+    freqsInPm: 'ความถี่ที่รวมในแถว PM',
+    export: 'ส่งออก',
+    openInReport: 'เปิดใน นำเสนอรายงาน',
+    settings: 'ค่าตั้ง',
+    startMonth: 'เดือนเริ่มสัญญา',
+    defInspector: 'ผู้ตรวจเริ่มต้น',
+    project: 'โครงการ',
+    line: 'สาย (Line)',
+    labelSizeA4: 'ขนาดป้าย QR ต่อแผ่น A4',
+    assets: 'อุปกรณ์',
+    code: 'รหัส',
+    name: 'ชื่อ',
+    typeCode: 'ประเภท (code)',
+    system: 'ระบบ',
+    status: 'สถานะ',
+    active: 'ใช้งาน',
+    retired: 'ปลดใช้งาน',
+    serial: 'เลขเครื่อง',
+    brand: 'ยี่ห้อ',
+    model: 'รุ่น',
+    installed: 'วันที่ติดตั้ง',
+    lat: 'ละติจูด',
+    lng: 'ลองจิจูด',
+    geo: 'ตำแหน่งปัจจุบัน',
+    save: 'บันทึก',
+    del: 'ลบ',
+    cancel: 'ยกเลิก',
+    abbr: 'ตัวย่อ',
+    typeName: 'ชื่อประเภท',
+    freq: 'ความถี่',
+    hoursPer: 'ชม./รอบ/หน่วย',
+    shift: 'กะ',
+    day: 'กลางวัน',
+    night: 'กลางคืน',
+    checklist: 'รายการตรวจ',
+    addItem: 'เพิ่มข้อ',
+    scanQr: 'สแกน QR',
+    assetCode: 'รหัสอุปกรณ์',
+    open: 'เปิด',
+    photoQr: 'ถ่ายรูป QR',
+    close: 'ปิด',
+    inspect: 'ตรวจเช็ก',
+    locked: 'ล็อก',
+    prev: 'ก่อนหน้า',
+    next: 'ถัดไป',
+    draftBar: 'มีร่างที่กรอกค้างไว้',
+    draftRestore: 'กู้ร่าง',
+    draftDrop: 'ทิ้งร่าง',
+    period: 'รอบ',
+    inspector: 'ผู้ตรวจ',
+    remarks: 'หมายเหตุ',
+    woKind: 'ชนิดงาน',
+    kindCm: 'ซ่อม (CM)',
+    priority: 'ความสำคัญ',
+    prioHigh: 'สูง',
+    prioNormal: 'ปกติ',
+    prioLow: 'ต่ำ',
+    symptom: 'อาการ',
+    reporter: 'ผู้แจ้ง',
+    skip: 'ข้าม',
+    createWo: 'สร้างใบสั่งงาน',
+    wos: 'ใบสั่งงาน',
+    assignee: 'ผู้รับผิดชอบ / ช่าง',
+    planFinish: 'กำหนดเสร็จ',
+    startAt: 'เริ่มงาน',
+    endAt: 'เสร็จงาน',
+    downtime: 'Downtime (ชม.)',
+    failureMode: 'รูปแบบการเสีย',
+    cause: 'สาเหตุ',
+    action: 'วิธีแก้',
+    partsUsed: 'อะไหล่ที่ใช้',
+    addPart: 'เพิ่มอะไหล่',
+    labor: 'ค่าแรง (บาท)',
+    otherCost: 'ค่าใช้จ่ายอื่น (บาท)',
+    searchPh: 'ค้นหา รหัส / ชื่อ / เลขเครื่อง',
+    search: 'ค้นหา',
+    type: 'ประเภท',
+    calendar: 'ปฏิทิน PM',
+    month: 'เดือน',
+    io: 'นำเข้า/ส่งออก',
+    labelSize: 'ขนาดป้าย',
+    note: 'บันทึก',
+    addSiteFirst: 'เพิ่มสถานที่ก่อน',
+    allSites: 'ทุกสถานที่',
+    allSystems: 'ทุกระบบ',
+    allTypes: 'ทุกประเภท',
+    allStatus: 'ทุกสถานะ',
+    missingFile: 'ไม่อยู่ในไฟล์',
+    noAssets: 'ยังไม่มีอุปกรณ์',
+    assetNotFound: 'ไม่พบอุปกรณ์',
+    pick: 'เลือก {code}',
+    edit: 'แก้ไข',
+    noSites: 'ยังไม่มีสถานที่',
+    units: '{n} ตัว',
+    editSite: 'แก้ไขสถานที่',
+    siteNameReq: 'ใส่ชื่อสถานที่',
+    nameExists: 'ชื่อนี้มีอยู่แล้ว',
+    abbrReq: 'ใส่ตัวย่อ',
+    abbrExists: 'ตัวย่อนี้มีอยู่แล้ว',
+    siteHasAssets: 'ยังมีอุปกรณ์ในสถานที่นี้',
+    cfSite: 'ลบสถานที่นี้?',
+    hoursUnit: '{n} ชม.',
+    itemsCount: '{n} ข้อ',
+    planEdited: 'แก้เอง',
+    noPlans: 'ยังไม่มีแผน PM',
+    itemN: 'ข้อ {n}',
+    up: 'ขึ้น',
+    down: 'ลง',
+    delItem: 'ลบข้อ',
+    kind: 'ชนิด',
+    passFail: 'ผ่าน/ไม่ผ่าน',
+    measured: 'ค่าที่วัด',
+    unit: 'หน่วย',
+    minV: 'ต่ำสุด',
+    maxV: 'สูงสุด',
+    addPlanTitle: 'เพิ่มแผน PM',
+    editPlanTitle: 'แก้ไขแผน PM',
+    typeReq: 'ใส่ประเภท (code)',
+    planExists: 'มีแผนนี้อยู่แล้ว',
+    cfPlan: 'ลบแผนนี้? (ผลตรวจที่บันทึกไว้แล้วไม่ถูกลบ)',
+    monthN: 'เดือนที่ {n}',
+    phaseLbl: 'รอบ {f}',
+    editAssetTitle: 'แก้ไขอุปกรณ์',
+    geoNone: 'อุปกรณ์นี้ไม่รองรับระบุตำแหน่ง',
+    geoFail: 'อ่านตำแหน่งไม่ได้',
+    assetCodeReq: 'ใส่รหัสอุปกรณ์',
+    codeExists: 'รหัสนี้มีอยู่แล้ว',
+    siteReq: 'เลือกสถานที่',
+    assetHasRecords: 'มีผลตรวจ/ใบสั่งงานแล้ว — ลบไม่ได้ ใช้ "ปลดใช้งาน" แทน',
+    cfAsset: 'ลบอุปกรณ์นี้?',
+    scanNoAsset: 'ไม่พบอุปกรณ์นี้ในทะเบียน',
+    scanNoMatch: 'ไม่พบอุปกรณ์ที่ตรงกับ QR/รหัสนี้',
+    camFail: 'เปิดกล้องไม่ได้',
+    noQrInImg: 'ไม่พบ QR ในรูป',
+    imgReadFail: 'อ่านรูปไม่ได้',
+    qrErrLib: 'โหลด jsQR ไม่ได้',
+    qrErrImg: 'เปิดภาพไม่ได้',
+    qrErrCam: 'อุปกรณ์นี้เปิดกล้องไม่ได้',
+    qrErrReader: 'โหลดตัวอ่าน QR ไม่ได้',
+    qrErrGen: 'qrcode-generator ยังไม่ถูกโหลด',
+    back: 'กลับ',
+    scanAgain: 'สแกนใหม่',
+    map: 'แผนที่',
+    printLabel: 'พิมพ์ป้าย',
+    imgConvert: 'แปลงรูปไม่ได้',
+    imgOpen: 'เปิดรูปไม่ได้',
+    photoAddFail: 'เพิ่มรูปไม่ได้',
+    pend: 'รอส่งรูป {n}',
+    stDone: 'ตรวจแล้ว',
+    stLateDone: 'ตรวจช้า',
+    stOverdue: 'เลยกำหนด',
+    stDue: 'ถึงกำหนด',
+    stUpcoming: 'ยังไม่ถึง',
+    weekOf: 'สัปดาห์ {a} – {b}',
+    noPlanForAsset: 'อุปกรณ์นี้ยังไม่มีแผน PM',
+    belowMin: 'ต่ำกว่าเกณฑ์ ({v})',
+    aboveMax: 'สูงกว่าเกณฑ์ ({v})',
+    takePhoto: 'ถ่ายรูป',
+    generalPhoto: 'รูปรวม',
+    rmPhoto: 'ลบรูป',
+    resOk: 'ผ่าน',
+    resNg: 'ไม่ผ่าน',
+    resNa: 'ไม่มี',
+    otherDevice: 'ตรวจแล้วจากเครื่องอื่น',
+    lastSaved: 'บันทึกล่าสุด {t}',
+    finish: 'เสร็จสิ้น',
+    saveNext: 'บันทึกแล้วถัดไป',
+    notChecked: 'ยังไม่ได้ตรวจ {n} ข้อ',
+    inspectorReq: 'ใส่ชื่อผู้ตรวจ',
+    saved: 'บันทึกแล้ว',
+    saveFail: 'บันทึกไม่สำเร็จ',
+    noneDue: 'ไม่มีอุปกรณ์ที่ครบรอบ',
+    latestResults: 'ผลตรวจล่าสุด',
+    failN: 'ไม่ผ่าน {n}',
+    daysN: '{n} วัน',
+    kpiOnTime: 'ตรงเวลา 12 เดือน',
+    kpiLate: 'ทำช้า',
+    kpiMissed: 'พลาด',
+    kpiDue: 'รอบที่ครบกำหนด',
+    noPending: 'ไม่มีงานค้าง',
+    grpOverdue: 'เลยกำหนด',
+    grpDue: 'ถึงกำหนด',
+    grpWeek: 'ภายใน 7 วัน',
+    grpMonth: 'ทั้งเดือน',
+    thMonth: 'เดือน',
+    thDue: 'ครบกำหนด',
+    thOnTime: 'ตรงเวลา',
+    thLate: 'ช้า',
+    thMissed: 'พลาด',
+    noCycles: 'ยังไม่มีรอบที่ครบกำหนด',
+    overdueN: 'เลยกำหนด {n}',
+    dueN: 'ถึงกำหนด {n}',
+    woN: 'ใบงาน {n}',
+    wsOpen: 'เปิด',
+    wsProgress: 'กำลังดำเนินการ',
+    wsParts: 'รออะไหล่',
+    wsDone: 'เสร็จ',
+    wsCancel: 'ยกเลิก',
+    woActive: 'ที่ยังไม่ปิด',
+    woAll: 'ทั้งหมด',
+    allLevels: 'ทุกระดับ',
+    noWos: 'ยังไม่มีใบสั่งงาน',
+    noWosFilter: 'ไม่มีใบสั่งงานตามตัวกรอง',
+    woFromFail: 'สร้างใบสั่งงานจากข้อที่ไม่ผ่าน',
+    woAssetNotFound: 'ไม่พบรหัสอุปกรณ์นี้',
+    symptomReq: 'ใส่อาการ',
+    woCreated: 'สร้างใบสั่งงาน {no}',
+    createFail: 'สร้างไม่สำเร็จ',
+    reportedAt: 'แจ้ง {t}',
+    partName: 'ชื่ออะไหล่',
+    qty: 'จำนวน',
+    unitPrice: 'ราคา/หน่วย',
+    unitPriceAria: 'ราคาต่อหน่วย',
+    partsCost: 'ค่าอะไหล่ ฿{v}',
+    attachPhoto: 'แนบรูป',
+    tlStatus: 'สถานะ → {s}',
+    tlAssignee: 'ผู้รับผิดชอบ {a}',
+    tlParts: 'อะไหล่ {n} รายการ',
+    tlEdited: 'แก้ไข',
+    noChange: 'ไม่มีการเปลี่ยนแปลง',
+    needNet: 'ต้องต่อเน็ตเพื่ออ่าน/เขียนไฟล์ Excel',
+    pvNewSites: 'สถานที่ใหม่',
+    pvNewAssets: 'อุปกรณ์ใหม่',
+    pvNewPlans: 'แผนใหม่',
+    pvUpdated: 'แก้ไข',
+    pvSkipped: 'ข้าม (แผนที่แก้เอง)',
+    overwritePlan: 'ทับแผน {id}',
+    notEstCost: 'ไม่ใช่ไฟล์ input ของ est-cost (ต้องมีชีต EQUIPMENT และ PM_PLAN)',
+    fileReadFail: 'อ่านไฟล์ไม่ได้',
+    imported: 'นำเข้าแล้ว: อุปกรณ์ใหม่ {a} · แผนใหม่ {p}',
+    badRange: 'ช่วงวันที่ไม่ถูกต้อง',
+    pickFreq: 'เลือกความถี่อย่างน้อยหนึ่งอย่าง',
+    exported: 'ส่งออกแล้ว',
+    exportFail: 'ส่งออกไม่สำเร็จ',
+    f_Daily: 'รายวัน',
+    f_Weekly: 'รายสัปดาห์',
+    f_M1: 'รายเดือน',
+    f_M3: 'ราย 3 เดือน',
+    f_M6: 'ราย 6 เดือน',
+    f_Annually: 'รายปี',
+    w_noRoute: 'ไม่มีชีต ROUTE — พิกัดสถานที่ว่าง',
+    w_noCode: 'แถวอุปกรณ์ "{x}" ไม่มี code — ข้าม',
+    w_noActivity: 'ไม่มีชีต PM_ACTIVITY — รายการตรวจข้อเดียวต่อแผน',
+    w_badFreq: 'PM_ACTIVITY: ความถี่ "{f}" ของ {c} ไม่รู้จัก — ข้าม',
+    w_planNoEquip: 'PM_PLAN: code "{c}" ไม่มีใน EQUIPMENT',
+    w_noPlanSheet: 'ไม่มีชีต PM_PLAN',
+    w_equipNoPlan: 'EQUIPMENT: code "{c}" ไม่มีแผนใน PM_PLAN',
+    noOpenWos: 'ไม่มีใบงานที่เปิดอยู่'
+  },
+  en: {
+    title: 'Maintenance log',
+    offline: 'Offline',
+    addAsset: 'Add equipment',
+    scan: 'Scan',
+    printQr: 'Print QR labels',
+    site: 'Site',
+    addSite: 'Add site',
+    plans: 'PM plans',
+    addPlan: 'Add plan',
+    batch: 'Inspect whole site',
+    compMonthly: 'Monthly compliance',
+    reportFault: 'Report fault',
+    importFrom: 'Import from est-cost',
+    inputFile: 'Input file (.xlsx)',
+    import: 'Import',
+    exportXlsx: 'Export to Excel',
+    from: 'From',
+    to: 'To',
+    freqsInPm: 'Frequencies included in PM rows',
+    export: 'Export',
+    openInReport: 'Open in Report dashboard',
+    settings: 'Settings',
+    startMonth: 'Contract start month',
+    defInspector: 'Default inspector',
+    project: 'Project',
+    line: 'Line',
+    labelSizeA4: 'QR label size per A4 sheet',
+    assets: 'Equipment',
+    code: 'Code',
+    name: 'Name',
+    typeCode: 'Type (code)',
+    system: 'System',
+    status: 'Status',
+    active: 'Active',
+    retired: 'Retired',
+    serial: 'Serial no.',
+    brand: 'Brand',
+    model: 'Model',
+    installed: 'Installed on',
+    lat: 'Latitude',
+    lng: 'Longitude',
+    geo: 'Current location',
+    save: 'Save',
+    del: 'Delete',
+    cancel: 'Cancel',
+    abbr: 'Abbreviation',
+    typeName: 'Type name',
+    freq: 'Frequency',
+    hoursPer: 'Hours / cycle / unit',
+    shift: 'Shift',
+    day: 'Day',
+    night: 'Night',
+    checklist: 'Checklist',
+    addItem: 'Add item',
+    scanQr: 'Scan QR',
+    assetCode: 'Equipment code',
+    open: 'Open',
+    photoQr: 'Photograph QR',
+    close: 'Close',
+    inspect: 'Inspection',
+    locked: 'Locked',
+    prev: 'Previous',
+    next: 'Next',
+    draftBar: 'You have an unsaved draft',
+    draftRestore: 'Restore draft',
+    draftDrop: 'Discard draft',
+    period: 'Period',
+    inspector: 'Inspector',
+    remarks: 'Remarks',
+    woKind: 'Work type',
+    kindCm: 'Repair (CM)',
+    priority: 'Priority',
+    prioHigh: 'High',
+    prioNormal: 'Normal',
+    prioLow: 'Low',
+    symptom: 'Symptom',
+    reporter: 'Reported by',
+    skip: 'Skip',
+    createWo: 'Create work order',
+    wos: 'Work orders',
+    assignee: 'Assignee / technician',
+    planFinish: 'Planned finish',
+    startAt: 'Work start',
+    endAt: 'Work end',
+    downtime: 'Downtime (h)',
+    failureMode: 'Failure mode',
+    cause: 'Cause',
+    action: 'Corrective action',
+    partsUsed: 'Parts used',
+    addPart: 'Add part',
+    labor: 'Labour cost (THB)',
+    otherCost: 'Other costs (THB)',
+    searchPh: 'Search code / name / serial no.',
+    search: 'Search',
+    type: 'Type',
+    calendar: 'PM calendar',
+    month: 'Month',
+    io: 'Import / export',
+    labelSize: 'Label size',
+    note: 'Note',
+    addSiteFirst: 'Add a site first',
+    allSites: 'All sites',
+    allSystems: 'All systems',
+    allTypes: 'All types',
+    allStatus: 'All statuses',
+    missingFile: 'Not in file',
+    noAssets: 'No equipment yet',
+    assetNotFound: 'No equipment found',
+    pick: 'Select {code}',
+    edit: 'Edit',
+    noSites: 'No sites yet',
+    units: '{n} units',
+    editSite: 'Edit site',
+    siteNameReq: 'Enter a site name',
+    nameExists: 'This name already exists',
+    abbrReq: 'Enter an abbreviation',
+    abbrExists: 'This abbreviation already exists',
+    siteHasAssets: 'There is still equipment at this site',
+    cfSite: 'Delete this site?',
+    hoursUnit: '{n} h',
+    itemsCount: '{n} items',
+    planEdited: 'Edited',
+    noPlans: 'No PM plans yet',
+    itemN: 'Item {n}',
+    up: 'Up',
+    down: 'Down',
+    delItem: 'Delete item',
+    kind: 'Kind',
+    passFail: 'Pass / fail',
+    measured: 'Measured value',
+    unit: 'Unit',
+    minV: 'Min',
+    maxV: 'Max',
+    addPlanTitle: 'Add PM plan',
+    editPlanTitle: 'Edit PM plan',
+    typeReq: 'Enter a type (code)',
+    planExists: 'This plan already exists',
+    cfPlan: 'Delete this plan? (Saved inspection results are kept)',
+    monthN: 'Month {n}',
+    phaseLbl: '{f} cycle',
+    editAssetTitle: 'Edit equipment',
+    geoNone: 'Location is not supported on this device',
+    geoFail: 'Could not read the location',
+    assetCodeReq: 'Enter an equipment code',
+    codeExists: 'This code already exists',
+    siteReq: 'Select a site',
+    assetHasRecords: 'It has inspection results / work orders, so it cannot be deleted. Use "Retired" instead',
+    cfAsset: 'Delete this equipment?',
+    scanNoAsset: 'This equipment is not in the register',
+    scanNoMatch: 'No equipment matches this QR / code',
+    camFail: 'Could not open the camera',
+    noQrInImg: 'No QR found in the image',
+    imgReadFail: 'Could not read the image',
+    qrErrLib: 'Could not load the QR reader library',
+    qrErrImg: 'Could not open the image',
+    qrErrCam: 'This device cannot open the camera',
+    qrErrReader: 'Could not load the QR reader',
+    qrErrGen: 'The QR generator is not loaded yet',
+    back: 'Back',
+    scanAgain: 'Scan again',
+    map: 'Map',
+    printLabel: 'Print label',
+    imgConvert: 'Could not convert the image',
+    imgOpen: 'Could not open the image',
+    photoAddFail: 'Could not add the photo',
+    pend: 'Photos pending: {n}',
+    stDone: 'Inspected',
+    stLateDone: 'Inspected late',
+    stOverdue: 'Overdue',
+    stDue: 'Due',
+    stUpcoming: 'Upcoming',
+    weekOf: 'Week {a} – {b}',
+    noPlanForAsset: 'This equipment has no PM plan',
+    belowMin: 'Below limit ({v})',
+    aboveMax: 'Above limit ({v})',
+    takePhoto: 'Take photo',
+    generalPhoto: 'General photo',
+    rmPhoto: 'Remove photo',
+    resOk: 'Pass',
+    resNg: 'Fail',
+    resNa: 'N/A',
+    otherDevice: 'Inspected on another device',
+    lastSaved: 'Last saved {t}',
+    finish: 'Finish',
+    saveNext: 'Save & next',
+    notChecked: 'Not yet checked: {n} item(s)',
+    inspectorReq: 'Enter the inspector name',
+    saved: 'Saved',
+    saveFail: 'Could not save',
+    noneDue: 'No equipment is due',
+    latestResults: 'Latest results',
+    failN: 'Failed {n}',
+    daysN: '{n} d',
+    kpiOnTime: 'On time (12 months)',
+    kpiLate: 'Late',
+    kpiMissed: 'Missed',
+    kpiDue: 'Cycles due',
+    noPending: 'No pending work',
+    grpOverdue: 'Overdue',
+    grpDue: 'Due',
+    grpWeek: 'Within 7 days',
+    grpMonth: 'Whole month',
+    thMonth: 'Month',
+    thDue: 'Due',
+    thOnTime: 'On time',
+    thLate: 'Late',
+    thMissed: 'Missed',
+    noCycles: 'No cycles due yet',
+    overdueN: 'Overdue {n}',
+    dueN: 'Due {n}',
+    woN: 'WO {n}',
+    wsOpen: 'Open',
+    wsProgress: 'In progress',
+    wsParts: 'Waiting for parts',
+    wsDone: 'Done',
+    wsCancel: 'Cancelled',
+    woActive: 'Not closed',
+    woAll: 'All',
+    allLevels: 'All levels',
+    noWos: 'No work orders yet',
+    noWosFilter: 'No work orders match the filter',
+    woFromFail: 'Create work order from failed items',
+    woAssetNotFound: 'Equipment code not found',
+    symptomReq: 'Enter the symptom',
+    woCreated: 'Work order {no} created',
+    createFail: 'Could not create',
+    reportedAt: 'Reported {t}',
+    partName: 'Part name',
+    qty: 'Qty',
+    unitPrice: 'Unit price',
+    unitPriceAria: 'Unit price',
+    partsCost: 'Parts cost ฿{v}',
+    attachPhoto: 'Attach photo',
+    tlStatus: 'Status → {s}',
+    tlAssignee: 'Assignee {a}',
+    tlParts: 'Parts: {n} item(s)',
+    tlEdited: 'Edited',
+    noChange: 'No changes',
+    needNet: 'An internet connection is needed to read or write Excel files',
+    pvNewSites: 'New sites',
+    pvNewAssets: 'New equipment',
+    pvNewPlans: 'New plans',
+    pvUpdated: 'Updated',
+    pvSkipped: 'Skipped (edited plans)',
+    overwritePlan: 'Overwrite plan {id}',
+    notEstCost: 'Not an est-cost input file (needs EQUIPMENT and PM_PLAN sheets)',
+    fileReadFail: 'Could not read the file',
+    imported: 'Imported: {a} new equipment · {p} new plans',
+    badRange: 'Invalid date range',
+    pickFreq: 'Select at least one frequency',
+    exported: 'Exported',
+    exportFail: 'Export failed',
+    f_Daily: 'Daily',
+    f_Weekly: 'Weekly',
+    f_M1: 'Monthly',
+    f_M3: 'Every 3 months',
+    f_M6: 'Every 6 months',
+    f_Annually: 'Yearly',
+    w_noRoute: 'No ROUTE sheet — site coordinates left blank',
+    w_noCode: 'Equipment row "{x}" has no code — skipped',
+    w_noActivity: 'No PM_ACTIVITY sheet — one checklist item per plan',
+    w_badFreq: 'PM_ACTIVITY: unknown frequency "{f}" for {c} — skipped',
+    w_planNoEquip: 'PM_PLAN: code "{c}" is not in EQUIPMENT',
+    w_noPlanSheet: 'No PM_PLAN sheet',
+    w_equipNoPlan: 'EQUIPMENT: code "{c}" has no plan in PM_PLAN',
+    noOpenWos: 'No open work orders'
+  }
+  });
+
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  /* ข้อความแจ้งที่ค้างบนหน้า (ไม่ใช่ในกล่อง) — แปลสดตอนสลับภาษา; ค่าว่าง = เลิกตาม */
+  function setMsg(id, v) { var el = $(id); if (typeof v === 'function') OME_I18N.live(el, v); else { OME_I18N.live(el, null); el.textContent = v == null ? '' : v; } }
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
-  function num(n, d) { return (Number(n) || 0).toLocaleString('th-TH', { maximumFractionDigits: d == null ? 0 : d }); }
+  function num(n, d) { return OME_I18N.number(Number(n) || 0, { maximumFractionDigits: d == null ? 0 : d }); }
   function norm(s) { return String(s == null ? '' : s).trim().toLowerCase(); }
   function today() { return C.ymd(new Date()); }
   function dateTh(s) {
     var d = C.parseYmd(String(s || '').slice(0, 10));
-    return d ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+    return d ? OME_I18N.date(d, { day: 'numeric', month: 'short', year: 'numeric' }) : '';
   }
+  function dateTime(ms) { return OME_I18N.date(new Date(ms), { dateStyle: 'medium', timeStyle: 'short' }); }
+  function fl(f) { return T('f_' + f); } // ป้ายความถี่ตามภาษา (MntCalc.FREQ_LABEL เป็นไทยล้วน — known-answer test ผูกไว้) 
   function filesAvailable() { return /\.pages\.dev$/.test(location.hostname) || !!(window.TANOT_FILES && window.TANOT_FILES.enabled); }
 
   function toast(msg, kind) {
@@ -86,7 +631,7 @@
   function openDb(name) {
     if (dbCache[name]) return dbCache[name];
     var spec = name === OUTBOX.db ? OUTBOX : REG.idbSpec(name);
-    if (!spec) return Promise.reject(new Error('ไม่มีสคีมา ' + name));
+    if (!spec) return Promise.reject(new Error('no schema ' + name));
     dbCache[name] = new Promise(function (resolve, reject) {
       var req = indexedDB.open(name, spec.version);
       req.onupgradeneeded = function () {
@@ -184,11 +729,11 @@
   }
 
   /* ══════════ แท็บ ══════════ */
-  var TABS = [{ id: 'assets', label: 'อุปกรณ์', icon: 'wrench' }];
+  var TABS = [{ id: 'assets', key: 'assets', icon: 'wrench' }];
   var renderers = {}; // tab id → ฟังก์ชันวาด
   function renderTabs() {
     $('tabs').innerHTML = TABS.map(function (t) {
-      return '<button class="tab" type="button" role="tab" data-tab="' + t.id + '" aria-selected="' + (ui.tab === t.id) + '">' + icon(t.icon) + ' ' + esc(t.label) + '</button>';
+      return '<button class="tab" type="button" role="tab" data-tab="' + t.id + '" aria-selected="' + (ui.tab === t.id) + '">' + icon(t.icon) + ' ' + esc(T(t.key)) + '</button>';
     }).join('');
   }
   function showTab(id) {
@@ -234,10 +779,10 @@
   function fillFilters(assets, sites, plans) {
     var systems = {}, types = {}, tn = typeNames(plans);
     assets.forEach(function (a) { if (a.system) systems[a.system] = true; if (a.type) types[a.type] = true; });
-    $('fSite').innerHTML = opt('', 'ทุกสถานที่', !ui.site) + sites.map(function (s) { return opt(s.id, s.name, ui.site === s.id); }).join('');
-    $('fSystem').innerHTML = opt('', 'ทุกระบบ', !ui.system) + Object.keys(systems).sort().map(function (s) { return opt(s, s, ui.system === s); }).join('');
-    $('fType').innerHTML = opt('', 'ทุกประเภท', !ui.type) + Object.keys(types).sort().map(function (t) { return opt(t, tn[t] ? t + ' · ' + tn[t] : t, ui.type === t); }).join('');
-    $('fStatus').innerHTML = [['', 'ทุกสถานะ'], ['active', 'ใช้งาน'], ['retired', 'ปลดใช้งาน'], ['missing', 'ไม่อยู่ในไฟล์']]
+    $('fSite').innerHTML = opt('', T('allSites'), !ui.site) + sites.map(function (s) { return opt(s.id, s.name, ui.site === s.id); }).join('');
+    $('fSystem').innerHTML = opt('', T('allSystems'), !ui.system) + Object.keys(systems).sort().map(function (s) { return opt(s, s, ui.system === s); }).join('');
+    $('fType').innerHTML = opt('', T('allTypes'), !ui.type) + Object.keys(types).sort().map(function (t) { return opt(t, tn[t] ? t + ' · ' + tn[t] : t, ui.type === t); }).join('');
+    $('fStatus').innerHTML = [['', T('allStatus')], ['active', T('active')], ['retired', T('retired')], ['missing', T('missingFile')]]
       .map(function (o) { return opt(o[0], o[1], ui.status === o[0]); }).join('');
     $('typeList').innerHTML = Object.keys(types).sort().map(function (t) { return '<option value="' + esc(t) + '">'; }).join('');
   }
@@ -262,22 +807,20 @@
     if (!/^f(Site|System|Type|Status)$/.test(focus || '')) fillFilters(assets, sites, plans);
     var rows = filteredAssets(assets);
     if (!assets.length) {
-      $('aList').innerHTML = '<div class="empty">' + icon('wrench') + '<p class="empty-title">ยังไม่มีอุปกรณ์</p></div>';
+      $('aList').innerHTML = '<div class="empty">' + icon('wrench') + '<p class="empty-title">' + esc(T('noAssets')) + '</p></div>';
     } else if (!rows.length) {
-      $('aList').innerHTML = '<div class="empty">' + icon('search') + '<p>ไม่พบอุปกรณ์</p></div>';
+      $('aList').innerHTML = '<div class="empty">' + icon('search') + '<p>' + esc(T('assetNotFound')) + '</p></div>';
     } else {
       var sn = {}; sites.forEach(function (s) { sn[s.id] = s.name; });
       $('aList').innerHTML = '<div class="list">' + rows.map(function (a) {
         var meta = [sn[a.site], a.system, a.serial].filter(Boolean).join(' · ');
         return '<div class="list-row" data-id="' + esc(a.id) + '">' +
-          '<input class="pick" type="checkbox" aria-label="เลือก ' + esc(a.code) + '"' + (picked[a.id] ? ' checked' : '') + '>' +
-          '<div class="grow"><div class="title">' + esc(a.code) + ' · ' + esc(a.name) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
-          '<div class="end">' +
-            (a.status === 'retired' ? '<span class="badge">ปลดใช้งาน</span>' : '') +
-            (a.missing ? '<span class="badge warn">ไม่อยู่ในไฟล์</span>' : '') +
-            '<span class="badge" data-badge="' + esc(a.id) + '"></span>' +
-            '<button class="btn sm icon" type="button" data-act="edit" aria-label="แก้ไข">' + icon('pencil') + '</button>' +
-          '</div></div>';
+          '<input class="pick" type="checkbox" aria-label="' + esc(T('pick', { code: a.code })) + '"' + (picked[a.id] ? ' checked' : '') + '>' +
+          '<div class="grow"><div class="title">' + esc(a.code) + ' · ' + esc(a.name) + '</div><div class="meta">' + esc(meta) + '</div>' +
+            '<div class="badges">' + (a.status === 'retired' ? '<span class="badge">' + esc(T('retired')) + '</span>' : '') +
+            (a.missing ? '<span class="badge warn">' + esc(T('missingFile')) + '</span>' : '') +
+            '<span class="badge" data-badge="' + esc(a.id) + '"></span></div></div>' +
+          '<div class="end"><button class="btn sm icon" type="button" data-act="edit" aria-label="' + esc(T('edit')) + '">' + icon('pencil') + '</button></div></div>';
       }).join('') + '</div>';
     }
     $('sCount').textContent = String(sites.length);
@@ -305,19 +848,19 @@
 
   /* ── สถานที่ ── */
   function renderSites(sites, assets) {
-    if (!sites.length) { $('sList').innerHTML = '<div class="empty">' + icon('map-pin') + '<p>ยังไม่มีสถานที่</p></div>'; return; }
+    if (!sites.length) { $('sList').innerHTML = '<div class="empty">' + icon('map-pin') + '<p>' + esc(T('noSites')) + '</p></div>'; return; }
     var cnt = {}; assets.forEach(function (a) { cnt[a.site] = (cnt[a.site] || 0) + 1; });
     $('sList').innerHTML = '<div class="list">' + sites.slice().sort(function (a, b) { return a.name < b.name ? -1 : 1; }).map(function (s) {
       var meta = [s.abbr, s.lat != null && s.lng != null ? s.lat + ', ' + s.lng : ''].filter(Boolean).join(' · ');
       return '<div class="list-row" data-sid="' + esc(s.id) + '"><span class="lead">' + icon('map-pin') + '</span>' +
         '<div class="grow"><div class="title">' + esc(s.name) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
-        '<span class="badge">' + num(cnt[s.id] || 0) + ' ตัว</span></div>';
+        '<span class="badge">' + esc(T('units', { n: num(cnt[s.id] || 0) })) + '</span></div>';
     }).join('') + '</div>';
   }
   var siteEditing = null;
   function openSiteDialog(s) {
     siteEditing = s ? Object.assign({}, s) : { id: '', name: '', abbr: '', lat: null, lng: null, circuit: '', order: null };
-    $('dlgSiteTitle').textContent = s ? 'แก้ไขสถานที่' : 'เพิ่มสถานที่';
+    $('dlgSiteTitle').textContent = s ? T('editSite') : T('addSite');
     $('sName').value = siteEditing.name; $('sAbbr').value = siteEditing.abbr;
     $('sLat').value = siteEditing.lat != null ? siteEditing.lat : ''; $('sLng').value = siteEditing.lng != null ? siteEditing.lng : '';
     $('sDel').hidden = !s; $('sMsg').textContent = '';
@@ -333,11 +876,11 @@
   $('formSite').addEventListener('submit', function (e) {
     e.preventDefault();
     var name = $('sName').value.trim(), abbr = $('sAbbr').value.trim().toUpperCase();
-    if (!name) { $('sMsg').textContent = 'ใส่ชื่อสถานที่'; return; }
+    if (!name) { $('sMsg').textContent = T('siteNameReq'); return; }
     var sites = getSites();
-    if (sites.some(function (s) { return s.id !== siteEditing.id && norm(s.name) === norm(name); })) { $('sMsg').textContent = 'ชื่อนี้มีอยู่แล้ว'; return; }
-    if (!abbr) { $('sMsg').textContent = 'ใส่ตัวย่อ'; return; }
-    if (sites.some(function (s) { return s.id !== siteEditing.id && norm(s.abbr) === norm(abbr); })) { $('sMsg').textContent = 'ตัวย่อนี้มีอยู่แล้ว'; return; }
+    if (sites.some(function (s) { return s.id !== siteEditing.id && norm(s.name) === norm(name); })) { $('sMsg').textContent = T('nameExists'); return; }
+    if (!abbr) { $('sMsg').textContent = T('abbrReq'); return; }
+    if (sites.some(function (s) { return s.id !== siteEditing.id && norm(s.abbr) === norm(abbr); })) { $('sMsg').textContent = T('abbrExists'); return; }
     var s = siteEditing;
     if (!s.id) { s.id = 's-' + C.fnv1a36(norm(name)); if (sites.some(function (x) { return x.id === s.id; })) s.id = C.uid('s'); }
     s.name = name; s.abbr = abbr; s.lat = numOrNull($('sLat').value); s.lng = numOrNull($('sLng').value);
@@ -346,24 +889,26 @@
     renderCurrent();
   });
   $('sDel').addEventListener('click', function () {
-    if (getAssets().some(function (a) { return a.site === siteEditing.id; })) { $('sMsg').textContent = 'ยังมีอุปกรณ์ในสถานที่นี้'; return; }
-    if (!window.confirm('ลบสถานที่นี้?')) return;
-    removeById(K.sites, siteEditing.id);
-    $('dlgSite').close();
-    renderCurrent();
+    if (getAssets().some(function (a) { return a.site === siteEditing.id; })) { $('sMsg').textContent = T('siteHasAssets'); return; }
+    window.tanotConfirmDelete('', { message: T('cfSite') }).then(function (ok) {
+      if (!ok) return;
+      removeById(K.sites, siteEditing.id);
+      $('dlgSite').close();
+      renderCurrent();
+    });
   });
 
   /* ── แผน PM ── */
   function renderPlans(plans) {
-    if (!plans.length) { $('pList').innerHTML = '<div class="empty">' + icon('clipboard-list') + '<p>ยังไม่มีแผน PM</p></div>'; return; }
+    if (!plans.length) { $('pList').innerHTML = '<div class="empty">' + icon('clipboard-list') + '<p>' + esc(T('noPlans')) + '</p></div>'; return; }
     var order = C.FREQS;
     $('pList').innerHTML = '<div class="list">' + plans.slice().sort(function (a, b) {
       return a.type < b.type ? -1 : a.type > b.type ? 1 : order.indexOf(a.freq) - order.indexOf(b.freq);
     }).map(function (p) {
-      var meta = [C.FREQ_LABEL[p.freq], num(p.hours, 2) + ' ชม.', p.shift === 'N' ? 'กลางคืน' : p.shift === 'D' ? 'กลางวัน' : '', num((p.items || []).length) + ' ข้อ'].filter(Boolean).join(' · ');
+      var meta = [fl(p.freq), T('hoursUnit', { n: num(p.hours, 2) }), p.shift === 'N' ? T('night') : p.shift === 'D' ? T('day') : '', T('itemsCount', { n: num((p.items || []).length) })].filter(Boolean).join(' · ');
       return '<div class="list-row" data-pid="' + esc(p.id) + '"><span class="lead">' + icon('clipboard-list') + '</span>' +
         '<div class="grow"><div class="title">' + esc(p.type) + ' · ' + esc(p.typeName || '') + '</div><div class="meta">' + esc(meta) + '</div></div>' +
-        (p.edited ? '<span class="badge">แก้เอง</span>' : '') + '</div>';
+        (p.edited ? '<span class="badge">' + esc(T('planEdited')) + '</span>' : '') + '</div>';
     }).join('') + '</div>';
   }
   var planEditing = null, planIsNew = false, planMaxNo = 0;
@@ -371,17 +916,17 @@
   function renderPlanItems() {
     $('pItems').innerHTML = planEditing.items.map(function (it, i) {
       return '<div class="mnt-item" data-i="' + i + '">' +
-        '<input type="text" class="input" data-f="text" value="' + esc(it.text) + '" maxlength="200" aria-label="ข้อ ' + (i + 1) + '">' +
+        '<input type="text" class="input" data-f="text" value="' + esc(it.text) + '" maxlength="200" aria-label="' + esc(T('itemN', { n: i + 1 })) + '">' +
         '<div class="acts">' +
-          '<button class="btn sm icon ghost" type="button" data-a="up" aria-label="ขึ้น"' + (i === 0 ? ' disabled' : '') + '>' + icon('chevron-up') + '</button>' +
-          '<button class="btn sm icon ghost" type="button" data-a="down" aria-label="ลง"' + (i === planEditing.items.length - 1 ? ' disabled' : '') + '>' + icon('chevron-down') + '</button>' +
-          '<button class="btn sm icon ghost" type="button" data-a="rm" aria-label="ลบข้อ">' + icon('trash-2') + '</button></div>' +
-        '<div class="row2"><div class="segmented" role="group" aria-label="ชนิด">' +
-          '<button type="button" data-a="check" aria-pressed="' + (it.kind !== 'num') + '">ผ่าน/ไม่ผ่าน</button>' +
-          '<button type="button" data-a="num" aria-pressed="' + (it.kind === 'num') + '">ค่าที่วัด</button></div>' +
-          (it.kind === 'num' ? '<input type="text" class="input unit" data-f="unit" placeholder="หน่วย" value="' + esc(it.unit || '') + '" maxlength="12" aria-label="หน่วย">' +
-            '<input type="number" class="input" data-f="min" placeholder="ต่ำสุด" step="any" value="' + (it.min != null ? it.min : '') + '" aria-label="ต่ำสุด">' +
-            '<input type="number" class="input" data-f="max" placeholder="สูงสุด" step="any" value="' + (it.max != null ? it.max : '') + '" aria-label="สูงสุด">' : '') +
+          '<button class="btn sm icon ghost" type="button" data-a="up" aria-label="' + esc(T('up')) + '"' + (i === 0 ? ' disabled' : '') + '>' + icon('chevron-up') + '</button>' +
+          '<button class="btn sm icon ghost" type="button" data-a="down" aria-label="' + esc(T('down')) + '"' + (i === planEditing.items.length - 1 ? ' disabled' : '') + '>' + icon('chevron-down') + '</button>' +
+          '<button class="btn sm icon ghost" type="button" data-a="rm" aria-label="' + esc(T('delItem')) + '">' + icon('trash-2') + '</button></div>' +
+        '<div class="row2"><div class="segmented" role="group" aria-label="' + esc(T('kind')) + '">' +
+          '<button type="button" data-a="check" aria-pressed="' + (it.kind !== 'num') + '">' + esc(T('passFail')) + '</button>' +
+          '<button type="button" data-a="num" aria-pressed="' + (it.kind === 'num') + '">' + esc(T('measured')) + '</button></div>' +
+          (it.kind === 'num' ? '<input type="text" class="input unit" data-f="unit" placeholder="' + esc(T('unit')) + '" value="' + esc(it.unit || '') + '" maxlength="12" aria-label="' + esc(T('unit')) + '">' +
+            '<input type="number" class="input" data-f="min" placeholder="' + esc(T('minV')) + '" step="any" value="' + (it.min != null ? it.min : '') + '" aria-label="' + esc(T('minV')) + '">' +
+            '<input type="number" class="input" data-f="max" placeholder="' + esc(T('maxV')) + '" step="any" value="' + (it.max != null ? it.max : '') + '" aria-label="' + esc(T('maxV')) + '">' : '') +
         '</div></div>';
     }).join('');
   }
@@ -390,9 +935,9 @@
     planEditing = p ? JSON.parse(JSON.stringify(p)) : { id: '', type: '', typeName: '', freq: 'M1', hours: 0, shift: '', items: [], edited: true };
     planEditing.items = planEditing.items || [];
     planMaxNo = planEditing.items.reduce(function (m, it) { return Math.max(m, itemNo(it)); }, 0);
-    $('dlgPlanTitle').textContent = planIsNew ? 'เพิ่มแผน PM' : 'แก้ไขแผน PM';
+    $('dlgPlanTitle').textContent = planIsNew ? T('addPlanTitle') : T('editPlanTitle');
     $('pNewRow').hidden = !planIsNew;
-    $('pFreq').innerHTML = C.FREQS.map(function (f) { return opt(f, C.FREQ_LABEL[f], planEditing.freq === f); }).join('');
+    $('pFreq').innerHTML = C.FREQS.map(function (f) { return opt(f, fl(f), planEditing.freq === f); }).join('');
     $('pType').value = planEditing.type; $('pTypeName').value = planEditing.typeName;
     $('pHours').value = planEditing.hours || ''; $('pShift').value = planEditing.shift || '';
     $('pDel').hidden = planIsNew; $('pMsg').textContent = '';
@@ -438,9 +983,9 @@
     var p = planEditing;
     if (planIsNew) {
       p.type = $('pType').value.trim(); p.typeName = $('pTypeName').value.trim() || typeNames()[p.type] || p.type; p.freq = $('pFreq').value;
-      if (!p.type) { $('pMsg').textContent = 'ใส่ประเภท (code)'; return; }
+      if (!p.type) { $('pMsg').textContent = T('typeReq'); return; }
       p.id = p.type + '|' + p.freq;
-      if (getPlans().some(function (x) { return x.id === p.id; })) { $('pMsg').textContent = 'มีแผนนี้อยู่แล้ว'; return; }
+      if (getPlans().some(function (x) { return x.id === p.id; })) { $('pMsg').textContent = T('planExists'); return; }
     }
     p.hours = Math.max(0, parseFloat($('pHours').value) || 0); p.shift = $('pShift').value;
     p.items = p.items.filter(function (it) { return String(it.text).trim(); }).map(function (it) {
@@ -455,10 +1000,12 @@
     renderCurrent();
   });
   $('pDel').addEventListener('click', function () {
-    if (!window.confirm('ลบแผนนี้? (ผลตรวจที่บันทึกไว้แล้วไม่ถูกลบ)')) return;
-    removeById(K.plans, planEditing.id);
-    $('dlgPlan').close();
-    renderCurrent();
+    window.tanotConfirmDelete('', { message: T('cfPlan') }).then(function (ok) {
+      if (!ok) return;
+      removeById(K.plans, planEditing.id);
+      $('dlgPlan').close();
+      renderCurrent();
+    });
   });
 
   /* ── กล่องเพิ่ม/แก้ไขอุปกรณ์ ── */
@@ -466,8 +1013,8 @@
   function phaseSelectsHtml(a, plans) {
     return ['M3', 'M6', 'Annually'].filter(function (f) { return planOf(a.type, f, plans); }).map(function (f) {
       var n = C.STEP[f], cur = (a.phase && a.phase[f]) || 1, o = '';
-      for (var i = 1; i <= n; i++) o += opt(i, 'เดือนที่ ' + i, i === cur);
-      return '<div class="field"><label for="ph' + f + '">รอบ ' + esc(C.FREQ_LABEL[f]) + '</label><select id="ph' + f + '" data-ph="' + f + '">' + o + '</select></div>';
+      for (var i = 1; i <= n; i++) o += opt(i, T('monthN', { n: i }), i === cur);
+      return '<div class="field"><label for="ph' + f + '">' + esc(T('phaseLbl', { f: fl(f) })) + '</label><select id="ph' + f + '" data-ph="' + f + '">' + o + '</select></div>';
     }).join('');
   }
   function refreshPhaseRow() {
@@ -479,7 +1026,7 @@
     var sites = getSites();
     assetEditing = a ? JSON.parse(JSON.stringify(a)) : { id: C.uid('e'), code: '', name: '', type: '', system: '', site: ui.site || (sites[0] && sites[0].id) || '',
       serial: '', brand: '', model: '', installed: '', lat: null, lng: null, phase: {}, status: 'active', srcKey: '', missing: false, note: '' };
-    $('dlgAssetTitle').textContent = assetIsNew ? 'เพิ่มอุปกรณ์' : 'แก้ไขอุปกรณ์';
+    $('dlgAssetTitle').textContent = assetIsNew ? T('addAsset') : T('editAssetTitle');
     $('eSite').innerHTML = sites.map(function (s) { return opt(s.id, s.name, s.id === assetEditing.site); }).join('');
     ['Code', 'Name', 'Type', 'System', 'Serial', 'Brand', 'Model', 'Installed', 'Note'].forEach(function (f) { $('e' + f).value = assetEditing[f.toLowerCase()] || ''; });
     $('eStatus').value = assetEditing.status === 'retired' ? 'retired' : 'active';
@@ -491,22 +1038,22 @@
   }
   $('eType').addEventListener('input', refreshPhaseRow);
   $('aAdd').addEventListener('click', function () {
-    if (!getSites().length) { toast('เพิ่มสถานที่ก่อน', 'err'); $('dSites').open = true; return; }
+    if (!getSites().length) { toast(T('addSiteFirst'), 'err'); $('dSites').open = true; return; }
     openAssetDialog(null);
   });
   $('eCancel').addEventListener('click', function () { $('dlgAsset').close(); });
   $('eGeo').addEventListener('click', function () {
-    if (!navigator.geolocation) { $('eMsg').textContent = 'อุปกรณ์นี้ไม่รองรับระบุตำแหน่ง'; return; }
+    if (!navigator.geolocation) { $('eMsg').textContent = T('geoNone'); return; }
     navigator.geolocation.getCurrentPosition(function (p) {
       $('eLat').value = +p.coords.latitude.toFixed(6); $('eLng').value = +p.coords.longitude.toFixed(6); $('eMsg').textContent = '';
-    }, function () { $('eMsg').textContent = 'อ่านตำแหน่งไม่ได้'; }, { enableHighAccuracy: true, timeout: 15000 });
+    }, function () { $('eMsg').textContent = T('geoFail'); }, { enableHighAccuracy: true, timeout: 15000 });
   });
   $('formAsset').addEventListener('submit', function (e) {
     e.preventDefault();
     var a = assetEditing, code = $('eCode').value.trim();
-    if (!code) { $('eMsg').textContent = 'ใส่รหัสอุปกรณ์'; return; }
-    if (getAssets().some(function (x) { return x.id !== a.id && norm(x.code) === norm(code); })) { $('eMsg').textContent = 'รหัสนี้มีอยู่แล้ว'; return; }
-    if (!$('eSite').value) { $('eMsg').textContent = 'เลือกสถานที่'; return; }
+    if (!code) { $('eMsg').textContent = T('assetCodeReq'); return; }
+    if (getAssets().some(function (x) { return x.id !== a.id && norm(x.code) === norm(code); })) { $('eMsg').textContent = T('codeExists'); return; }
+    if (!$('eSite').value) { $('eMsg').textContent = T('siteReq'); return; }
     a.code = code; a.name = $('eName').value.trim() || code; a.type = $('eType').value.trim(); a.system = $('eSystem').value.trim();
     a.site = $('eSite').value; a.status = $('eStatus').value; a.serial = $('eSerial').value.trim(); a.brand = $('eBrand').value.trim();
     a.model = $('eModel').value.trim(); a.installed = $('eInstalled').value; a.note = $('eNote').value.trim();
@@ -525,11 +1072,13 @@
   $('eDel').addEventListener('click', function () {
     var a = assetEditing;
     assetHasRecords(a.id).then(function (has) {
-      if (has) { $('eMsg').textContent = 'มีผลตรวจ/ใบสั่งงานแล้ว — ลบไม่ได้ ใช้ "ปลดใช้งาน" แทน'; return; }
-      if (!window.confirm('ลบอุปกรณ์นี้?')) return;
-      removeById(K.assets, a.id);
-      $('dlgAsset').close();
-      if (location.hash) location.hash = ''; else renderCurrent();
+      if (has) { $('eMsg').textContent = T('assetHasRecords'); return; }
+      return window.tanotConfirmDelete('', { message: T('cfAsset') }).then(function (ok) {
+        if (!ok) return;
+        removeById(K.assets, a.id);
+        $('dlgAsset').close();
+        if (location.hash) location.hash = ''; else renderCurrent();
+      });
     });
   });
 
@@ -556,11 +1105,13 @@
     printLabels(list);
   });
 
+  var QR_ERR = { 'โหลด jsQR ไม่ได้': 'qrErrLib', 'เปิดภาพไม่ได้': 'qrErrImg', 'อุปกรณ์นี้เปิดกล้องไม่ได้': 'qrErrCam', 'โหลดตัวอ่าน QR ไม่ได้': 'qrErrReader', 'qrcode-generator ยังไม่ถูกโหลด': 'qrErrGen' };
+  function qrErr(err, dflt) { var m = err && err.message; return m && QR_ERR[m] ? T(QR_ERR[m]) : T(dflt); } // ข้อความ error ของ mnt-qr.js เป็นไทย / ของเบราว์เซอร์เป็นอังกฤษ — แสดงข้อความของหน้าตามภาษาแทน
   var scanning = null;
   function scanDone(text) {
     var id = Q.parse(text, getAssets());
     if (id && assetById(id)) { closeScan(); location.hash = '#asset=' + encodeURIComponent(id); return true; }
-    $('scanMsg').textContent = id ? 'ไม่พบอุปกรณ์นี้ในทะเบียน' : 'ไม่พบอุปกรณ์ที่ตรงกับ QR/รหัสนี้';
+    $('scanMsg').textContent = id ? T('scanNoAsset') : T('scanNoMatch');
     return false;
   }
   function startScan() {
@@ -572,7 +1123,7 @@
       if (text != null && !scanDone(text)) startScan();
     }, function (err) {
       if (scanning === p) scanning = null;
-      $('scanMsg').textContent = (err && err.message) || 'เปิดกล้องไม่ได้';
+      $('scanMsg').textContent = qrErr(err, 'camFail');
     });
   }
   function openScan() {
@@ -596,9 +1147,9 @@
     if (!f) return;
     $('scanMsg').textContent = '';
     Q.decodeImage(f).then(function (t) {
-      if (t == null) $('scanMsg').textContent = 'ไม่พบ QR ในรูป';
+      if (t == null) $('scanMsg').textContent = T('noQrInImg');
       else scanDone(t);
-    }, function (err) { $('scanMsg').textContent = (err && err.message) || 'อ่านรูปไม่ได้'; });
+    }, function (err) { $('scanMsg').textContent = qrErr(err, 'imgReadFail'); });
   });
 
   /* ══════════ มุมมองอุปกรณ์ (#asset=<id>) ══════════ */
@@ -613,20 +1164,20 @@
     var id = assetViewId(), a = id && assetById(id), el = $('assetView'), token = ++viewToken;
     $('listView').hidden = true; el.hidden = false;
     if (!a) {
-      el.innerHTML = '<div class="empty">' + icon('circle-alert') + '<p class="empty-title">ไม่พบอุปกรณ์</p>' +
-        '<button class="btn primary" type="button" data-act="scan">' + icon('scan-line') + 'สแกนใหม่</button> <button class="btn" type="button" data-act="back">กลับ</button></div>';
+      el.innerHTML = '<div class="empty">' + icon('circle-alert') + '<p class="empty-title">' + esc(T('assetNotFound')) + '</p>' +
+        '<button class="btn primary" type="button" data-act="scan">' + icon('scan-line') + esc(T('scanAgain')) + '</button> <button class="btn" type="button" data-act="back">' + esc(T('back')) + '</button></div>';
       return;
     }
     var sites = getSites(), plans = getPlans(), c = coordsOf(a, sites), tn = typeNames(plans);
     var meta = [siteName(a.site, sites), a.system, tn[a.type] || a.type].filter(Boolean).join(' · ');
-    var head = '<div class="head"><button class="btn sm icon ghost" type="button" data-act="back" aria-label="กลับ">' + icon('arrow-left') + '</button>' +
+    var head = '<div class="head"><button class="btn sm icon ghost" type="button" data-act="back" aria-label="' + esc(T('back')) + '">' + icon('arrow-left') + '</button>' +
       '<h2>' + esc(a.code) + ' · ' + esc(a.name) + '</h2>' +
-      (a.status === 'retired' ? '<span class="badge">ปลดใช้งาน</span>' : '') + '<button class="btn sm icon" type="button" data-act="edit" aria-label="แก้ไข">' + icon('pencil') + '</button></div>' +
+      (a.status === 'retired' ? '<span class="badge">' + esc(T('retired')) + '</span>' : '') + '<button class="btn sm icon" type="button" data-act="edit" aria-label="' + esc(T('edit')) + '">' + icon('pencil') + '</button></div>' +
       '<div class="muted">' + esc(meta) + '</div>' +
-      (c ? '<div><a class="btn sm" href="' + mapUrl(c.lat, c.lng) + '" target="_blank" rel="noopener">' + icon('map-pin') + 'แผนที่</a></div>' : '');
+      (c ? '<div><a class="btn sm" href="' + mapUrl(c.lat, c.lng) + '" target="_blank" rel="noopener">' + icon('map-pin') + esc(T('map')) + '</a></div>' : '');
     var qr = '<section class="card"><div class="mnt-qrbox"><div class="qr">' + Q.svg(Q.url(a.id), { cell: 4, margin: 1 }) + '</div>' +
       '<div><div class="title">' + esc(a.code) + '</div><div class="meta">' + esc(a.name) + '</div>' +
-      '<div class="row" style="margin-top:8px"><button class="btn sm" type="button" data-act="print">' + icon('printer') + 'พิมพ์ป้าย</button></div></div></div></section>';
+      '<div class="row" style="margin-top:8px"><button class="btn sm" type="button" data-act="print">' + icon('printer') + esc(T('printLabel')) + '</button></div></div></div></section>';
     el.innerHTML = head + '<div id="viewSections"></div>' + qr;
     Promise.all(viewSections.map(function (f) { return Promise.resolve(f(a)); })).then(function (parts) {
       if (token !== viewToken || assetViewId() !== a.id) return;
@@ -680,14 +1231,14 @@
       ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
       ctx.drawImage(src, 0, 0, cv.width, cv.height);
       return new Promise(function (resolve, reject) {
-        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error('แปลงรูปไม่ได้')); }, 'image/jpeg', 0.8);
+        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error(T('imgConvert'))); }, 'image/jpeg', 0.8);
       });
     }
     function viaImg() {
       return new Promise(function (resolve, reject) {
         var u = URL.createObjectURL(file), img = new Image();
         img.onload = function () { URL.revokeObjectURL(u); draw(img, img.naturalWidth, img.naturalHeight).then(resolve, reject); };
-        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error('เปิดรูปไม่ได้')); };
+        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error(T('imgOpen'))); };
         img.src = u;
       });
     }
@@ -770,7 +1321,7 @@
     outboxCount().then(function (n) {
       var b = $('pendBadge');
       if (!b) return;
-      b.hidden = !n; b.textContent = 'รอส่งรูป ' + n;
+      b.hidden = !n; b.textContent = T('pend', { n: n });
     });
   }
   window.addEventListener('online', function () { flushOutbox(); });
@@ -792,15 +1343,16 @@
   var batch = null;  // { assets: [id…], i, freq, period }
   var draftTimer = null;
   var photoTarget = null; // item id | '' (รูปรวม)
-  var STATE_LABEL = { done: 'ตรวจแล้ว', 'late-done': 'ตรวจช้า', overdue: 'เลยกำหนด', due: 'ถึงกำหนด', upcoming: 'ยังไม่ถึง' };
+  var STATE_KEY = { done: 'stDone', 'late-done': 'stLateDone', overdue: 'stOverdue', due: 'stDue', upcoming: 'stUpcoming' };
+  function stateLabel(st) { return T(STATE_KEY[st] || 'stUpcoming'); }
   var STATE_BADGE = { done: 'ok', 'late-done': 'warn', overdue: 'err', due: 'accent', upcoming: '' };
   function cssId(id) { return window.CSS && CSS.escape ? CSS.escape(id) : id; }
 
   function periodLabel(freq, period) {
     if (freq === 'Daily') return dateTh(period);
-    if (freq === 'Weekly') { var w = C.window('Weekly', period); return 'สัปดาห์ ' + dateTh(w.start) + ' – ' + dateTh(w.end); }
+    if (freq === 'Weekly') { var w = C.window('Weekly', period); return T('weekOf', { a: dateTh(w.start), b: dateTh(w.end) }); }
     var d = C.parseYmd(period + '-01');
-    return d ? d.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' }) : period;
+    return d ? OME_I18N.date(d, { month: 'long', year: 'numeric' }) : period;
   }
   /* รอบที่เลือกได้ของอุปกรณ์×แผน: รอบที่ครบกำหนดย้อนหลังจนถึงวันนี้ (ไม่มีรอบเลย = รอบปัจจุบันเพื่อให้ฟอร์มใช้ได้เสมอ) */
   function periodOptions(asset, plan, settings, done) {
@@ -826,10 +1378,10 @@
     batch = batchCtx || null;
     return loadAllInsp().then(function (docs) {
       var plans = getPlans(), freqs = planFreqsOf(asset, plans);
-      if (!freqs.length) { toast('อุปกรณ์นี้ยังไม่มีแผน PM', 'err'); return; }
+      if (!freqs.length) { toast(T('noPlanForAsset'), 'err'); return; }
       var f = freqs.indexOf(freq) !== -1 ? freq : freqs[0];
       F = { asset: asset, freq: f, period: '', docs: docs, plans: plans, photos: [], res: {}, note: '', by: '', start: 0, removed: [], draft: null };
-      $('inspFreq').innerHTML = freqs.map(function (x) { return opt(x, C.FREQ_LABEL[x], x === f); }).join('');
+      $('inspFreq').innerHTML = freqs.map(function (x) { return opt(x, fl(x), x === f); }).join('');
       return loadForm(period || null).then(function () { if (F && !$('dlgInsp').open) $('dlgInsp').showModal(); }); // เปิดกล่องหลังโหลดเสร็จ — กันพิมพ์ทับค่าที่กำลังโหลด
     });
   }
@@ -874,13 +1426,13 @@
 
   function numWarn(it, v) {
     if (v == null || v === '' || isNaN(+v)) return '';
-    if (it.min != null && +v < it.min) return 'ต่ำกว่าเกณฑ์ (' + it.min + ')';
-    if (it.max != null && +v > it.max) return 'สูงกว่าเกณฑ์ (' + it.max + ')';
+    if (it.min != null && +v < it.min) return T('belowMin', { v: it.min });
+    if (it.max != null && +v > it.max) return T('aboveMax', { v: it.max });
     return '';
   }
   function camBtn(item, label) {
     return filesAvailable() && !F.locked
-      ? '<button class="btn sm' + (label ? '' : ' icon') + '" type="button" data-cam="' + esc(item) + '"' + (label ? '' : ' aria-label="ถ่ายรูป"') + '>' + icon('camera') + (label || '') + '</button>' : '';
+      ? '<button class="btn sm' + (label ? '' : ' icon') + '" type="button" data-cam="' + esc(item) + '"' + (label ? '' : ' aria-label="' + esc(T('takePhoto')) + '"') + '>' + icon('camera') + (label || '') + '</button>' : '';
   }
   function photosHtml(item) { // item '' = รูปรวม
     return F.photos.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return (x.p.item || '') === item; }).map(function (x) {
@@ -888,7 +1440,7 @@
       if (p.pending) { cls += ' pend'; src = thumbUrls[p.pending] || ''; }
       else if (filesAvailable() && navigator.onLine !== false) src = '/api/files?id=' + encodeURIComponent(p.id);
       return '<span class="' + cls + '" data-pi="' + x.i + '">' + (src ? '<img alt="" src="' + esc(src) + '">' : icon('image')) +
-        (F.locked ? '' : '<button class="x" type="button" data-rmph="' + x.i + '" aria-label="ลบรูป">×</button>') + '</span>';
+        (F.locked ? '' : '<button class="x" type="button" data-rmph="' + x.i + '" aria-label="' + esc(T('rmPhoto')) + '">×</button>') + '</span>';
     }).join('');
   }
   function itemHtml(it) {
@@ -898,7 +1450,7 @@
         (it.unit ? '<span class="unit">' + esc(it.unit) + '</span>' : '') + '</div>';
     } else {
       body = '<div class="ctl"><div class="segmented" role="group" aria-label="' + esc(it.text) + '">' +
-        [['ok', 'ผ่าน', 'yes'], ['ng', 'ไม่ผ่าน', 'no'], ['na', 'ไม่มี', '']].map(function (o) {
+        [['ok', T('resOk'), 'yes'], ['ng', T('resNg'), 'no'], ['na', T('resNa'), '']].map(function (o) {
           return '<button type="button" data-res="' + o[0] + '" data-item="' + esc(it.id) + '" class="' + (r === o[0] ? 'on ' + o[2] : '') + '" aria-pressed="' + (r === o[0]) + '"' + dis + '>' + o[1] + '</button>';
         }).join('') + '</div></div>';
     }
@@ -915,18 +1467,18 @@
     $('inspFreq').disabled = !!batch; $('inspPeriod').disabled = !!batch;
     $('inspSave').disabled = F.locked;
     var st = C.status(a, plan, F.period, currentDoneIdx(), today());
-    $('inspState').innerHTML = '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + '</span>' +
-      (F.otherDone ? '<span class="badge info">ตรวจแล้วจากเครื่องอื่น' + (F.otherDone.by ? ' (' + esc(F.otherDone.by) + ')' : '') + '</span>' : '') +
-      (F.doc && F.doc.rows && F.doc.rows[a.id] ? '<span class="meta">บันทึกล่าสุด ' + esc(new Date(F.doc.rows[a.id].at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + '</span>' : '');
+    $('inspState').innerHTML = '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + stateLabel(st) + '</span>' +
+      (F.otherDone ? '<span class="badge info">' + esc(T('otherDevice')) + (F.otherDone.by ? ' (' + esc(F.otherDone.by) + ')' : '') + '</span>' : '') +
+      (F.doc && F.doc.rows && F.doc.rows[a.id] ? '<span class="meta">' + esc(T('lastSaved', { t: dateTime(F.doc.rows[a.id].at) })) + '</span>' : '');
     $('inspItems').innerHTML = plan.items.map(itemHtml).join('');
-    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', 'รูปรวม');
+    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', T('generalPhoto'));
     $('inspNav').hidden = !batch;
     if (batch) {
       $('inspPos').textContent = (batch.i + 1) + ' / ' + batch.assets.length;
       $('inspPrev').disabled = batch.i === 0;
-      $('inspNext').textContent = batch.i === batch.assets.length - 1 ? 'เสร็จสิ้น' : 'ถัดไป';
+      $('inspNext').textContent = batch.i === batch.assets.length - 1 ? T('finish') : T('next');
     }
-    $('inspSave').textContent = batch && batch.i < batch.assets.length - 1 ? 'บันทึกแล้วถัดไป' : 'บันทึก';
+    $('inspSave').textContent = batch && batch.i < batch.assets.length - 1 ? T('saveNext') : T('save');
     fillPendingThumbs();
   }
   function rerenderPhotos() {
@@ -935,7 +1487,7 @@
       var box = document.querySelector('[data-ph="' + cssId(it.id) + '"]');
       if (box) box.innerHTML = photosHtml(it.id) + camBtn(it.id);
     });
-    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', 'รูปรวม');
+    $('inspGenPhotos').innerHTML = photosHtml('') + camBtn('', T('generalPhoto'));
   }
   function fillPendingThumbs() { // ร่างที่กู้จากรอบก่อน: blob อยู่ใน outbox
     F.photos.forEach(function (p) {
@@ -1015,7 +1567,7 @@
           return addToOutbox(blob, F.asset.code + '_' + (target || 'all') + '_' + Date.now() + '.jpg', owner, true).then(function (rec) {
             F.photos.push({ item: target || null, pending: rec.id });
           });
-        }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || 'เพิ่มรูปไม่ได้'; });
+        }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || T('photoAddFail'); });
       });
     }, Promise.resolve()).then(function () { rerenderPhotos(); saveDraft(); });
   });
@@ -1055,8 +1607,8 @@
   function saveInsp() {
     if (!F || F.locked) return Promise.resolve(null);
     var a = F.asset, miss = F.plan.items.filter(function (it) { return it.kind !== 'num' && !F.res[it.id]; });
-    if (miss.length) { $('inspMsg').textContent = 'ยังไม่ได้ตรวจ ' + miss.length + ' ข้อ'; return Promise.resolve(null); }
-    if (!String(F.by).trim()) { $('inspMsg').textContent = 'ใส่ชื่อผู้ตรวจ'; return Promise.resolve(null); }
+    if (miss.length) { $('inspMsg').textContent = T('notChecked', { n: miss.length }); return Promise.resolve(null); }
+    if (!String(F.by).trim()) { $('inspMsg').textContent = T('inspectorReq'); return Promise.resolve(null); }
     var now = Date.now(), res = {}, keepPending = {};
     F.plan.items.forEach(function (it) {
       var v = F.res[it.id];
@@ -1086,7 +1638,7 @@
     });
   }
   function afterSave(r) {
-    toast('บันทึกแล้ว');
+    toast(T('saved'));
     var go = function () {
       if (batch && batch.i < batch.assets.length - 1) { batch.i++; loadBatchAsset(); }
       else $('dlgInsp').close();
@@ -1095,7 +1647,7 @@
   }
   $('formInsp').addEventListener('submit', function (e) {
     e.preventDefault();
-    saveInsp().then(function (r) { if (r) afterSave(r); }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || 'บันทึกไม่สำเร็จ'; });
+    saveInsp().then(function (r) { if (r) afterSave(r); }).catch(function (err) { $('inspMsg').textContent = (err && err.message) || T('saveFail'); });
   });
 
   /* ตรวจทั้งสถานที่: ไล่ฟอร์มทีละตัวที่ครบรอบ (รอบเดียวกัน) บันทึกลงใบตรวจรอบเดียวกัน */
@@ -1115,7 +1667,7 @@
     return loadAllInsp().then(function (docs) {
       var items = C.dueList({ assets: getAssets().filter(function (a) { return a.site === siteId; }), plans: getPlans(), settings: getSettings(),
         done: C.doneIndex(docs), today: today(), ahead: 0 }).filter(function (x) { return x.plan.freq === freq && x.state !== 'upcoming'; });
-      if (!items.length) { toast('ไม่มีอุปกรณ์ที่ครบรอบ', 'err'); return; }
+      if (!items.length) { toast(T('noneDue'), 'err'); return; }
       var per = items.map(function (x) { return x.period; }).sort()[0];
       var ids = items.filter(function (x) { return x.period === per; }).map(function (x) { return x.asset.id; });
       return openInsp(ids[0], freq, per, { assets: ids, i: 0, freq: freq, period: per });
@@ -1131,21 +1683,21 @@
       var rows = freqs.map(function (f) {
         var plan = planOf(a.type, f, plans), opts = periodOptions(a, plan, settings, done), per = defaultPeriod(opts, f);
         var st = C.status(a, plan, per, done, t);
-        return '<div class="list-row"><div class="grow"><div class="title">' + esc(C.FREQ_LABEL[f]) + '</div><div class="meta">' + esc(periodLabel(f, per)) + '</div></div>' +
-          '<div class="end"><span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + '</span>' +
-          '<button class="btn sm primary" type="button" data-act="insp" data-freq="' + f + '" data-period="' + esc(per) + '">' + icon('clipboard-check') + 'ตรวจเช็ก</button></div></div>';
+        return '<div class="list-row"><div class="grow"><div class="title">' + esc(fl(f)) + '</div><div class="meta">' + esc(periodLabel(f, per)) + '</div>' +
+          '<div class="badges"><span class="badge ' + (STATE_BADGE[st] || '') + '">' + stateLabel(st) + '</span></div></div>' +
+          '<div class="end"><button class="btn sm primary" type="button" data-act="insp" data-freq="' + f + '" data-period="' + esc(per) + '">' + icon('clipboard-check') + esc(T('inspect')) + '</button></div></div>';
       }).join('');
       var hist = [];
       docs.forEach(function (d) { if (d.rows && d.rows[a.id]) hist.push({ d: d, r: d.rows[a.id] }); });
       hist.sort(function (x, y) { return y.r.at - x.r.at; });
       var hh = hist.slice(0, 10).map(function (h) {
         var ng = Object.keys(h.r.res || {}).filter(function (k) { return h.r.res[k] === 'ng'; }).length;
-        return '<div class="list-row"><div class="grow"><div class="title">' + esc(C.FREQ_LABEL[h.d.freq]) + ' · ' + esc(periodLabel(h.d.freq, h.d.period)) + '</div>' +
-          '<div class="meta">' + esc(new Date(h.r.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + (h.d.by ? ' · ' + esc(h.d.by) : '') + '</div></div>' +
-          '<div class="end">' + (ng ? '<span class="badge err">ไม่ผ่าน ' + ng + '</span>' : '<span class="badge ok">ผ่าน</span>') + '</div></div>';
+        return '<div class="list-row"><div class="grow"><div class="title">' + esc(fl(h.d.freq)) + ' · ' + esc(periodLabel(h.d.freq, h.d.period)) + '</div>' +
+          '<div class="meta">' + esc(dateTime(h.r.at)) + (h.d.by ? ' · ' + esc(h.d.by) : '') + '</div>' +
+          '<div class="badges">' + (ng ? '<span class="badge err">' + esc(T('failN', { n: ng })) + '</span>' : '<span class="badge ok">' + esc(T('resOk')) + '</span>') + '</div></div></div>';
       }).join('');
-      return '<section class="card" data-sec="insp"><div class="card-head"><h2>ตรวจเช็ก</h2></div><div class="list">' + rows + '</div></section>' +
-        (hh ? '<section class="card" data-sec="hist"><div class="card-head"><h2>ผลตรวจล่าสุด</h2></div><div class="list">' + hh + '</div></section>' : '');
+      return '<section class="card" data-sec="insp"><div class="card-head"><h2>' + esc(T('inspect')) + '</h2></div><div class="list">' + rows + '</div></section>' +
+        (hh ? '<section class="card" data-sec="hist"><div class="card-head"><h2>' + esc(T('latestResults')) + '</h2></div><div class="list">' + hh + '</div></section>' : '');
     });
   });
   renderers.viewAction = function (act, b, a) {
@@ -1154,25 +1706,28 @@
   window.addEventListener('load', function () { flushOutbox(); updatePending(); });
 
   /* ══════════ แท็บปฏิทิน PM + compliance ══════════ */
-  TABS.push({ id: 'calendar', label: 'ปฏิทิน PM', icon: 'calendar-clock' });
+  TABS.push({ id: 'calendar', key: 'calendar', icon: 'calendar-clock' });
   var calMonth = today().slice(0, 7);
   var calToken = 0;
 
   function stateBadge(st, daysLate) {
-    return '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + STATE_LABEL[st] + (st === 'overdue' && daysLate ? ' ' + num(daysLate) + ' วัน' : '') + '</span>';
+    return '<span class="badge ' + (STATE_BADGE[st] || '') + '">' + stateLabel(st) + (st === 'overdue' && daysLate ? ' ' + T('daysN', { n: num(daysLate) }) : '') + '</span>';
   }
   function calRow(x, sn) {
-    var meta = [C.FREQ_LABEL[x.plan.freq], periodLabel(x.plan.freq, x.period)].filter(Boolean).join(' · ');
+    var meta = [fl(x.plan.freq), periodLabel(x.plan.freq, x.period)].filter(Boolean).join(' · ');
     return '<div class="list-row" data-aid="' + esc(x.asset.id) + '" data-freq="' + x.plan.freq + '" data-period="' + esc(x.period) + '">' +
-      '<div class="grow"><div class="title">' + esc(x.asset.code) + ' · ' + esc(x.asset.name) + '</div><div class="meta">' + esc(meta) + '</div></div>' +
-      '<div class="end">' + stateBadge(x.state, x.daysLate) + '</div></div>';
+      '<div class="grow"><div class="title">' + esc(x.asset.code) + ' · ' + esc(x.asset.name) + '</div><div class="meta">' + esc(meta) + '</div>' +
+      '<div class="badges">' + stateBadge(x.state, x.daysLate) + '</div></div></div>';
   }
-  function calGroup(title, items, sites, open, badgeCls) {
+  var GID = { overdue: 'เลยกำหนด', due: 'ถึงกำหนด', week: 'ภายใน 7 วัน', month: 'ทั้งเดือน' }; // data-group = รหัสตายตัว (ไม่เปลี่ยนตามภาษา)
+  var GTITLE = { overdue: 'grpOverdue', due: 'grpDue', week: 'grpWeek', month: 'grpMonth' };
+  function calGroup(gk, items, sites, open, badgeCls) {
+    var title = T(GTITLE[gk]);
     if (!items.length) return '';
     var bySite = {}, order = [];
     items.forEach(function (x) { if (!bySite[x.asset.site]) { bySite[x.asset.site] = []; order.push(x.asset.site); } bySite[x.asset.site].push(x); });
     order.sort(function (a, b) { return siteName(a, sites) < siteName(b, sites) ? -1 : 1; });
-    return '<section class="card" data-group="' + esc(title) + '"><div class="card-head"><h2>' + esc(title) + '</h2><span class="badge ' + (badgeCls || '') + '">' + num(items.length) + '</span></div>' +
+    return '<section class="card" data-group="' + esc(GID[gk]) + '"><div class="card-head"><h2>' + esc(title) + '</h2><span class="badge ' + (badgeCls || '') + '">' + num(items.length) + '</span></div>' +
       order.map(function (sid) {
         var list = bySite[sid];
         return '<details class="disclosure"' + (open && list.length <= 20 ? ' open' : '') + ' style="margin-top:8px"><summary>' + esc(siteName(sid, sites) || '—') + ' <span class="badge">' + num(list.length) + '</span></summary>' +
@@ -1204,11 +1759,11 @@
     var freqs = C.FREQS.filter(function (f) { return plans.some(function (p) { return p.freq === f; }); });
     var bs = $('cSite').value, bf = $('cFreq').value;
     $('cSite').innerHTML = sites.map(function (s) { return opt(s.id, s.name, s.id === bs); }).join('');
-    $('cFreq').innerHTML = freqs.map(function (f) { return opt(f, C.FREQ_LABEL[f], f === bf); }).join('');
+    $('cFreq').innerHTML = freqs.map(function (f) { return opt(f, fl(f), f === bf); }).join('');
     $('cBatch').disabled = !sites.length || !freqs.length;
     if (!assets.length || !plans.length) {
       $('cKpi').innerHTML = '';
-      $('cBody').innerHTML = '<div class="empty">' + icon('calendar-clock') + '<p class="empty-title">' + (assets.length ? 'ยังไม่มีแผน PM' : 'ยังไม่มีอุปกรณ์') + '</p></div>';
+      $('cBody').innerHTML = '<div class="empty">' + icon('calendar-clock') + '<p class="empty-title">' + esc(assets.length ? T('noPlans') : T('noAssets')) + '</p></div>';
       $('cCompBody').innerHTML = '';
       return;
     }
@@ -1223,23 +1778,23 @@
       var comp = C.compliance({ assets: assets, plans: plans, settings: settings, done: done, from: yr, to: C.ymd(new Date(+t.slice(0, 4), +t.slice(5, 7), 0)), today: t }); // นับตามเดือนที่ช่วงรอบจบ → ถึงสิ้นเดือนนี้
       var tot = comp.reduce(function (a, c) { a.due += c.due; a.onTime += c.onTime; a.late += c.late; a.missed += c.missed; return a; }, { due: 0, onTime: 0, late: 0, missed: 0 });
       $('cKpi').innerHTML =
-        '<div class="kpi"><div class="kpi-label">ตรงเวลา 12 เดือน</div><div class="kpi-value" data-k="ontime">' + pct(tot.onTime, tot.due) + '</div></div>' +
-        '<div class="kpi"><div class="kpi-label">ทำช้า</div><div class="kpi-value" data-k="late">' + pct(tot.late, tot.due) + '</div></div>' +
-        '<div class="kpi"><div class="kpi-label">พลาด</div><div class="kpi-value dn" data-k="missed">' + pct(tot.missed, tot.due) + '</div></div>' +
-        '<div class="kpi"><div class="kpi-label">รอบที่ครบกำหนด</div><div class="kpi-value" data-k="due">' + num(tot.due) + '</div></div>';
-      $('cBody').innerHTML = calGroup('เลยกำหนด', g.overdue, sites, true, 'err') + calGroup('ถึงกำหนด', g.due, sites, true, 'accent') +
-        calGroup('ภายใน 7 วัน', g.upcoming, sites, false, '') + calGroup('ทั้งเดือน', mi, sites, false, '') ||
-        '<div class="empty">' + icon('circle-check') + '<p class="empty-title">ไม่มีงานค้าง</p></div>';
+        '<div class="kpi"><div class="kpi-label">' + esc(T('kpiOnTime')) + '</div><div class="kpi-value" data-k="ontime">' + pct(tot.onTime, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">' + esc(T('kpiLate')) + '</div><div class="kpi-value" data-k="late">' + pct(tot.late, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">' + esc(T('kpiMissed')) + '</div><div class="kpi-value dn" data-k="missed">' + pct(tot.missed, tot.due) + '</div></div>' +
+        '<div class="kpi"><div class="kpi-label">' + esc(T('kpiDue')) + '</div><div class="kpi-value" data-k="due">' + num(tot.due) + '</div></div>';
+      $('cBody').innerHTML = calGroup('overdue', g.overdue, sites, true, 'err') + calGroup('due', g.due, sites, true, 'accent') +
+        calGroup('week', g.upcoming, sites, false, '') + calGroup('month', mi, sites, false, '') ||
+        '<div class="empty">' + icon('circle-check') + '<p class="empty-title">' + esc(T('noPending')) + '</p></div>';
       // compliance รายเดือน (รวมทุกสถานที่/ความถี่)
       var byM = {};
       comp.forEach(function (c) { var m = byM[c.month] || (byM[c.month] = { due: 0, onTime: 0, late: 0, missed: 0 }); m.due += c.due; m.onTime += c.onTime; m.late += c.late; m.missed += c.missed; });
       $('cCompBody').innerHTML = Object.keys(byM).length
-        ? '<div class="table-wrap"><table class="table right"><thead><tr><th>เดือน</th><th>ครบกำหนด</th><th>ตรงเวลา</th><th>ช้า</th><th>พลาด</th></tr></thead><tbody>' +
+        ? '<div class="table-wrap"><table class="table right"><thead><tr><th>' + esc(T('thMonth')) + '</th><th>' + esc(T('thDue')) + '</th><th>' + esc(T('thOnTime')) + '</th><th>' + esc(T('thLate')) + '</th><th>' + esc(T('thMissed')) + '</th></tr></thead><tbody>' +
           Object.keys(byM).sort().map(function (m) {
             var x = byM[m];
             return '<tr><td>' + esc(periodLabel('M1', m)) + '</td><td>' + num(x.due) + '</td><td>' + num(x.onTime) + ' (' + pct(x.onTime, x.due) + ')</td><td>' + num(x.late) + '</td><td>' + num(x.missed) + '</td></tr>';
           }).join('') + '</tbody></table></div>'
-        : '<div class="empty"><p>ยังไม่มีรอบที่ครบกำหนด</p></div>';
+        : '<div class="empty"><p>' + esc(T('noCycles')) + '</p></div>';
     });
   }
   renderers.calendar = renderCalendar;
@@ -1262,9 +1817,9 @@
         var el = document.querySelector('[data-badge="' + cssId(a.id) + '"]');
         if (!el) return;
         var b = by[a.id] || { overdue: 0, due: 0 }, wo = r[1][a.id] || 0, parts = [];
-        if (b.overdue) parts.push('<span class="badge err">เลยกำหนด ' + b.overdue + '</span>');
-        if (b.due) parts.push('<span class="badge accent">ถึงกำหนด ' + b.due + '</span>');
-        if (wo) parts.push('<span class="badge warn">ใบงาน ' + wo + '</span>');
+        if (b.overdue) parts.push('<span class="badge err">' + esc(T('overdueN', { n: b.overdue })) + '</span>');
+        if (b.due) parts.push('<span class="badge accent">' + esc(T('dueN', { n: b.due })) + '</span>');
+        if (wo) parts.push('<span class="badge warn">' + esc(T('woN', { n: wo })) + '</span>');
         if (parts.length) el.outerHTML = '<span data-badge="' + esc(a.id) + '" style="display:contents">' + parts.join('') + '</span>';
       });
     });
@@ -1273,10 +1828,11 @@
 
   /* ══════════ แท็บใบสั่งงาน ══════════
      wo = header สร้างครั้งเดียว ไม่แก้อีก · woev = event ต่อท้ายอย่างเดียว (แต่ละเครื่องเขียนแต่ของตัวเอง) · สถานะปัจจุบัน = MntCalc.foldWo */
-  TABS.push({ id: 'wo', label: 'ใบสั่งงาน', icon: 'wrench' });
-  var WO_STATUS = { open: 'เปิด', progress: 'กำลังดำเนินการ', parts: 'รออะไหล่', done: 'เสร็จ', cancel: 'ยกเลิก' };
+  TABS.push({ id: 'wo', key: 'wos', icon: 'wrench' });
+  var WO_KEYS = { open: 'wsOpen', progress: 'wsProgress', parts: 'wsParts', done: 'wsDone', cancel: 'wsCancel' };
+  function woStatus(k) { return WO_KEYS[k] ? T(WO_KEYS[k]) : k; }
   var WO_BADGE = { open: 'accent', progress: 'info', parts: 'warn', done: 'ok', cancel: '' };
-  var PRIO = { high: 'สูง', normal: 'ปกติ', low: 'ต่ำ' };
+  var PRIO_KEYS = { high: 'prioHigh', normal: 'prioNormal', low: 'prioLow' };
   var woFilter = { status: 'active', site: '', prio: '' };
   var woToken = 0;
 
@@ -1297,22 +1853,22 @@
   };
   function ageText(f) {
     var end = f.status === 'done' && f.endAt ? f.endAt : Date.now(), d = Math.max(0, Math.floor((end - f.reportedAt) / 86400000));
-    return d + ' วัน';
+    return T('daysN', { n: d });
   }
   function woRow(f, assets, sites) {
     var a = assets[f.asset];
     return '<div class="list-row" data-wid="' + esc(f.id) + '"><div class="grow"><div class="title">' + esc(f.no) + ' · ' + esc(a ? a.code : '?') + '</div>' +
-      '<div class="meta">' + esc(f.symptom || '—') + '</div></div>' +
-      '<div class="end">' + (f.priority === 'high' ? '<span class="badge err">สูง</span>' : '') + '<span class="badge ' + (WO_BADGE[f.status] || '') + '">' + esc(WO_STATUS[f.status] || f.status) + '</span>' +
-      '<span class="badge">' + esc(ageText(f)) + '</span></div></div>';
+      '<div class="meta">' + esc(f.symptom || '—') + '</div>' +
+      '<div class="badges">' + (f.priority === 'high' ? '<span class="badge err">' + esc(T('prioHigh')) + '</span>' : '') + '<span class="badge ' + (WO_BADGE[f.status] || '') + '">' + esc(woStatus(f.status)) + '</span>' +
+      '<span class="badge">' + esc(ageText(f)) + '</span></div></div></div>';
   }
   function renderWo() {
     var token = ++woToken, assets = {}, sites = getSites();
     getAssets().forEach(function (a) { assets[a.id] = a; });
-    $('wfStatus').innerHTML = [['active', 'ที่ยังไม่ปิด'], ['', 'ทั้งหมด'], ['open', 'เปิด'], ['progress', 'กำลังดำเนินการ'], ['parts', 'รออะไหล่'], ['done', 'เสร็จ'], ['cancel', 'ยกเลิก']]
+    $('wfStatus').innerHTML = [['active', T('woActive')], ['', T('woAll')], ['open', T('wsOpen')], ['progress', T('wsProgress')], ['parts', T('wsParts')], ['done', T('wsDone')], ['cancel', T('wsCancel')]]
       .map(function (o) { return opt(o[0], o[1], woFilter.status === o[0]); }).join('');
-    $('wfSite').innerHTML = opt('', 'ทุกสถานที่', !woFilter.site) + sites.map(function (s) { return opt(s.id, s.name, woFilter.site === s.id); }).join('');
-    $('wfPrio').innerHTML = opt('', 'ทุกระดับ', !woFilter.prio) + ['high', 'normal', 'low'].map(function (p) { return opt(p, PRIO[p], woFilter.prio === p); }).join('');
+    $('wfSite').innerHTML = opt('', T('allSites'), !woFilter.site) + sites.map(function (s) { return opt(s.id, s.name, woFilter.site === s.id); }).join('');
+    $('wfPrio').innerHTML = opt('', T('allLevels'), !woFilter.prio) + ['high', 'normal', 'low'].map(function (p) { return opt(p, T(PRIO_KEYS[p]), woFilter.prio === p); }).join('');
     loadFolded().then(function (list) {
       if (token !== woToken) return;
       var rows = list.filter(function (f) {
@@ -1321,8 +1877,8 @@
         if (woFilter.prio && f.priority !== woFilter.prio) return false;
         return true;
       }).sort(function (a, b) { return b.reportedAt - a.reportedAt; });
-      $('wList').innerHTML = !list.length ? '<div class="empty">' + icon('wrench') + '<p class="empty-title">ยังไม่มีใบสั่งงาน</p></div>'
-        : !rows.length ? '<div class="empty">' + icon('circle-check') + '<p>ไม่มีใบสั่งงานตามตัวกรอง</p></div>'
+      $('wList').innerHTML = !list.length ? '<div class="empty">' + icon('wrench') + '<p class="empty-title">' + esc(T('noWos')) + '</p></div>'
+        : !rows.length ? '<div class="empty">' + icon('circle-check') + '<p>' + esc(T('noWosFilter')) + '</p></div>'
         : '<div class="list">' + rows.map(function (f) { return woRow(f, assets, sites); }).join('') + '</div>';
     });
   }
@@ -1344,7 +1900,7 @@
     opts = opts || {};
     woNew = { offer: opts.offer || null, done: opts.done || null };
     fillAssetList();
-    $('woNewTitle').textContent = opts.offer ? 'สร้างใบสั่งงานจากข้อที่ไม่ผ่าน' : 'แจ้งซ่อม';
+    $('woNewTitle').textContent = opts.offer ? T('woFromFail') : T('reportFault');
     $('wnAsset').value = asset ? asset.code : ''; $('wnAsset').disabled = !!opts.offer;
     $('wnKind').value = 'cm'; $('wnPrio').value = 'normal';
     $('wnSymptom').value = opts.symptom || '';
@@ -1370,9 +1926,9 @@
   $('formWoNew').addEventListener('submit', function (e) {
     e.preventDefault();
     var code = $('wnAsset').value.trim(), a = getAssets().filter(function (x) { return norm(x.code) === norm(code); })[0];
-    if (!a) { $('wnMsg').textContent = 'ไม่พบรหัสอุปกรณ์นี้'; return; }
+    if (!a) { $('wnMsg').textContent = T('woAssetNotFound'); return; }
     var symptom = $('wnSymptom').value.trim();
-    if (!symptom) { $('wnMsg').textContent = 'ใส่อาการ'; return; }
+    if (!symptom) { $('wnMsg').textContent = T('symptomReq'); return; }
     var now = Date.now(), offer = woNew && woNew.offer;
     var wo = { id: C.uid('w'), no: C.woNo($('wnKind').value, now), kind: $('wnKind').value, asset: a.id, site: a.site, reportedAt: now, reportedBy: $('wnBy').value.trim(),
       symptom: symptom, priority: $('wnPrio').value, fromInsp: offer ? { year: offer.year, id: offer.docId, items: offer.items } : null, dev: deviceId(), createdAt: now };
@@ -1385,9 +1941,9 @@
         return doc;
       });
     }).then(function () {
-      toast('สร้างใบสั่งงาน ' + wo.no);
+      toast(T('woCreated', { no: wo.no }));
       closeWoNew();
-    }).catch(function (err) { $('wnMsg').textContent = (err && err.message) || 'สร้างไม่สำเร็จ'; });
+    }).catch(function (err) { $('wnMsg').textContent = (err && err.message) || T('createFail'); });
   });
   $('wNew').addEventListener('click', function () { openWoNew(null); });
 
@@ -1407,8 +1963,8 @@
       var f = C.foldWo(wo, r.events), a = assetById(wo.asset);
       W = { wo: wo, f: f, asset: a, parts: JSON.parse(JSON.stringify(f.parts || [])), photos: [], events: r.events.filter(function (e) { return e.wo === id; }) };
       $('woTitle').textContent = wo.no;
-      $('woMeta').textContent = [a ? a.code + ' · ' + a.name : '', siteName(wo.site), 'แจ้ง ' + new Date(wo.reportedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }), wo.reportedBy].filter(Boolean).join(' · ');
-      $('woStatus').innerHTML = Object.keys(WO_STATUS).map(function (k) { return opt(k, WO_STATUS[k], f.status === k); }).join('');
+      $('woMeta').textContent = [a ? a.code + ' · ' + a.name : '', siteName(wo.site), T('reportedAt', { t: dateTime(wo.reportedAt) }), wo.reportedBy].filter(Boolean).join(' · ');
+      $('woStatus').innerHTML = Object.keys(WO_KEYS).map(function (k) { return opt(k, woStatus(k), f.status === k); }).join('');
       $('woPrio').value = f.priority; $('woAssignee').value = f.assignee || ''; $('woSymptom').value = f.symptom || '';
       $('woPlanFinish').value = f.planFinish || ''; $('woStart').value = msToLocal(f.startAt); $('woEnd').value = msToLocal(f.endAt);
       $('woDown').value = f.downtimeH != null ? f.downtimeH : '';
@@ -1421,12 +1977,12 @@
   function matSum() { return W.parts.reduce(function (a, p) { return a + (+p.qty || 0) * (+p.unitCost || 0); }, 0); }
   function renderParts() {
     $('woParts').innerHTML = W.parts.map(function (p, i) {
-      return '<div class="mnt-item" data-i="' + i + '"><input type="text" class="input" data-f="name" value="' + esc(p.name) + '" placeholder="ชื่ออะไหล่" maxlength="120" aria-label="ชื่ออะไหล่">' +
-        '<div class="acts"><button class="btn sm icon ghost" type="button" data-a="rm" aria-label="ลบ">' + icon('trash-2') + '</button></div>' +
-        '<div class="row2"><input type="number" class="input" data-f="qty" value="' + (p.qty != null ? p.qty : '') + '" placeholder="จำนวน" step="any" min="0" aria-label="จำนวน">' +
-        '<input type="number" class="input" data-f="unitCost" value="' + (p.unitCost != null ? p.unitCost : '') + '" placeholder="ราคา/หน่วย" step="any" min="0" aria-label="ราคาต่อหน่วย"></div></div>';
+      return '<div class="mnt-item" data-i="' + i + '"><input type="text" class="input" data-f="name" value="' + esc(p.name) + '" placeholder="' + esc(T('partName')) + '" maxlength="120" aria-label="' + esc(T('partName')) + '">' +
+        '<div class="acts"><button class="btn sm icon ghost" type="button" data-a="rm" aria-label="' + esc(T('del')) + '">' + icon('trash-2') + '</button></div>' +
+        '<div class="row2"><input type="number" class="input" data-f="qty" value="' + (p.qty != null ? p.qty : '') + '" placeholder="' + esc(T('qty')) + '" step="any" min="0" aria-label="' + esc(T('qty')) + '">' +
+        '<input type="number" class="input" data-f="unitCost" value="' + (p.unitCost != null ? p.unitCost : '') + '" placeholder="' + esc(T('unitPrice')) + '" step="any" min="0" aria-label="' + esc(T('unitPriceAria')) + '"></div></div>';
     }).join('');
-    $('woMat').textContent = 'ค่าอะไหล่ ฿' + num(matSum(), 2);
+    $('woMat').textContent = T('partsCost', { v: num(matSum(), 2) });
   }
   $('woPartAdd').addEventListener('click', function () { W.parts.push({ name: '', qty: 1, unitCost: 0 }); renderParts(); });
   $('woParts').addEventListener('input', function (e) {
@@ -1434,7 +1990,7 @@
     if (!row || !f) return;
     var p = W.parts[+row.getAttribute('data-i')];
     p[f] = f === 'name' ? e.target.value : (e.target.value === '' ? null : +e.target.value);
-    $('woMat').textContent = 'ค่าอะไหล่ ฿' + num(matSum(), 2);
+    $('woMat').textContent = T('partsCost', { v: num(matSum(), 2) });
   });
   $('woParts').addEventListener('click', function (e) {
     var b = e.target.closest('[data-a="rm"]'), row = e.target.closest('.mnt-item');
@@ -1453,18 +2009,18 @@
     return '<span class="insp-ph' + (p.pending ? ' pend' : '') + '">' + (src ? '<img alt="" src="' + esc(src) + '">' : icon('image')) + '</span>';
   }
   function renderWoPhotos() {
-    $('woPhotos').innerHTML = W.photos.map(function (p, i) { return evPhotoHtml(p).replace('</span>', '<button class="x" type="button" data-rmph="' + i + '" aria-label="ลบรูป">×</button></span>'); }).join('') +
-      (filesAvailable() ? '<button class="btn sm" type="button" id="woCam">' + icon('camera') + 'แนบรูป</button>' : '');
+    $('woPhotos').innerHTML = W.photos.map(function (p, i) { return evPhotoHtml(p).replace('</span>', '<button class="x" type="button" data-rmph="' + i + '" aria-label="' + esc(T('rmPhoto')) + '">×</button></span>'); }).join('') +
+      (filesAvailable() ? '<button class="btn sm" type="button" id="woCam">' + icon('camera') + esc(T('attachPhoto')) + '</button>' : '');
   }
   function renderTimeline() {
     var evs = W.events.slice().sort(function (a, b) { return b.at - a.at; });
     $('woTimeline').innerHTML = evs.length ? '<div class="list">' + evs.map(function (e) {
       var set = e.set || {}, bits = [];
-      if (set.status) bits.push('สถานะ → ' + (WO_STATUS[set.status] || set.status));
-      if (set.assignee) bits.push('ผู้รับผิดชอบ ' + set.assignee);
-      if (set.parts) bits.push('อะไหล่ ' + set.parts.length + ' รายการ');
-      return '<div class="list-row"><div class="grow"><div class="title">' + esc(new Date(e.at).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' })) + '</div>' +
-        '<div class="meta" style="white-space:normal">' + esc([bits.join(' · '), e.note].filter(Boolean).join(' — ') || 'แก้ไข') + '</div>' +
+      if (set.status) bits.push(T('tlStatus', { s: woStatus(set.status) }));
+      if (set.assignee) bits.push(T('tlAssignee', { a: set.assignee }));
+      if (set.parts) bits.push(T('tlParts', { n: set.parts.length }));
+      return '<div class="list-row"><div class="grow"><div class="title">' + esc(dateTime(e.at)) + '</div>' +
+        '<div class="meta" style="white-space:normal">' + esc([bits.join(' · '), e.note].filter(Boolean).join(' — ') || T('tlEdited')) + '</div>' +
         ((e.photos || []).length ? '<div class="insp-photos" style="margin-top:4px">' + e.photos.map(evPhotoHtml).join('') + '</div>' : '') + '</div></div>';
     }).join('') + '</div>' : '';
   }
@@ -1487,7 +2043,7 @@
           // เจ้าของ (id ของ event) ยังไม่รู้จนกดบันทึก — ใส่ placeholder แล้วแก้ตอนบันทึก; ธง draft กันตัวส่งหยิบไปก่อน
           return addToOutbox(blob, (W.asset ? W.asset.code : 'wo') + '_' + W.wo.no + '_' + Date.now() + '.jpg', { db: 'tanot-mnt', store: 'woev', id: '' }, true)
             .then(function (rec) { W.photos.push({ item: null, pending: rec.id }); });
-        }).catch(function (err) { $('woMsg').textContent = (err && err.message) || 'เพิ่มรูปไม่ได้'; });
+        }).catch(function (err) { $('woMsg').textContent = (err && err.message) || T('photoAddFail'); });
       });
     }, Promise.resolve()).then(renderWoPhotos);
   });
@@ -1512,7 +2068,7 @@
       if (JSON.stringify(cur == null ? '' : cur) !== JSON.stringify(v == null ? '' : v)) set[k] = v;
     });
     var note = $('woNote').value.trim(), photos = W.photos.slice();
-    if (!Object.keys(set).length && !note && !photos.length) { $('woMsg').textContent = 'ไม่มีการเปลี่ยนแปลง'; return; }
+    if (!Object.keys(set).length && !note && !photos.length) { $('woMsg').textContent = T('noChange'); return; }
     var at = Date.now(), dev = deviceId(), evId = W.wo.id + '|' + at.toString(36) + '|' + dev;
     var ev = { id: evId, wo: W.wo.id, at: at, dev: dev, set: set, note: note, photos: photos };
     // รูปของ event นี้: ใส่ id เจ้าของจริงแล้วปลดธงร่าง
@@ -1520,18 +2076,18 @@
       return idbUpdate(OUTBOX.db, 'q', p.pending, function (rec) { return rec ? Object.assign(rec, { owner: { db: 'tanot-mnt', store: 'woev', id: evId }, draft: false }) : undefined; });
     })).then(function () { return idbPut('tanot-mnt', 'woev', ev); }).then(function () {
       W.photos = []; // ส่งต่อให้ตัวส่งแล้ว — ปิดกล่องไม่ต้องลบ
-      toast('บันทึกแล้ว');
+      toast(T('saved'));
       $('dlgWo').close();
       flushOutbox(); updatePending();
-    }).catch(function (err) { $('woMsg').textContent = (err && err.message) || 'บันทึกไม่สำเร็จ'; });
+    }).catch(function (err) { $('woMsg').textContent = (err && err.message) || T('saveFail'); });
   });
 
   /* ── ส่วนในมุมมองอุปกรณ์: ใบงานที่ยังเปิด + แจ้งซ่อม ── */
   viewSections.push(function (a) {
     return loadFolded().then(function (list) {
       var open = list.filter(function (f) { return f.asset === a.id && isOpenWo(f); }).sort(function (x, y) { return y.reportedAt - x.reportedAt; });
-      return '<section class="card" data-sec="wo"><div class="card-head"><h2>ใบสั่งงาน</h2><button class="btn sm primary" type="button" data-act="wo-new">' + icon('wrench') + 'แจ้งซ่อม</button></div>' +
-        (open.length ? '<div class="list">' + open.map(function (f) { return woRow(f, {}, []).replace('data-wid', 'data-act="wo-open" data-wid'); }).join('') + '</div>' : '<div class="empty"><p>ไม่มีใบงานที่เปิดอยู่</p></div>') + '</section>';
+      return '<section class="card" data-sec="wo"><div class="card-head"><h2>' + esc(T('wos')) + '</h2><button class="btn sm primary" type="button" data-act="wo-new">' + icon('wrench') + esc(T('reportFault')) + '</button></div>' +
+        (open.length ? '<div class="list">' + open.map(function (f) { return woRow(f, {}, []).replace('data-wid', 'data-act="wo-open" data-wid'); }).join('') + '</div>' : '<div class="empty"><p>' + esc(T('noOpenWos')) + '</p></div>') + '</section>';
     }).catch(function () { return ''; });
   });
   var prevViewAction = renderers.viewAction;
@@ -1544,7 +2100,7 @@
   /* ══════════ แท็บนำเข้า/ส่งออก ══════════
      นำเข้า = อ่านไฟล์ input ของ est-cost ที่ผู้ใช้เลือก (อ่านอย่างเดียว ไม่แก้ไฟล์ ไม่แตะ tool/est-cost) · ส่งออก = ชีต WorkOrders ฯลฯ (7.2)
      SheetJS โหลดแบบ lazy จาก CDN เดียวกับ report-dashboard (ใช้แคชร่วม) เฉพาะที่นี่ — ส่วนที่ต้องใช้ออฟไลน์ (QR) ไม่พึ่ง CDN */
-  TABS.push({ id: 'io', label: 'นำเข้า/ส่งออก', icon: 'file-spreadsheet' });
+  TABS.push({ id: 'io', key: 'io', icon: 'file-spreadsheet' });
   var XLSX_URL = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js'; // SheetJS (Apache-2.0)
   var xlsxPromise = null;
   function loadXlsx() {
@@ -1560,7 +2116,7 @@
     }
     return xlsxPromise;
   }
-  var NEED_NET = 'ต้องต่อเน็ตเพื่ออ่าน/เขียนไฟล์ Excel';
+  function needNet() { return T('needNet'); }
 
   var io = { sheets: null, overwrite: {}, name: '' };
   function snapshotExisting() { return JSON.parse(JSON.stringify({ sites: getSites(), assets: getAssets(), plans: getPlans() })); }
@@ -1568,6 +2124,16 @@
     var ex = snapshotExisting();
     ex.plans.forEach(function (p) { if (io.overwrite[p.id]) p.edited = false; });
     return C.fromEstCost(io.sheets, ex);
+  }
+  var WARN_RES = [[/^ไม่มีชีต ROUTE — พิกัดสถานที่ว่าง$/, 'w_noRoute', []], [/^แถวอุปกรณ์ "([\s\S]*)" ไม่มี code — ข้าม$/, 'w_noCode', ['x']],
+    [/^ไม่มีชีต PM_ACTIVITY — รายการตรวจข้อเดียวต่อแผน$/, 'w_noActivity', []], [/^PM_ACTIVITY: ความถี่ "([\s\S]*)" ของ ([\s\S]*) ไม่รู้จัก — ข้าม$/, 'w_badFreq', ['f', 'c']],
+    [/^PM_PLAN: code "([\s\S]*)" ไม่มีใน EQUIPMENT$/, 'w_planNoEquip', ['c']], [/^ไม่มีชีต PM_PLAN$/, 'w_noPlanSheet', []], [/^EQUIPMENT: code "([\s\S]*)" ไม่มีแผนใน PM_PLAN$/, 'w_equipNoPlan', ['c']]];
+  function warnText(w) { // คำเตือนจาก MntCalc.fromEstCost เป็นไทยล้วน (known-answer test ผูกไว้) — แปลตามแบบที่หน้านี้แสดง
+    for (var i = 0; i < WARN_RES.length; i++) {
+      var m = WARN_RES[i][0].exec(w);
+      if (m) { var v = {}; WARN_RES[i][2].forEach(function (k, j) { v[k] = m[j + 1]; }); return T(WARN_RES[i][1], v); }
+    }
+    return w;
   }
   function renderIoPreview() {
     var box = $('ioPreview');
@@ -1577,18 +2143,18 @@
     skipped = skipped.filter(function (v, i) { return skipped.indexOf(v) === i; });
     var b = function (label, n, cls) { return '<span class="badge ' + (cls || '') + '">' + esc(label) + ' ' + num(n) + '</span>'; };
     box.innerHTML = '<div class="row" style="flex-wrap:wrap;gap:6px" data-pv="counts">' +
-      b('สถานที่ใหม่', a.sites, a.sites ? 'ok' : '') + b('อุปกรณ์ใหม่', a.assets, a.assets ? 'ok' : '') + b('แผนใหม่', a.plans, a.plans ? 'ok' : '') +
-      b('แก้ไข', u.sites + u.assets + u.plans, u.sites + u.assets + u.plans ? 'info' : '') + b('ไม่อยู่ในไฟล์', r.report.missing, r.report.missing ? 'warn' : '') +
-      b('ข้าม (แผนที่แก้เอง)', r.report.skipped.length, r.report.skipped.length ? 'warn' : '') + '</div>' +
+      b(T('pvNewSites'), a.sites, a.sites ? 'ok' : '') + b(T('pvNewAssets'), a.assets, a.assets ? 'ok' : '') + b(T('pvNewPlans'), a.plans, a.plans ? 'ok' : '') +
+      b(T('pvUpdated'), u.sites + u.assets + u.plans, u.sites + u.assets + u.plans ? 'info' : '') + b(T('missingFile'), r.report.missing, r.report.missing ? 'warn' : '') +
+      b(T('pvSkipped'), r.report.skipped.length, r.report.skipped.length ? 'warn' : '') + '</div>' +
       (skipped.length ? '<div class="stack" style="margin-top:8px">' + skipped.map(function (id) {
-        return '<label class="check" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ow="' + esc(id) + '"' + (io.overwrite[id] ? ' checked' : '') + ' style="width:auto;height:auto"> ทับแผน ' + esc(id) + '</label>';
+        return '<label class="check" style="display:flex;gap:8px;align-items:center"><input type="checkbox" data-ow="' + esc(id) + '"' + (io.overwrite[id] ? ' checked' : '') + ' style="width:auto;height:auto"> ' + esc(T('overwritePlan', { id: id })) + '</label>';
       }).join('') + '</div>' : '') +
-      (r.warnings.length ? '<div class="callout warn" style="margin-top:8px"><ul style="margin:0;padding-left:18px">' + r.warnings.map(function (w) { return '<li>' + esc(w) + '</li>'; }).join('') + '</ul></div>' : '');
+      (r.warnings.length ? '<div class="callout warn" style="margin-top:8px"><ul style="margin:0;padding-left:18px">' + r.warnings.map(function (w) { return '<li>' + esc(warnText(w)) + '</li>'; }).join('') + '</ul></div>' : '');
     $('ioGo').disabled = false;
   }
   $('ioFile').addEventListener('change', function () {
     var f = this.files && this.files[0];
-    $('ioMsg').textContent = ''; io.sheets = null; io.overwrite = {}; renderIoPreview();
+    setMsg('ioMsg', ''); io.sheets = null; io.overwrite = {}; renderIoPreview();
     if (!f) return;
     loadXlsx().then(function (X) {
       return f.arrayBuffer().then(function (buf) {
@@ -1596,11 +2162,11 @@
         ['EQUIPMENT', 'PM_PLAN', 'PM_ACTIVITY', 'ROUTE', 'PROJECT'].forEach(function (n) {
           if (wb.Sheets[n]) sheets[n] = X.utils.sheet_to_json(wb.Sheets[n], { header: 1, defval: null });
         });
-        if (!sheets.EQUIPMENT || !sheets.PM_PLAN) { $('ioMsg').textContent = 'ไม่ใช่ไฟล์ input ของ est-cost (ต้องมีชีต EQUIPMENT และ PM_PLAN)'; return; }
+        if (!sheets.EQUIPMENT || !sheets.PM_PLAN) { setMsg('ioMsg', function () { return T('notEstCost'); }); return; }
         io.sheets = sheets; io.name = f.name;
         renderIoPreview();
       });
-    }).catch(function (err) { $('ioMsg').textContent = err && err.message === 'offline' ? NEED_NET : 'อ่านไฟล์ไม่ได้'; });
+    }).catch(function (err) { setMsg('ioMsg', err && err.message === 'offline' ? function () { return needNet(); } : function () { return T('fileReadFail'); }); });
   });
   $('ioPreview').addEventListener('change', function (e) {
     var id = e.target.getAttribute('data-ow');
@@ -1622,7 +2188,7 @@
     if (!st.project && r.settingsPatch.project) { st.project = r.settingsPatch.project; changed = true; }
     if (!st.line && r.settingsPatch.line) { st.line = r.settingsPatch.line; changed = true; }
     if (changed) saveSettings(st);
-    toast('นำเข้าแล้ว: อุปกรณ์ใหม่ ' + r.report.added.assets + ' · แผนใหม่ ' + r.report.added.plans);
+    toast(T('imported', { a: r.report.added.assets, p: r.report.added.plans }));
     io.sheets = null; io.overwrite = {}; $('ioFile').value = '';
     renderIoPreview(); renderIoSettings();
   });
@@ -1631,7 +2197,7 @@
   var exFreqs = C.PM_FREQS_DEFAULT.slice();
   function renderExFreqs() {
     $('exFreqs').innerHTML = C.FREQS.map(function (f) {
-      return '<button type="button" data-f="' + f + '" aria-pressed="' + (exFreqs.indexOf(f) !== -1) + '">' + esc(C.FREQ_LABEL[f]) + '</button>';
+      return '<button type="button" data-f="' + f + '" aria-pressed="' + (exFreqs.indexOf(f) !== -1) + '">' + esc(fl(f)) + '</button>';
     }).join('');
   }
   $('exFreqs').addEventListener('click', function (e) {
@@ -1651,9 +2217,9 @@
   }
   $('exGo').addEventListener('click', function () {
     var from = $('exFrom').value, to = $('exTo').value;
-    $('exMsg').textContent = '';
-    if (!from || !to || to < from) { $('exMsg').textContent = 'ช่วงวันที่ไม่ถูกต้อง'; return; }
-    if (!exFreqs.length) { $('exMsg').textContent = 'เลือกความถี่อย่างน้อยหนึ่งอย่าง'; return; }
+    setMsg('exMsg', '');
+    if (!from || !to || to < from) { setMsg('exMsg', function () { return T('badRange'); }); return; }
+    if (!exFreqs.length) { setMsg('exMsg', function () { return T('pickFreq'); }); return; }
     Promise.all([loadXlsx(), buildReport(from, to, exFreqs.slice())]).then(function (r) {
       var X = r[0], rep = r[1], wb = X.utils.book_new();
       [['WorkOrders', rep], ['Inspections', rep.inspections], ['Assets', rep.assets], ['Compliance', rep.compliance]].forEach(function (p) {
@@ -1663,14 +2229,14 @@
       });
       var st = getSettings();
       X.writeFile(wb, 'maintenance_' + (fileSafe(st.line || st.project) || 'all') + '_' + today() + '.xlsx');
-      toast('ส่งออกแล้ว');
-    }).catch(function (err) { $('exMsg').textContent = err && err.message === 'offline' ? NEED_NET : ((err && err.message) || 'ส่งออกไม่สำเร็จ'); });
+      toast(T('exported'));
+    }).catch(function (err) { setMsg('exMsg', err && err.message === 'offline' ? function () { return needNet(); } : (err && err.message) || function () { return T('exportFail'); }); });
   });
 
   $('exOpen').addEventListener('click', function () { // ส่งข้อมูลเข้า report-dashboard ผ่านทางเดียวกับอัปโหลดไฟล์ (report-dashboard.mntsrc.js)
     var from = $('exFrom').value, to = $('exTo').value;
-    $('exMsg').textContent = '';
-    if (!from || !to || to < from) { $('exMsg').textContent = 'ช่วงวันที่ไม่ถูกต้อง'; return; }
+    setMsg('exMsg', '');
+    if (!from || !to || to < from) { setMsg('exMsg', function () { return T('badRange'); }); return; }
     location.href = 'report-dashboard.html?src=maintenance&from=' + encodeURIComponent(from) + '&to=' + encodeURIComponent(to);
   });
 
@@ -1712,6 +2278,9 @@
   if (TD && TD.onChange) TD.onChange(refresh);
   window.addEventListener('storage', function (e) { if (e.key && e.key.indexOf('tanot:mnt:') === 0) refresh(); });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refresh(); });
+
+  window.OME_PAGE_LIVE_LANG = true; // สลับภาษาสด: ข้อความสถิตแปลโดย i18n.js (data-i18n) · ที่เหลือวาดใหม่ที่นี่ (กล่องที่เปิดอยู่ไม่วาดใหม่)
+  OME_LANG.onChange(function () { renderTabs(); updatePending(); refresh(); });
 
   renderTabs();
   showTab(ui.tab);

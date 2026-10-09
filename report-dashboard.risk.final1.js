@@ -13,6 +13,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -71,7 +73,7 @@
     return scaleFromText(v,map);
   }
   function sevTier(n){ return n>=5?'catastrophic':n===4?'critical':n>=2?'marginal':'negligible'; }
-  var SEV_LABEL={catastrophic:'วิกฤต (Catastrophic)',critical:'ร้ายแรง (Critical)',marginal:'ปานกลาง (Marginal)',negligible:'เล็กน้อย (Negligible)'};
+  function sevLabel(k){return {catastrophic:L('วิกฤต (Catastrophic)','Catastrophic'),critical:L('ร้ายแรง (Critical)','Critical'),marginal:L('ปานกลาง (Marginal)','Marginal'),negligible:L('เล็กน้อย (Negligible)','Negligible')}[k];}
   function cellColor(score){
     if(score>=15)return P().err; if(score>=10)return P().err; if(score>=6)return P().warn; if(score>=3)return P().warn; return P().ok;
   }
@@ -117,8 +119,8 @@
       if(level==null) level = sev*like;
       return {
         raw:r, i:i,
-        riskName: c.riskName?text(r[c.riskName.key]):('ความเสี่ยง #'+(i+1)),
-        riskCategory: c.riskCategory?text(r[c.riskCategory.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        riskName: c.riskName?text(r[c.riskName.key]):(L('ความเสี่ยง #','Risk #')+(i+1)),
+        riskCategory: c.riskCategory?text(r[c.riskCategory.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         severity: sev, severityText: c.severity?text(sevRaw):'',
         likelihood: like, likelihoodText: c.likelihood?text(likeRaw):'',
         level: level,
@@ -148,7 +150,7 @@
 #riskControlLayout .rk-kpi.warn:after{background:var(--ome-warn)}#riskControlLayout .rk-kpi.bad:after{background:var(--ome-err)}
 #riskControlLayout .rk-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #riskControlLayout .rk-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#riskControlLayout .rk-kpi.warn .v{color:var(--ome-warn-ink)}#riskControlLayout .rk-kpi.bad .v{color:var(--ome-err)}
+#riskControlLayout .rk-kpi.warn .v{color:var(--ome-warn-ink)}#riskControlLayout .rk-kpi.bad .v{color:var(--ome-err-ink)}
 #riskControlLayout .rk-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #riskControlLayout .rk-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #riskControlLayout .rk-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -173,7 +175,7 @@
 #riskControlLayout .rk-table tbody td{padding:9px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-1);vertical-align:top}
 #riskControlLayout .rk-table tbody tr:last-child td{border-bottom:none}
 #riskControlLayout .rk-sev{display:inline-flex;align-items:center;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap;color:var(--ome-on-accent)}
-#riskControlLayout .rk-sev.catastrophic{background:var(--ome-err)}#riskControlLayout .rk-sev.critical{background:var(--ome-err)}#riskControlLayout .rk-sev.marginal{background:var(--ome-warn)}#riskControlLayout .rk-sev.negligible{background:var(--ome-ok)}
+#riskControlLayout .rk-sev.catastrophic,#riskControlLayout .rk-sev.critical{background:var(--ome-err-fill);color:var(--ome-on-err)}#riskControlLayout .rk-sev.marginal{background:var(--ome-warn-soft);color:var(--ome-warn-ink)}#riskControlLayout .rk-sev.negligible{background:var(--ome-ok-soft);color:var(--ome-ok-ink)}
 #riskControlLayout .rk-donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
 #riskControlLayout .rk-donut-legend{display:flex;flex-direction:column;gap:10px;justify-content:center;flex:1;min-width:150px}
 #riskControlLayout .rk-donut-legend .row{display:flex;align-items:center;gap:8px;font-size:var(--ome-fs-xs)}
@@ -205,11 +207,11 @@
       '<div class="rk-kpis" id="rkKpis"></div>'+
       '<section class="rk-panel rk-insight-panel"><h3>Executive Insight</h3><div id="rkInsight" class="rk-insight"></div></section>'+
       '<div class="rk-grid">'+
-        '<section class="rk-panel full"><h3>Risk Matrix (โอกาสเกิด × ความรุนแรง)</h3><div id="rkMatrix"></div></section>'+
-        '<section class="rk-panel full" id="rkTrendSection"><h3>แนวโน้มความเสี่ยงรายเดือน</h3><div id="rkTrend"></div></section>'+
-        '<section class="rk-panel half"><h3>ความเสี่ยงแยกตามประเภท</h3><div id="rkCategory"></div></section>'+
-        '<section class="rk-panel half"><h3>สถานะมาตรการจัดการ</h3><div id="rkStatus"></div></section>'+
-        '<section class="rk-panel full"><h3>ทะเบียนความเสี่ยงแบบ JSA</h3><div id="rkJsa"></div></section>'+
+        '<section class="rk-panel full"><h3>'+L('Risk Matrix (โอกาสเกิด × ความรุนแรง)','Risk matrix (likelihood × severity)')+'</h3><div id="rkMatrix"></div></section>'+
+        '<section class="rk-panel full" id="rkTrendSection"><h3>'+L('แนวโน้มความเสี่ยงรายเดือน','Monthly risk trend')+'</h3><div id="rkTrend"></div></section>'+
+        '<section class="rk-panel half"><h3>'+L('ความเสี่ยงแยกตามประเภท','Risks by category')+'</h3><div id="rkCategory"></div></section>'+
+        '<section class="rk-panel half"><h3>'+L('สถานะมาตรการจัดการ','Mitigation status')+'</h3><div id="rkStatus"></div></section>'+
+        '<section class="rk-panel full"><h3>'+L('ทะเบียนความเสี่ยงแบบ JSA','JSA-style risk register')+'</h3><div id="rkJsa"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('risk-hidden-source');
@@ -243,7 +245,7 @@
     var byMonth={};
     rows.forEach(function(r){ if(!r.date)return; var k=monthKey(r.date); if(!byMonth[k])byMonth[k]={n:0,c:0}; byMonth[k].n++; if(r.closeDate)byMonth[monthKey(r.closeDate)]=byMonth[monthKey(r.closeDate)]||{n:0,c:0},byMonth[monthKey(r.closeDate)].c++; });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="rk-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="rk-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var perM=64,left=40,right=30,top=14,bottom=26,ph=170;
     var w=Math.max(400,left+right+(keys.length-1)*perM), h=top+ph+bottom, pw=w-left-right;
     var maxV=1; keys.forEach(function(k){maxV=Math.max(maxV,byMonth[k].n,byMonth[k].c);});
@@ -262,7 +264,7 @@
     });
     keys.forEach(function(k,i){ out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>'; });
     out+='</svg>';
-    host.innerHTML='<div class="rk-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().err+'\">● ระบุใหม่</span><span style=\"color:'+P().okInk+'\">● ปิด/ควบคุมแล้ว</span></div>';
+    host.innerHTML='<div class="rk-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style=\"color:'+P().errInk+'\">● '+L('ระบุใหม่','Newly identified')+'</span><span style=\"color:'+P().okInk+'\">● '+L('ปิด/ควบคุมแล้ว','Closed / controlled')+'</span></div>';
   }
 
   // โดนัทชาร์ต — ตามที่ผู้ใช้ขอให้ใช้ที่จุด "ความเสี่ยงแยกตามประเภท"
@@ -282,7 +284,7 @@
     '</svg>';
     var legend='<div class="rk-donut-legend">'+entries.map(function(e){
       var pct=(e[1]/total*100).toFixed(0);
-      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-3);width:32px;text-align:right">'+pct+'%</span></div>';
+      return '<div class="row"><i style="background:'+e[2]+'"></i><span style="flex:1">'+esc(e[0])+'</span><b>'+e[1]+'</b><span style="color:var(--ome-text-2);width:32px;text-align:right">'+pct+'%</span></div>';
     }).join('')+'</div>';
     return '<div class="rk-donut-wrap">'+svg+legend+'</div>';
   }
@@ -291,7 +293,7 @@
     var host=q('#rkCategory'); if(!host)return;
     var map={}; rows.forEach(function(r){ map[r.riskCategory]=(map[r.riskCategory]||0)+1; });
     var entries=Object.keys(map).map(function(k,i){return [k,map[k],P().series[i%8]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    host.innerHTML=entries.length?donutChart(entries,'ความเสี่ยงทั้งหมด'):'<div class="rk-empty">ไม่มีข้อมูล</div>';
+    host.innerHTML=entries.length?donutChart(entries,L('ความเสี่ยงทั้งหมด','Total risks')):'<div class="rk-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';
   }
 
   function renderStatus(rows){
@@ -299,7 +301,7 @@
     var withPlan=0,noPlan=0;
     rows.forEach(function(r){ if(planBucket(r.mitigation||r.status)==='plan')withPlan++; else noPlan++; });
     var total=Math.max(1,rows.length);
-    var vals=[['plan','มีแผนจัดการแล้ว',withPlan,P().ok],['noplan','ยังไม่มีแผน',noPlan,P().warn]];
+    var vals=[['plan',L('มีแผนจัดการแล้ว','Plan in place'),withPlan,P().ok],['noplan',L('ยังไม่มีแผน','No plan yet'),noPlan,P().warn]];
     var out='<div class="rk-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -313,19 +315,19 @@
   function renderJsa(rows){
     var host=q('#rkJsa'); if(!host)return;
     var top=rows.slice().sort(function(a,b){return b.level-a.level;}).slice(0,12);
-    if(!top.length){host.innerHTML='<div class="rk-empty">ไม่มีข้อมูล</div>';return;}
+    if(!top.length){host.innerHTML='<div class="rk-empty">'+L('ไม่มีข้อมูล','No data')+'</div>';return;}
     var html='<div class="rk-table-wrap"><table class="rk-table"><thead><tr>'+
-      '<th>ความเสี่ยง/อันตราย</th><th>ประเภท</th><th>ความรุนแรง</th><th>โอกาสเกิด</th><th>ระดับความเสี่ยง</th><th>มาตรการลดความเสี่ยง</th><th>ระดับที่เหลือหลังลด</th><th>เอกสารอ้างอิง</th>'+
+      '<th>'+L('ความเสี่ยง/อันตราย','Risk / hazard')+'</th><th>'+L('ประเภท','Category')+'</th><th>'+L('ความรุนแรง','Severity')+'</th><th>'+L('โอกาสเกิด','Likelihood')+'</th><th>'+L('ระดับความเสี่ยง','Risk level')+'</th><th>'+L('มาตรการลดความเสี่ยง','Mitigation')+'</th><th>'+L('ระดับที่เหลือหลังลด','Residual level')+'</th><th>'+L('เอกสารอ้างอิง','Reference')+'</th>'+
     '</tr></thead><tbody>'+
     top.map(function(r){
       var tier=sevTier(r.severity);
       var likeLabel=r.likelihoodText||(r.likelihood+'/5');
       return '<tr><td><b>'+esc(r.riskName)+'</b></td><td>'+esc(r.riskCategory)+'</td>'+
-        '<td><span class="rk-sev '+tier+'">'+esc(SEV_LABEL[tier])+'</span></td>'+
+        '<td><span class="rk-sev '+tier+'">'+esc(sevLabel(tier))+'</span></td>'+
         '<td>'+esc(likeLabel)+'</td><td><b>'+r.level+'</b></td>'+
         '<td>'+esc(r.mitigation||'—')+'</td>'+
-        '<td style="color:var(--ome-ok);font-weight:700">'+esc(r.residual||'—')+'</td>'+
-        '<td style="color:var(--ome-text-3);font-family:ui-monospace,monospace;white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
+        '<td style="color:var(--ome-ok-ink);font-weight:700">'+esc(r.residual||'—')+'</td>'+
+        '<td style="color:var(--ome-text-2);font-family:ui-monospace,monospace;white-space:nowrap">'+esc(r.refDoc||'—')+'</td></tr>';
     }).join('')+
     '</tbody></table></div>';
     host.innerHTML=html;
@@ -354,9 +356,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="rk-panel"><h3>Risk Control</h3>'+
-      '<div class="rk-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายทะเบียนความเสี่ยง (ต้องมีคอลัมน์ '+
+      '<div class="rk-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายทะเบียนความเสี่ยง (ต้องมีคอลัมน์ '+
       'ความเสี่ยง/ประเภท ร่วมกับ ความรุนแรง/โอกาสเกิด/ระดับความเสี่ยง) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no risk-register columns (a risk / category column together with severity / likelihood / risk level is required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('risk-hidden-source');
     });
@@ -383,23 +385,23 @@
     var avgScore=rows.reduce(function(s,r){return s+r.level;},0)/rows.length;
 
     q('#rkKpis').innerHTML=
-      '<div class="rk-kpi"><div class="l">ความเสี่ยงทั้งหมด</div><div class="v">'+rows.length+'</div><div class="s">รายการที่บันทึก</div></div>'+
-      '<div class="rk-kpi'+(high?' bad':'')+'"><div class="l">ระดับสูง/วิกฤต</div><div class="v">'+high+'</div><div class="s">คะแนน ≥ 15</div></div>';
+      '<div class="rk-kpi"><div class="l">'+L('ความเสี่ยงทั้งหมด','All risks')+'</div><div class="v">'+rows.length+'</div><div class="s">'+L('รายการที่บันทึก','Recorded items')+'</div></div>'+
+      '<div class="rk-kpi'+(high?' bad':'')+'"><div class="l">'+L('ระดับสูง/วิกฤต','High / critical')+'</div><div class="v">'+high+'</div><div class="s">'+L('คะแนน ≥ 15','Score ≥ 15')+'</div></div>';
     // withPlan/noPlan คำนวณใน renderStatus แล้วนำมาต่อ KPI ด้วย
     var withPlan=rows.filter(function(r){return planBucket(r.mitigation||r.status)==='plan';}).length;
     var noPlan=rows.length-withPlan;
     q('#rkKpis').innerHTML+=
-      '<div class="rk-kpi"><div class="l">มีแผนจัดการแล้ว</div><div class="v">'+withPlan+'</div><div class="s">รายการ</div></div>'+
-      '<div class="rk-kpi'+(noPlan?' warn':'')+'"><div class="l">ยังไม่มีแผน</div><div class="v">'+noPlan+'</div><div class="s">ต้องติดตาม</div></div>'+
-      '<div class="rk-kpi"><div class="l">คะแนนเฉลี่ย</div><div class="v">'+avgScore.toFixed(1)+'</div><div class="s">จาก 25 คะแนนเต็ม</div></div>';
+      '<div class="rk-kpi"><div class="l">'+L('มีแผนจัดการแล้ว','Plan in place')+'</div><div class="v">'+withPlan+'</div><div class="s">'+L('รายการ','items')+'</div></div>'+
+      '<div class="rk-kpi'+(noPlan?' warn':'')+'"><div class="l">'+L('ยังไม่มีแผน','No plan yet')+'</div><div class="v">'+noPlan+'</div><div class="s">'+L('ต้องติดตาม','Needs follow-up')+'</div></div>'+
+      '<div class="rk-kpi"><div class="l">'+L('คะแนนเฉลี่ย','Average score')+'</div><div class="v">'+avgScore.toFixed(1)+'</div><div class="s">'+L('จาก 25 คะแนนเต็ม','out of 25')+'</div></div>';
 
-    var statusText=high?'ควรทบทวนความเสี่ยงระดับสูง':noPlan?'ควรเร่งจัดทำแผนจัดการ':'อยู่ในเกณฑ์ปกติ';
-    q('#rkInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — พบความเสี่ยง <b>'+high+' รายการ</b> ที่คะแนนอยู่ในระดับวิกฤต (≥15)'+(noPlan?' และมี <b>'+noPlan+' รายการ</b> ที่ยังไม่มีมาตรการจัดการ':'')+'.';
+    var statusText=high?L('ควรทบทวนความเสี่ยงระดับสูง','Review high-level risks'):noPlan?L('ควรเร่งจัดทำแผนจัดการ','Prepare mitigation plans soon'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#rkInsight').innerHTML=L('สถานะโดยรวม <b>'+statusText+'</b> — พบความเสี่ยง <b>'+high+' รายการ</b> ที่คะแนนอยู่ในระดับวิกฤต (≥15)'+(noPlan?' และมี <b>'+noPlan+' รายการ</b> ที่ยังไม่มีมาตรการจัดการ':'')+'.','Overall status <b>'+statusText+'</b> — <b>'+high+' risks</b> score at a critical level (≥15)'+(noPlan?' and <b>'+noPlan+' risks</b> have no mitigation yet':'')+'.');
 
     renderMatrix(rows); renderTrend(rows); renderCategory(rows); renderStatus(rows); renderJsa(rows);
 
     var today=new Date();
-    q('#rkUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#rkUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -411,6 +413,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('riskControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

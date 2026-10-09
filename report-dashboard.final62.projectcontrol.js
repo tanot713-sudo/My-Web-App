@@ -223,7 +223,7 @@
       if(r.plan!=null)(groups[k]||(groups[k]={a:[],p:[]})).p.push(r.plan);
     });
     var keys=Object.keys(groups).sort();
-    var controls='<div class="f61-scale f53-trend-controls"><button type="button" data-trend-scale="year" class="'+(TREND_SCALE==='year'?'active':'')+'">Year</button><button type="button" data-trend-scale="month" class="'+(TREND_SCALE==='month'?'active':'')+'">Month</button></div>';
+    var controls='<div class="f61-scale f53-trend-controls segmented"><button type="button" data-trend-scale="year" class="'+(TREND_SCALE==='year'?'active':'')+'">Year</button><button type="button" data-trend-scale="month" class="'+(TREND_SCALE==='month'?'active':'')+'">Month</button></div>';
     if(keys.length<2){host.innerHTML=controls+'<div class="f53-empty">Not enough valid progress points for a trend.</div>';wireTrendControls(host,rows);return;}
     var pts=keys.map(function(k){
       var g=groups[k],label;
@@ -473,7 +473,7 @@
       out+='<circle cx="'+(colX+151)+'" cy="'+(y+12)+'" r="4" fill="'+statusColor+'"/><text x="'+(colX+161)+'" y="'+(y+16)+'" font-size="9.5" font-weight="700" fill="'+statusColor+'">'+esc(status)+'</text>';
     });
     out+='</svg>';
-    var controls='<div class="f61-gantt-controls"><div class="f61-filter-group"><button class="f61-chip active" data-g61-view="priority">Priority 12</button><button class="f61-chip" data-g61-view="all">All '+all.length+'</button></div><div class="f61-scale"><button data-g61-scale="year">Year</button><button data-g61-scale="quarter">Quarter</button><button data-g61-scale="month">Month</button><button data-g61-scale="week">Week</button></div><div class="f61-zoom"><span>Zoom</span><button data-g61-zoom="-">−</button><button data-g61-zoom="fit">Fit</button><button data-g61-zoom="+">+</button></div></div>';
+    var controls='<div class="f61-gantt-controls"><div class="f61-filter-group segmented"><button class="f61-chip active" data-g61-view="priority">Priority 12</button><button class="f61-chip" data-g61-view="all">All '+all.length+'</button></div><div class="f61-scale segmented"><button data-g61-scale="year">Year</button><button data-g61-scale="quarter">Quarter</button><button data-g61-scale="month">Month</button><button data-g61-scale="week">Week</button></div><div class="f61-zoom"><span>Zoom</span><button class="btn sm" data-g61-zoom="-">−</button><button class="btn sm" data-g61-zoom="fit">Fit</button><button class="btn sm" data-g61-zoom="+">+</button></div></div>';
     var delayed=sorted.filter(function(r){return health(r,today)[1]==='bad'}).length,risk=sorted.filter(function(r){return health(r,today)[1]==='warn'}).length,completed=sorted.filter(function(r){return r.actual!=null&&r.actual>=99.5;}).length,activeCount=sorted.length-completed;
     /* Stage 5 (ตามที่ผู้ใช้ขอ): ให้แต่ละสถิติมี class ตามความหมาย (delayed/at risk = โทนแดง/ส้มอ่อน)
        แทนกล่องสีเทาเหมือนกันหมด */
@@ -669,10 +669,8 @@
 #projectControlLayout .project-kpi.warn:after{background:var(--ome-warn)}.project-kpi.bad:after{background:var(--ome-err)}
 /* BUGFIX Stage 3: ปุ่ม "Presentation Mode" (.pc55-present) ไม่เคยมี CSS เลย ใช้ปุ่ม <button> ดีฟอลต์ของ
    เบราว์เซอร์ (กรอบเทาเหลี่ยม) ต่างจากปุ่มอื่นในหน้านี้ทั้งหมด ให้ทรงเดียวกับปุ่มอื่น (เช่น .f61-chip) */
-#projectControlLayout .pc55-present{border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-1);border-radius:var(--ome-radius-md);padding:7px 13px;font-size:var(--ome-fs-xs);font-weight:700;cursor:pointer;white-space:nowrap;flex:none}
-#projectControlLayout .pc55-present:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong);background:var(--ome-accent-soft)}
 #projectControlLayout .pc55-hero-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
-#projectControlLayout .project-kpi .pk-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}.project-kpi .pk-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.1;margin-top:4px;color:var(--ome-text-1)}.project-kpi.good .pk-value{color:var(--ome-ok)}.project-kpi.warn .pk-value{color:var(--ome-warn)}.project-kpi.bad .pk-value{color:var(--ome-err)}.project-kpi .pk-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#projectControlLayout .project-kpi .pk-label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}.project-kpi .pk-value{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.1;margin-top:4px;color:var(--ome-text-1)}.project-kpi.good .pk-value{color:var(--ome-ok-ink)}.project-kpi.warn .pk-value{color:var(--ome-warn-ink)}.project-kpi.bad .pk-value{color:var(--ome-err-ink)}.project-kpi .pk-sub{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #projectControlLayout .project-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;min-width:0;box-shadow:var(--ome-shadow-1)}
 #projectControlLayout .project-panel h3{font-size:var(--ome-fs-sm);margin:0 0 4px;font-weight:700;color:var(--ome-text-1)}.panel-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-bottom:7px}.pc55-reading-tip{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding-top:3px;white-space:nowrap}
 #projectControlLayout .project-control-main-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}.project-control-main-grid>.full{grid-column:1/-1}.project-control-main-grid>.half{grid-column:span 6}.project-control-main-grid>.quarter{grid-column:span 3}
@@ -684,7 +682,7 @@
 #projectControlLayout .f56-insight-panel{border-left:3px solid var(--ome-accent);padding:10px 13px}.f56-insight-title{font-size:var(--ome-fs-xs);font-weight:700;margin-bottom:3px}.f56-insight-text{font-size:var(--ome-fs-xs);color:var(--ome-text-1)}
 #projectControlLayout .f61-attention-compact{padding:9px 12px}.f61-attention-compact .project-control-head{display:flex;justify-content:space-between;align-items:center}.f61-attention-compact h3{margin:0}.f61-attention-compact:has(.mini:only-child){display:block}
 #projectControlLayout #f53Attention{font-size:var(--ome-fs-xs)}.project-attention-card{display:inline-flex!important;margin:4px 6px 0 0;padding:6px 8px!important;border-radius:8px!important}
-#projectControlLayout #f53Gantt{min-height:0}.f61-gantt-controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 5px}.f61-filter-group,.f61-scale,.f61-zoom{display:flex;gap:4px;align-items:center}.f61-chip,.f61-scale button,.f61-zoom button{border:1px solid var(--ome-border);background:var(--ome-surface-1);border-radius:var(--ome-radius-sm);padding:5px 9px;font-size:var(--ome-fs-xs);color:var(--ome-text-1);cursor:pointer}.f61-chip.active,.f61-scale button.active{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong);font-weight:700}.f61-zoom span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-right:2px}.f61-zoom button{min-width:29px}
+#projectControlLayout #f53Gantt{min-height:0}.f61-gantt-controls{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin:7px 0 5px}.f61-zoom{display:flex;gap:4px;align-items:center}.f61-zoom span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-right:2px}
 /* Stage 5 (ตามที่ผู้ใช้ขอ): ปรับ stat chip แถวสรุปเหนือ Gantt ให้สวยขึ้น — เว้นระยะมากขึ้น เพิ่มเงาเบาๆ
    และให้กล่อง "delayed"/"at risk" มีสีพื้นหลัง/ตัวเลขตามความหมายจริง แทนกล่องสีเทาเหมือนกันหมด */
 .f61-gantt-summary{display:flex;gap:8px;overflow:auto;margin:6px 0 8px}
@@ -692,10 +690,10 @@
 .f61-stat b{display:block;font-size:var(--ome-fs-md);font-weight:700;line-height:1.15;color:var(--ome-text-1)}
 .f61-stat span{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 .f61-stat.bad{background:color-mix(in srgb, var(--ome-err) 10%, var(--ome-surface-1));border-color:color-mix(in srgb, var(--ome-err) 35%, var(--ome-border))}
-.f61-stat.bad b{color:var(--ome-err)}
+.f61-stat.bad b{color:var(--ome-err-ink)}
 .f61-stat.warn{background:color-mix(in srgb, var(--ome-warn) 12%, var(--ome-surface-1));border-color:color-mix(in srgb, var(--ome-warn) 35%, var(--ome-border))}
 .f61-stat.warn b{color:var(--ome-warn-ink)}
-.f61-stat.good b{color:var(--ome-ok)}
+.f61-stat.good b{color:var(--ome-ok-ink)}
 .f61-overall{margin-left:auto;min-width:112px;display:flex;flex-direction:column;justify-content:center;gap:2px}
 .f61-gantt-legend{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:5px 2px 0}.f61-gantt-legend span{display:inline-flex;align-items:center;gap:4px}.f61-gantt-legend i{display:inline-block;width:15px;height:6px;border-radius:var(--ome-radius-sm)}.f61-gantt-legend .actual{background:var(--pc54-actual)}.f61-gantt-legend .remaining{background:var(--ome-info-soft)}.f61-gantt-legend .today{width:2px;height:12px;background:var(--pc54-today)}
 #projectControlLayout .f61-gantt-scroll{height:min(500px,58vh);overflow:auto;overscroll-behavior:contain;scroll-behavior:auto;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);scrollbar-gutter:stable both-edges}
@@ -716,12 +714,12 @@
 #projectControlLayout .f53-health-row b{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ome-text-1)}
 #projectControlLayout .f53-health-row>span{text-align:right;font-variant-numeric:tabular-nums;color:var(--ome-text-1)}
 #projectControlLayout .f53-pill{display:inline-flex;align-items:center;justify-content:center;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap}
-#projectControlLayout .f53-pill.good{color:var(--ome-ok);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}
+#projectControlLayout .f53-pill.good{color:var(--ome-ok-ink);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}
 #projectControlLayout .f53-pill.warn{color:var(--ome-warn-ink);background:color-mix(in srgb, var(--ome-warn) 26%, transparent)}
-#projectControlLayout .f53-pill.bad{color:var(--ome-err);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}
-#projectControlLayout .f53-pill.info{color:var(--ome-info);background:color-mix(in srgb, var(--ome-info) 15%, transparent)}
-#projectControlLayout .f56-positive{color:var(--ome-ok);font-weight:700}
-#projectControlLayout .f56-negative{color:var(--ome-err);font-weight:700}
+#projectControlLayout .f53-pill.bad{color:var(--ome-err-ink);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}
+#projectControlLayout .f53-pill.info{color:var(--ome-info-ink);background:color-mix(in srgb, var(--ome-info) 15%, transparent)}
+#projectControlLayout .f56-positive{color:var(--ome-ok-ink);font-weight:700}
+#projectControlLayout .f56-negative{color:var(--ome-err-ink);font-weight:700}
 #projectControlLayout #f53TrendPanel,#projectControlLayout #f53AnalysisPanel{min-height:250px}
 #projectControlLayout .pc58-analysis-list{max-height:135px}
 #projectControlLayout .f61-gantt-scroll>svg{display:block!important;max-width:none!important;min-width:1320px!important;width:auto!important}
@@ -737,7 +735,7 @@
 #projectControlLayout .f53-trend-controls{margin-bottom:6px}
 #projectControlLayout .f53-trend-scroll{overflow-x:auto;overflow-y:hidden}
 #projectControlLayout .f53-trend-scroll>svg{display:block}
-#projectControlLayout .pc58-analysis-controls{display:flex;gap:6px;margin:0 0 7px}.pc58-analysis-controls label{display:flex;flex-direction:column;gap:3px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}.pc58-analysis-controls select{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);padding:5px 7px;font-size:var(--ome-fs-xs)}.pc58-analysis-list{height:125px;overflow:auto;padding-right:3px}.pc58-analysis-row{display:grid;grid-template-columns:85px 1fr 40px;gap:6px;align-items:center;margin:6px 0;font-size:var(--ome-fs-xs)}.pc58-analysis-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc58-analysis-row div{height:7px;background:var(--ome-surface-0);border-radius:var(--ome-radius-sm);overflow:hidden}.pc58-analysis-row i{display:block;height:100%;background:var(--pc54-actual);border-radius:var(--ome-radius-sm)}.pc58-analysis-row b{text-align:right;font-size:var(--ome-fs-xs)}.pc58-analysis-insight{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding-top:5px;border-top:1px solid var(--ome-border)}.pc61-analysis-quick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc61-analysis-quick>div{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);padding:5px 7px;display:grid;grid-template-columns:1fr auto;gap:1px 6px}.pc61-analysis-quick small{grid-column:1/-1;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}.pc61-analysis-quick b{font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc61-analysis-quick strong{font-size:var(--ome-fs-xs);color:var(--ome-ok)}
+#projectControlLayout .pc58-analysis-controls{display:flex;gap:6px;margin:0 0 7px}.pc58-analysis-controls label{display:flex;flex-direction:column;gap:3px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}.pc58-analysis-controls select{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);padding:5px 7px;font-size:var(--ome-fs-xs)}.pc58-analysis-list{height:125px;overflow:auto;padding-right:3px}.pc58-analysis-row{display:grid;grid-template-columns:85px 1fr 40px;gap:6px;align-items:center;margin:6px 0;font-size:var(--ome-fs-xs)}.pc58-analysis-row span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc58-analysis-row div{height:7px;background:var(--ome-surface-0);border-radius:var(--ome-radius-sm);overflow:hidden}.pc58-analysis-row i{display:block;height:100%;background:var(--pc54-actual);border-radius:var(--ome-radius-sm)}.pc58-analysis-row b{text-align:right;font-size:var(--ome-fs-xs)}.pc58-analysis-insight{font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding-top:5px;border-top:1px solid var(--ome-border)}.pc61-analysis-quick{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.pc61-analysis-quick>div{border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);padding:5px 7px;display:grid;grid-template-columns:1fr auto;gap:1px 6px}.pc61-analysis-quick small{grid-column:1/-1;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}.pc61-analysis-quick b{font-size:var(--ome-fs-xs);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pc61-analysis-quick strong{font-size:var(--ome-fs-xs);color:var(--ome-ok-ink)}
 /* BUGFIX Stage 2b: .f53-list ("Milestones / Upcoming") มี CSS แค่บรรทัดเดียว เพียงพอสำหรับให้มีเส้นคั่น
    แต่ชื่อโครงการกับวันที่ตัวขนาด/น้ำหนักเท่ากันหมด แยกลำดับความสำคัญไม่ออก ปรับให้ชื่อเด่นกว่าและวันที่
    เป็นตัวเลข mono ชิดขวาเหมือนจุดอื่นในหน้านี้ */
@@ -781,9 +779,9 @@
    ไม่ว่าค่าจริงจะเป็น "Ahead of target"/"Near target"/"At risk" ก็ตาม — เปลี่ยนเป็นสีปกติ แล้วให้ JS
    (ดูจุดที่ set forecastState ด้านบน) ใส่ class ตามสถานะจริงแทน */
 .f56-forecast-state{font-weight:700}
-.f56-forecast-state.good{color:var(--ome-ok)!important}
+.f56-forecast-state.good{color:var(--ome-ok-ink)!important}
 .f56-forecast-state.warn{color:var(--ome-warn-ink)!important}
-.f56-forecast-state.bad{color:var(--ome-err)!important}
+.f56-forecast-state.bad{color:var(--ome-err-ink)!important}
 #projectControlLayout .f53-empty{padding:30px 10px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}.project-control-footnote{font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 /* Stage 5b (ตามที่ผู้ใช้ขอเพิ่ม): .f53-legend/.f53-actual/.f53-plan (ใช้ใต้กราฟ Progress Trend) ไม่เคยมี
    CSS เลย ทำให้ span เรียงติดกันไม่มีช่องไฟจนอ่านเป็น "ActualPlanaverage" ให้ layout แบบเดียวกับ

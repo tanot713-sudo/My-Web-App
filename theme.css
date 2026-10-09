@@ -265,7 +265,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
   border:1px solid var(--ome-border-strong)}
 :where([data-layout]) .segmented > button{height:30px;padding:0 12px;border:0;border-radius:7px;background:transparent;
   color:var(--ome-text-2);font-size:var(--ome-fs-sm);font-weight:600;cursor:pointer}
-:where([data-layout]) .segmented > :is(button[aria-pressed="true"],button.on){background:var(--ome-surface-1);color:var(--ome-text-1);box-shadow:var(--ome-shadow-1)}
+:where([data-layout]) .segmented > :is(button[aria-pressed="true"],button.on,button.active){background:var(--ome-surface-1);color:var(--ome-text-1);box-shadow:var(--ome-shadow-1)}
 
 /* KPI — ตัวเลขหลักใช้ตัวเลขปกติ (ไม่ tabular) ตามแนวทาง hero number */
 :where([data-layout]) .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
@@ -407,6 +407,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
   body[data-layout] [data-doc-area]{--ome-fs-xs:12.5px;--ome-fs-sm:13.5px}
   body[data-layout] :is(.tabs,.subnav-row,.subnav-groups){gap:var(--ome-sp-2)}
   body[data-layout] .segmented > button{white-space:nowrap}
+  body[data-layout] :is(sub,sup){font-size:max(12px,.8em);line-height:0} /* ตัวห้อย/ตัวยกในสูตร (uk, Ires ฯลฯ) ไม่เล็กกว่า 12px */
   body[data-layout] .card-head{flex-wrap:wrap;gap:var(--ome-sp-2)}
   body[data-layout] .toolbar{gap:var(--ome-sp-2)}
   /* ตารางกว้างเลื่อนแนวนอนใน .table-wrap — คอลัมน์แรก (ชื่อสินทรัพย์/วันที่) ตรึงซ้ายให้รู้ว่าแถวไหน */

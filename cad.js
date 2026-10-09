@@ -211,8 +211,13 @@
       backLink: 'Back to responsibilities'
     }
   };
+  /* ข้อความกรอบหน้าที่เพิ่มรอบ 6 (ลิ้นชักแผงข้าง/แถบเครื่องมือมือถือ/ปุ่มลัด 3 มิติ) — ใช้ระบบกลาง OME_I18N (data-ome-t / data-i18n-attr ใน cad.html)
+     ข้อความเดิมของเครื่องมือ 2 มิติอยู่ในพจนานุกรม I18N ข้างบน (data-i18n) ไม่ย้าย */
+  OME_I18N.add('cad', {
+    th: { quickSketch3d: 'ร่างภาพ 3 มิติทันที', quickExtrude: 'ยืดเป็น 3 มิติ (Extrude)', toolbarLbl: 'เครื่องมือ', panelsBtn: 'แผง', drawerTitle: 'แผงข้าง', close: 'ปิด', toolOptions: 'ตัวเลือกเครื่องมือ', layerDefault: 'เลเยอร์ {n}' },
+    en: { quickSketch3d: 'Quick 3D sketch', quickExtrude: 'Extrude to 3D', toolbarLbl: 'Tools', panelsBtn: 'Panels', drawerTitle: 'Side panels', close: 'Close', toolOptions: 'Tool options', layerDefault: 'Layer {n}' }
+  });
   function getUILang() { try { return localStorage.getItem(LANG_KEY) === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
-  function setUILang(l) { try { localStorage.setItem(LANG_KEY, l); } catch (e) {} }
   function t(key, vars) {
     var s = (I18N[getUILang()] && I18N[getUILang()][key]) || I18N.th[key] || key;
     if (vars) Object.keys(vars).forEach(function (k) { s = s.replace('{' + k + '}', vars[k]); });
@@ -1360,7 +1365,7 @@
     if (!state.constraints.length) { constraintsList.innerHTML = '<div class="cad-props-note">' + t('constraintEmpty') + '</div>'; return; }
     constraintsList.innerHTML = state.constraints.map(function (c) {
       return '<div class="cad-layer-row" data-cid="' + c.id + '"><span style="flex:1">' + constraintRowLabel(c) + '</span>' +
-        '<button type="button" class="cad-layer-icon" data-act="delcon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></button></div>';
+        '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="delcon" aria-label="' + t('layerDeleteLbl') + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></button></div>';
     }).join('');
     Array.prototype.forEach.call(constraintsList.querySelectorAll('[data-act="delcon"]'), function (btn) {
       btn.addEventListener('click', function () {
@@ -2227,7 +2232,8 @@
 
   /* ══════════════════ อินพุตเมาส์ ══════════════════ */
   var panState = null;
-  function updateCoordUI(w) { $('statCoord').textContent = 'X ' + w.x.toFixed(1) + ', Y ' + w.y.toFixed(1) + ' ' + t('mmUnit'); }
+  var lastCoord = { x: 0, y: 0 };
+  function updateCoordUI(w) { lastCoord = w; $('statCoord').textContent = 'X ' + w.x.toFixed(1) + ', Y ' + w.y.toFixed(1) + ' ' + t('mmUnit'); }
   function eventScreenPos(e) { var r = canvas.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
 
   /* ── เครื่องมือ trim/extend: คลิกแรกเลือกเส้นตัด/เส้นขอบ คลิกต่อไปเลือกเป้าหมายที่จะแก้ ── */
@@ -2740,10 +2746,10 @@
     var v = parseFloat(dimArrowSizeInput.value); if (isFinite(v) && v > 0) { state.dimStyle.arrowSize = v; scheduleSave(); }
   });
   var langToggle = $('langToggle');
-  if (langToggle) langToggle.addEventListener('click', function () { setUILang(getUILang() === 'en' ? 'th' : 'en'); applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); });
-  /* จุดกลางเดียว (เมนูตั้งค่า → ภาษา ใน shell.js) เรียกอันนี้หลังเขียน localStorage เอง
-     ไม่ต้องเรียก setUILang() ซ้ำ แค่รีเฟรชป้ายตามค่าที่เขียนไว้แล้ว */
-  window.omeApplyLang = function () { applyStaticI18n(); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); };
+  if (langToggle) langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
+  /* ฟังการสลับภาษาจากทุกทาง (ปุ่มบนหน้า / เมนูตั้งค่าใน shell.js) ผ่านระบบกลาง — ไม่กำหนด window.omeApplyLang เอง */
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(function () { applyStaticI18n(); updateCoordUI(lastCoord); updatePropsPanel(); renderLayersPanel(); renderConstraintsPanel(); });
 
   /* ══════════════════ แผงคุณสมบัติ — แก้ไขพิกัด/รัศมี/มุมของเอนทิตี้ที่เลือกอยู่ตัวเดียวได้ตรงๆ ══════════════════ */
   var propsCard = $('propsCard'), propsTitle = $('propsTitle'), propsGrid = $('propsGrid');
@@ -2811,16 +2817,16 @@
       fields.push({ k: 'propArrowSize', v: e.arrowSize, set: function (v) { e.arrowSize = Math.max(0.1, v); } });
     }
     var textFieldHtml = e.type === 'textleader'
-      ? '<label style="flex-basis:100%">' + t('propText') + '<textarea id="propTextContent" rows="2">' + e.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea></label>'
-      : (e.type === 'text' || e.type === 'leader' || e.type === 'surfacefinish' || e.type === 'balloon' || e.type === 'multileader') ? '<label>' + t('propText') + '<input type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
+      ? '<label style="flex-basis:100%">' + t('propText') + '<textarea class="textarea" id="propTextContent" rows="2">' + e.text.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</textarea></label>'
+      : (e.type === 'text' || e.type === 'leader' || e.type === 'surfacefinish' || e.type === 'balloon' || e.type === 'multileader') ? '<label>' + t('propText') + '<input class="input" type="text" id="propTextContent" value="' + e.text.replace(/"/g, '&quot;') + '"></label>' : '';
     var mirrorFieldHtml = e.type === 'block' ? '<label style="flex-direction:row;align-items:center;gap:7px"><input type="checkbox" id="propBlockMirror"' + (e.mirrored ? ' checked' : '') + '>' + t('propBlockMirror') + '</label>' : '';
     var numFieldsHtml = fields.map(function (f, i) {
-      return '<label>' + t(f.k) + '<input type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
+      return '<label>' + t(f.k) + '<input class="input" type="text" inputmode="decimal" data-fidx="' + i + '" value="' + fmtMm(f.v) + '"></label>';
     }).join('');
     var layerOptsHtml = orderedLayerIds().filter(function (lid) { return !state.layers[lid].isFolder; }).map(function (lid) {
-      return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + (state.layers[lid].name || lid) + '</option>';
+      return '<option value="' + lid + '"' + (e.layer === lid ? ' selected' : '') + '>' + layerLabel(state.layers[lid], lid).replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</option>';
     }).join('');
-    var layerFieldHtml = '<label>' + t('propLayer') + '<select id="propLayerSel">' + layerOptsHtml + '</select></label>';
+    var layerFieldHtml = '<label>' + t('propLayer') + '<select class="select" id="propLayerSel">' + layerOptsHtml + '</select></label>';
     propsGrid.innerHTML = noteHtml + textFieldHtml + numFieldsHtml + mirrorFieldHtml + layerFieldHtml;
     Array.prototype.forEach.call(propsGrid.querySelectorAll('input[data-fidx]'), function (inp, i) {
       inp.addEventListener('change', function () {
@@ -2858,6 +2864,11 @@
   /* ลำดับแสดงผลเลเยอร์แยกจาก key ของ state.layers (ดูคอมเมนต์ตอนนิยาม state.layerOrder) —
      ฟังก์ชันนี้ "ซ่อม" รายการให้ตรงกับ state.layers เสมอ (เผื่อข้อมูลเก่าก่อนมีฟีเจอร์นี้ไม่มี
      layerOrder เลย หรือมี id ค้าง/ขาดจากการ import ข้อมูลเก่า) แทนที่จะเชื่อ state.layerOrder ตรงๆ */
+  /* ชื่อเลเยอร์ตั้งต้น 'เลเยอร์ N' (ที่ระบบสร้างให้/ข้อมูลเก่า) แสดงเป็น 'Layer N' ในโหมดอังกฤษ — ชื่อที่ผู้ใช้ตั้งเองไม่แตะ และไม่เขียนทับข้อมูลที่เก็บ */
+  function layerLabel(ly, lid) {
+    var n = (ly && ly.name) || lid, m = /^เลเยอร์ (\d+)$/.exec(n);
+    return m && getUILang() === 'en' ? OME_I18N.t('cad.layerDefault', { n: m[1] }) : n;
+  }
   function orderedLayerIds() {
     var seen = {};
     var out = state.layerOrder.filter(function (id) {
@@ -2891,23 +2902,23 @@
       if (ly.isFolder) {
         return '<div class="cad-layer-row cad-layer-folder-row" data-lid="' + lid + '" draggable="true">' +
           '<span class="cad-layer-icon cad-layer-grip" title="' + t('layerDragLbl') + '">' + LAYER_ICON_GRIP + '</span>' +
-          '<button type="button" class="cad-layer-icon" data-act="togglecollapse" title="' + t('layerToggleLbl') + '">' + (ly.collapsed ? LAYER_ICON_CHEVRON_RIGHT : LAYER_ICON_CHEVRON_DOWN) + '</button>' +
+          '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="togglecollapse" title="' + t('layerToggleLbl') + '" aria-label="' + t('layerToggleLbl') + '">' + (ly.collapsed ? LAYER_ICON_CHEVRON_RIGHT : LAYER_ICON_CHEVRON_DOWN) + '</button>' +
           '<span class="cad-layer-icon cad-layer-folder-icon">' + LAYER_ICON_FOLDER + '</span>' +
-          '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
-          '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
-          '<button type="button" class="cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
-          '<button type="button" class="cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '">' + LAYER_ICON_TRASH + '</button>' +
+          '<input type="text" class="input cad-layer-name" data-act="rename" value="' + layerLabel(ly, lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
+          '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '" aria-label="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
+          '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '" aria-label="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
+          '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '" aria-label="' + t('layerDeleteLbl') + '">' + LAYER_ICON_TRASH + '</button>' +
           '</div>';
       }
       var isActive = lid === state.activeLayer;
       return '<div class="cad-layer-row' + (isActive ? ' active' : '') + (ly.parentId ? ' cad-layer-child' : '') + '" data-lid="' + lid + '" draggable="true">' +
         '<span class="cad-layer-icon cad-layer-grip" title="' + t('layerDragLbl') + '">' + LAYER_ICON_GRIP + '</span>' +
-        '<button type="button" class="cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '">' + (isActive ? LAYER_ICON_ACTIVE : LAYER_ICON_INACTIVE) + '</button>' +
+        '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="setactive" title="' + t('layerActiveLbl') + '" aria-label="' + t('layerActiveLbl') + '">' + (isActive ? LAYER_ICON_ACTIVE : LAYER_ICON_INACTIVE) + '</button>' +
         '<input type="color" class="cad-layer-color" data-act="color" value="' + (ly.color || '#1F2430') + '">' +
-        '<input type="text" class="cad-layer-name" data-act="rename" value="' + (ly.name || lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
-        '<button type="button" class="cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
-        '<button type="button" class="cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
-        '<button type="button" class="cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '"' + (lid === '0' ? ' disabled' : '') + '>' + LAYER_ICON_TRASH + '</button>' +
+        '<input type="text" class="input cad-layer-name" data-act="rename" value="' + layerLabel(ly, lid).replace(/"/g, '&quot;') + '" placeholder="' + t('layerNamePlaceholder') + '">' +
+        '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="visible" title="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '" aria-label="' + (hidden ? t('layerShowLbl') : t('layerHideLbl')) + '">' + (hidden ? LAYER_ICON_EYE_OFF : LAYER_ICON_EYE_ON) + '</button>' +
+        '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="lock" title="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '" aria-label="' + (locked ? t('layerUnlockLbl') : t('layerLockLbl')) + '">' + (locked ? LAYER_ICON_LOCK_CLOSED : LAYER_ICON_LOCK_OPEN) + '</button>' +
+        '<button type="button" class="btn ghost sm icon cad-layer-icon" data-act="delete" title="' + t('layerDeleteLbl') + '" aria-label="' + t('layerDeleteLbl') + '"' + (lid === '0' ? ' disabled' : '') + '>' + LAYER_ICON_TRASH + '</button>' +
         '</div>';
     }).join('');
     Array.prototype.forEach.call(layersList.querySelectorAll('[data-act]'), function (el) {
@@ -2975,7 +2986,7 @@
   function addLayer() {
     var id = String(state.layerSeq++);
     while (state.layers[id]) id = String(state.layerSeq++);
-    state.layers[id] = { name: 'เลเยอร์ ' + id, color: '#2554C7', visible: true, locked: false, parentId: null };
+    state.layers[id] = { name: OME_I18N.t('cad.layerDefault', { n: id }), color: '#2554C7', visible: true, locked: false, parentId: null };
     state.layerOrder.push(id);
     state.activeLayer = id;
     scheduleSave(); renderLayersPanel();
@@ -2991,7 +3002,7 @@
     if (lid === '0') return;
     var ly = state.layers[lid];
     if (!ly) return;
-    var name = ly.name || lid;
+    var name = layerLabel(ly, lid);
     var msg = ly.isFolder ? t('layerFolderDeleteConfirm', { name: name }) : t('layerDeleteConfirm', { name: name });
     if (!(await window.tanotConfirm(msg))) return;
     pushHistory();
@@ -3609,7 +3620,7 @@
     if (dimTextHeightInput) dimTextHeightInput.value = state.dimStyle.textHeight;
     if (dimArrowSizeInput) dimArrowSizeInput.value = state.dimStyle.arrowSize;
     if (centerMarkSizeInput) centerMarkSizeInput.value = state.dimStyle.centerMarkSize;
-    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); renderLayersPanel(); renderConstraintsPanel();
+    updateUndoRedoUI(); updateSelectionUI(); updateCountUI(); updateZoomUI(); updateCoordUI(lastCoord); renderLayersPanel(); renderConstraintsPanel();
     updatePreciseZoneEligibility(state.tool);
     resizeCanvas();
   }

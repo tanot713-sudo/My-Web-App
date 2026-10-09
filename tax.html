@@ -30,7 +30,7 @@
 .tx-page .kpi-value small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2);margin-left:4px}
 .tx-page .frow > .field{flex-basis:150px}
 .tx-page .field > label{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.tx-page .field > label .badge{height:18px;padding:0 6px;font-size:11px}
+.tx-page .field > label .badge{height:20px;padding:0 6px;font-size:var(--ome-fs-xs)}
 .tx-used{font-size:var(--ome-fs-xs);color:var(--ome-warn-ink)}
 .tx-used:empty{display:none}
 .tx-used.info{color:var(--ome-text-2)}
@@ -62,7 +62,7 @@
 <main class="page tx-page">
   <div class="page-head">
     <h1 data-i18n="title">ภาษีเงินได้บุคคลธรรมดา</h1>
-    <div class="segmented" id="txYear" role="group" aria-label="ปีภาษี"></div>
+    <div class="segmented" id="txYear" role="group" aria-label="ปีภาษี" data-i18n-attr="aria-label:yearAria"></div>
   </div>
 
   <div class="stack">

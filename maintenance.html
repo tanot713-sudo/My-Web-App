@@ -37,25 +37,37 @@
 .mnt-filter{display:flex;flex-wrap:wrap;gap:8px}
 .mnt-filter select{flex:1 1 120px;min-width:0}
 .mnt-list .list-row{cursor:pointer}
-.mnt-list .list-row .end{display:flex;align-items:center;gap:6px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+.mnt-page .list-row .end{display:flex;align-items:center;gap:var(--ome-sp-2);flex-shrink:0;flex-wrap:nowrap;justify-content:flex-end}
 .mnt-list .list-row .pick{width:20px;height:20px;flex-shrink:0;cursor:pointer}
-.mnt-list .list-row .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-@media (max-width:640px){.mnt-list .list-row{flex-wrap:wrap}.mnt-list .list-row .end{width:100%;justify-content:flex-start;padding-left:32px}}
-.mnt-list .badge:empty{display:none}
+.mnt-page .list-row .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mnt-page .list-row .badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.mnt-page .list-row .badges:not(:has(.badge:not(:empty))){display:none}
+.mnt-page .badge:empty{display:none}
+@media (max-width:640px){ /* ปุ่มท้ายแถวอยู่บรรทัดเดียวกับเนื้อหาเสมอ (ป้ายสถานะอยู่ใต้ข้อความใน .badges) */
+  .mnt-page .list-row:has(> .end){flex-wrap:nowrap;gap:var(--ome-sp-2)}
+  .mnt-page .list-row:has(> .end) > .end{width:auto;padding-left:0;flex-wrap:nowrap;justify-content:flex-end}
+}
 .mnt-sub{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
 .mnt-sub .list-row{cursor:pointer}
-.mnt-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+.mnt-sub .disclosure-body > .row:first-child{margin-top:var(--ome-sp-3)}
+.mnt-dialog{width:min(560px,calc(100vw - 24px));max-height:calc(100dvh - 24px)}
+/* ส่วนหัว/ท้ายอยู่นอกพื้นที่เลื่อน — ฟอร์มยาวเลื่อนเฉพาะตัวฟอร์ม ปุ่มบันทึกไม่ทับเนื้อหาที่เลื่อนอยู่ข้างใต้ */
+.mnt-dialog[open]{display:flex;flex-direction:column;overflow:hidden}
+.mnt-dialog > form{display:flex;flex-direction:column;flex:1;min-height:0}
+.mnt-dialog .dialog-body{flex:1;min-height:0;overflow:auto}
+.mnt-dialog :is(.dialog-head,.dialog-foot){flex:none}
+.mnt-dialog .dialog-foot{padding-top:12px;border-top:1px solid var(--ome-border);background:var(--ome-surface-1)}
 .mnt-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
 .mnt-dialog .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
 .mnt-dialog .check input{width:auto;height:auto}
 .mnt-msg{color:var(--ome-err-ink);font-size:var(--ome-fs-sm)}
 .mnt-msg:empty{display:none}
 .mnt-items{display:flex;flex-direction:column;gap:8px}
-.mnt-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md)}
-.mnt-item .row2{display:flex;gap:6px;flex-wrap:wrap;align-items:center;grid-column:1 / -1}
+.mnt-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--ome-sp-2);padding:8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md)}
+.mnt-item .row2{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;align-items:center;grid-column:1 / -1}
 .mnt-item .row2 input{width:72px}
 .mnt-item .row2 input.unit{width:64px}
-.mnt-item .acts{display:flex;gap:2px}
+.mnt-item .acts{display:flex;gap:var(--ome-sp-2)}
 .mnt-view{max-width:720px}
 .mnt-view .head{display:flex;align-items:center;gap:10px}
 .mnt-view .head h2{margin:0;flex:1;min-width:0;overflow-wrap:anywhere}
@@ -67,7 +79,6 @@
 .insp-dlg{width:min(640px,calc(100vw - 16px))}
 .insp-dlg .dialog-body{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
 .insp-dlg .dialog-body > * + *{margin-top:0}
-.insp-dlg .dialog-foot{position:sticky;bottom:0;background:var(--ome-surface-1);padding-top:12px;border-top:1px solid var(--ome-border)}
 .insp-head .t{font-weight:700;font-size:var(--ome-fs-lg);overflow-wrap:anywhere}
 .insp-nav{display:flex;align-items:center;gap:8px}
 .insp-nav .grow{flex:1;text-align:center;font-variant-numeric:tabular-nums;color:var(--ome-text-2);font-size:var(--ome-fs-sm)}
@@ -114,99 +125,99 @@
 <main class="page mnt-page">
   <div class="mnt-top">
     <div class="page-head">
-      <h1>บันทึกงานบำรุงรักษา</h1>
+      <h1 data-i18n="mnt.title">บันทึกงานบำรุงรักษา</h1>
       <span class="badge info" id="pendBadge" hidden></span>
-      <span class="badge warn" id="offBadge" hidden>ออฟไลน์</span>
+      <span class="badge warn" id="offBadge" hidden data-i18n="mnt.offline">ออฟไลน์</span>
     </div>
     <div class="tabs" id="tabs" role="tablist"></div>
   </div>
 
   <div class="mnt-main" id="main">
     <div class="mnt-wrap" id="listView">
-      <section id="tab-assets" role="tabpanel" aria-label="อุปกรณ์">
+      <section id="tab-assets" role="tabpanel" aria-label="อุปกรณ์" data-i18n-attr="aria-label:mnt.assets">
         <div class="mnt-bar">
-          <input id="aSearch" class="input grow" type="search" placeholder="ค้นหา รหัส / ชื่อ / เลขเครื่อง" autocomplete="off" aria-label="ค้นหา">
-          <button class="btn primary" type="button" id="aAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มอุปกรณ์</button>
-          <button class="btn" type="button" id="aScan"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scan-line"/></svg>สแกน</button>
-          <button class="btn" type="button" id="aPrint"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-qr-code"/></svg>พิมพ์ป้าย QR</button>
+          <input id="aSearch" class="input grow" type="search" placeholder="ค้นหา รหัส / ชื่อ / เลขเครื่อง" autocomplete="off" aria-label="ค้นหา" data-i18n-attr="placeholder:mnt.searchPh,aria-label:mnt.search">
+          <button class="btn primary" type="button" id="aAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="mnt.addAsset">เพิ่มอุปกรณ์</span></button>
+          <button class="btn" type="button" id="aScan"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scan-line"/></svg><span data-i18n="mnt.scan">สแกน</span></button>
+          <button class="btn" type="button" id="aPrint"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-qr-code"/></svg><span data-i18n="mnt.printQr">พิมพ์ป้าย QR</span></button>
         </div>
         <div class="mnt-filter" style="margin-top:var(--ome-sp-3)">
-          <select id="fSite" class="select" aria-label="สถานที่"></select>
-          <select id="fSystem" class="select" aria-label="ระบบ"></select>
-          <select id="fType" class="select" aria-label="ประเภท"></select>
-          <select id="fStatus" class="select" aria-label="สถานะ"></select>
+          <select id="fSite" class="select" aria-label="สถานที่" data-i18n-attr="aria-label:mnt.site"></select>
+          <select id="fSystem" class="select" aria-label="ระบบ" data-i18n-attr="aria-label:mnt.system"></select>
+          <select id="fType" class="select" aria-label="ประเภท" data-i18n-attr="aria-label:mnt.type"></select>
+          <select id="fStatus" class="select" aria-label="สถานะ" data-i18n-attr="aria-label:mnt.status"></select>
         </div>
         <div class="mnt-list" id="aList" style="margin-top:var(--ome-sp-3)"></div>
         <div class="mnt-sub" style="margin-top:var(--ome-sp-4)">
           <details class="disclosure" id="dSites">
-            <summary>สถานที่ <span class="badge" id="sCount"></span></summary>
+            <summary><span data-i18n="mnt.site">สถานที่</span> <span class="badge" id="sCount"></span></summary>
             <div class="disclosure-body">
-              <div class="row" style="margin-bottom:var(--ome-sp-3)"><button class="btn sm" type="button" id="sAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มสถานที่</button></div>
+              <div class="row" style="margin-bottom:var(--ome-sp-3)"><button class="btn sm" type="button" id="sAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="mnt.addSite">เพิ่มสถานที่</span></button></div>
               <div id="sList"></div>
             </div>
           </details>
           <details class="disclosure" id="dPlans">
-            <summary>แผน PM <span class="badge" id="pCount"></span></summary>
+            <summary><span data-i18n="mnt.plans">แผน PM</span> <span class="badge" id="pCount"></span></summary>
             <div class="disclosure-body">
-              <div class="row" style="margin-bottom:var(--ome-sp-3)"><button class="btn sm" type="button" id="pAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มแผน</button></div>
+              <div class="row" style="margin-bottom:var(--ome-sp-3)"><button class="btn sm" type="button" id="pAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="mnt.addPlan">เพิ่มแผน</span></button></div>
               <div id="pList"></div>
             </div>
           </details>
         </div>
       </section>
-      <section id="tab-calendar" role="tabpanel" aria-label="ปฏิทิน PM" hidden>
+      <section id="tab-calendar" role="tabpanel" aria-label="ปฏิทิน PM" hidden data-i18n-attr="aria-label:mnt.calendar">
         <div class="mnt-bar">
-          <input id="cMonth" class="input" type="month" aria-label="เดือน" style="width:auto">
+          <input id="cMonth" class="input" type="month" aria-label="เดือน" style="width:auto" data-i18n-attr="aria-label:mnt.month">
           <span class="grow"></span>
-          <select id="cSite" class="select" aria-label="สถานที่"></select>
-          <select id="cFreq" class="select" aria-label="ความถี่"></select>
-          <button class="btn primary" type="button" id="cBatch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clipboard-check"/></svg>ตรวจทั้งสถานที่</button>
+          <select id="cSite" class="select" aria-label="สถานที่" data-i18n-attr="aria-label:mnt.site"></select>
+          <select id="cFreq" class="select" aria-label="ความถี่" data-i18n-attr="aria-label:mnt.freq"></select>
+          <button class="btn primary" type="button" id="cBatch"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clipboard-check"/></svg><span data-i18n="mnt.batch">ตรวจทั้งสถานที่</span></button>
         </div>
         <div class="kpi-grid" id="cKpi" style="margin-top:var(--ome-sp-3)"></div>
         <div id="cBody" style="margin-top:var(--ome-sp-3)"></div>
-        <details class="disclosure" id="cComp" style="margin-top:var(--ome-sp-3)"><summary>Compliance รายเดือน</summary><div class="disclosure-body" id="cCompBody"></div></details>
+        <details class="disclosure" id="cComp" style="margin-top:var(--ome-sp-3)"><summary data-i18n="mnt.compMonthly">Compliance รายเดือน</summary><div class="disclosure-body" id="cCompBody"></div></details>
       </section>
-      <section id="tab-wo" role="tabpanel" aria-label="ใบสั่งงาน" hidden>
+      <section id="tab-wo" role="tabpanel" aria-label="ใบสั่งงาน" hidden data-i18n-attr="aria-label:mnt.wos">
         <div class="mnt-bar">
-          <select id="wfStatus" class="select" aria-label="สถานะ"></select>
-          <select id="wfSite" class="select" aria-label="สถานที่"></select>
-          <select id="wfPrio" class="select" aria-label="ความสำคัญ"></select>
+          <select id="wfStatus" class="select" aria-label="สถานะ" data-i18n-attr="aria-label:mnt.status"></select>
+          <select id="wfSite" class="select" aria-label="สถานที่" data-i18n-attr="aria-label:mnt.site"></select>
+          <select id="wfPrio" class="select" aria-label="ความสำคัญ" data-i18n-attr="aria-label:mnt.priority"></select>
           <span class="grow"></span>
-          <button class="btn primary" type="button" id="wNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg>แจ้งซ่อม</button>
+          <button class="btn primary" type="button" id="wNew"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-wrench"/></svg><span data-i18n="mnt.reportFault">แจ้งซ่อม</span></button>
         </div>
         <div id="wList" style="margin-top:var(--ome-sp-3)"></div>
       </section>
-      <section id="tab-io" role="tabpanel" aria-label="นำเข้า/ส่งออก" hidden>
+      <section id="tab-io" role="tabpanel" aria-label="นำเข้า/ส่งออก" hidden data-i18n-attr="aria-label:mnt.io">
         <div class="stack">
           <section class="card" id="ioImport">
-            <div class="card-head"><h2>นำเข้าจาก est-cost</h2></div>
-            <div class="field"><label for="ioFile">ไฟล์ input (.xlsx)</label><input id="ioFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
+            <div class="card-head"><h2 data-i18n="mnt.importFrom">นำเข้าจาก est-cost</h2></div>
+            <div class="field"><label for="ioFile" data-i18n="mnt.inputFile">ไฟล์ input (.xlsx)</label><input id="ioFile" type="file" accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
             <p class="mnt-msg" id="ioMsg" role="alert"></p>
             <div id="ioPreview"></div>
-            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="ioGo" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>นำเข้า</button></div>
+            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="ioGo" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg><span data-i18n="mnt.import">นำเข้า</span></button></div>
           </section>
           <section class="card" id="ioExport">
-            <div class="card-head"><h2>ส่งออก Excel</h2></div>
+            <div class="card-head"><h2 data-i18n="mnt.exportXlsx">ส่งออก Excel</h2></div>
             <div class="frow">
-              <div class="field"><label for="exFrom">ตั้งแต่</label><input id="exFrom" type="date"></div>
-              <div class="field"><label for="exTo">ถึง</label><input id="exTo" type="date"></div>
+              <div class="field"><label for="exFrom" data-i18n="mnt.from">ตั้งแต่</label><input id="exFrom" type="date"></div>
+              <div class="field"><label for="exTo" data-i18n="mnt.to">ถึง</label><input id="exTo" type="date"></div>
             </div>
-            <div class="field" style="margin-top:var(--ome-sp-3)"><label>ความถี่ที่รวมในแถว PM</label><div class="segmented" id="exFreqs" role="group" aria-label="ความถี่"></div></div>
+            <div class="field" style="margin-top:var(--ome-sp-3)"><label data-i18n="mnt.freqsInPm">ความถี่ที่รวมในแถว PM</label><div class="segmented" id="exFreqs" role="group" aria-label="ความถี่" data-i18n-attr="aria-label:mnt.freq"></div></div>
             <p class="mnt-msg" id="exMsg" role="alert"></p>
-            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="exGo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ส่งออก</button>
-              <button class="btn" type="button" id="exOpen"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chart-column"/></svg>เปิดใน นำเสนอรายงาน</button></div>
+            <div class="row" style="margin-top:var(--ome-sp-3)"><button class="btn primary" type="button" id="exGo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="mnt.export">ส่งออก</span></button>
+              <button class="btn" type="button" id="exOpen"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chart-column"/></svg><span data-i18n="mnt.openInReport">เปิดใน นำเสนอรายงาน</span></button></div>
           </section>
           <section class="card" id="ioSettings">
-            <div class="card-head"><h2>ค่าตั้ง</h2></div>
+            <div class="card-head"><h2 data-i18n="mnt.settings">ค่าตั้ง</h2></div>
             <div class="frow">
-              <div class="field"><label for="stStart">เดือนเริ่มสัญญา</label><input id="stStart" type="month"></div>
-              <div class="field"><label for="stInspector">ผู้ตรวจเริ่มต้น</label><input id="stInspector" type="text" maxlength="80" autocomplete="off"></div>
+              <div class="field"><label for="stStart" data-i18n="mnt.startMonth">เดือนเริ่มสัญญา</label><input id="stStart" type="month"></div>
+              <div class="field"><label for="stInspector" data-i18n="mnt.defInspector">ผู้ตรวจเริ่มต้น</label><input id="stInspector" type="text" maxlength="80" autocomplete="off"></div>
             </div>
             <div class="frow" style="margin-top:var(--ome-sp-3)">
-              <div class="field"><label for="stProject">โครงการ</label><input id="stProject" type="text" maxlength="120" autocomplete="off"></div>
-              <div class="field"><label for="stLine">สาย (Line)</label><input id="stLine" type="text" maxlength="60" autocomplete="off"></div>
+              <div class="field"><label for="stProject" data-i18n="mnt.project">โครงการ</label><input id="stProject" type="text" maxlength="120" autocomplete="off"></div>
+              <div class="field"><label for="stLine" data-i18n="mnt.line">สาย (Line)</label><input id="stLine" type="text" maxlength="60" autocomplete="off"></div>
             </div>
-            <div class="field" style="margin-top:var(--ome-sp-3)"><label>ขนาดป้าย QR ต่อแผ่น A4</label><div class="segmented" id="stLabel" role="group" aria-label="ขนาดป้าย"></div></div>
+            <div class="field" style="margin-top:var(--ome-sp-3)"><label data-i18n="mnt.labelSizeA4">ขนาดป้าย QR ต่อแผ่น A4</label><div class="segmented" id="stLabel" role="group" aria-label="ขนาดป้าย" data-i18n-attr="aria-label:mnt.labelSize"></div></div>
           </section>
         </div>
       </section>
@@ -222,36 +233,36 @@
     <div class="dialog-head"><h2 id="dlgAssetTitle">อุปกรณ์</h2></div>
     <div class="dialog-body">
       <div class="frow">
-        <div class="field"><label for="eCode">รหัส</label><input id="eCode" type="text" maxlength="60" autocomplete="off"></div>
-        <div class="field"><label for="eName">ชื่อ</label><input id="eName" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="eCode" data-i18n="mnt.code">รหัส</label><input id="eCode" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="field"><label for="eName" data-i18n="mnt.name">ชื่อ</label><input id="eName" type="text" maxlength="120" autocomplete="off"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="eType">ประเภท (code)</label><input id="eType" type="text" maxlength="40" list="typeList" autocomplete="off"><datalist id="typeList"></datalist></div>
-        <div class="field"><label for="eSystem">ระบบ</label><input id="eSystem" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="field"><label for="eType" data-i18n="mnt.typeCode">ประเภท (code)</label><input id="eType" type="text" maxlength="40" list="typeList" autocomplete="off"><datalist id="typeList"></datalist></div>
+        <div class="field"><label for="eSystem" data-i18n="mnt.system">ระบบ</label><input id="eSystem" type="text" maxlength="60" autocomplete="off"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="eSite">สถานที่</label><select id="eSite"></select></div>
-        <div class="field"><label for="eStatus">สถานะ</label><select id="eStatus"><option value="active">ใช้งาน</option><option value="retired">ปลดใช้งาน</option></select></div>
+        <div class="field"><label for="eSite" data-i18n="mnt.site">สถานที่</label><select id="eSite"></select></div>
+        <div class="field"><label for="eStatus" data-i18n="mnt.status">สถานะ</label><select id="eStatus"><option value="active" data-i18n="mnt.active">ใช้งาน</option><option value="retired" data-i18n="mnt.retired">ปลดใช้งาน</option></select></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="eSerial">เลขเครื่อง</label><input id="eSerial" type="text" maxlength="80" autocomplete="off"></div>
-        <div class="field"><label for="eBrand">ยี่ห้อ</label><input id="eBrand" type="text" maxlength="60" autocomplete="off"></div>
-        <div class="field"><label for="eModel">รุ่น</label><input id="eModel" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="field"><label for="eSerial" data-i18n="mnt.serial">เลขเครื่อง</label><input id="eSerial" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="eBrand" data-i18n="mnt.brand">ยี่ห้อ</label><input id="eBrand" type="text" maxlength="60" autocomplete="off"></div>
+        <div class="field"><label for="eModel" data-i18n="mnt.model">รุ่น</label><input id="eModel" type="text" maxlength="60" autocomplete="off"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="eInstalled">วันที่ติดตั้ง</label><input id="eInstalled" type="date"></div>
-        <div class="field"><label for="eLat">ละติจูด</label><input id="eLat" type="number" inputmode="decimal" step="any"></div>
-        <div class="field"><label for="eLng">ลองจิจูด</label><input id="eLng" type="number" inputmode="decimal" step="any"></div>
-        <button class="btn sm" type="button" id="eGeo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-map-pin"/></svg>ตำแหน่งปัจจุบัน</button>
+        <div class="field"><label for="eInstalled" data-i18n="mnt.installed">วันที่ติดตั้ง</label><input id="eInstalled" type="date"></div>
+        <div class="field"><label for="eLat" data-i18n="mnt.lat">ละติจูด</label><input id="eLat" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="eLng" data-i18n="mnt.lng">ลองจิจูด</label><input id="eLng" type="number" inputmode="decimal" step="any"></div>
+        <button class="btn sm" type="button" id="eGeo"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-map-pin"/></svg><span data-i18n="mnt.geo">ตำแหน่งปัจจุบัน</span></button>
       </div>
       <div class="frow" id="phaseRow"></div>
-      <div class="field"><label for="eNote">บันทึก</label><textarea id="eNote" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="eNote" data-i18n="mnt.note">บันทึก</label><textarea id="eNote" rows="2" maxlength="500"></textarea></div>
       <p class="mnt-msg" id="eMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="eDel" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="eCancel">ยกเลิก</button>
-      <button class="btn primary" type="submit">บันทึก</button>
+      <button class="btn danger" type="button" id="eDel" style="margin-right:auto" data-i18n="mnt.del">ลบ</button>
+      <button class="btn" type="button" id="eCancel" data-i18n="mnt.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" data-i18n="mnt.save">บันทึก</button>
     </div>
   </form>
 </dialog>
@@ -261,19 +272,19 @@
     <div class="dialog-head"><h2 id="dlgSiteTitle">สถานที่</h2></div>
     <div class="dialog-body">
       <div class="frow">
-        <div class="field"><label for="sName">ชื่อ</label><input id="sName" type="text" maxlength="120" autocomplete="off"></div>
-        <div class="field"><label for="sAbbr">ตัวย่อ</label><input id="sAbbr" type="text" maxlength="12" autocomplete="off"></div>
+        <div class="field"><label for="sName" data-i18n="mnt.name">ชื่อ</label><input id="sName" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="sAbbr" data-i18n="mnt.abbr">ตัวย่อ</label><input id="sAbbr" type="text" maxlength="12" autocomplete="off"></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="sLat">ละติจูด</label><input id="sLat" type="number" inputmode="decimal" step="any"></div>
-        <div class="field"><label for="sLng">ลองจิจูด</label><input id="sLng" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="sLat" data-i18n="mnt.lat">ละติจูด</label><input id="sLat" type="number" inputmode="decimal" step="any"></div>
+        <div class="field"><label for="sLng" data-i18n="mnt.lng">ลองจิจูด</label><input id="sLng" type="number" inputmode="decimal" step="any"></div>
       </div>
       <p class="mnt-msg" id="sMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="sDel" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="sCancel">ยกเลิก</button>
-      <button class="btn primary" type="submit">บันทึก</button>
+      <button class="btn danger" type="button" id="sDel" style="margin-right:auto" data-i18n="mnt.del">ลบ</button>
+      <button class="btn" type="button" id="sCancel" data-i18n="mnt.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" data-i18n="mnt.save">บันทึก</button>
     </div>
   </form>
 </dialog>
@@ -283,68 +294,68 @@
     <div class="dialog-head"><h2 id="dlgPlanTitle">แผน PM</h2></div>
     <div class="dialog-body">
       <div class="frow" id="pNewRow">
-        <div class="field"><label for="pType">ประเภท (code)</label><input id="pType" type="text" maxlength="40" list="typeList" autocomplete="off"></div>
-        <div class="field"><label for="pTypeName">ชื่อประเภท</label><input id="pTypeName" type="text" maxlength="120" autocomplete="off"></div>
-        <div class="field"><label for="pFreq">ความถี่</label><select id="pFreq"></select></div>
+        <div class="field"><label for="pType" data-i18n="mnt.typeCode">ประเภท (code)</label><input id="pType" type="text" maxlength="40" list="typeList" autocomplete="off"></div>
+        <div class="field"><label for="pTypeName" data-i18n="mnt.typeName">ชื่อประเภท</label><input id="pTypeName" type="text" maxlength="120" autocomplete="off"></div>
+        <div class="field"><label for="pFreq" data-i18n="mnt.freq">ความถี่</label><select id="pFreq"></select></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="pHours">ชม./รอบ/หน่วย</label><input id="pHours" type="number" inputmode="decimal" min="0" step="any"></div>
-        <div class="field"><label for="pShift">กะ</label><select id="pShift"><option value="">—</option><option value="D">กลางวัน</option><option value="N">กลางคืน</option></select></div>
+        <div class="field"><label for="pHours" data-i18n="mnt.hoursPer">ชม./รอบ/หน่วย</label><input id="pHours" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="pShift" data-i18n="mnt.shift">กะ</label><select id="pShift"><option value="">—</option><option value="D" data-i18n="mnt.day">กลางวัน</option><option value="N" data-i18n="mnt.night">กลางคืน</option></select></div>
       </div>
-      <div class="field"><label>รายการตรวจ</label><div class="mnt-items" id="pItems"></div>
-        <div class="row"><button class="btn sm" type="button" id="pItemAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มข้อ</button></div></div>
+      <div class="field"><label data-i18n="mnt.checklist">รายการตรวจ</label><div class="mnt-items" id="pItems"></div>
+        <div class="row"><button class="btn sm" type="button" id="pItemAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="mnt.addItem">เพิ่มข้อ</span></button></div></div>
       <p class="mnt-msg" id="pMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn danger" type="button" id="pDel" style="margin-right:auto">ลบ</button>
-      <button class="btn" type="button" id="pCancel">ยกเลิก</button>
-      <button class="btn primary" type="submit">บันทึก</button>
+      <button class="btn danger" type="button" id="pDel" style="margin-right:auto" data-i18n="mnt.del">ลบ</button>
+      <button class="btn" type="button" id="pCancel" data-i18n="mnt.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" data-i18n="mnt.save">บันทึก</button>
     </div>
   </form>
 </dialog>
 
 <dialog class="dialog mnt-dialog mnt-scan" id="dlgScan" aria-labelledby="dlgScanTitle">
-  <div class="dialog-head"><h2 id="dlgScanTitle">สแกน QR</h2></div>
+  <div class="dialog-head"><h2 id="dlgScanTitle" data-i18n="mnt.scanQr">สแกน QR</h2></div>
   <div class="dialog-body">
     <video id="scanVideo" playsinline muted></video>
     <p class="msg" id="scanMsg" role="alert"></p>
     <div class="frow" style="margin-top:var(--ome-sp-3)">
-      <div class="field"><label for="scanCode">รหัสอุปกรณ์</label><input id="scanCode" type="text" autocomplete="off"></div>
-      <button class="btn" type="button" id="scanGo">เปิด</button>
+      <div class="field"><label for="scanCode" data-i18n="mnt.assetCode">รหัสอุปกรณ์</label><input id="scanCode" type="text" autocomplete="off"></div>
+      <button class="btn" type="button" id="scanGo" data-i18n="mnt.open">เปิด</button>
     </div>
     <div class="row" style="margin-top:var(--ome-sp-3)">
-      <button class="btn" type="button" id="scanPhoto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg>ถ่ายรูป QR</button>
+      <button class="btn" type="button" id="scanPhoto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg><span data-i18n="mnt.photoQr">ถ่ายรูป QR</span></button>
       <input type="file" id="scanFile" accept="image/*" capture="environment" hidden>
     </div>
   </div>
-  <div class="dialog-foot"><button class="btn" type="button" id="scanClose">ปิด</button></div>
+  <div class="dialog-foot"><button class="btn" type="button" id="scanClose" data-i18n="mnt.close">ปิด</button></div>
 </dialog>
 
 <dialog class="dialog mnt-dialog insp-dlg" id="dlgInsp" aria-labelledby="inspTitle">
   <form method="dialog" id="formInsp" novalidate>
-    <div class="dialog-head insp-head"><h2 id="inspTitle" class="t">ตรวจเช็ก</h2><span class="badge" id="inspLock" hidden>ล็อก</span></div>
+    <div class="dialog-head insp-head"><h2 id="inspTitle" class="t">ตรวจเช็ก</h2><span class="badge" id="inspLock" hidden data-i18n="mnt.locked">ล็อก</span></div>
     <div class="dialog-body">
       <div class="insp-nav" id="inspNav" hidden>
-        <button class="btn sm" type="button" id="inspPrev">ก่อนหน้า</button>
+        <button class="btn sm" type="button" id="inspPrev" data-i18n="mnt.prev">ก่อนหน้า</button>
         <span class="grow" id="inspPos"></span>
         <button class="btn sm" type="button" id="inspNext">ถัดไป</button>
       </div>
-      <div class="insp-draft" id="inspDraftBar" hidden><span class="grow">มีร่างที่กรอกค้างไว้</span>
-        <button class="btn sm" type="button" id="inspDraftRestore">กู้ร่าง</button><button class="btn sm ghost" type="button" id="inspDraftDrop">ทิ้งร่าง</button></div>
+      <div class="insp-draft" id="inspDraftBar" hidden><span class="grow" data-i18n="mnt.draftBar">มีร่างที่กรอกค้างไว้</span>
+        <button class="btn sm" type="button" id="inspDraftRestore" data-i18n="mnt.draftRestore">กู้ร่าง</button><button class="btn sm ghost" type="button" id="inspDraftDrop" data-i18n="mnt.draftDrop">ทิ้งร่าง</button></div>
       <div class="frow">
-        <div class="field"><label for="inspFreq">ความถี่</label><select id="inspFreq"></select></div>
-        <div class="field"><label for="inspPeriod">รอบ</label><select id="inspPeriod"></select></div>
-        <div class="field"><label for="inspBy">ผู้ตรวจ</label><input id="inspBy" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="inspFreq" data-i18n="mnt.freq">ความถี่</label><select id="inspFreq"></select></div>
+        <div class="field"><label for="inspPeriod" data-i18n="mnt.period">รอบ</label><select id="inspPeriod"></select></div>
+        <div class="field"><label for="inspBy" data-i18n="mnt.inspector">ผู้ตรวจ</label><input id="inspBy" type="text" maxlength="80" autocomplete="off"></div>
       </div>
       <div class="mnt-state" id="inspState"></div>
       <div id="inspItems" style="display:flex;flex-direction:column;gap:var(--ome-sp-3)"></div>
-      <div class="field"><label for="inspNote">หมายเหตุ</label><textarea id="inspNote" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="inspNote" data-i18n="mnt.remarks">หมายเหตุ</label><textarea id="inspNote" rows="2" maxlength="500"></textarea></div>
       <div class="insp-photos" id="inspGenPhotos"></div>
       <input type="file" id="inspFile" accept="image/*" capture="environment" hidden>
       <p class="mnt-msg" id="inspMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn" type="button" id="inspCancel">ปิด</button>
+      <button class="btn" type="button" id="inspCancel" data-i18n="mnt.close">ปิด</button>
       <button class="btn primary" type="submit" id="inspSave">บันทึก</button>
     </div>
   </form>
@@ -355,18 +366,18 @@
     <div class="dialog-head"><h2 id="woNewTitle">แจ้งซ่อม</h2></div>
     <div class="dialog-body">
       <div class="frow">
-        <div class="field"><label for="wnAsset">รหัสอุปกรณ์</label><input id="wnAsset" type="text" list="woAssetList" autocomplete="off"><datalist id="woAssetList"></datalist></div>
-        <div class="field"><label for="wnKind">ชนิดงาน</label><select id="wnKind"><option value="cm">ซ่อม (CM)</option><option value="pm">PM</option></select></div>
-        <div class="field"><label for="wnPrio">ความสำคัญ</label><select id="wnPrio"><option value="high">สูง</option><option value="normal" selected>ปกติ</option><option value="low">ต่ำ</option></select></div>
+        <div class="field"><label for="wnAsset" data-i18n="mnt.assetCode">รหัสอุปกรณ์</label><input id="wnAsset" type="text" list="woAssetList" autocomplete="off"><datalist id="woAssetList"></datalist></div>
+        <div class="field"><label for="wnKind" data-i18n="mnt.woKind">ชนิดงาน</label><select id="wnKind"><option value="cm" data-i18n="mnt.kindCm">ซ่อม (CM)</option><option value="pm">PM</option></select></div>
+        <div class="field"><label for="wnPrio" data-i18n="mnt.priority">ความสำคัญ</label><select id="wnPrio"><option value="high" data-i18n="mnt.prioHigh">สูง</option><option value="normal" selected data-i18n="mnt.prioNormal">ปกติ</option><option value="low" data-i18n="mnt.prioLow">ต่ำ</option></select></div>
       </div>
-      <div class="field"><label for="wnSymptom">อาการ</label><textarea id="wnSymptom" rows="3" maxlength="500"></textarea></div>
-      <div class="field"><label for="wnBy">ผู้แจ้ง</label><input id="wnBy" type="text" maxlength="80" autocomplete="off"></div>
+      <div class="field"><label for="wnSymptom" data-i18n="mnt.symptom">อาการ</label><textarea id="wnSymptom" rows="3" maxlength="500"></textarea></div>
+      <div class="field"><label for="wnBy" data-i18n="mnt.reporter">ผู้แจ้ง</label><input id="wnBy" type="text" maxlength="80" autocomplete="off"></div>
       <p class="mnt-msg" id="wnMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn ghost" type="button" id="wnSkip" style="margin-right:auto" hidden>ข้าม</button>
-      <button class="btn" type="button" id="wnCancel">ยกเลิก</button>
-      <button class="btn primary" type="submit">สร้างใบสั่งงาน</button>
+      <button class="btn ghost" type="button" id="wnSkip" style="margin-right:auto" hidden data-i18n="mnt.skip">ข้าม</button>
+      <button class="btn" type="button" id="wnCancel" data-i18n="mnt.cancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" data-i18n="mnt.createWo">สร้างใบสั่งงาน</button>
     </div>
   </form>
 </dialog>
@@ -377,37 +388,37 @@
     <div class="dialog-body">
       <div class="muted" id="woMeta"></div>
       <div class="frow">
-        <div class="field"><label for="woStatus">สถานะ</label><select id="woStatus"></select></div>
-        <div class="field"><label for="woPrio">ความสำคัญ</label><select id="woPrio"><option value="high">สูง</option><option value="normal">ปกติ</option><option value="low">ต่ำ</option></select></div>
-        <div class="field"><label for="woAssignee">ผู้รับผิดชอบ / ช่าง</label><input id="woAssignee" type="text" maxlength="80" autocomplete="off"></div>
+        <div class="field"><label for="woStatus" data-i18n="mnt.status">สถานะ</label><select id="woStatus"></select></div>
+        <div class="field"><label for="woPrio" data-i18n="mnt.priority">ความสำคัญ</label><select id="woPrio"><option value="high" data-i18n="mnt.prioHigh">สูง</option><option value="normal" data-i18n="mnt.prioNormal">ปกติ</option><option value="low" data-i18n="mnt.prioLow">ต่ำ</option></select></div>
+        <div class="field"><label for="woAssignee" data-i18n="mnt.assignee">ผู้รับผิดชอบ / ช่าง</label><input id="woAssignee" type="text" maxlength="80" autocomplete="off"></div>
       </div>
-      <div class="field"><label for="woSymptom">อาการ</label><textarea id="woSymptom" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="woSymptom" data-i18n="mnt.symptom">อาการ</label><textarea id="woSymptom" rows="2" maxlength="500"></textarea></div>
       <div class="frow">
-        <div class="field"><label for="woPlanFinish">กำหนดเสร็จ</label><input id="woPlanFinish" type="date"></div>
-        <div class="field"><label for="woStart">เริ่มงาน</label><input id="woStart" type="datetime-local"></div>
-        <div class="field"><label for="woEnd">เสร็จงาน</label><input id="woEnd" type="datetime-local"></div>
-        <div class="field"><label for="woDown">Downtime (ชม.)</label><input id="woDown" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="woPlanFinish" data-i18n="mnt.planFinish">กำหนดเสร็จ</label><input id="woPlanFinish" type="date"></div>
+        <div class="field"><label for="woStart" data-i18n="mnt.startAt">เริ่มงาน</label><input id="woStart" type="datetime-local"></div>
+        <div class="field"><label for="woEnd" data-i18n="mnt.endAt">เสร็จงาน</label><input id="woEnd" type="datetime-local"></div>
+        <div class="field"><label for="woDown" data-i18n="mnt.downtime">Downtime (ชม.)</label><input id="woDown" type="number" inputmode="decimal" min="0" step="any"></div>
       </div>
-      <div class="field"><label for="woFailure">รูปแบบการเสีย</label><input id="woFailure" type="text" maxlength="200" autocomplete="off"></div>
-      <div class="field"><label for="woCause">สาเหตุ</label><textarea id="woCause" rows="2" maxlength="500"></textarea></div>
-      <div class="field"><label for="woAction">วิธีแก้</label><textarea id="woAction" rows="2" maxlength="500"></textarea></div>
-      <div class="field"><label>อะไหล่ที่ใช้</label>
+      <div class="field"><label for="woFailure" data-i18n="mnt.failureMode">รูปแบบการเสีย</label><input id="woFailure" type="text" maxlength="200" autocomplete="off"></div>
+      <div class="field"><label for="woCause" data-i18n="mnt.cause">สาเหตุ</label><textarea id="woCause" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="woAction" data-i18n="mnt.action">วิธีแก้</label><textarea id="woAction" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label data-i18n="mnt.partsUsed">อะไหล่ที่ใช้</label>
         <div class="mnt-items" id="woParts"></div>
-        <div class="row" style="justify-content:space-between"><button class="btn sm" type="button" id="woPartAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg>เพิ่มอะไหล่</button><span class="muted" id="woMat"></span></div>
+        <div class="row" style="justify-content:space-between"><button class="btn sm" type="button" id="woPartAdd"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="mnt.addPart">เพิ่มอะไหล่</span></button><span class="muted" id="woMat"></span></div>
       </div>
       <div class="frow">
-        <div class="field"><label for="woLabor">ค่าแรง (บาท)</label><input id="woLabor" type="number" inputmode="decimal" min="0" step="any"></div>
-        <div class="field"><label for="woOther">ค่าใช้จ่ายอื่น (บาท)</label><input id="woOther" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="woLabor" data-i18n="mnt.labor">ค่าแรง (บาท)</label><input id="woLabor" type="number" inputmode="decimal" min="0" step="any"></div>
+        <div class="field"><label for="woOther" data-i18n="mnt.otherCost">ค่าใช้จ่ายอื่น (บาท)</label><input id="woOther" type="number" inputmode="decimal" min="0" step="any"></div>
       </div>
-      <div class="field"><label for="woNote">บันทึก</label><textarea id="woNote" rows="2" maxlength="500"></textarea></div>
+      <div class="field"><label for="woNote" data-i18n="mnt.note">บันทึก</label><textarea id="woNote" rows="2" maxlength="500"></textarea></div>
       <div class="insp-photos" id="woPhotos"></div>
       <input type="file" id="woFile" accept="image/*" capture="environment" hidden>
       <div id="woTimeline"></div>
       <p class="mnt-msg" id="woMsg" role="alert"></p>
     </div>
     <div class="dialog-foot">
-      <button class="btn" type="button" id="woClose">ปิด</button>
-      <button class="btn primary" type="submit">บันทึก</button>
+      <button class="btn" type="button" id="woClose" data-i18n="mnt.close">ปิด</button>
+      <button class="btn primary" type="submit" data-i18n="mnt.save">บันทึก</button>
     </div>
   </form>
 </dialog>

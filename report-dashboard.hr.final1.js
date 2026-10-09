@@ -4,6 +4,8 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, โครงแผงสร้างใหม่เมื่อสลับภาษา (ดู init) */
+  function L(th,en){return (window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en')?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -80,8 +82,8 @@
     var rows=st.rows.map(function(r,i){
       return {
         raw:r,i:i,
-        name: c.name?text(r[c.name.key]):('พนักงาน #'+(i+1)),
-        department: c.department?text(r[c.department.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        name: c.name?text(r[c.name.key]):(L('พนักงาน #','Employee #')+(i+1)),
+        department: c.department?text(r[c.department.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         position: c.position?text(r[c.position.key]):'',
         join: date(c.join?r[c.join.key]:null),
         exitDate: date(c.exitDate?r[c.exitDate.key]:null),
@@ -107,7 +109,7 @@
 #hrControlLayout .hr-kpi.warn:after{background:var(--ome-warn)}#hrControlLayout .hr-kpi.bad:after{background:var(--ome-err)}
 #hrControlLayout .hr-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #hrControlLayout .hr-kpi .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#hrControlLayout .hr-kpi.warn .v{color:var(--ome-warn-ink)}#hrControlLayout .hr-kpi.bad .v{color:var(--ome-err)}
+#hrControlLayout .hr-kpi.warn .v{color:var(--ome-warn-ink)}#hrControlLayout .hr-kpi.bad .v{color:var(--ome-err-ink)}
 #hrControlLayout .hr-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #hrControlLayout .hr-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #hrControlLayout .hr-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -154,10 +156,10 @@
       '<div class="hr-kpis" id="hrKpis"></div>'+
       '<section class="hr-panel"><h3>Executive Insight</h3><div id="hrInsight" class="hr-insight"></div></section>'+
       '<div class="hr-grid">'+
-        '<section class="hr-panel full"><h3>แนวโน้มรับเข้า-ออกรายเดือน</h3><div id="hrTrend"></div></section>'+
-        '<section class="hr-panel half"><h3>Headcount แยกตามแผนก</h3><div id="hrByDept"></div></section>'+
-        '<section class="hr-panel half"><h3>สถานะการอบรม</h3><div id="hrTraining"></div></section>'+
-        '<section class="hr-panel full"><h3>พนักงานออกล่าสุด</h3><div id="hrRecent"></div></section>'+
+        '<section class="hr-panel full"><h3>'+L('แนวโน้มรับเข้า-ออกรายเดือน','Monthly hires and exits')+'</h3><div id="hrTrend"></div></section>'+
+        '<section class="hr-panel half"><h3>'+L('Headcount แยกตามแผนก','Headcount by department')+'</h3><div id="hrByDept"></div></section>'+
+        '<section class="hr-panel half"><h3>'+L('สถานะการอบรม','Training status')+'</h3><div id="hrTraining"></div></section>'+
+        '<section class="hr-panel full"><h3>'+L('พนักงานออกล่าสุด','Recent exits')+'</h3><div id="hrRecent"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('hr-hidden-source');
@@ -177,7 +179,7 @@
       if(r.exitDate){var ek=monthKey(r.exitDate); if(!byMonth[ek])byMonth[ek]={hire:0,exit:0}; byMonth[ek].exit++;}
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="hr-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="hr-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     /* บั๊กที่เจอ (จุดเดิมกับ Progress Trend ของ Project Control และ Downtime รายเดือนของ Maintenance/
        Safety): เดิมบีบกราฟให้กว้างคงที่ 900 แล้ว scale ลงด้วย width:100% เสมอ ยิ่งมีหลายเดือนยิ่งบีบจนเส้น/
        จุด/ป้ายเดือนเล็กจนอ่านไม่ออก เปลี่ยนเป็นความกว้างคงที่ต่อเดือน (ไม่บีบ) ห่อด้วย scroll แนวนอนแทน —
@@ -204,14 +206,14 @@
       out+='<text x="'+(left+stepX*i)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
     out+='</svg>';
-    host.innerHTML='<div class="hr-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style="color:'+P().okInk+'">● New Hires</span><span style="color:'+P().err+'">● Exits</span></div>';
+    host.innerHTML='<div class="hr-trend-scroll">'+out+'</div><div class="mini" style="display:flex;gap:14px;margin-top:4px"><span style="color:'+P().okInk+'">● New Hires</span><span style="color:'+P().errInk+'">● Exits</span></div>';
   }
 
   function renderByDept(rows){
     var host=q('#hrByDept'); if(!host)return;
     var map={}; rows.forEach(function(r){ if(empStatus(r.status)!=='exit') map[r.department]=(map[r.department]||0)+1; });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    if(!entries.length){host.innerHTML='<div class="hr-empty">ไม่มีข้อมูลหน่วยงาน</div>';return;}
+    if(!entries.length){host.innerHTML='<div class="hr-empty">'+L('ไม่มีข้อมูลหน่วยงาน','No department data')+'</div>';return;}
     var w=460,rowH=26,h=14+entries.length*rowH,left=118,right=34,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out=svgOpen(w,h);
@@ -232,7 +234,7 @@
     var counts={done:0,pending:0,other:0,unknown:0};
     active.forEach(function(r){var b=trainStatus(r.training); counts[b]=(counts[b]||0)+1;});
     var total=Math.max(1,active.length);
-    var vals=[['done','อบรมครบแล้ว',counts.done,P().ok],['pending','ยังไม่ครบ',counts.pending,P().warn],['other','ไม่ระบุ',counts.other+counts.unknown,P().border]];
+    var vals=[['done',L('อบรมครบแล้ว','Training complete'),counts.done,P().ok],['pending',L('ยังไม่ครบ','Incomplete'),counts.pending,P().warn],['other',L('ไม่ระบุ','Unspecified'),counts.other+counts.unknown,P().border]];
     var out='<div class="hr-status-row">';
     vals.forEach(function(v){
       var pct=(v[2]/total*100).toFixed(0);
@@ -270,9 +272,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="hr-panel"><h3>HR Control</h3>'+
-      '<div class="hr-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลพนักงาน (ต้องมีคอลัมน์วันที่เริ่มงาน '+
+      '<div class="hr-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายข้อมูลพนักงาน (ต้องมีคอลัมน์วันที่เริ่มงาน '+
       'และอย่างน้อยหนึ่งใน แผนก/ตำแหน่ง) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no employee-type columns (a start-date column and at least one of department / position are required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('hr-hidden-source');
     });
@@ -305,23 +307,23 @@
     var trainPending=active.filter(function(r){return trainStatus(r.training)==='pending';}).length;
 
     q('#hrKpis').innerHTML=
-      '<div class="hr-kpi"><div class="l">Headcount</div><div class="v">'+active.length+'</div><div class="s">พนักงานที่ยัง Active</div></div>'+
-      '<div class="hr-kpi"><div class="l">New Hires</div><div class="v">'+newHires+'</div><div class="s">เดือนนี้</div></div>'+
-      '<div class="hr-kpi'+(exitsThisMonth?' warn':'')+'"><div class="l">Exits</div><div class="v">'+exitsThisMonth+'</div><div class="s">เดือนนี้</div></div>'+
-      '<div class="hr-kpi'+(attritionRate>15?' bad':attritionRate>8?' warn':'')+'"><div class="l">Attrition Rate</div><div class="v">'+attritionRate.toFixed(1)+'%</div><div class="s">สะสมทั้งหมด</div></div>'+
-      '<div class="hr-kpi'+(trainPending?' warn':'')+'"><div class="l">Training ค้าง</div><div class="v">'+trainPending+'</div><div class="s">ยังอบรมไม่ครบ</div></div>';
+      '<div class="hr-kpi"><div class="l">Headcount</div><div class="v">'+active.length+'</div><div class="s">'+L('พนักงานที่ยัง Active','Active employees')+'</div></div>'+
+      '<div class="hr-kpi"><div class="l">New Hires</div><div class="v">'+newHires+'</div><div class="s">'+L('เดือนนี้','This month')+'</div></div>'+
+      '<div class="hr-kpi'+(exitsThisMonth?' warn':'')+'"><div class="l">Exits</div><div class="v">'+exitsThisMonth+'</div><div class="s">'+L('เดือนนี้','This month')+'</div></div>'+
+      '<div class="hr-kpi'+(attritionRate>15?' bad':attritionRate>8?' warn':'')+'"><div class="l">Attrition Rate</div><div class="v">'+attritionRate.toFixed(1)+'%</div><div class="s">'+L('สะสมทั้งหมด','Cumulative')+'</div></div>'+
+      '<div class="hr-kpi'+(trainPending?' warn':'')+'"><div class="l">'+L('Training ค้าง','Training pending')+'</div><div class="v">'+trainPending+'</div><div class="s">'+L('ยังอบรมไม่ครบ','Not yet complete')+'</div></div>';
 
-    var status=attritionRate>15?'ควรทบทวนสาเหตุการลาออก':trainPending?'ควรเร่งติดตามการอบรม':'อยู่ในเกณฑ์ปกติ';
-    q('#hrInsight').innerHTML='สถานะโดยรวม <b>'+status+'</b> — Headcount ปัจจุบัน <b>'+active.length+'</b> คน, Attrition Rate สะสม <b>'+attritionRate.toFixed(1)+'%</b>. '+(trainPending?'มี <b>'+trainPending+' คน</b> ที่ยังอบรมไม่ครบตามเกณฑ์.':'การอบรมพนักงานอยู่ในเกณฑ์ครบถ้วน.');
+    var status=attritionRate>15?L('ควรทบทวนสาเหตุการลาออก','Review the causes of attrition'):trainPending?L('ควรเร่งติดตามการอบรม','Follow up on training'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#hrInsight').innerHTML=L('สถานะโดยรวม <b>'+status+'</b> — Headcount ปัจจุบัน <b>'+active.length+'</b> คน, Attrition Rate สะสม <b>'+attritionRate.toFixed(1)+'%</b>. ','Overall status <b>'+status+'</b> — current headcount <b>'+active.length+'</b>, cumulative attrition rate <b>'+attritionRate.toFixed(1)+'%</b>. ')+(trainPending?L('มี <b>'+trainPending+' คน</b> ที่ยังอบรมไม่ครบตามเกณฑ์.','<b>'+trainPending+'</b> employees have not completed required training.'):L('การอบรมพนักงานอยู่ในเกณฑ์ครบถ้วน.','Employee training is complete.'));
 
     renderTrend(rows); renderByDept(rows); renderTraining(rows);
 
     var recentExits=rows.filter(function(r){return r.exitDate;}).sort(function(a,b){return b.exitDate-a.exitDate;}).slice(0,10);
     q('#hrRecent').innerHTML=recentExits.length?recentExits.map(function(r){
       return '<div class="hr-list"><b>'+esc(r.name)+'</b><span>'+esc(r.department)+(r.position?' · '+esc(r.position):'')+'</span><span>'+fmt(r.exitDate)+'</span></div>';
-    }).join(''):'<div class="hr-empty">ไม่มีข้อมูลการลาออก</div>';
+    }).join(''):'<div class="hr-empty">'+L('ไม่มีข้อมูลการลาออก','No exit data')+'</div>';
 
-    q('#hrUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#hrUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -333,6 +335,7 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=document.getElementById('hrControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

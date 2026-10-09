@@ -10,6 +10,9 @@
 (function(){
   'use strict';
   function P(){return window.TanotReportUtils.palette();}
+  /* ภาษาหน้า (OME_LANG กลาง) — ข้อความไทย/อังกฤษคู่กัน, วาดใหม่ทั้งแผงเมื่อสลับภาษา (ดู init) */
+  function isEn(){return !!(window.OME_LANG&&window.OME_LANG.get&&window.OME_LANG.get()==='en');}
+  function L(th,en){return isEn()?en:th;}
   var raf=0, scheduled=false, bootAttempts=0;
   function q(s,r){return (r||document).querySelector(s)}
   function qa(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))}
@@ -126,7 +129,7 @@
       return {
         raw:r,i:i,
         workorder: c.workorder?text(r[c.workorder.key]):('WO-'+(i+1)),
-        equipmentno: c.equipmentno?text(r[c.equipmentno.key])||'(ไม่ระบุ)':'(ไม่ระบุ)',
+        equipmentno: c.equipmentno?text(r[c.equipmentno.key])||L('(ไม่ระบุ)','(unspecified)'):L('(ไม่ระบุ)','(unspecified)'),
         equipmenttype: c.equipmenttype?text(r[c.equipmenttype.key]):'',
         downtime: num(c.downtime?r[c.downtime.key]:null),
         planfinish: planfinish,
@@ -164,7 +167,7 @@
 #mntControlLayout .mn-kpi-primary .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #mntControlLayout .mn-kpi-primary .v{font-size:var(--ome-fs-2xl);font-weight:700;margin-top:5px;color:var(--ome-text-1)}
 #mntControlLayout .mn-kpi-primary .delta{font-size:var(--ome-fs-xs);font-weight:700;margin-top:5px}
-#mntControlLayout .mn-kpi-primary .delta.up{color:var(--ome-ok)}#mntControlLayout .mn-kpi-primary .delta.down{color:var(--ome-err)}
+#mntControlLayout .mn-kpi-primary .delta.up{color:var(--ome-ok-ink)}#mntControlLayout .mn-kpi-primary .delta.down{color:var(--ome-err-ink)}
 #mntControlLayout .mn-kpi-primary .target{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:3px}
 #mntControlLayout .mn-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
 #mntControlLayout .mn-kpi{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);padding:11px 13px;box-shadow:var(--ome-shadow-1);position:relative}
@@ -172,7 +175,7 @@
 #mntControlLayout .mn-kpi.warn:after{background:var(--ome-warn)}#mntControlLayout .mn-kpi.bad:after{background:var(--ome-err)}
 #mntControlLayout .mn-kpi .l{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;}
 #mntControlLayout .mn-kpi .v{font-size:var(--ome-fs-xl);font-weight:700;margin-top:4px;color:var(--ome-text-1)}
-#mntControlLayout .mn-kpi.warn .v{color:var(--ome-warn-ink)}#mntControlLayout .mn-kpi.bad .v{color:var(--ome-err)}
+#mntControlLayout .mn-kpi.warn .v{color:var(--ome-warn-ink)}#mntControlLayout .mn-kpi.bad .v{color:var(--ome-err-ink)}
 #mntControlLayout .mn-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #mntControlLayout .mn-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #mntControlLayout .mn-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
@@ -192,9 +195,6 @@
 #mntControlLayout .mn-trend-scroll{overflow-x:auto}
 /* ปุ่มสลับมุมมอง (Year/Month ของ Project Control ใช้ class คนละชื่อ — ทำแยกของตัวเองให้ชัดเจนว่าเป็นของ
    Maintenance โดยเฉพาะ) ใช้กับ "Downtime แยกตามกลุ่มอุปกรณ์/เครื่องจักร" */
-#mntControlLayout .mn-toggle{display:flex;gap:6px}
-#mntControlLayout .mn-toggle button{border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-2);font-size:var(--ome-fs-xs);font-weight:700;padding:4px 10px;border-radius:var(--ome-radius-sm);cursor:pointer}
-#mntControlLayout .mn-toggle button.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-color:var(--ome-accent)}
 /* ตาราง "อุปกรณ์ที่ต้องเฝ้าระวัง" — เรียงตาม Downtime สะสม พร้อม pill สถานะ */
 #mntControlLayout .mn-watch-head{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;padding:0 2px 6px;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);border-bottom:1px solid var(--ome-border)}
 #mntControlLayout .mn-watch-row{display:grid;grid-template-columns:1fr 110px 90px 100px;gap:10px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-xs)}
@@ -205,8 +205,8 @@
 #mntControlLayout .mn-pill{display:inline-flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);font-weight:700;padding:3px 9px;border-radius:var(--ome-radius-pill);white-space:nowrap}
 #mntControlLayout .mn-pill:before{content:'';width:6px;height:6px;border-radius:50%;display:inline-block}
 #mntControlLayout .mn-pill.watch{color:var(--ome-warn-ink);background:color-mix(in srgb, var(--ome-warn) 20%, transparent)}#mntControlLayout .mn-pill.watch:before{background:var(--ome-warn)}
-#mntControlLayout .mn-pill.ok{color:var(--ome-ok);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}#mntControlLayout .mn-pill.ok:before{background:var(--ome-ok)}
-#mntControlLayout .mn-pill.parts{color:var(--ome-err);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}#mntControlLayout .mn-pill.parts:before{background:var(--ome-err)}
+#mntControlLayout .mn-pill.ok{color:var(--ome-ok-ink);background:color-mix(in srgb, var(--ome-ok) 15%, transparent)}#mntControlLayout .mn-pill.ok:before{background:var(--ome-ok)}
+#mntControlLayout .mn-pill.parts{color:var(--ome-err-ink);background:color-mix(in srgb, var(--ome-err) 15%, transparent)}#mntControlLayout .mn-pill.parts:before{background:var(--ome-err)}
 /* กราฟเส้นหลายสี "PM Compliance รายเดือน แยกตามสาย" */
 #mntControlLayout .mn-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:var(--ome-fs-xs);color:var(--ome-text-2);padding:6px 2px 0}
 #mntControlLayout .mn-legend span{display:inline-flex;align-items:center;gap:5px}
@@ -247,12 +247,12 @@
       '<div class="mn-kpis" id="mnKpis"></div>'+
       '<section class="mn-panel"><h3>Executive Insight</h3><div id="mnInsight" class="mn-insight"></div></section>'+
       '<div class="mn-grid">'+
-        '<section class="mn-panel full"><h3>Downtime รายเดือน</h3><div id="mnTrend"></div></section>'+
-        '<section class="mn-panel full" id="mnPmByLinePanel"><h3>PM Compliance รายเดือน แยกตามสาย</h3><div id="mnPmByLine"></div></section>'+
-        '<section class="mn-panel half"><h3>Work Order รายเดือน: PM vs CM</h3><div id="mnPmCm"></div></section>'+
-        '<section class="mn-panel half"><h3>สถานะงานซ่อมบำรุง</h3><div id="mnStatus"></div></section>'+
-        '<section class="mn-panel full"><div class="mn-panel-head"><h3>Downtime แยกตามกลุ่มอุปกรณ์</h3><div class="mn-toggle" id="mnByEquipToggle"></div></div><div id="mnByEquip"></div></section>'+
-        '<section class="mn-panel full"><h3>อุปกรณ์ที่ต้องเฝ้าระวัง</h3><div id="mnWatchlist"></div></section>'+
+        '<section class="mn-panel full"><h3>'+L('Downtime รายเดือน','Monthly downtime')+'</h3><div id="mnTrend"></div></section>'+
+        '<section class="mn-panel full" id="mnPmByLinePanel"><h3>'+L('PM Compliance รายเดือน แยกตามสาย','Monthly PM compliance by line')+'</h3><div id="mnPmByLine"></div></section>'+
+        '<section class="mn-panel half"><h3>'+L('Work Order รายเดือน: PM vs CM','Monthly work orders: PM vs CM')+'</h3><div id="mnPmCm"></div></section>'+
+        '<section class="mn-panel half"><h3>'+L('สถานะงานซ่อมบำรุง','Maintenance status')+'</h3><div id="mnStatus"></div></section>'+
+        '<section class="mn-panel full"><div class="mn-panel-head"><h3>'+L('Downtime แยกตามกลุ่มอุปกรณ์','Downtime by equipment group')+'</h3><div class="mn-toggle segmented" id="mnByEquipToggle"></div></div><div id="mnByEquip"></div></section>'+
+        '<section class="mn-panel full"><h3>'+L('อุปกรณ์ที่ต้องเฝ้าระวัง','Equipment to watch')+'</h3><div id="mnWatchlist"></div></section>'+
       '</div>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('mnt-hidden-source');
@@ -271,7 +271,7 @@
       byMonth[k]=(byMonth[k]||0)+r.downtime;
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="mn-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="mn-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     /* บั๊กที่เจอ (จุดเดิมกับ Progress Trend ของ Project Control): เดิมบีบกราฟให้กว้างคงที่ 900 แล้ว scale
        ลงด้วย width:100% เสมอ ยิ่งมีหลายเดือนยิ่งบีบจนแท่ง/ป้ายเดือนเล็กจนอ่านไม่ออก เปลี่ยนเป็นความกว้าง
        คงที่ต่อแท่ง (ไม่บีบ) ห่อด้วย scroll แนวนอนแทน — เดือนน้อยพอดีกล่องไม่ต้องเลื่อน เดือนเยอะเลื่อนดูได้
@@ -307,11 +307,11 @@
     var map={};
     rows.forEach(function(r){
       if(r.downtime==null)return;
-      var key=mode==='type'?(r.equipmenttype||'(ไม่ระบุประเภท)'):r.equipmentno;
+      var key=mode==='type'?(r.equipmenttype||L('(ไม่ระบุประเภท)','(no type)')):r.equipmentno;
       map[key]=(map[key]||0)+r.downtime;
     });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).sort(function(a,b){return b[1]-a[1];}).slice(0,8);
-    if(!entries.length){host.innerHTML='<div class="mn-empty">ไม่มีข้อมูล Downtime</div>';return;}
+    if(!entries.length){host.innerHTML='<div class="mn-empty">'+L('ไม่มีข้อมูล Downtime','No downtime data')+'</div>';return;}
     var w=900,rowH=28,h=14+entries.length*rowH,left=210,right=50,barW=w-left-right;
     var maxV=Math.max.apply(null,entries.map(function(e){return e[1];}))||1;
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:100%;height:'+h+'px">';
@@ -329,7 +329,7 @@
     var host=q('#mnByEquipToggle'); if(!host)return;
     var hasType=rows.some(function(r){return r.equipmenttype;});
     if(!hasType){host.innerHTML='';return;}
-    host.innerHTML='<button type="button" data-eq-group="type">กลุ่มอุปกรณ์</button><button type="button" data-eq-group="unit">รายเครื่อง</button>';
+    host.innerHTML='<button type="button" data-eq-group="type">'+L('กลุ่มอุปกรณ์','Group')+'</button><button type="button" data-eq-group="unit">'+L('รายเครื่อง','Per unit')+'</button>';
     qa('[data-eq-group]',host).forEach(function(b){
       b.classList.toggle('active',b.getAttribute('data-eq-group')===EQUIP_GROUP);
       b.onclick=function(){EQUIP_GROUP=b.getAttribute('data-eq-group');wireByEquipToggle(rows);renderByEquip(rows);};
@@ -346,8 +346,8 @@
     var total=Math.max(1,rows.length);
     var vals=[
       ['pm','PM Compliance',pmCompliance!=null?pmCompliance.toFixed(0)+'%':'—',pmCompliance!=null?pmCompliance:0,P().ok],
-      ['cm','งาน CM (ฉุกเฉิน)',cmCount,cmCount/total*100,P().warn],
-      ['late','เลยกำหนด',late,late/total*100,P().err]
+      ['cm',L('งาน CM (ฉุกเฉิน)','CM jobs (emergency)'),cmCount,cmCount/total*100,P().warn],
+      ['late',L('เลยกำหนด','Overdue'),late,late/total*100,P().err]
     ];
     var out='<div class="mn-status-row">';
     vals.forEach(function(v){
@@ -458,8 +458,8 @@
     var now=new Date();
     var hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0');
     host.innerHTML=
-      '<span class="mn-badge">รอบข้อมูล '+(min?fmt(min):'—')+' – '+(max?fmt(max):'—')+'</span>'+
-      '<span class="mn-badge">อัปเดตล่าสุด '+fmt(now)+', '+hh+':'+mm+'</span>';
+      '<span class="mn-badge">'+L('รอบข้อมูล ','Data period ')+(min?fmt(min):'—')+' – '+(max?fmt(max):'—')+'</span>'+
+      '<span class="mn-badge">'+L('อัปเดตล่าสุด ','Last updated ')+fmt(now)+', '+hh+':'+mm+'</span>';
   }
 
   /* KPI หลัก 4 ตัวตาม template (แยกจากแถว KPI รอง 6 ตัวเดิมที่ยังอยู่ครบ) */
@@ -470,14 +470,14 @@
     var backlogWarn=backlog.value>0;
     var mttrWarn=mttr.value!=null&&mttr.value>4;
     host.innerHTML=
-      '<div class="mn-kpi-primary'+(pmWarn?' warn':'')+'"><div class="l">PM Compliance (รวมทุกกลุ่ม)</div><div class="v">'+(pmc.value!=null?pmc.value.toFixed(1)+'%':'—')+'</div>'+
-        fmtDelta(pmc.delta,1,'pt vs เดือนก่อน',true)+'<div class="target">เป้าหมาย ≥ 95%</div></div>'+
+      '<div class="mn-kpi-primary'+(pmWarn?' warn':'')+'"><div class="l">PM Compliance '+L('(รวมทุกกลุ่ม)','(all groups)')+'</div><div class="v">'+(pmc.value!=null?pmc.value.toFixed(1)+'%':'—')+'</div>'+
+        fmtDelta(pmc.delta,1,L('pt vs เดือนก่อน','pt vs previous month'),true)+'<div class="target">'+L('เป้าหมาย','Target')+' ≥ 95%</div></div>'+
       '<div class="mn-kpi-primary'+(availWarn?' warn':'')+'"><div class="l">'+avail.label+'</div><div class="v">'+(avail.value!=null?avail.value.toFixed(2)+'%':'—')+'</div>'+
-        fmtDelta(avail.delta,2,'pt',true)+'<div class="target">เป้าหมาย ≥ 99.7%</div></div>'+
-      '<div class="mn-kpi-primary'+(backlogWarn?' warn':'')+'"><div class="l">Work Order ค้างดำเนินการ</div><div class="v">'+backlog.value+' <span style="font-size:11px;font-weight:700;color:var(--ome-text-2)">รายการ</span></div>'+
-        fmtDelta(backlog.delta,0,' จากสัปดาห์ก่อน',false)+'<div class="target">SLA ปิดงานภายใน 72 ชม.</div></div>'+
-      '<div class="mn-kpi-primary'+(mttrWarn?' warn':'')+'"><div class="l">MTTR เฉลี่ย</div><div class="v">'+(mttr.value!=null?mttr.value.toFixed(1)+' ชม.':'—')+'</div>'+
-        fmtDelta(mttr.delta,1,'ชม.',false)+'<div class="target">เป้าหมาย ≤ 4 ชม.</div></div>';
+        fmtDelta(avail.delta,2,'pt',true)+'<div class="target">'+L('เป้าหมาย','Target')+' ≥ 99.7%</div></div>'+
+      '<div class="mn-kpi-primary'+(backlogWarn?' warn':'')+'"><div class="l">'+L('Work Order ค้างดำเนินการ','Open work orders')+'</div><div class="v">'+backlog.value+' <span style="font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2)">'+L('รายการ','items')+'</span></div>'+
+        fmtDelta(backlog.delta,0,L(' จากสัปดาห์ก่อน',' vs last week'),false)+'<div class="target">'+L('SLA ปิดงานภายใน 72 ชม.','SLA: close within 72 h')+'</div></div>'+
+      '<div class="mn-kpi-primary'+(mttrWarn?' warn':'')+'"><div class="l">'+L('MTTR เฉลี่ย','Average MTTR')+'</div><div class="v">'+(mttr.value!=null?mttr.value.toFixed(1)+L(' ชม.',' h'):'—')+'</div>'+
+        fmtDelta(mttr.delta,1,L('ชม.','h'),false)+'<div class="target">'+L('เป้าหมาย ≤ 4 ชม.','Target ≤ 4 h')+'</div></div>';
   }
 
   /* c) Work Order รายเดือน: PM vs CM — กราฟแท่งซ้อนรายเดือน (ใช้แพทเทิร์นความกว้างคงที่ต่อแท่ง + scroll
@@ -492,7 +492,7 @@
       if(cls==='cm')g.cm++; else g.pm++;
     });
     var keys=Object.keys(byMonth).sort();
-    if(keys.length<2){host.innerHTML='<div class="mn-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(keys.length<2){host.innerHTML='<div class="mn-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var perBar=56,left=40,right=14,top=14,bottom=26,ph=170;
     var w=Math.max(360,left+right+keys.length*perBar), h=top+ph+bottom, pw=w-left-right;
     var maxV=Math.max.apply(null,keys.map(function(k){return byMonth[k].pm+byMonth[k].cm;}))||1;
@@ -511,7 +511,7 @@
       out+='<rect x="'+x+'" y="'+(top+ph-pmH-cmH)+'" width="'+bw+'" height="'+cmH+'" fill="'+P().series[4]+'"/>';
       out+='<text x="'+(x+bw/2)+'" y="'+(h-6)+'" text-anchor="middle" font-size="10" fill="'+P().faint+'">'+k+'</text>';
     });
-    out+='</svg><div class="mn-legend"><span><i style="background:'+P().info+'"></i>PM (แผน)</span><span><i style="background:'+P().series[4]+'"></i>CM (เหตุขัดข้อง)</span></div>';
+    out+='</svg><div class="mn-legend"><span><i style="background:'+P().info+'"></i>'+L('PM (แผน)','PM (planned)')+'</span><span><i style="background:'+P().series[4]+'"></i>'+L('CM (เหตุขัดข้อง)','CM (breakdown)')+'</span></div>';
     host.innerHTML='<div class="mn-trend-scroll">'+out+'</div>';
   }
 
@@ -535,7 +535,7 @@
       if(r.actend && (!r.planfinish||r.actend<=r.planfinish))g.done++;
     });
     var months=[]; rows.forEach(function(r){var k=monthKey(r.anchorDate); if(months.indexOf(k)<0)months.push(k);}); months.sort();
-    if(months.length<2){host.innerHTML='<div class="mn-empty">ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)</div>';return;}
+    if(months.length<2){host.innerHTML='<div class="mn-empty">'+L('ข้อมูลยังไม่พอสำหรับดูแนวโน้ม (ต้องการอย่างน้อย 2 เดือน)','Not enough data for a trend (at least 2 months needed)')+'</div>';return;}
     var perM=64,left=44,right=18,top=14,bottom=26,ph=170;
     var w=Math.max(400,left+right+months.length*perM), h=top+ph+bottom, pw=w-left-right, step=pw/(months.length-1||1);
     var out='<svg width="'+w+'" height="'+h+'" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="xMinYMin meet" role="img" style="display:block;width:'+w+'px;height:'+h+'px">';
@@ -582,12 +582,12 @@
     });
     var entries=Object.keys(map).map(function(k){return [k,map[k]];}).filter(function(e){return e[1].downtime>0;})
       .sort(function(a,b){return b[1].downtime-a[1].downtime;}).slice(0,10);
-    if(!entries.length){host.innerHTML='<div class="mn-empty">ไม่มีข้อมูล Downtime</div>';return;}
+    if(!entries.length){host.innerHTML='<div class="mn-empty">'+L('ไม่มีข้อมูล Downtime','No downtime data')+'</div>';return;}
     var showLine=entries.some(function(e){return e[1].line;});
-    var head='<div class="mn-watch-head"><span>อุปกรณ์</span><span>'+(showLine?'สาย/โครงการ':'')+'</span><span>Downtime (ชม.)</span><span>สถานะ</span></div>';
+    var head='<div class="mn-watch-head"><span>'+L('อุปกรณ์','Equipment')+'</span><span>'+(showLine?L('สาย/โครงการ','Line / project'):'')+'</span><span>'+L('Downtime (ชม.)','Downtime (h)')+'</span><span>'+L('สถานะ','Status')+'</span></div>';
     var body=entries.map(function(e){
       var g=e[1];
-      var pill=g.awaitParts?['parts','รอชิ้นส่วน']:g.openLate?['watch','เฝ้าระวัง']:['ok','ปกติ'];
+      var pill=g.awaitParts?['parts',L('รอชิ้นส่วน','Awaiting parts')]:g.openLate?['watch',L('เฝ้าระวัง','Watch')]:['ok',L('ปกติ','Normal')];
       return '<div class="mn-watch-row"><b>'+esc(e[0])+'</b><span class="muted">'+(g.line?esc(g.line):'—')+'</span><span class="num">'+g.downtime.toFixed(1)+'</span><span><span class="mn-pill '+pill[0]+'">'+pill[1]+'</span></span></div>';
     }).join('');
     host.innerHTML=head+body;
@@ -621,9 +621,9 @@
     if(layout.getAttribute('data-built')==='notice')return;
     layout.setAttribute('data-built','notice');
     layout.innerHTML='<section class="mn-panel"><h3>Maintenance Control</h3>'+
-      '<div class="mn-empty">ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายงานซ่อมบำรุง (ต้องมีคอลัมน์รหัสเครื่องจักร '+
+      '<div class="mn-empty">'+L('ข้อมูลชุดนี้ไม่มีคอลัมน์ที่เข้าข่ายงานซ่อมบำรุง (ต้องมีคอลัมน์รหัสเครื่องจักร '+
       'และอย่างน้อยหนึ่งใน Downtime/วันที่เริ่ม-เสร็จปฏิบัติงาน) — ลองเลือก Template เป็น "Auto" '+
-      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้</div></section>';
+      'หรืออัปโหลดข้อมูลที่มีคอลัมน์เหล่านี้','This data has no maintenance-type columns (an equipment ID column and at least one of downtime / actual start-end dates are required) — try setting Template to "Auto" or upload data that has these columns')+'</div></section>';
     qa('#domainDashboardCard,#scadaProgressCard,#projectSpecialGrid,#biProjectControlCard').forEach(function(e){
       if(e) e.classList.add('mnt-hidden-source');
     });
@@ -655,15 +655,15 @@
     var st=renderStatus(rows);
 
     q('#mnKpis').innerHTML=
-      '<div class="mn-kpi"><div class="l">Work Orders</div><div class="v">'+rows.length+'</div><div class="s">รายการทั้งหมด</div></div>'+
-      '<div class="mn-kpi"><div class="l">Equipment</div><div class="v">'+Object.keys(equipSet).length+'</div><div class="s">เครื่องจักรที่มีบันทึก</div></div>'+
-      '<div class="mn-kpi"><div class="l">Downtime รวม</div><div class="v">'+totalDowntime.toLocaleString(undefined,{maximumFractionDigits:1})+'</div><div class="s">ชั่วโมง</div></div>'+
-      '<div class="mn-kpi'+(st.pmCompliance!=null&&st.pmCompliance<80?' warn':'')+'"><div class="l">PM Compliance</div><div class="v">'+(st.pmCompliance!=null?st.pmCompliance.toFixed(0)+'%':'—')+'</div><div class="s">งานตามแผนที่เสร็จตรงเวลา</div></div>'+
-      '<div class="mn-kpi'+(cmCount?' warn':'')+'"><div class="l">CM (ฉุกเฉิน)</div><div class="v">'+cmCount+'</div><div class="s">งานซ่อมฉุกเฉิน</div></div>'+
-      '<div class="mn-kpi'+(lateCount?' bad':'')+'"><div class="l">เลยกำหนด</div><div class="v">'+lateCount+'</div><div class="s">ต้องติดตาม</div></div>';
+      '<div class="mn-kpi"><div class="l">Work Orders</div><div class="v">'+rows.length+'</div><div class="s">'+L('รายการทั้งหมด','Total items')+'</div></div>'+
+      '<div class="mn-kpi"><div class="l">Equipment</div><div class="v">'+Object.keys(equipSet).length+'</div><div class="s">'+L('เครื่องจักรที่มีบันทึก','Equipment with records')+'</div></div>'+
+      '<div class="mn-kpi"><div class="l">'+L('Downtime รวม','Total downtime')+'</div><div class="v">'+totalDowntime.toLocaleString(undefined,{maximumFractionDigits:1})+'</div><div class="s">'+L('ชั่วโมง','Hours')+'</div></div>'+
+      '<div class="mn-kpi'+(st.pmCompliance!=null&&st.pmCompliance<80?' warn':'')+'"><div class="l">PM Compliance</div><div class="v">'+(st.pmCompliance!=null?st.pmCompliance.toFixed(0)+'%':'—')+'</div><div class="s">'+L('งานตามแผนที่เสร็จตรงเวลา','Planned jobs done on time')+'</div></div>'+
+      '<div class="mn-kpi'+(cmCount?' warn':'')+'"><div class="l">'+L('CM (ฉุกเฉิน)','CM (emergency)')+'</div><div class="v">'+cmCount+'</div><div class="s">'+L('งานซ่อมฉุกเฉิน','Emergency repairs')+'</div></div>'+
+      '<div class="mn-kpi'+(lateCount?' bad':'')+'"><div class="l">'+L('เลยกำหนด','Overdue')+'</div><div class="v">'+lateCount+'</div><div class="s">'+L('ต้องติดตาม','Needs follow-up')+'</div></div>';
 
-    var statusText=lateCount?'มีงานเลยกำหนดต้องเร่งติดตาม':(st.pmCompliance!=null&&st.pmCompliance<80)?'PM Compliance ต่ำกว่าเป้าหมาย':'อยู่ในเกณฑ์ปกติ';
-    q('#mnInsight').innerHTML='สถานะโดยรวม <b>'+statusText+'</b> — Work Order ทั้งหมด <b>'+rows.length+'</b> รายการ, Downtime รวม <b>'+totalDowntime.toLocaleString(undefined,{maximumFractionDigits:1})+' ชม.</b>'+(totalCost?', ต้นทุนรวม <b>'+totalCost.toLocaleString(undefined,{maximumFractionDigits:0})+'</b>':'')+'. '+(lateCount?'มี <b>'+lateCount+' งาน</b> เลยกำหนด ต้องเร่งติดตาม.':'ไม่มีงานที่เลยกำหนดในขณะนี้.');
+    var statusText=lateCount?L('มีงานเลยกำหนดต้องเร่งติดตาม','Overdue jobs need urgent follow-up'):(st.pmCompliance!=null&&st.pmCompliance<80)?L('PM Compliance ต่ำกว่าเป้าหมาย','PM compliance is below target'):L('อยู่ในเกณฑ์ปกติ','Within normal range');
+    q('#mnInsight').innerHTML=L('สถานะโดยรวม ','Overall status ')+'<b>'+statusText+'</b> — '+L('Work Order ทั้งหมด <b>'+rows.length+'</b> รายการ, Downtime รวม <b>','<b>'+rows.length+'</b> work orders in total, total downtime <b>')+totalDowntime.toLocaleString(undefined,{maximumFractionDigits:1})+L(' ชม.',' h')+'</b>'+(totalCost?L(', ต้นทุนรวม <b>',', total cost <b>')+totalCost.toLocaleString(undefined,{maximumFractionDigits:0})+'</b>':'')+'. '+(lateCount?L('มี <b>'+lateCount+' งาน</b> เลยกำหนด ต้องเร่งติดตาม.','<b>'+lateCount+' jobs</b> are overdue and need follow-up.'):L('ไม่มีงานที่เลยกำหนดในขณะนี้.','No overdue jobs right now.'));
 
     /* ฟีเจอร์ใหม่ตามที่ผู้ใช้ขอ "ทำไปให้สุด" เทียบ template "Maintenance & Asset Operations" */
     renderBadges(rows);
@@ -676,7 +676,7 @@
     wireByEquipToggle(rows); renderByEquip(rows);
     renderWatchlist(rows);
 
-    q('#mnUpdated').textContent='รอบข้อมูลถึง '+fmt(today)+' · '+rows.length.toLocaleString()+' รายการ';
+    q('#mnUpdated').textContent=L('รอบข้อมูลถึง ','Data through ')+fmt(today)+' · '+rows.length.toLocaleString()+L(' รายการ',' items');
   }
 
   function schedule(){
@@ -688,6 +688,8 @@
   function init(){
     injectCSS();
     window.TanotReportUtils.onTheme(schedule);
+    /* สลับภาษา: โครงแผงสร้างครั้งเดียว (data-built) — ล้างแล้ววาดใหม่ให้หัวข้อ/ข้อความเปลี่ยนตามภาษาสด */
+    if(window.OME_LANG&&window.OME_LANG.onChange)window.OME_LANG.onChange(function(){var l=q('#mntControlLayout');if(l)l.removeAttribute('data-built');schedule();});
     schedule();
     (function bootRetry(){
       var A=window.TanotDashboard;

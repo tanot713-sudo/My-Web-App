@@ -19,7 +19,8 @@
 <script src="shell.js" defer></script>
 <style>
 /* กรอบหน้า (layout=app): หัว+แท็บอยู่บน, ใต้ลงมาเป็นพื้นที่ทำงานเต็มจอ — แถบข้างเลื่อนแยก วิวพอร์ตวาดยืดตามพื้นที่ที่เหลือ
-   (พื้นที่วาด/สีเส้น/สีวัตถุเป็นข้อมูลของผู้ใช้ ไม่ผูกกับโทเคนธีม) */
+   (พื้นที่วาด/สีเส้น/สีวัตถุเป็นข้อมูลของผู้ใช้ ไม่ผูกกับโทเคนธีม)
+   จอ ≤ 980px: แถบเครื่องมือซ้ายเป็นแถวเดียวเลื่อนแนวนอน · แผงขวา (คุณสมบัติ/เลเยอร์/ข้อจำกัด/พิมพ์) เป็นลิ้นชักที่เปิด-ปิดได้ ไม่ทับวิวพอร์ตถาวร */
 .cad-app{--ome-card-pad:14px}
 .cad-top{flex:0 0 auto;padding:var(--ome-sp-3) var(--ome-sp-4) 0}
 .cad-top .page-head{margin-bottom:var(--ome-sp-2);gap:var(--ome-sp-3)}
@@ -27,6 +28,7 @@
 .cad-maintabs .tab{display:inline-flex;align-items:center;gap:6px}
 #quickSketch3dBtn{margin:auto 0 auto auto;flex-shrink:0}
 [hidden]{display:none!important}
+.cad-vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 #panel2d,#panel3d{flex:1 1 0;min-height:0}
 #panel2d{display:flex}
@@ -40,45 +42,36 @@
 .cad-main > .card{flex:1;min-height:0;display:flex;flex-direction:column;margin:0}
 .cad-tool-section{margin-bottom:var(--ome-sp-4)}
 .cad-tool-section:last-child{margin-bottom:0}
-.cad-tool-section-lbl{font-size:10.5px;color:var(--ome-text-2);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:var(--ome-sp-2)}
+.cad-tool-section-lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:var(--ome-sp-2)}
 /* ปุ่มเครื่องมือแบบไอคอนล้วน (ชื่อเครื่องมืออยู่ใน title/tooltip) */
 .cad-tool-grid{display:flex;flex-wrap:wrap;gap:6px}
 .cad-tool-grid .btn{width:38px;height:38px;padding:0;flex-shrink:0}
 .cad-tool-grid .btn svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .cad-tool-grid .btn svg.fill,.cad-tool-grid .btn svg .fill{fill:currentColor;stroke:none}
 .cad-tool-list{display:flex;flex-direction:column;gap:6px;margin-top:var(--ome-sp-2)}
-.cad-tool-listitem{display:flex;align-items:center;gap:9px;width:100%;padding:7px 9px;border-radius:var(--ome-radius-sm);
-  border:1px solid var(--ome-border);background:none;cursor:pointer;font:inherit;font-size:var(--ome-fs-xs);
-  color:var(--ome-text-1);text-align:left}
+.cad-tool-listitem{width:100%;justify-content:flex-start;height:auto;min-height:32px;padding-top:5px;padding-bottom:5px;text-align:left;font-weight:500}
 .cad-tool-listitem svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
 .cad-tool-listitem svg .fill{fill:currentColor;stroke:none}
-.cad-tool-listitem:hover{background:var(--ome-surface-2)}
-.cad-tool-listitem.active{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 .cad-tool-subrow{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center;margin-top:10px;padding-top:10px;border-top:1px dashed var(--ome-border)}
-.cad-tool-subrow label{display:flex;flex-direction:column;gap:5px;font-size:11.5px;color:var(--ome-text-2);font-weight:700;flex:1;min-width:95px}
-
-/* ช่องกรอกในแถบ/แผงของหน้านี้ (label ครอบ input — i18n เขียนทับแค่ text node แรก) ใช้หน้าตาเดียวกับ .input/.select กลาง */
-.cad-app :is(.cad-tool-subrow,.cad-tb-group,.cad-props-grid,.cad-plot-row,.cad-dropdown-field,.c3-form,.c3-proprow-val,.cad-layer-row) :is(input:not([type="checkbox"]):not([type="range"]):not([type="color"]),select,textarea){
-  font:inherit;font-size:var(--ome-fs-xs);height:32px;padding:0 8px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-sm);
-  background-color:var(--ome-surface-1);color:var(--ome-text-1);-webkit-appearance:none;appearance:none}
-.cad-app :is(.cad-tool-subrow,.cad-tb-group,.cad-props-grid,.cad-plot-row,.cad-dropdown-field,.c3-form,.c3-proprow-val,.cad-layer-row) select{
-  padding-right:24px;background-image:linear-gradient(45deg,transparent 50%,var(--ome-text-2) 50%),linear-gradient(135deg,var(--ome-text-2) 50%,transparent 50%);
-  background-position:calc(100% - 13px) 50%,calc(100% - 8px) 50%;background-size:5px 5px;background-repeat:no-repeat}
-.cad-app :is(.cad-tool-subrow,.cad-tb-group,.cad-props-grid,.cad-plot-row,.cad-dropdown-field,.c3-form,.c3-proprow-val,.cad-layer-row) textarea{height:auto;padding:6px 8px;line-height:1.6}
-.cad-app :is(.cad-tool-subrow,.cad-tb-group,.cad-props-grid,.cad-plot-row,.cad-dropdown-field,.c3-form,.c3-proprow-val,.cad-layer-row) :is(input,select,textarea):focus{
-  outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--ome-accent) 22%, transparent)}
+.cad-tool-subrow label{display:flex;flex-direction:column;gap:5px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;flex:1;min-width:95px}
 .cad-tool-subrow select{width:100%}
-.cad-tb-group label{font-size:11.5px;color:var(--ome-text-2);font-weight:700;display:flex;align-items:center;gap:5px}
-.cad-tb-group label input{width:58px}
+
+/* ช่องกรอก/ตัวเลือกในแถบและแผง: ใช้ .input / .select กลาง (ใส่คลาสที่ตัว input) — ย่อเหลือ 32px เฉพาะจอกว้าง (จอ ≤ 700px กลับเป็น 40px ตามกฎเป้ากด) */
+@media (min-width:701px){
+  .cad-app :is(.input,.select){height:32px;padding:0 8px;font-size:var(--ome-fs-xs)}
+  .cad-app .textarea{min-height:0;padding:6px 8px;font-size:var(--ome-fs-xs)}
+}
+.cad-tb-group label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;display:flex;align-items:center;gap:5px}
+.cad-tb-group label .input{width:58px}
 
 /* แถวใส่ระยะ/มุมเป๊ะๆ ระหว่างวาด — จองความสูงไว้เสมอแล้วสลับแค่ visibility กันวิวพอร์ตขยับตอนเริ่มวาด (อย่าเปลี่ยนเป็น display:none) */
-.cad-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.cad-precise-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;visibility:hidden;pointer-events:none;min-height:44px;flex-shrink:0;
-  padding:0 10px;background:var(--ome-accent-soft);border-radius:var(--ome-radius-md);margin-bottom:var(--ome-sp-2)}
+.cad-tb-group{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center}
+.cad-precise-row{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2) 10px;visibility:hidden;pointer-events:none;min-height:44px;flex-shrink:0;
+  padding:0 10px;background:var(--ome-surface-2);border:1px solid var(--ome-accent);border-radius:var(--ome-radius-md);margin-bottom:var(--ome-sp-2)}
 .cad-precise-row.show{visibility:visible;pointer-events:auto}
-.cad-precise-row label{font-size:11.5px;color:var(--ome-accent-strong);font-weight:700;display:flex;align-items:center;gap:5px}
-.cad-precise-row input{width:90px}
-.cad-precise-row textarea{width:100%;min-width:200px;resize:vertical}
+.cad-precise-row label{font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);font-weight:700;display:flex;align-items:center;gap:5px}
+.cad-precise-row .input{width:90px}
+.cad-precise-row .textarea{width:100%;min-width:200px;resize:vertical}
 #finishPolylineBtn{display:none}
 #finishPolylineBtn.show{display:inline-flex}
 
@@ -97,9 +90,9 @@
 /* แผงคุณสมบัติ */
 .cad-props-title{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-accent-strong);margin-bottom:10px}
 .cad-props-grid{display:flex;flex-wrap:wrap;gap:10px}
-.cad-props-grid label{font-size:11.5px;color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
-.cad-props-grid input{width:120px}
-.cad-props-grid textarea{width:100%;min-width:200px;resize:vertical}
+.cad-props-grid label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.cad-props-grid .input{width:120px}
+.cad-props-grid .textarea{width:100%;min-width:200px;resize:vertical}
 .cad-props-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);line-height:1.6}
 #textRow label.cad-text-content-lbl{flex:1 1 220px}
 #textRow input#textContentInput{width:100%}
@@ -107,21 +100,22 @@
 /* แผงจัดการเลเยอร์ */
 .cad-layers-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .cad-layers-head .cad-props-title{margin-bottom:0}
-.cad-layers-list{display:flex;flex-direction:column;gap:6px}
-.cad-layer-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border)}
-.cad-layer-row.active{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
-.cad-layer-row .cad-layer-icon{border:none;background:none;color:var(--ome-text-1);cursor:pointer;padding:4px;line-height:1;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.cad-layers-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.cad-layers-card .cad-tool-subrow + .cad-layers-list{margin-top:var(--ome-sp-3)}
+.cad-layer-row{display:flex;align-items:center;gap:var(--ome-sp-1);padding:6px 8px;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border)}
+.cad-layer-row.active{border-color:var(--ome-accent);background:var(--ome-surface-2)}
+.cad-layer-row .cad-layer-icon{flex-shrink:0;padding:0}
 .cad-layer-row .cad-layer-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
 .cad-layer-row .cad-layer-icon svg .fill{fill:currentColor;stroke:none}
 .cad-layer-row .cad-layer-icon .ome-icon{width:15px;height:15px}
 .cad-layer-row .cad-layer-icon[data-act="setactive"]{color:var(--ome-text-2)}
-.cad-layer-row.active .cad-layer-icon[data-act="setactive"]{color:var(--ome-accent)}
-.cad-layer-row .cad-layer-icon:hover{background:var(--ome-surface-2)}
+.cad-layer-row.active .cad-layer-icon[data-act="setactive"]{color:var(--ome-accent-strong)}
 .cad-layer-row .cad-layer-icon:disabled{opacity:.35;cursor:not-allowed}
 .cad-layer-row .cad-layer-color{width:26px;height:26px;padding:0;border:1px solid var(--ome-border);border-radius:6px;cursor:pointer;flex-shrink:0;background:none}
-.cad-layer-row .cad-layer-name{flex:1;min-width:0}
-.cad-layer-grip{cursor:grab;color:var(--ome-text-2);opacity:.6}
-.cad-layer-grip:hover{opacity:1;background:var(--ome-surface-2)}
+.cad-layer-row .cad-layer-name{flex:1;min-width:0;width:auto}
+.cad-layer-grip{cursor:grab;color:var(--ome-text-2);display:inline-grid;place-items:center;width:24px;height:24px;flex-shrink:0}
+.cad-layer-grip svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}
+.cad-layer-grip svg .fill{fill:currentColor;stroke:none}
 .cad-layer-row.dragging{opacity:.4}
 .cad-layer-row.drag-over-before{box-shadow:inset 0 2.5px 0 var(--ome-accent)}
 .cad-layer-row.drag-over-after{box-shadow:inset 0 -2.5px 0 var(--ome-accent)}
@@ -129,42 +123,48 @@
 .cad-layers-head-btns{display:flex;gap:var(--ome-sp-2)}
 .cad-layer-child{margin-left:22px}
 .cad-layer-folder-row{background:var(--ome-surface-2)}
-.cad-layer-folder-icon{color:var(--ome-accent-strong);cursor:default}
+.cad-layer-folder-icon{color:var(--ome-accent-strong);display:inline-grid;place-items:center;width:24px;height:24px;flex-shrink:0}
+.cad-layer-folder-icon svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.6}
+.cad-layer-folder-icon svg .fill{fill:currentColor;stroke:none}
+
+@media (min-width:701px){ /* แผงเลเยอร์ 320px: ปุ่มไอคอนเล็กลงให้ช่องชื่อกว้างพอ (จอ ≤ 700px ใช้เป้ากด 40px แล้วขึ้นบรรทัดใหม่แทน) */
+  .cad-layer-row .cad-layer-icon{width:26px;min-width:0;height:26px}
+  .cad-layer-row .cad-layer-color{width:24px;height:24px}
+}
 
 /* จัดพิมพ์ตามมาตราส่วนจริง (PDF) */
 .cad-plot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px}
-.cad-plot-row label{font-size:11.5px;color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.cad-plot-row label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
 
 /* เมนูดรอปดาวน์ (ไฟล์/แก้ไข/มุมมอง) */
-.cad-menubar{display:flex;gap:2px;margin-bottom:10px;flex-shrink:0}
+.cad-menubar{display:flex;gap:var(--ome-sp-2);margin-bottom:10px;flex-shrink:0;align-items:center}
 .cad-dropdown{position:relative;display:inline-block}
 .cad-dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--ome-surface-1);border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-3);padding:5px;display:flex;flex-direction:column;gap:2px;z-index:var(--ome-z-popover);min-width:170px}
-.cad-dropdown-menu button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;padding:7px 10px;border:none;background:none;
-  border-radius:var(--ome-radius-sm);font:inherit;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-1);cursor:pointer}
-.cad-dropdown-menu button:hover:not(:disabled){background:var(--ome-surface-2)}
-.cad-dropdown-menu button:disabled{opacity:.4;cursor:not-allowed}
-.cad-dropdown-menu button.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+  border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-3);padding:5px;display:flex;flex-direction:column;z-index:var(--ome-z-popover);min-width:170px}
+.cad-dropdown-menu .btn{width:100%;justify-content:flex-start;font-weight:600;gap:var(--ome-sp-2)}
+.cad-dropdown-menu{gap:var(--ome-sp-2)}
+.cad-dropdown-menu .btn.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 .cad-dropdown-icon{width:16px;height:16px;flex-shrink:0;display:inline-grid;place-items:center}
 .cad-dropdown-icon .ome-icon{width:16px;height:16px}
 .cad-dropdown-sep{height:1px;background:var(--ome-border);margin:4px 2px}
 .cad-dropdown-field{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2);padding:6px 10px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700}
-.cad-menubtn{height:32px;padding:0 12px;border:none;background:none;border-radius:var(--ome-radius-sm);font:inherit;font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-text-1);cursor:pointer}
-.cad-menubtn:hover{background:var(--ome-surface-2)}
+#panelsBtn{display:none;margin-left:auto}
+#panelsBtn[data-dot]::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:var(--ome-accent)}
+.cad-drawer-head,.cad-drawer-backdrop{display:none}
 
 /* ── แท็บมุมมอง 3 มิติ: แผงฟอร์ม/ขั้นตอน/คุณสมบัติ (เลื่อนเป็นหน้าเดียว) — ตัววิวพอร์ต 3 มิติไม่แตะ ── */
 #panel3d{overflow-y:auto;padding:var(--ome-sp-3) var(--ome-sp-4) var(--ome-sp-4)}
 #panel3d > .card{margin:0 0 var(--ome-sp-3)}
 #panel3d > .card h2{font-size:var(--ome-fs-base);margin:0 0 var(--ome-sp-2)}
-.hint{font-size:12px;color:var(--ome-text-2);margin-top:8px;line-height:1.55}
+.hint{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:8px;line-height:1.55}
 .c3-form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
-.c3-form label{font-size:11.5px;color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
-.c3-form input,.c3-form select{width:92px}
-.c3-form select{width:auto}
+.c3-form label{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;display:flex;flex-direction:column;gap:5px}
+.c3-form .input{width:92px}
+.c3-form .select{width:auto}
 .c3-dims{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2)}
-.c3-advanced{flex-basis:100%;border-top:1px dashed var(--ome-border);padding-top:var(--ome-sp-2);margin-top:2px}
-.c3-advanced summary{cursor:pointer;font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong)}
-.c3-advanced .c3-dims{margin-top:var(--ome-sp-2)}
+.c3-advanced{flex-basis:100%}
+.c3-advanced > summary{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong)}
+.c3-advanced > .c3-dims{padding:var(--ome-sp-2) 14px 14px;margin-top:0}
 .c3-steps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .c3-step-row{display:flex;align-items:center;gap:var(--ome-sp-2);padding:8px 10px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);font-size:var(--ome-fs-sm)}
 .c3-step-row b{color:var(--ome-accent-strong)}
@@ -183,7 +183,7 @@
 [data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
 [data-theme="dark"] .c3-overlay{color:var(--ome-text-2)}
 /* แถบเครื่องมือลอยตอนร่างภาพตรงในมุมมอง 3 มิติ */
-.c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+.c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2);
   background:var(--ome-surface-1);padding:8px;border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-3)}
 .c3-sketch-toolbar .hint{flex-basis:100%;margin:2px 0 0}
 .c3-proplist{display:flex;flex-direction:column}
@@ -201,23 +201,65 @@
 .c3-proprow-range b{font-size:var(--ome-fs-xs);min-width:34px;text-align:right}
 .c3-materials-title{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-accent-strong);margin:16px 0 8px}
 .c3-materials-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
-.c3-material-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border);
-  background:none;cursor:pointer;text-align:left;font:inherit;color:var(--ome-text-1)}
-.c3-material-item.active{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
+.c3-material-item{width:100%;height:auto;justify-content:flex-start;gap:12px;padding:8px 10px;text-align:left;font-weight:500}
 .c3-material-swatch{width:34px;height:34px;border-radius:8px;background:var(--sw);flex-shrink:0;border:1px solid rgba(0,0,0,.12)}
 .c3-material-info{display:flex;flex-direction:column;gap:2px;min-width:0}
 .c3-material-info b{font-size:var(--ome-fs-sm)}
-.c3-material-info small{font-size:11px;color:var(--ome-text-2);line-height:1.4}
+.c3-material-info small{font-size:var(--ome-fs-xs);color:var(--ome-text-2);line-height:1.4;font-weight:400;white-space:normal}
 
-/* จอแคบ (≤980px): ทั้งแท็บ 2 มิติเลื่อนเป็นหน้าเดียว — แถบข้างเรียงต่อกันเหนือ/ใต้วิวพอร์ต */
+/* จอแคบ (≤980px): แถบเครื่องมือเป็นแถวเดียวเลื่อนแนวนอน → วิวพอร์ตยืดเต็มพื้นที่ที่เหลือ → แผงขวาเป็นลิ้นชักเปิด-ปิดได้ (ไม่ทับวิวพอร์ตถาวร) */
 @media(max-width:980px){
-  #panel2d{display:block;overflow-y:auto;overflow-x:hidden}
-  .cad-workspace{display:flex;flex-direction:column;overflow:visible;flex:none}
-  .cad-side-left,.cad-side-right{width:100%;overflow:visible}
-  .cad-main{flex:none;display:block}
-  .cad-main > .card{display:block}
-  .cad-viewport{flex:none;height:min(64vh,520px);min-height:320px}
-  .cad-menubar{flex-wrap:wrap}
+  .cad-layer-row{gap:8px}
+  .cad-workspace{flex-direction:column;overflow:hidden;gap:var(--ome-sp-2);padding:var(--ome-sp-2) var(--ome-sp-3) var(--ome-sp-3)}
+  .cad-side-left{width:100%;flex:none;overflow:visible}
+  .cad-side-left > .card{position:relative;display:flex;align-items:center;gap:var(--ome-sp-3);padding:var(--ome-sp-2);overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+  .cad-tool-section{display:flex;align-items:center;gap:var(--ome-sp-2);margin:0;flex:none;padding-right:var(--ome-sp-3);border-right:1px solid var(--ome-border)}
+  .cad-tool-section:last-child{border-right:0;padding-right:0}
+  .cad-tool-section-lbl{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+  .cad-tool-grid{flex-wrap:nowrap;gap:var(--ome-sp-2)}
+  .cad-tool-grid .btn{width:40px;height:40px}
+  .cad-tool-list{flex-direction:row;gap:var(--ome-sp-2);margin:0}
+  .cad-tool-listitem{width:40px;height:40px;min-height:0;padding:0;justify-content:center;flex:none}
+  .cad-tool-listitem > span:not(.cad-dropdown-icon){position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .cad-tool-listitem svg{width:18px;height:18px}
+  .cad-side-left .cad-tool-subrow{display:none}
+  .cad-main{flex:1;min-height:0;display:flex}
+  .cad-main > .card{padding:var(--ome-sp-2)}
+  .cad-viewport{min-height:200px}
+  .cad-quick3d-row{margin-top:var(--ome-sp-2)}
+  .cad-status{margin-top:var(--ome-sp-2)}
+  #panelsBtn{display:inline-flex;position:relative}
+  /* แผงขวา = ลิ้นชักจากขวา (ปิดอยู่ = ซ่อนจาก tab/อ่านหน้าจอด้วย visibility) */
+  .cad-side-right{position:fixed;top:0;right:0;bottom:0;width:min(360px,92vw);z-index:var(--ome-z-drawer);padding:0 var(--ome-sp-3) var(--ome-sp-4);
+    background:var(--ome-surface-0);box-shadow:var(--ome-shadow-3);overflow-y:auto;transform:translateX(104%);visibility:hidden;
+    transition:transform var(--ome-dur-2) var(--ome-ease),visibility 0s linear var(--ome-dur-2)}
+  .cad-side-right.open{transform:none;visibility:visible;transition:transform var(--ome-dur-2) var(--ome-ease)}
+  .cad-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2);position:sticky;top:0;z-index:1;
+    padding:var(--ome-sp-3) 0 var(--ome-sp-2);background:var(--ome-surface-0)}
+  .cad-drawer-head h2{margin:0;font-size:var(--ome-fs-md)}
+  .cad-drawer-backdrop{display:block;position:fixed;inset:0;z-index:calc(var(--ome-z-drawer) - 1);background:color-mix(in srgb,var(--ome-text-1) 50%,transparent);opacity:0;visibility:hidden;
+    transition:opacity var(--ome-dur-2) var(--ome-ease),visibility 0s linear var(--ome-dur-2)}
+  .cad-drawer-backdrop.open{opacity:1;visibility:visible;transition:opacity var(--ome-dur-2) var(--ome-ease)}
+  .cad-opts-card .cad-tool-subrow{margin-top:0;padding-top:0;border-top:0}
+  .cad-opts-card .cad-tool-subrow + .cad-tool-subrow{margin-top:var(--ome-sp-3);padding-top:var(--ome-sp-3);border-top:1px dashed var(--ome-border)}
+  @media(prefers-reduced-motion:reduce){.cad-side-right,.cad-drawer-backdrop{transition:none}}
+}
+@media(max-width:700px){
+  .cad-tool-grid .btn,.cad-tool-listitem{min-width:40px}
+  .cad-layer-row{flex-wrap:wrap}
+  .cad-layer-row .cad-layer-name{flex:1 1 100%;order:-1}
+  .cad-layer-row .cad-layer-icon{width:40px;height:40px}
+  .cad-layer-row .cad-layer-color{width:40px;height:40px}
+  .cad-layer-grip,.cad-layer-folder-icon{width:40px;height:40px}
+  .cad-props-grid .input{width:100%}
+  .cad-props-grid label{flex:1 1 calc(50% - 10px)}
+  .cad-plot-row label{flex:1 1 calc(50% - 10px)}
+  .c3-form .input,.c3-form .select{width:100%}
+  .c3-form label{flex:1 1 calc(50% - 10px);min-width:120px}
+  .c3-dims{flex:1 1 100%}
+  .c3-dims label{flex:1 1 calc(33% - 8px);min-width:96px}
+  .c3-step-row{flex-wrap:wrap}
+  .c3-proprow-lbl{min-width:0;flex:1}
 }
 @media(max-width:520px){
   .cad-top{padding:var(--ome-sp-2) 10px 0}
@@ -233,7 +275,7 @@
 <div class="cad-top">
   <div class="page-head">
     <h1 data-i18n="pageTitle">งานเขียนแบบ CAD</h1>
-    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+    <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา" data-i18n-attr="aria-label:lang.toggle" data-i18n-skip>
       <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
     </button>
   </div>
@@ -242,7 +284,7 @@
   <div class="tabs cad-maintabs" role="tablist">
     <button class="tab on" id="tabBtn2d" type="button" role="tab" aria-selected="true" data-i18n="tab2dLbl">ร่างภาพ 2 มิติ</button>
     <button class="tab" id="tabBtn3d" type="button" role="tab" aria-selected="false" data-i18n="tab3dLbl">มุมมอง 3 มิติ</button>
-    <button class="btn sm primary" id="quickSketch3dBtn" type="button" aria-label="ร่างภาพ 3 มิติทันที"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-pencil-ruler"/></svg><span class="cad-quick-lbl">ร่างภาพ 3 มิติทันที</span></button>
+    <button class="btn sm primary" id="quickSketch3dBtn" type="button" aria-label="ร่างภาพ 3 มิติทันที" data-i18n-attr="aria-label:cad.quickSketch3d"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-pencil-ruler"/></svg><span class="cad-quick-lbl" data-ome-t="cad.quickSketch3d">ร่างภาพ 3 มิติทันที</span></button>
   </div>
 </div>
 
@@ -251,7 +293,7 @@
 
     <!-- ── แถบข้างซ้าย: เครื่องมือวาด/แก้ไข/ใส่คำอธิบาย จัดเป็นกลุ่มไอคอนกริด แทนแถวยาวด้านบนเดิม ── -->
     <aside class="cad-side cad-side-left">
-      <div class="card">
+      <div class="card" role="toolbar" tabindex="0" aria-label="เครื่องมือ" data-i18n-attr="aria-label:cad.toolbarLbl">
         <div class="cad-tool-section">
           <span class="cad-tool-section-lbl" data-i18n="toolSectionDraw">วาด</span>
           <div class="cad-tool-grid">
@@ -301,18 +343,18 @@
             <button class="btn sm" id="toolHatchBtn" type="button" data-i18n-title="toolHatch" title="แรเงา"><svg viewBox="0 0 18 18"><rect x="2" y="2" width="14" height="14" rx="1"/><path d="M2 9 L9 2M2 15 L15 2M9 16 L16 9"/></svg></button>
           </div>
           <div class="cad-tool-list">
-            <button type="button" class="cad-tool-listitem" id="toolLeaderBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><path d="M9 9 H15"/><path d="M15 9 L12 6M15 9 L12 12"/></svg><span data-i18n="toolLeader">ลูกศรชี้</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolTextLeaderBtn"><svg viewBox="0 0 18 18"><path d="M2.5 15.5 L8 10"/><path d="M8 10 H12"/><rect x="9" y="2.5" width="7" height="5" rx="0.6"/><line x1="10.5" y1="4.2" x2="14.5" y2="4.2"/><line x1="10.5" y1="5.8" x2="13" y2="5.8"/></svg><span data-i18n="toolTextLeader">ข้อความ+เส้นชี้</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolCentermarkBtn"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle><line x1="9" y1="3.5" x2="9" y2="6.5"></line><line x1="9" y1="11.5" x2="9" y2="14.5"></line><line x1="3.5" y1="9" x2="6.5" y2="9"></line><line x1="11.5" y1="9" x2="14.5" y2="9"></line></svg><span data-i18n="toolCentermark">เครื่องหมายกึ่งกลาง</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolOrdinateBtn"><svg viewBox="0 0 18 18"><path d="M2 2v14h14"></path><circle class="fill" cx="9" cy="9" r="1.3"></circle><line x1="9" y1="9" x2="9" y2="16" stroke-dasharray="2 2"></line></svg><span data-i18n="toolOrdinate">มิติพิกัด (Ordinate)</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolBalloonBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><circle cx="13" cy="6" r="3.6"/></svg><span data-i18n="toolBalloon">ป้ายบอลลูน</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolMultileaderBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2" cy="4" r="1.1"/><circle class="fill" cx="2" cy="14" r="1.1"/><path d="M2 4 L9 9M2 14 L9 9"/><path d="M9 9 H15"/></svg><span data-i18n="toolMultileader">เส้นชี้หลายจุด</span></button>
-            <button type="button" class="cad-tool-listitem" id="toolSurfaceFinishBtn"><svg viewBox="0 0 18 18"><path d="M2 10 L7 14 L14 4"></path></svg><span data-i18n="toolSurfaceFinish">ความหยาบผิว</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolLeaderBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><path d="M9 9 H15"/><path d="M15 9 L12 6M15 9 L12 12"/></svg><span data-i18n="toolLeader">ลูกศรชี้</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolTextLeaderBtn"><svg viewBox="0 0 18 18"><path d="M2.5 15.5 L8 10"/><path d="M8 10 H12"/><rect x="9" y="2.5" width="7" height="5" rx="0.6"/><line x1="10.5" y1="4.2" x2="14.5" y2="4.2"/><line x1="10.5" y1="5.8" x2="13" y2="5.8"/></svg><span data-i18n="toolTextLeader">ข้อความ+เส้นชี้</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolCentermarkBtn"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6"></circle><line x1="9" y1="3.5" x2="9" y2="6.5"></line><line x1="9" y1="11.5" x2="9" y2="14.5"></line><line x1="3.5" y1="9" x2="6.5" y2="9"></line><line x1="11.5" y1="9" x2="14.5" y2="9"></line></svg><span data-i18n="toolCentermark">เครื่องหมายกึ่งกลาง</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolOrdinateBtn"><svg viewBox="0 0 18 18"><path d="M2 2v14h14"></path><circle class="fill" cx="9" cy="9" r="1.3"></circle><line x1="9" y1="9" x2="9" y2="16" stroke-dasharray="2 2"></line></svg><span data-i18n="toolOrdinate">มิติพิกัด (Ordinate)</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolBalloonBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2.5" cy="15.5" r="1.3"/><path d="M2.5 15.5 L9 9"/><circle cx="13" cy="6" r="3.6"/></svg><span data-i18n="toolBalloon">ป้ายบอลลูน</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolMultileaderBtn"><svg viewBox="0 0 18 18"><circle class="fill" cx="2" cy="4" r="1.1"/><circle class="fill" cx="2" cy="14" r="1.1"/><path d="M2 4 L9 9M2 14 L9 9"/><path d="M9 9 H15"/></svg><span data-i18n="toolMultileader">เส้นชี้หลายจุด</span></button>
+            <button type="button" class="btn sm cad-tool-listitem" id="toolSurfaceFinishBtn"><svg viewBox="0 0 18 18"><path d="M2 10 L7 14 L14 4"></path></svg><span data-i18n="toolSurfaceFinish">ความหยาบผิว</span></button>
           </div>
           <div class="cad-tool-subrow">
-            <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
-            <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
-            <label data-i18n="centerMarkSizeLbl">เครื่องหมายกึ่งกลาง (มม.)<input type="text" id="centerMarkSizeInput" inputmode="decimal" autocomplete="off" value="4"></label>
+            <label data-i18n="dimTextHeightLbl">ตัวอักษรมิติ (มม.)<input class="input" type="text" id="dimTextHeightInput" inputmode="decimal" autocomplete="off" value="3"></label>
+            <label data-i18n="dimArrowSizeLbl">หัวลูกศร (มม.)<input class="input" type="text" id="dimArrowSizeInput" inputmode="decimal" autocomplete="off" value="2.5"></label>
+            <label data-i18n="centerMarkSizeLbl">เครื่องหมายกึ่งกลาง (มม.)<input class="input" type="text" id="centerMarkSizeInput" inputmode="decimal" autocomplete="off" value="4"></label>
           </div>
         </div>
         <div class="cad-tool-section">
@@ -321,7 +363,7 @@
             <button class="btn sm" id="toolBlockBtn" type="button" data-i18n-title="toolBlock" title="แทรกบล็อก"><svg viewBox="0 0 18 18"><rect x="1.5" y="4" width="9" height="9" rx="1"/><path d="M13.5 6.5v6M10.5 9.5h6"/></svg></button>
             <button class="btn sm" id="toolTitleBlockBtn" type="button" data-i18n-title="toolTitleBlock" title="ตารางรายการแบบ"><svg viewBox="0 0 18 18"><rect x="2" y="3" width="14" height="12" rx="1"/><line x1="2" y1="8" x2="16" y2="8"/><line x1="2" y1="12" x2="16" y2="12"/><line x1="9" y1="3" x2="9" y2="15"/></svg></button>
           </div>
-          <div class="cad-tool-subrow"><select id="blockLibSel"></select></div>
+          <div class="cad-tool-subrow"><select class="select" id="blockLibSel"></select></div>
         </div>
       </div>
     </aside>
@@ -331,38 +373,38 @@
     <div class="card">
       <div class="cad-menubar">
         <div class="cad-dropdown" id="fileMenuWrap">
-          <button class="cad-menubtn" id="fileMenuBtn" type="button" data-i18n="menuFile">ไฟล์</button>
+          <button class="btn ghost sm cad-menubtn" id="fileMenuBtn" type="button" aria-haspopup="menu" data-i18n="menuFile">ไฟล์</button>
           <div class="cad-dropdown-menu" id="fileMenu" hidden>
-            <button type="button" id="clearAllBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></span><span data-i18n="clearAll">ล้างทั้งหมด</span></button>
+            <button type="button" class="btn ghost sm" id="clearAllBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></span><span data-i18n="clearAll">ล้างทั้งหมด</span></button>
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="importDxfBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg></span><span data-i18n="importDxfBtn">นำเข้า DXF</span></button>
+            <button type="button" class="btn ghost sm" id="importDxfBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg></span><span data-i18n="importDxfBtn">นำเข้า DXF</span></button>
             <input type="file" id="importDxfInput" accept=".dxf,text/plain" style="display:none">
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="exportPngBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportPngBtn">PNG</span></button>
-            <button type="button" id="exportSvgBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportSvgBtn">SVG</span></button>
-            <button type="button" id="exportDxfBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportDxfBtn">DXF</span></button>
+            <button type="button" class="btn ghost sm" id="exportPngBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportPngBtn">PNG</span></button>
+            <button type="button" class="btn ghost sm" id="exportSvgBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportSvgBtn">SVG</span></button>
+            <button type="button" class="btn ghost sm" id="exportDxfBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg></span><span data-i18n="exportDxfBtn">DXF</span></button>
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="printBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-printer"/></svg></span><span data-i18n="printBtn">พิมพ์/PDF</span></button>
+            <button type="button" class="btn ghost sm" id="printBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-printer"/></svg></span><span data-i18n="printBtn">พิมพ์/PDF</span></button>
           </div>
         </div>
         <div class="cad-dropdown" id="editMenuWrap">
-          <button class="cad-menubtn" id="editMenuBtn" type="button" data-i18n="menuEdit">แก้ไข</button>
+          <button class="btn ghost sm cad-menubtn" id="editMenuBtn" type="button" aria-haspopup="menu" data-i18n="menuEdit">แก้ไข</button>
           <div class="cad-dropdown-menu" id="editMenu" hidden>
-            <button type="button" id="undoBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-undo-2"/></svg></span><span data-i18n="undoLbl">เลิกทำ</span></button>
-            <button type="button" id="redoBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-redo-2"/></svg></span><span data-i18n="redoLbl">ทำซ้ำ</span></button>
+            <button type="button" class="btn ghost sm" id="undoBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-undo-2"/></svg></span><span data-i18n="undoLbl">เลิกทำ</span></button>
+            <button type="button" class="btn ghost sm" id="redoBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-redo-2"/></svg></span><span data-i18n="redoLbl">ทำซ้ำ</span></button>
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="deleteBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></span><span data-i18n="deleteSel">ลบที่เลือก</span></button>
+            <button type="button" class="btn ghost sm" id="deleteBtn" disabled><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></span><span data-i18n="deleteSel">ลบที่เลือก</span></button>
           </div>
         </div>
         <div class="cad-dropdown" id="viewMenuWrap">
-          <button class="cad-menubtn" id="viewMenuBtn" type="button" data-i18n="menuView">มุมมอง</button>
+          <button class="btn ghost sm cad-menubtn" id="viewMenuBtn" type="button" aria-haspopup="menu" data-i18n="menuView">มุมมอง</button>
           <div class="cad-dropdown-menu" id="viewMenu" hidden>
-            <button type="button" id="zoomOutBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-zoom-out"/></svg></span><span data-i18n="zoomOutLbl">ซูมออก</span></button>
-            <button type="button" id="zoomFitBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-maximize"/></svg></span><span data-i18n="zoomFit">พอดีจอ</span></button>
-            <button type="button" id="zoomInBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-zoom-in"/></svg></span><span data-i18n="zoomInLbl">ซูมเข้า</span></button>
+            <button type="button" class="btn ghost sm" id="zoomOutBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-zoom-out"/></svg></span><span data-i18n="zoomOutLbl">ซูมออก</span></button>
+            <button type="button" class="btn ghost sm" id="zoomFitBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-maximize"/></svg></span><span data-i18n="zoomFit">พอดีจอ</span></button>
+            <button type="button" class="btn ghost sm" id="zoomInBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-zoom-in"/></svg></span><span data-i18n="zoomInLbl">ซูมเข้า</span></button>
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="snapToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-grid-3x3"/></svg></span><span data-i18n="snapToggle">สแนปกริด</span></button>
-            <label class="cad-dropdown-field" data-i18n="snapStepLbl">ระยะกริด<select id="snapStepSel">
+            <button type="button" class="btn ghost sm" id="snapToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-grid-3x3"/></svg></span><span data-i18n="snapToggle">สแนปกริด</span></button>
+            <label class="cad-dropdown-field" data-i18n="snapStepLbl">ระยะกริด<select class="select" id="snapStepSel">
               <option value="1">1 มม.</option>
               <option value="5">5 มม.</option>
               <option value="10" selected>10 มม.</option>
@@ -370,58 +412,59 @@
               <option value="100">100 มม.</option>
             </select></label>
             <div class="cad-dropdown-sep"></div>
-            <button type="button" id="osnapToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-crosshair"/></svg></span><span data-i18n="osnapToggle">จับจุดวัตถุ</span></button>
-            <button type="button" id="orthoToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M12 20V4"/></svg></span><span data-i18n="orthoToggle">ตั้งฉาก (F8)</span></button>
+            <button type="button" class="btn ghost sm" id="osnapToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-crosshair"/></svg></span><span data-i18n="osnapToggle">จับจุดวัตถุ</span></button>
+            <button type="button" class="btn ghost sm" id="orthoToggleBtn"><span class="cad-dropdown-icon"><svg class="ome-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20h16M12 20V4"/></svg></span><span data-i18n="orthoToggle">ตั้งฉาก (F8)</span></button>
           </div>
         </div>
+        <button class="btn sm" id="panelsBtn" type="button" aria-expanded="false" aria-controls="cadDrawer"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-layers"/></svg><span data-ome-t="cad.panelsBtn">แผง</span></button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="preciseRow">
-        <label data-i18n="distLbl">ระยะ (มม.)<input type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
-        <label data-i18n="angLbl">มุม (°)<input type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
+        <label data-i18n="distLbl">ระยะ (มม.)<input class="input" type="text" id="distInput" inputmode="decimal" autocomplete="off"></label>
+        <label data-i18n="angLbl">มุม (°)<input class="input" type="text" id="angInput" inputmode="decimal" autocomplete="off"></label>
         <button class="btn sm" id="finishPolylineBtn" type="button" data-i18n="finishPolyline">จบเส้นพอลีไลน์</button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="arrayRow">
-        <label data-i18n="arrRowsLbl">แถว<input type="text" id="arrRows" inputmode="numeric" autocomplete="off" value="2"></label>
-        <label data-i18n="arrColsLbl">คอลัมน์<input type="text" id="arrCols" inputmode="numeric" autocomplete="off" value="2"></label>
-        <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
-        <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
+        <label data-i18n="arrRowsLbl">แถว<input class="input" type="text" id="arrRows" inputmode="numeric" autocomplete="off" value="2"></label>
+        <label data-i18n="arrColsLbl">คอลัมน์<input class="input" type="text" id="arrCols" inputmode="numeric" autocomplete="off" value="2"></label>
+        <label data-i18n="arrSpXLbl">ห่างแนวนอน (มม.)<input class="input" type="text" id="arrSpX" inputmode="decimal" autocomplete="off" value="100"></label>
+        <label data-i18n="arrSpYLbl">ห่างแนวตั้ง (มม.)<input class="input" type="text" id="arrSpY" inputmode="decimal" autocomplete="off" value="100"></label>
         <button class="btn sm" id="arrApplyBtn" type="button" data-i18n="arrApplyBtn">แทรกอาเรย์</button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="arrayPolarRow">
-        <label data-i18n="arrPolarCountLbl">จำนวนชิ้น<input type="text" id="arrPolarCount" inputmode="numeric" autocomplete="off" value="6"></label>
-        <label data-i18n="arrPolarAngleLbl">มุมรวม (°)<input type="text" id="arrPolarAngle" inputmode="decimal" autocomplete="off" value="360"></label>
+        <label data-i18n="arrPolarCountLbl">จำนวนชิ้น<input class="input" type="text" id="arrPolarCount" inputmode="numeric" autocomplete="off" value="6"></label>
+        <label data-i18n="arrPolarAngleLbl">มุมรวม (°)<input class="input" type="text" id="arrPolarAngle" inputmode="decimal" autocomplete="off" value="360"></label>
         <button class="btn sm" id="arrPolarApplyBtn" type="button" data-i18n="arrPolarApplyBtn">แทรกอาเรย์วงกลม</button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="textRow">
-        <label class="cad-text-content-lbl" id="textContentLblWrap" data-i18n="textContentLbl">ข้อความ<input type="text" id="textContentInput" autocomplete="off"></label>
-        <label class="cad-text-content-lbl" id="textContentMultiLblWrap" data-i18n="textContentMultiLbl" hidden>ข้อความ (ขึ้นบรรทัดใหม่ได้)<textarea id="textContentTextarea" rows="2"></textarea></label>
-        <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
+        <label class="cad-text-content-lbl" id="textContentLblWrap" data-i18n="textContentLbl">ข้อความ<input class="input" type="text" id="textContentInput" autocomplete="off"></label>
+        <label class="cad-text-content-lbl" id="textContentMultiLblWrap" data-i18n="textContentMultiLbl" hidden>ข้อความ (ขึ้นบรรทัดใหม่ได้)<textarea class="textarea" id="textContentTextarea" rows="2"></textarea></label>
+        <label data-i18n="textHeightLbl">ความสูงตัวอักษร (มม.)<input class="input" type="text" id="textHeightInput" inputmode="decimal" autocomplete="off" value="12"></label>
         <button class="btn sm" id="textApplyBtn" type="button" data-i18n="textApplyBtn">วางข้อความ</button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="hatchRow">
-        <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
-        <label data-i18n="hatchAngleLbl">มุมลาย (°)<input type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
+        <label data-i18n="hatchSpacingLbl">ระยะห่างลาย (มม.)<input class="input" type="text" id="hatchSpacing" inputmode="decimal" autocomplete="off" value="5"></label>
+        <label data-i18n="hatchAngleLbl">มุมลาย (°)<input class="input" type="text" id="hatchAngle" inputmode="decimal" autocomplete="off" value="45"></label>
         <button class="btn sm" id="hatchApplyBtn" type="button" data-i18n="hatchApplyBtn">แรเงา</button>
       </div>
 
       <div class="cad-tb-group cad-precise-row" id="insertRow">
-        <label data-i18n="blockSizeLbl">ขนาดจริง (มม.)<input type="text" id="blockSizeInput" inputmode="decimal" autocomplete="off"></label>
-        <label data-i18n="blockRotLbl">มุมหมุน (°)<input type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
+        <label data-i18n="blockSizeLbl">ขนาดจริง (มม.)<input class="input" type="text" id="blockSizeInput" inputmode="decimal" autocomplete="off"></label>
+        <label data-i18n="blockRotLbl">มุมหมุน (°)<input class="input" type="text" id="blockRotInput" inputmode="decimal" autocomplete="off" value="0"></label>
         <button class="btn sm" id="blockMirrorBtn" type="button" data-i18n="blockMirrorToggle">มิเรอร์</button>
         <button class="btn sm" id="blockApplyBtn" type="button" data-i18n="blockApplyBtn">แทรก</button>
       </div>
 
-      <div class="cad-viewport" id="cadViewport">
+      <div class="cad-viewport" id="cadViewport" data-doc-area>
         <canvas id="cadCanvas"></canvas>
       </div>
 
       <div class="cad-quick3d-row">
-        <button class="btn sm primary" id="quickExtrudeBtn" type="button">ยืดเป็น 3 มิติ (Extrude)</button>
+        <button class="btn sm primary" id="quickExtrudeBtn" type="button" data-ome-t="cad.quickExtrude">ยืดเป็น 3 มิติ (Extrude)</button>
       </div>
 
       <div class="cad-status">
@@ -438,7 +481,15 @@
     </div><!-- /cad-main -->
 
     <!-- ── แถบข้างขวา: คุณสมบัติ/เลเยอร์/ข้อจำกัด/พิมพ์ตามมาตราส่วน ── -->
-    <aside class="cad-side cad-side-right">
+    <aside class="cad-side cad-side-right" id="cadDrawer" aria-labelledby="cadDrawerTitle">
+      <div class="cad-drawer-head">
+        <h2 id="cadDrawerTitle" data-ome-t="cad.drawerTitle">แผงข้าง</h2>
+        <button class="btn ghost sm icon" id="drawerCloseBtn" type="button" aria-label="ปิด" data-i18n-attr="aria-label:cad.close"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
+      </div>
+      <div class="card cad-opts-card" id="cadOptsCard" hidden>
+        <div class="cad-props-title" data-ome-t="cad.toolOptions">ตัวเลือกเครื่องมือ</div>
+        <div id="cadOptsBody"></div>
+      </div>
       <div class="card cad-props-card" id="propsCard" hidden>
         <div class="cad-props-title" id="propsTitle">คุณสมบัติ</div>
         <div class="cad-props-grid" id="propsGrid"></div>
@@ -462,7 +513,7 @@
         </div>
         <div class="cad-tool-subrow" style="margin-top:0;padding-top:0;border-top:none">
           <button class="btn sm" id="toolConstraintBtn" type="button" data-i18n="toolConstraint">ข้อจำกัด</button>
-          <select id="constraintTypeSel">
+          <select class="select" id="constraintTypeSel">
             <option value="coincident" data-i18n="constraintCoincident">จุดตรงกัน (เส้น 2 เส้น)</option>
             <option value="horizontal" data-i18n="constraintHorizontal">แนวนอน (เส้น 1 เส้น)</option>
             <option value="vertical" data-i18n="constraintVertical">แนวตั้ง (เส้น 1 เส้น)</option>
@@ -482,17 +533,17 @@
       <div class="card cad-plot-card">
         <div class="cad-props-title" data-i18n="plotTitle">จัดพิมพ์ตามมาตราส่วนจริง (PDF)</div>
         <div class="cad-plot-row">
-          <label data-i18n="plotPaperLbl">ขนาดกระดาษ<select id="plotPaperSel">
+          <label data-i18n="plotPaperLbl">ขนาดกระดาษ<select class="select" id="plotPaperSel">
             <option value="A4" selected>A4</option>
             <option value="A3">A3</option>
             <option value="A1">A1</option>
           </select></label>
-          <label data-i18n="plotOrientLbl">แนวกระดาษ<select id="plotOrientSel">
+          <label data-i18n="plotOrientLbl">แนวกระดาษ<select class="select" id="plotOrientSel">
             <option value="portrait" data-i18n="plotOrientPortrait" selected>แนวตั้ง</option>
             <option value="landscape" data-i18n="plotOrientLandscape">แนวนอน</option>
             <option value="auto" data-i18n="plotOrientAuto">อัตโนมัติ</option>
           </select></label>
-          <label data-i18n="plotScaleLbl">มาตราส่วน<select id="plotScaleSel">
+          <label data-i18n="plotScaleLbl">มาตราส่วน<select class="select" id="plotScaleSel">
             <option value="fit" data-i18n="plotScaleFit" selected>พอดีหน้ากระดาษ</option>
             <option value="1">1:1</option>
             <option value="2">1:2</option>
@@ -511,154 +562,155 @@
     </aside>
 
   </div><!-- /cad-workspace -->
+  <div class="cad-drawer-backdrop" id="cadDrawerBackdrop"></div>
   </div><!-- /panel2d -->
 
   <div id="panel3d" hidden>
   <div class="card">
-    <h2>1) เพิ่มรูปทรงพื้นฐาน</h2>
+    <h2 data-ome-t="cad3d.h1">1) เพิ่มรูปทรงพื้นฐาน</h2>
     <div class="c3-form">
-      <label>ชนิดรูปทรง
-        <select id="shapeKindSel">
-          <option value="box">กล่อง (Box)</option>
-          <option value="cylinder">ทรงกระบอก (Cylinder)</option>
-          <option value="sphere">ทรงกลม (Sphere)</option>
-          <option value="sketch">จากภาพร่าง 2 มิติ (Extrude/Revolve)</option>
+      <label><span data-ome-t="cad3d.kindLbl">ชนิดรูปทรง</span>
+        <select class="select" id="shapeKindSel">
+          <option value="box" data-ome-t="cad3d.optBox">กล่อง (Box)</option>
+          <option value="cylinder" data-ome-t="cad3d.optCylinder">ทรงกระบอก (Cylinder)</option>
+          <option value="sphere" data-ome-t="cad3d.optSphere">ทรงกลม (Sphere)</option>
+          <option value="sketch" data-ome-t="cad3d.optSketch">จากภาพร่าง 2 มิติ (Extrude/Revolve)</option>
         </select>
       </label>
       <div class="c3-dims" id="dimsBox">
-        <label>กว้าง X (มม.)<input type="text" id="boxX" inputmode="decimal" value="100"></label>
-        <label>ลึก Y (มม.)<input type="text" id="boxY" inputmode="decimal" value="80"></label>
-        <label>สูง Z (มม.)<input type="text" id="boxZ" inputmode="decimal" value="40"></label>
+        <label><span data-ome-t="cad3d.dimX">กว้าง X (มม.)</span><input class="input" type="text" id="boxX" inputmode="decimal" value="100"></label>
+        <label><span data-ome-t="cad3d.dimY">ลึก Y (มม.)</span><input class="input" type="text" id="boxY" inputmode="decimal" value="80"></label>
+        <label><span data-ome-t="cad3d.dimZ">สูง Z (มม.)</span><input class="input" type="text" id="boxZ" inputmode="decimal" value="40"></label>
       </div>
       <div class="c3-dims" id="dimsCylinder" hidden>
-        <label>รัศมี (มม.)<input type="text" id="cylR" inputmode="decimal" value="20"></label>
-        <label>สูง Z (มม.)<input type="text" id="cylH" inputmode="decimal" value="60"></label>
+        <label><span data-ome-t="cad3d.radius">รัศมี (มม.)</span><input class="input" type="text" id="cylR" inputmode="decimal" value="20"></label>
+        <label><span data-ome-t="cad3d.dimZ">สูง Z (มม.)</span><input class="input" type="text" id="cylH" inputmode="decimal" value="60"></label>
       </div>
       <div class="c3-dims" id="dimsSphere" hidden>
-        <label>รัศมี (มม.)<input type="text" id="sphR" inputmode="decimal" value="25"></label>
+        <label><span data-ome-t="cad3d.radius">รัศมี (มม.)</span><input class="input" type="text" id="sphR" inputmode="decimal" value="25"></label>
       </div>
       <div class="c3-dims" id="dimsSketch" hidden>
-        <label>เส้นขอบจากแบบ 2 มิติ
-          <select id="sketchProfileSel" style="width:220px"></select>
+        <label><span data-ome-t="cad3d.profileLbl">เส้นขอบจากแบบ 2 มิติ</span>
+          <select class="select" id="sketchProfileSel" style="width:220px"></select>
         </label>
-        <button class="btn sm" id="sketchReloadBtn" type="button">โหลดใหม่</button>
-        <button class="btn sm primary" id="startLiveSketchBtn" type="button">ร่างภาพใหม่ตรงนี้</button>
-        <label id="sketchExtrudeWrap">สูง (มม.)<input type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
-        <details class="c3-advanced" id="sketchAdvanced">
-          <summary>ตัวเลือกเพิ่มเติม (ระนาบ/วิธีขึ้นรูป)</summary>
+        <button class="btn sm" id="sketchReloadBtn" type="button" data-ome-t="cad3d.reload">โหลดใหม่</button>
+        <button class="btn sm primary" id="startLiveSketchBtn" type="button" data-ome-t="cad3d.liveSketch">ร่างภาพใหม่ตรงนี้</button>
+        <label id="sketchExtrudeWrap"><span data-ome-t="cad3d.height">สูง (มม.)</span><input class="input" type="text" id="sketchHeight" inputmode="decimal" value="20"></label>
+        <details class="disclosure c3-advanced" id="sketchAdvanced">
+          <summary data-ome-t="cad3d.advanced">ตัวเลือกเพิ่มเติม (ระนาบ/วิธีขึ้นรูป)</summary>
           <div class="c3-dims">
-            <label>ระนาบร่าง
-              <select id="sketchPlaneSel">
-                <option value="top">ระนาบบน (Top)</option>
-                <option value="front">ระนาบหน้า (Front)</option>
-                <option value="right">ระนาบข้าง (Right)</option>
-                <option value="picked" id="pickedPlaneOption" disabled>หน้าที่เลือกเอง (ยังไม่ได้เลือก)</option>
+            <label><span data-ome-t="cad3d.planeLbl">ระนาบร่าง</span>
+              <select class="select" id="sketchPlaneSel">
+                <option value="top" data-ome-t="cad3d.planeTop">ระนาบบน (Top)</option>
+                <option value="front" data-ome-t="cad3d.planeFront">ระนาบหน้า (Front)</option>
+                <option value="right" data-ome-t="cad3d.planeRight">ระนาบข้าง (Right)</option>
+                <option value="picked" id="pickedPlaneOption" disabled data-ome-t="cad3d.planePickedNone">หน้าที่เลือกเอง (ยังไม่ได้เลือก)</option>
               </select>
             </label>
-            <button class="btn sm" id="pickFaceBtn" type="button">เลือกหน้าจากชิ้นงาน</button>
+            <button class="btn sm" id="pickFaceBtn" type="button" data-ome-t="cad3d.pickFace">เลือกหน้าจากชิ้นงาน</button>
             <span class="hint" id="pickFaceStatus"></span>
-            <label>วิธีขึ้นรูป
-              <select id="sketchModeSel">
-                <option value="extrude">อัดขึ้นตรง (Extrude)</option>
-                <option value="revolve">หมุนรอบแกน (Revolve)</option>
+            <label><span data-ome-t="cad3d.modeLbl">วิธีขึ้นรูป</span>
+              <select class="select" id="sketchModeSel">
+                <option value="extrude" data-ome-t="cad3d.modeExtrude">อัดขึ้นตรง (Extrude)</option>
+                <option value="revolve" data-ome-t="cad3d.modeRevolve">หมุนรอบแกน (Revolve)</option>
               </select>
             </label>
-            <label id="sketchRevolveWrap" hidden>แกนหมุน
-              <select id="sketchAxisSel">
-                <option value="x">แกน X</option>
-                <option value="y">แกน Y</option>
+            <label id="sketchRevolveWrap" hidden><span data-ome-t="cad3d.axisLbl">แกนหมุน</span>
+              <select class="select" id="sketchAxisSel">
+                <option value="x" data-ome-t="cad3d.axisX">แกน X</option>
+                <option value="y" data-ome-t="cad3d.axisY">แกน Y</option>
               </select>
             </label>
-            <label id="sketchAngleWrap" hidden>มุมหมุน (°)<input type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
-            <div class="hint c3-error" id="sketchAxisWarn" hidden>เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน</div>
+            <label id="sketchAngleWrap" hidden><span data-ome-t="cad3d.angleLbl">มุมหมุน (°)</span><input class="input" type="text" id="sketchAngle" inputmode="decimal" value="360"></label>
+            <div class="hint c3-error" id="sketchAxisWarn" hidden data-ome-t="cad3d.axisWarn">เส้นขอบนี้อยู่คร่อมแกนหมุน (มีทั้งฝั่งบวกและฝั่งลบของแกน) หมุนแล้วจะซ้อนทับตัวเอง สร้างเป็นทรงตันไม่ได้ — ย้ายภาพร่างในแท็บ "ร่างภาพ 2 มิติ" ให้อยู่ฝั่งเดียวของแกนก่อน หรือเปลี่ยนแกนหมุน</div>
           </div>
         </details>
       </div>
       <div class="c3-dims">
-        <label>ตำแหน่ง X (มม.)<input type="text" id="posX" inputmode="decimal" value="0"></label>
-        <label>ตำแหน่ง Y (มม.)<input type="text" id="posY" inputmode="decimal" value="0"></label>
-        <label>ตำแหน่ง Z (มม.)<input type="text" id="posZ" inputmode="decimal" value="0"></label>
+        <label><span data-ome-t="cad3d.posX">ตำแหน่ง X (มม.)</span><input class="input" type="text" id="posX" inputmode="decimal" value="0"></label>
+        <label><span data-ome-t="cad3d.posY">ตำแหน่ง Y (มม.)</span><input class="input" type="text" id="posY" inputmode="decimal" value="0"></label>
+        <label><span data-ome-t="cad3d.posZ">ตำแหน่ง Z (มม.)</span><input class="input" type="text" id="posZ" inputmode="decimal" value="0"></label>
       </div>
-      <label id="opWrap" hidden>วิธีรวมกับชิ้นงานหลัก
-        <select id="opSel">
-          <option value="union">รวม (Union)</option>
-          <option value="cut">ตัดออก (Cut)</option>
-          <option value="intersect">ส่วนร่วม (Intersect)</option>
+      <label id="opWrap" hidden><span data-ome-t="cad3d.opLbl">วิธีรวมกับชิ้นงานหลัก</span>
+        <select class="select" id="opSel">
+          <option value="union" data-ome-t="cad3d.opUnion">รวม (Union)</option>
+          <option value="cut" data-ome-t="cad3d.opCut">ตัดออก (Cut)</option>
+          <option value="intersect" data-ome-t="cad3d.opIntersect">ส่วนร่วม (Intersect)</option>
         </select>
       </label>
-      <button class="btn sm primary" id="addShapeBtn" type="button">วางเป็นชิ้นงานหลัก</button>
-      <button class="btn sm" id="cancelEditBtn" type="button" hidden>ยกเลิกแก้ไข</button>
+      <button class="btn sm primary" id="addShapeBtn" type="button" data-ome-t="cad3d.addShape">วางเป็นชิ้นงานหลัก</button>
+      <button class="btn sm" id="cancelEditBtn" type="button" hidden data-ome-t="cad3d.cancelEdit">ยกเลิกแก้ไข</button>
     </div>
   </div>
 
   <div class="card">
-    <h2>2) ลำดับขั้นตอนของชิ้นงาน</h2>
+    <h2 data-ome-t="cad3d.h2">2) ลำดับขั้นตอนของชิ้นงาน</h2>
     <div class="c3-steps" id="stepsList"></div>
     <div class="c3-form" style="margin-top:10px">
-      <button class="btn sm" id="undoStepBtn" type="button" disabled>ย้อนขั้นตอนล่าสุด</button>
-      <button class="btn sm danger" id="resetBtn" type="button" disabled>เริ่มใหม่ทั้งหมด</button>
+      <button class="btn sm" id="undoStepBtn" type="button" disabled data-ome-t="cad3d.undoStep">ย้อนขั้นตอนล่าสุด</button>
+      <button class="btn sm danger" id="resetBtn" type="button" disabled data-ome-t="cad3d.resetAll">เริ่มใหม่ทั้งหมด</button>
     </div>
   </div>
 
   <div class="card">
-    <h2>3) มุมมอง 3 มิติ</h2>
+    <h2 data-ome-t="cad3d.h3">3) มุมมอง 3 มิติ</h2>
     <div class="c3-viewport-wrap" id="c3Viewport">
       <div class="c3-overlay" id="c3Overlay">
         <div class="c3-spinner" id="c3Spinner"></div>
-        <div id="c3OverlayText">เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน</div>
+        <div id="c3OverlayText" data-ome-t="cad3d.overlayIdle">เพิ่มรูปทรงแรกด้านบนเพื่อเริ่มสร้างชิ้นงาน</div>
       </div>
       <div class="c3-sketch-toolbar" id="c3SketchToolbar" hidden>
-        <button class="btn sm active" id="sketchToolRectBtn" type="button" data-tool="rect"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rectangle-horizontal"/></svg>สี่เหลี่ยม</button>
-        <button class="btn sm" id="sketchToolCircleBtn" type="button" data-tool="circle"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-circle"/></svg>วงกลม</button>
-        <button class="btn sm" id="sketchToolPolylineBtn" type="button" data-tool="polyline">เส้นหลายจุด</button>
-        <button class="btn sm primary" id="sketchFinishBtn" type="button" hidden>เสร็จ (ปิดรูป)</button>
-        <button class="btn sm danger" id="sketchCancelBtn" type="button">ยกเลิก</button>
-        <span class="hint" id="c3SketchHint">คลิกมุมแรกของสี่เหลี่ยม</span>
+        <button class="btn sm active" id="sketchToolRectBtn" type="button" data-tool="rect"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rectangle-horizontal"/></svg><span data-ome-t="cad3d.sketchRect">สี่เหลี่ยม</span></button>
+        <button class="btn sm" id="sketchToolCircleBtn" type="button" data-tool="circle"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-circle"/></svg><span data-ome-t="cad3d.sketchCircle">วงกลม</span></button>
+        <button class="btn sm" id="sketchToolPolylineBtn" type="button" data-tool="polyline" data-ome-t="cad3d.sketchPoly">เส้นหลายจุด</button>
+        <button class="btn sm primary" id="sketchFinishBtn" type="button" hidden data-ome-t="cad3d.sketchFinish">เสร็จ (ปิดรูป)</button>
+        <button class="btn sm danger" id="sketchCancelBtn" type="button" data-ome-t="cad3d.cancel">ยกเลิก</button>
+        <span class="hint" id="c3SketchHint" data-ome-t="cad3d.hintRect1">คลิกมุมแรกของสี่เหลี่ยม</span>
       </div>
     </div>
   </div>
 
   <div class="card">
-    <h2>4) คุณสมบัติขั้นสูงและวัสดุ</h2>
+    <h2 data-ome-t="cad3d.h4">4) คุณสมบัติขั้นสูงและวัสดุ</h2>
     <div class="c3-proplist">
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2 15 5v8l-6 3-6-3V5Z"></path><path d="M9 8v8M3 5l6 3 6-3"></path></svg></span><span class="c3-proprow-lbl">วัตถุ</span><span class="c3-proprow-val" id="c3PropObject">–</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2C6 6 3.5 9 3.5 11.5a5.5 5.5 0 0 0 11 0C14.5 9 12 6 9 2Z"></path></svg></span><span class="c3-proprow-lbl">ปริมาตร</span><span class="c3-proprow-val" id="c3PropVolume">–</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2 15 5 9 8 3 5Z"></path><path d="M3 9l6 3 6-3"></path></svg></span><span class="c3-proprow-lbl">พื้นที่ผิว</span><span class="c3-proprow-val" id="c3PropArea">–</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2l6 3.5v7L9 16l-6-3.5v-7Z"></path></svg></span><span class="c3-proprow-lbl">วัสดุ</span><span class="c3-proprow-val" id="c3PropMaterialName">อะลูมิเนียม</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="5.5"></circle><line x1="9" y1="1.5" x2="9" y2="4"></line><line x1="9" y1="14" x2="9" y2="16.5"></line><line x1="1.5" y1="9" x2="4" y2="9"></line><line x1="14" y1="9" x2="16.5" y2="9"></line></svg></span><span class="c3-proprow-lbl">ตำแหน่ง XYZ</span><span class="c3-proprow-val" id="c3PropPosition">–</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="2" y1="14" x2="16" y2="14"></line><line x1="2" y1="11" x2="2" y2="14"></line><line x1="6" y1="12" x2="6" y2="14"></line><line x1="10" y1="12" x2="10" y2="14"></line><line x1="14" y1="11" x2="14" y2="14"></line></svg></span><span class="c3-proprow-lbl">ขนาด (L×W×H)</span><span class="c3-proprow-val" id="c3PropDims">–</span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"></circle><circle class="fill" cx="6.5" cy="7" r="1"></circle><circle class="fill" cx="9" cy="6" r="1"></circle><circle class="fill" cx="11.5" cy="7.5" r="1"></circle></svg></span><span class="c3-proprow-lbl">สี</span><span class="c3-proprow-val"><input type="color" id="c3PropColorInput" value="#c7ccd4"></span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="9" y1="2" x2="9" y2="5"></line><line x1="9" y1="13" x2="9" y2="16"></line><line x1="2" y1="9" x2="5" y2="9"></line><line x1="13" y1="9" x2="16" y2="9"></line><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"></line><line x1="11.5" y1="11.5" x2="13.5" y2="13.5"></line><line x1="13.5" y1="4.5" x2="11.5" y2="6.5"></line><line x1="6.5" y1="11.5" x2="4.5" y2="13.5"></line></svg></span><span class="c3-proprow-lbl">การสะท้อน</span><span class="c3-proprow-val c3-proprow-range"><input type="range" id="c3PropReflection" min="0" max="1" step="0.05" value="0.5"><b id="c3PropReflectionVal">50%</b></span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="3" y1="5" x2="15" y2="5"></line><circle class="fill" cx="7" cy="5" r="1.6"></circle><line x1="3" y1="9" x2="15" y2="9"></line><circle class="fill" cx="11" cy="9" r="1.6"></circle><line x1="3" y1="13" x2="15" y2="13"></line><circle class="fill" cx="5" cy="13" r="1.6"></circle></svg></span><span class="c3-proprow-lbl">คุณภาพการแสดงผล</span><span class="c3-proprow-val"><select id="c3RenderQualitySel"><option value="low">ต่ำ</option><option value="medium" selected>ปานกลาง</option><option value="high">สูง</option></select></span></div>
-      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"></circle><circle cx="9" cy="9" r="2.3"></circle></svg></span><span class="c3-proprow-lbl">น้ำหนักโดยประมาณ</span><span class="c3-proprow-val" id="c3PropWeight">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2 15 5v8l-6 3-6-3V5Z"></path><path d="M9 8v8M3 5l6 3 6-3"></path></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propObject">วัตถุ</span><span class="c3-proprow-val" id="c3PropObject">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2C6 6 3.5 9 3.5 11.5a5.5 5.5 0 0 0 11 0C14.5 9 12 6 9 2Z"></path></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propVolume">ปริมาตร</span><span class="c3-proprow-val" id="c3PropVolume">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2 15 5 9 8 3 5Z"></path><path d="M3 9l6 3 6-3"></path></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propArea">พื้นที่ผิว</span><span class="c3-proprow-val" id="c3PropArea">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><path d="M9 2l6 3.5v7L9 16l-6-3.5v-7Z"></path></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propMaterial">วัสดุ</span><span class="c3-proprow-val" id="c3PropMaterialName" data-ome-t="cad3d.matAluminum">อะลูมิเนียม</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="5.5"></circle><line x1="9" y1="1.5" x2="9" y2="4"></line><line x1="9" y1="14" x2="9" y2="16.5"></line><line x1="1.5" y1="9" x2="4" y2="9"></line><line x1="14" y1="9" x2="16.5" y2="9"></line></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propPos">ตำแหน่ง XYZ</span><span class="c3-proprow-val" id="c3PropPosition">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="2" y1="14" x2="16" y2="14"></line><line x1="2" y1="11" x2="2" y2="14"></line><line x1="6" y1="12" x2="6" y2="14"></line><line x1="10" y1="12" x2="10" y2="14"></line><line x1="14" y1="11" x2="14" y2="14"></line></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propDims">ขนาด (L×W×H)</span><span class="c3-proprow-val" id="c3PropDims">–</span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"></circle><circle class="fill" cx="6.5" cy="7" r="1"></circle><circle class="fill" cx="9" cy="6" r="1"></circle><circle class="fill" cx="11.5" cy="7.5" r="1"></circle></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propColor">สี</span><span class="c3-proprow-val"><input type="color" id="c3PropColorInput" value="#c7ccd4"></span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="9" y1="2" x2="9" y2="5"></line><line x1="9" y1="13" x2="9" y2="16"></line><line x1="2" y1="9" x2="5" y2="9"></line><line x1="13" y1="9" x2="16" y2="9"></line><line x1="4.5" y1="4.5" x2="6.5" y2="6.5"></line><line x1="11.5" y1="11.5" x2="13.5" y2="13.5"></line><line x1="13.5" y1="4.5" x2="11.5" y2="6.5"></line><line x1="6.5" y1="11.5" x2="4.5" y2="13.5"></line></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propReflect">การสะท้อน</span><span class="c3-proprow-val c3-proprow-range"><input type="range" id="c3PropReflection" min="0" max="1" step="0.05" value="0.5"><b id="c3PropReflectionVal">50%</b></span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><line x1="3" y1="5" x2="15" y2="5"></line><circle class="fill" cx="7" cy="5" r="1.6"></circle><line x1="3" y1="9" x2="15" y2="9"></line><circle class="fill" cx="11" cy="9" r="1.6"></circle><line x1="3" y1="13" x2="15" y2="13"></line><circle class="fill" cx="5" cy="13" r="1.6"></circle></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propQuality">คุณภาพการแสดงผล</span><span class="c3-proprow-val"><select class="select" id="c3RenderQualitySel"><option value="low" data-ome-t="cad3d.qLow">ต่ำ</option><option value="medium" selected data-ome-t="cad3d.qMed">ปานกลาง</option><option value="high" data-ome-t="cad3d.qHigh">สูง</option></select></span></div>
+      <div class="c3-proprow"><span class="c3-proprow-icon"><svg viewBox="0 0 18 18"><circle cx="9" cy="9" r="6.5"></circle><circle cx="9" cy="9" r="2.3"></circle></svg></span><span class="c3-proprow-lbl" data-ome-t="cad3d.propWeight">น้ำหนักโดยประมาณ</span><span class="c3-proprow-val" id="c3PropWeight">–</span></div>
     </div>
-    <div class="c3-materials-title">คลังวัสดุ</div>
+    <div class="c3-materials-title" data-ome-t="cad3d.matTitle">คลังวัสดุ</div>
     <div class="c3-materials-list" id="c3MaterialSwatches">
-      <button type="button" class="c3-material-item active" data-material="aluminum" data-hex="#c7ccd4">
+      <button type="button" class="btn c3-material-item active" data-material="aluminum" data-hex="#c7ccd4">
         <span class="c3-material-swatch" style="--sw:#c7ccd4"></span>
-        <span class="c3-material-info"><b>อะลูมิเนียม</b><small>ความหนาแน่น 2.70 ก./ซม.³ • น้ำหนักเบา ทนการกัดกร่อนได้ดี</small></span>
+        <span class="c3-material-info"><b data-ome-t="cad3d.matAluminum">อะลูมิเนียม</b><small data-ome-t="cad3d.matAluminumDesc">ความหนาแน่น 2.70 ก./ซม.³ • น้ำหนักเบา ทนการกัดกร่อนได้ดี</small></span>
       </button>
-      <button type="button" class="c3-material-item" data-material="steel" data-hex="#7b828d">
+      <button type="button" class="btn c3-material-item" data-material="steel" data-hex="#7b828d">
         <span class="c3-material-swatch" style="--sw:#7b828d"></span>
-        <span class="c3-material-info"><b>เหล็กกล้า</b><small>ความหนาแน่น 7.85 ก./ซม.³ • แข็งแรงสูง แต่มีน้ำหนักมาก</small></span>
+        <span class="c3-material-info"><b data-ome-t="cad3d.matSteel">เหล็กกล้า</b><small data-ome-t="cad3d.matSteelDesc">ความหนาแน่น 7.85 ก./ซม.³ • แข็งแรงสูง แต่มีน้ำหนักมาก</small></span>
       </button>
-      <button type="button" class="c3-material-item" data-material="wood" data-hex="#b07d43">
+      <button type="button" class="btn c3-material-item" data-material="wood" data-hex="#b07d43">
         <span class="c3-material-swatch" style="--sw:#b07d43"></span>
-        <span class="c3-material-info"><b>ไม้โอ๊ก</b><small>ความหนาแน่น 0.75 ก./ซม.³ • เบา ไม่นำไฟฟ้า</small></span>
+        <span class="c3-material-info"><b data-ome-t="cad3d.matWood">ไม้โอ๊ก</b><small data-ome-t="cad3d.matWoodDesc">ความหนาแน่น 0.75 ก./ซม.³ • เบา ไม่นำไฟฟ้า</small></span>
       </button>
-      <button type="button" class="c3-material-item" data-material="glass" data-hex="#a9d8de">
+      <button type="button" class="btn c3-material-item" data-material="glass" data-hex="#a9d8de">
         <span class="c3-material-swatch" style="--sw:#a9d8de"></span>
-        <span class="c3-material-info"><b>กระจก</b><small>ความหนาแน่น 2.50 ก./ซม.³ • โปร่งแสง เปราะแตกง่าย</small></span>
+        <span class="c3-material-info"><b data-ome-t="cad3d.matGlass">กระจก</b><small data-ome-t="cad3d.matGlassDesc">ความหนาแน่น 2.50 ก./ซม.³ • โปร่งแสง เปราะแตกง่าย</small></span>
       </button>
-      <button type="button" class="c3-material-item" data-material="plastic" data-hex="#3f6fd1">
+      <button type="button" class="btn c3-material-item" data-material="plastic" data-hex="#3f6fd1">
         <span class="c3-material-swatch" style="--sw:#3f6fd1"></span>
-        <span class="c3-material-info"><b>พลาสติก ABS</b><small>ความหนาแน่น 1.05 ก./ซม.³ • ขึ้นรูปง่าย น้ำหนักเบามาก</small></span>
+        <span class="c3-material-info"><b data-ome-t="cad3d.matPlastic">พลาสติก ABS</b><small data-ome-t="cad3d.matPlasticDesc">ความหนาแน่น 1.05 ก./ซม.³ • ขึ้นรูปง่าย น้ำหนักเบามาก</small></span>
       </button>
     </div>
   </div>
 
   <div class="card">
-    <h2>5) ส่งออกไฟล์</h2>
+    <h2 data-ome-t="cad3d.h5">5) ส่งออกไฟล์</h2>
     <div class="c3-form">
       <button class="btn sm" id="exportStepBtn" type="button" disabled>STEP</button>
       <button class="btn sm" id="exportStlBtn" type="button" disabled>STL</button>
@@ -754,6 +806,43 @@
   document.addEventListener('click', function (e) {
     menus.forEach(function (m) { if (!m.menu.hidden && !m.wrap.contains(e.target)) m.menu.hidden = true; });
   });
+  menus.forEach(function (m) { // aria-expanded ตามสถานะเมนู (เมนูเปิด/ปิดด้วย hidden)
+    new MutationObserver(function () { m.btn.setAttribute('aria-expanded', String(!m.menu.hidden)); }).observe(m.menu, { attributes: true, attributeFilter: ['hidden'] });
+    m.btn.setAttribute('aria-expanded', 'false');
+  });
+
+  /* จอ ≤ 980px: แผงขวาเป็นลิ้นชักเปิด-ปิดได้ (ปุ่ม "แผง" บนแถบเมนู) + ตัวเลือกเครื่องมือ (ขนาดตัวอักษรมิติ/คลังบล็อก) ย้ายจากแถบซ้ายเข้าลิ้นชัก
+     (ย้ายโหนดเดิม ไม่สร้างใหม่ — id และ event ที่ cad.js ผูกไว้ยังอยู่ครบ) · จอกว้างคืนเข้าที่เดิม */
+  var drawer = document.getElementById('cadDrawer'), backdrop = document.getElementById('cadDrawerBackdrop');
+  var panelsBtn = document.getElementById('panelsBtn'), closeBtn = document.getElementById('drawerCloseBtn');
+  var optsCard = document.getElementById('cadOptsCard'), optsBody = document.getElementById('cadOptsBody');
+  var narrow = window.matchMedia('(max-width: 980px)');
+  var moved = Array.prototype.map.call(document.querySelectorAll('.cad-side-left .cad-tool-subrow'), function (el) {
+    var holder = document.createComment('subrow'); el.parentNode.insertBefore(holder, el); return { el: el, holder: holder };
+  });
+  function placeRows() {
+    moved.forEach(function (m) {
+      if (narrow.matches) optsBody.appendChild(m.el);
+      else m.holder.parentNode.insertBefore(m.el, m.holder.nextSibling);
+    });
+    optsCard.hidden = !narrow.matches;
+    if (!narrow.matches) setDrawer(false);
+  }
+  function setDrawer(open) {
+    drawer.classList.toggle('open', open); backdrop.classList.toggle('open', open);
+    panelsBtn.setAttribute('aria-expanded', String(open));
+    if (open) closeBtn.focus();
+  }
+  panelsBtn.addEventListener('click', function () { setDrawer(!drawer.classList.contains('open')); });
+  closeBtn.addEventListener('click', function () { setDrawer(false); panelsBtn.focus(); });
+  backdrop.addEventListener('click', function () { setDrawer(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawer.classList.contains('open')) { setDrawer(false); panelsBtn.focus(); } });
+  if (narrow.addEventListener) narrow.addEventListener('change', placeRows); else narrow.addListener(placeRows);
+  placeRows();
+  /* มีเอนทิตี้ที่เลือกอยู่ (แผงคุณสมบัติมีเนื้อหา) = จุดบนปุ่ม "แผง" บอกว่ามีอะไรให้ดูในลิ้นชัก */
+  var propsCard = document.getElementById('propsCard');
+  function syncDot() { if (propsCard.hidden) panelsBtn.removeAttribute('data-dot'); else panelsBtn.setAttribute('data-dot', ''); }
+  if (propsCard) { new MutationObserver(syncDot).observe(propsCard, { attributes: true, attributeFilter: ['hidden'] }); syncDot(); }
 })();
 </script>
 </body>

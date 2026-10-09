@@ -36,6 +36,17 @@
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () { if (el.parentNode) el.parentNode.removeChild(el); }, kind === 'err' ? 4200 : 2600);
   }
+  /* ช่องกรอกที่แผงลอย/กล่องโต้ตอบสร้างด้วย innerHTML — ใส่คลาสคอมโพเนนต์กลาง (.input/.select/.textarea) ให้ครบในที่เดียว
+     (checkbox/radio/color/range/file ใช้ของเบราว์เซอร์) แทนการแก้ทีละจุดที่ประกอบสตริง */
+  function controls(root) {
+    if (!root || !root.querySelectorAll) return;
+    [].forEach.call(root.querySelectorAll('input,select,textarea'), function (el) {
+      var tag = el.tagName, type = (el.getAttribute('type') || '').toLowerCase();
+      if (tag === 'INPUT') { if (/^(checkbox|radio|color|range|file|hidden|image|submit|button|reset)$/.test(type)) return; el.classList.add('input'); }
+      else if (tag === 'SELECT') el.classList.add('select');
+      else el.classList.add('textarea');
+    });
+  }
   var dlgSeq = 0;
   /* modal(title, bodyHTML, footerHTML) → { el, body, close } (body = element ของกล่องทั้งใบ) — Esc / คลิกนอกกล่อง / ปุ่ม [data-cancel] ปิดเอง */
   function modal(title, bodyHTML, footerHTML) {
@@ -46,6 +57,7 @@
     dlg.innerHTML = '<div class="dialog-head"><h2 id="' + id + '">' + esc(title) + '</h2>' +
       '<button type="button" class="btn ghost icon sm" data-dlg-x aria-label="Close">' + icon('x') + '</button></div>' +
       '<div class="dialog-body">' + (bodyHTML || '') + '</div>' + (footerHTML ? '<div class="dialog-foot">' + footerHTML + '</div>' : '');
+    controls(dlg);
     document.body.appendChild(dlg);
     function close() { if (dlg.open) dlg.close(); else if (dlg.parentNode) dlg.parentNode.removeChild(dlg); }
     dlg.addEventListener('close', function () { if (dlg.parentNode) dlg.parentNode.removeChild(dlg); });
@@ -88,8 +100,20 @@
       okInk: tk('--ome-ok-ink', 'okInk'), warnInk: tk('--ome-warn-ink', 'warnInk'), errInk: tk('--ome-err-ink', 'errInk'), infoInk: tk('--ome-info-ink', 'infoInk'), accent: t.accent, onAccent: tk('--ome-on-accent', 'onAccent') };
     return pal;
   }
+  /* สีตัวอักษรที่อ่านออกบนพื้นสีใดๆ (rgb()/#hex) — ขาวหรือสีตัวอักษรของธีม แล้วเลือกตัวที่คอนทราสต์สูงกว่า (WCAG) */
+  function onColor(bg) {
+    var m = /rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(String(bg || ''));
+    if (!m) { var h = /^#([0-9a-f]{6})$/i.exec(String(bg || '')); if (!h) return palette().onAccent; m = [0, parseInt(h[1].slice(0, 2), 16), parseInt(h[1].slice(2, 4), 16), parseInt(h[1].slice(4, 6), 16)]; }
+    function lum(r, g, b) { return [r, g, b].map(function (v) { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }).reduce(function (a, v, i) { return a + v * [0.2126, 0.7152, 0.0722][i]; }, 0); }
+    function rgbOf(c) { var q = /rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/.exec(String(c || '')); return q ? [+q[1], +q[2], +q[3]] : null; }
+    var L1 = lum(+m[1], +m[2], +m[3]);
+    var p = palette(), light = rgbOf(p.onAccent) || [255, 255, 255], dark = rgbOf(p.text) || [31, 36, 48];
+    var Lw = lum(light[0], light[1], light[2]), Ld = lum(dark[0], dark[1], dark[2]);
+    var cw = (Math.max(L1, Lw) + 0.05) / (Math.min(L1, Lw) + 0.05), cd = (Math.max(L1, Ld) + 0.05) / (Math.min(L1, Ld) + 0.05);
+    return cw >= cd ? p.onAccent : p.text;
+  }
   var themeHooks = [];
   function onTheme(fn) { themeHooks.push(fn); }
   if (window.OmeChartTheme) window.OmeChartTheme.onChange(function () { pal = null; themeHooks.forEach(function (f) { try { f(); } catch (e) {} }); });
-  w.TanotReportUtils = { clone: clone, clamp: clamp, unique: unique, median: median, esc: esc, icon: icon, toast: toast, modal: modal, palette: palette, onTheme: onTheme };
+  w.TanotReportUtils = { clone: clone, clamp: clamp, unique: unique, median: median, esc: esc, icon: icon, toast: toast, modal: modal, controls: controls, onColor: onColor, palette: palette, onTheme: onTheme };
 })(window);

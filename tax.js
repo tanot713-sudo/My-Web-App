@@ -28,7 +28,7 @@
   function write(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
   function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
 
-  /* ══════ สองภาษา — คีย์กลาง 'ome:lang' + window.omeApplyLang ตามธรรมเนียม shell.js ══════ */
+  /* ══════ สองภาษา — คีย์กลาง 'ome:lang' + OME_LANG.onChange (i18n.js) · ข้อความของหน้าอยู่ในพจนานุกรมนี้ ══════ */
   function getUILang() { try { return localStorage.getItem('ome:lang') === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; } }
   var I18N = {
     th: {
@@ -36,7 +36,7 @@
       cardIncome: 'เงินได้', projRecorded: 'ที่บันทึก', projYear: 'ทั้งปี (ประมาณ)', catTitle: 'หมวดรายได้ใน budget',
       cardFamily: 'ส่วนตัวและครอบครัว', cardInsurance: 'ประกัน', cardFunds: 'กองทุนและการออม', cardOther: 'อื่นๆ และเงินบริจาค',
       cardSummary: 'สรุปการคำนวณ', cardRetire: 'กลุ่มเกษียณ', cardBrackets: 'ขั้นภาษี', cardSim: 'ซื้อเพิ่มก่อนสิ้นปี', btnClear: 'ล้าง',
-      yearLabel: 'ปีภาษี {y}',
+      yearLabel: 'ปีภาษี {y}', yearAria: 'ปีภาษี',
       f_salary: 'เงินเดือน/ค่าจ้าง 40(1)', f_service: 'รับจ้าง/ฟรีแลนซ์ 40(2)', f_other: 'เงินได้อื่น 40(8)', f_withheld: 'ภาษีหัก ณ ที่จ่าย',
       f_spouse: 'คู่สมรสไม่มีเงินได้', f_children: 'บุตร (คน)', f_children2561: 'บุตรคนที่ 2+ เกิดตั้งแต่ 2561 (คน)',
       f_parents: 'บิดามารดาอายุ 60+ (คน)', f_disabled: 'อุปการะผู้พิการ (คน)', f_prenatal: 'ฝากครรภ์/คลอดบุตร', f_socialSecurity: 'ประกันสังคม',
@@ -67,7 +67,7 @@
       cardIncome: 'Income', projRecorded: 'Recorded', projYear: 'Full year (est.)', catTitle: 'Budget income categories',
       cardFamily: 'Personal & family', cardInsurance: 'Insurance', cardFunds: 'Funds & savings', cardOther: 'Other & donations',
       cardSummary: 'Calculation', cardRetire: 'Retirement group', cardBrackets: 'Tax brackets', cardSim: 'Buy more before year end', btnClear: 'Clear',
-      yearLabel: 'Tax year {y}',
+      yearLabel: 'Tax year {y}', yearAria: 'Tax year',
       f_salary: 'Salary 40(1)', f_service: 'Service/freelance 40(2)', f_other: 'Other income 40(8)', f_withheld: 'Tax withheld',
       f_spouse: 'Spouse without income', f_children: 'Children', f_children2561: '2nd+ children born 2018+',
       f_parents: 'Parents aged 60+', f_disabled: 'Disabled dependants', f_prenatal: 'Pregnancy/birth', f_socialSecurity: 'Social security',
@@ -103,6 +103,10 @@
   function applyStaticI18n() {
     document.documentElement.lang = getUILang();
     [].forEach.call(document.querySelectorAll('[data-i18n]'), function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
+    [].forEach.call(document.querySelectorAll('[data-i18n-attr]'), function (el) {
+      // เฉพาะคีย์ที่อยู่ในพจนานุกรมของหน้านี้ — shell/ส่วนกลางก็ใช้ data-i18n-attr (คีย์ 'shell.…') และจัดการเอง
+      el.getAttribute('data-i18n-attr').split(',').forEach(function (pair) { var a = pair.split(':'); if (I18N.th[a[1]] != null) el.setAttribute(a[0], t(a[1])); });
+    });
   }
 
   /* ══════ ตัวช่วยจัดรูป ══════ */
@@ -297,7 +301,7 @@
     var cats = pl._cats || [];
     $('txCats').innerHTML = cats.length ? cats.map(function (c) {
       return '<div class="tx-cat"><span>' + esc(c.name) + '</span><span class="amt">' + baht(c.amount) + '</span>' +
-        '<select data-cat="' + esc(c.id) + '" aria-label="' + esc(c.name) + '">' + CAT_TYPES.map(function (tt) {
+        '<select class="select" data-cat="' + esc(c.id) + '" aria-label="' + esc(c.name) + '">' + CAT_TYPES.map(function (tt) {
           return '<option value="' + tt + '"' + (tt === c.type ? ' selected' : '') + '>' + t(CAT_LABEL[tt]) + '</option>';
         }).join('') + '</select></div>';
     }).join('') : '<div class="empty"><p>' + t('catEmpty') + '</p></div>';
@@ -528,7 +532,8 @@
     });
     window.addEventListener('tanot:quickadd', render);
     document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') render(); });
-    window.omeApplyLang = function () { applyStaticI18n(); rebuild(); };
+    window.OME_PAGE_LIVE_LANG = true;
+    window.OME_LANG.onChange(function () { applyStaticI18n(); rebuild(); });
   }
 
   function getJSON(url) {

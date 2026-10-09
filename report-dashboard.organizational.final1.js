@@ -125,7 +125,7 @@
 #organizationalLayout .org1-kpi .s{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 #organizationalLayout .org1-panel{background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);padding:12px;box-shadow:var(--ome-shadow-1)}
 #organizationalLayout .org1-panel h3{font-size:var(--ome-fs-sm);margin:0 0 3px;font-weight:700}
-#organizationalLayout .org1-note{font-size:var(--ome-fs-xs);color:var(--ome-text-3);margin-bottom:7px}
+#organizationalLayout .org1-note{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-bottom:7px}
 #organizationalLayout .org1-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:12px}
 #organizationalLayout .org1-grid>.half{grid-column:span 6}#organizationalLayout .org1-grid>.full{grid-column:1/-1}
 #organizationalLayout .org1-empty{padding:24px 8px;text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-xs)}
@@ -171,7 +171,7 @@
 #organizationalLayout table{width:100%;border-collapse:collapse;font-size:var(--ome-fs-xs);white-space:nowrap}
 #organizationalLayout thead th{background:var(--ome-surface-0);color:var(--ome-text-2);font-weight:700;font-size:var(--ome-fs-xs);text-align:left;padding:9px 10px;border-bottom:1px solid var(--ome-border);cursor:pointer;user-select:none}
 #organizationalLayout thead th:hover{color:var(--ome-text-1)}
-#organizationalLayout thead th.srt{color:var(--ome-accent)}
+#organizationalLayout thead th.srt{color:var(--ome-accent-strong)}
 #organizationalLayout tbody td{padding:8px 10px;border-bottom:1px solid var(--ome-border);color:var(--ome-text-2)}
 #organizationalLayout tbody tr{cursor:pointer}
 #organizationalLayout tbody tr:hover td{background:var(--ome-surface-0)}
@@ -337,7 +337,7 @@
         '<div class="org1-avc" style="background:linear-gradient(150deg,'+shade(col)+','+shade(shade(col))+')">'+esc(initials(r.name))+'</div>'+
         '<div class="nm">'+esc(r.name)+'</div>'+
         '<div class="rl">'+esc(r.position||r.level||'')+'</div>'+
-        '<span class="tm" style="background:'+tint(col,.14)+';color:'+col+'">'+esc(r.team)+'</span></div>';
+        '<span class="tm" style="background:'+tint(col,.14)+';color:var(--ome-text-1);box-shadow:inset 3px 0 0 '+col+'">'+esc(r.team)+'</span></div>';
     }).join('')+(rows.length>shown.length?'<div class="org1-empty" style="grid-column:1/-1">+'+(rows.length-shown.length)+' more — use the table below or search to narrow down</div>':'');
     qa('.org1-pc',host).forEach(function(el){ el.addEventListener('click',function(){ openM(el.getAttribute('data-emp')); }); });
   }
@@ -347,7 +347,7 @@
   function sortBy(k){ SORT.d=(SORT.k===k)?-SORT.d:1; SORT.k=k; schedule(); }
   function tblCell(r,k){
     if(k==='team'){ var col=seriesCol(Math.abs(hashStr(r.team)));
-      return '<span class="org1-pill" style="background:'+tint(col,.14)+';color:'+col+'">'+esc(r.team)+'</span>'; }
+      return '<span class="org1-pill" style="background:'+tint(col,.14)+';color:var(--ome-text-1);box-shadow:inset 3px 0 0 '+col+'">'+esc(r.team)+'</span>'; }
     if(k==='start')return fmt(r.start);
     if(k==='svcM')return fyr(r.svcM);
     return esc(r[k]);
@@ -391,10 +391,10 @@
     if(r.system)rows.push(['System',esc(r.system)]);
     if(r.site)rows.push(['Site',esc(r.site)]);
     if(r._mgr)rows.push(['Reports To',esc(r._mgr.name)]);
-    if(r.start)rows.push(['Start Date',fmt(r.start)+' · <span style="color:var(--ome-text-3)">Tenure '+fyr(r.svcM)+'</span>']);
+    if(r.start)rows.push(['Start Date',fmt(r.start)+' · <span style="color:var(--ome-text-2)">Tenure '+fyr(r.svcM)+'</span>']);
     if(MSHOW){
       if(r.gender)rows.push(['Gender',esc(r.gender)]);
-      if(r.dob)rows.push(['Date of Birth',fmt(r.dob)+(r.ageM!=null?' · <span style="color:var(--ome-text-3)">Age '+fyr(r.ageM)+'</span>':'')]);
+      if(r.dob)rows.push(['Date of Birth',fmt(r.dob)+(r.ageM!=null?' · <span style="color:var(--ome-text-2)">Age '+fyr(r.ageM)+'</span>':'')]);
       if(r.email)rows.push(['Email','<a href="mailto:'+esc(r.email)+'" style="color:var(--ome-accent)">'+esc(r.email)+'</a>']);
       if(r.phone)rows.push(['Phone','<a href="tel:'+esc(r.phone)+'" style="color:var(--ome-accent)">'+esc(r.phone)+'</a>']);
     }
