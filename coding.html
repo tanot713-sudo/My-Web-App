@@ -72,12 +72,12 @@
 
 /* ── เมนูเลือกบทเรียน (แผงเลื่อนลง จัดกลุ่มตามหมวด) ── */
 .cx-track-menu{position:relative;margin-bottom:var(--ome-sp-4)}
-.cx-track-menu-btn{gap:10px}
+.cx-track-menu-toggle{gap:10px}
 .cx-hamburger-icon{display:flex;flex-direction:column;gap:3.5px;width:18px;flex-shrink:0}
 .cx-hamburger-icon span{display:block;height:2.3px;border-radius:2px;background:currentColor;transition:transform var(--ome-dur-2) var(--ome-ease),opacity var(--ome-dur-2)}
-.cx-track-menu-btn.open .cx-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
-.cx-track-menu-btn.open .cx-hamburger-icon span:nth-child(2){opacity:0}
-.cx-track-menu-btn.open .cx-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
+.cx-track-menu-toggle.open .cx-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
+.cx-track-menu-toggle.open .cx-hamburger-icon span:nth-child(2){opacity:0}
+.cx-track-menu-toggle.open .cx-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
 .cx-track-menu-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:var(--ome-z-popover);min-width:280px;
   max-width:min(420px,calc(100vw - 40px));max-height:70vh;overflow-y:auto;background:var(--ome-surface-1);
   border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:10px}
@@ -154,7 +154,7 @@
 </div>
 
 <div class="cx-track-menu">
-  <button class="btn cx-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="btn cx-track-menu-toggle" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
     <span class="cx-hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     <span id="currentTrackLabel"></span>
   </button>

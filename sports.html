@@ -61,12 +61,12 @@
 
 /* ── เมนูเลือกบทเรียน (แผงเลื่อนลง จัดกลุ่มตามหมวด) ── */
 .sp-track-menu{position:relative;margin-bottom:var(--ome-sp-4)}
-.sp-track-menu-btn{gap:10px}
+.sp-track-menu-toggle{gap:10px}
 .sp-hamburger-icon{display:flex;flex-direction:column;gap:3.5px;width:18px;flex-shrink:0}
 .sp-hamburger-icon span{display:block;height:2.3px;border-radius:2px;background:currentColor;transition:transform var(--ome-dur-2) var(--ome-ease),opacity var(--ome-dur-2)}
-.sp-track-menu-btn.open .sp-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
-.sp-track-menu-btn.open .sp-hamburger-icon span:nth-child(2){opacity:0}
-.sp-track-menu-btn.open .sp-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
+.sp-track-menu-toggle.open .sp-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
+.sp-track-menu-toggle.open .sp-hamburger-icon span:nth-child(2){opacity:0}
+.sp-track-menu-toggle.open .sp-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
 .sp-track-menu-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:var(--ome-z-popover);min-width:280px;
   max-width:min(420px,calc(100vw - 40px));max-height:70vh;overflow-y:auto;background:var(--ome-surface-1);
   border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:10px}
@@ -184,7 +184,7 @@
 </div>
 
 <div class="sp-track-menu">
-  <button class="btn sp-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="btn sp-track-menu-toggle" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
     <span class="sp-hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     <span id="currentTrackLabel"></span>
   </button>

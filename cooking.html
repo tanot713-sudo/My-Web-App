@@ -61,12 +61,12 @@
 
 /* ── เมนูเลือกบทเรียน (แผงเลื่อนลง จัดกลุ่มตามหมวด) ── */
 .ck-track-menu{position:relative;margin-bottom:var(--ome-sp-4)}
-.ck-track-menu-btn{gap:10px}
+.ck-track-menu-toggle{gap:10px}
 .ck-hamburger-icon{display:flex;flex-direction:column;gap:3.5px;width:18px;flex-shrink:0}
 .ck-hamburger-icon span{display:block;height:2.3px;border-radius:2px;background:currentColor;transition:transform var(--ome-dur-2) var(--ome-ease),opacity var(--ome-dur-2)}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(2){opacity:0}
-.ck-track-menu-btn.open .ck-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(2){opacity:0}
+.ck-track-menu-toggle.open .ck-hamburger-icon span:nth-child(3){transform:translateY(-5.8px) rotate(-45deg)}
 .ck-track-menu-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:var(--ome-z-popover);min-width:280px;
   max-width:min(420px,calc(100vw - 40px));max-height:70vh;overflow-y:auto;background:var(--ome-surface-1);
   border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:10px}
@@ -248,14 +248,14 @@
 </div>
 
 <div class="ck-track-menu">
-  <button class="btn ck-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="btn ck-track-menu-toggle" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
     <span class="ck-hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     <span id="currentTrackLabel"></span>
   </button>
   <div class="ck-track-menu-panel" id="trackMenuPanel" role="menu"></div>
 
   <div class="ck-conv-wrap">
-    <button class="btn ck-track-menu-btn" id="convBtn" type="button" data-i18n="convBtn">แปลงหน่วยตวง</button>
+    <button class="btn ck-track-menu-toggle" id="convBtn" type="button" data-i18n="convBtn">แปลงหน่วยตวง</button>
     <div class="ck-conv-panel" id="convPanel"></div>
   </div>
 </div>

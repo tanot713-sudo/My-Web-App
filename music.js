@@ -1897,7 +1897,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
       item.options.forEach(function (opt) {
         var btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = 'btn mx-answer-btn wide';
+        btn.className = 'btn mx-answer-choice wide';
         btn.textContent = pick(opt.label);
         if (alreadyPassed) {
           btn.disabled = true;
@@ -1931,7 +1931,7 @@ if (typeof document !== 'undefined' && document.getElementById('musicRoot')) {
     choices.forEach(function (choice) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'btn mx-answer-btn' + (isWide ? ' wide' : '');
+      btn.className = 'btn mx-answer-choice' + (isWide ? ' wide' : '');
       btn.textContent = isValueQuiz ? pick(NOTE_VALUE_LABELS[choice]) : isQualityQuiz ? pick(CHORD_QUALITY_LABELS[choice]) :
         isGuitarQuiz ? pick(GUITAR_CHORD_LABELS[choice]) : isUkuleleQuiz ? pick(UKULELE_CHORD_LABELS[choice]) :
         isPitchCompareQuiz ? pick(PITCH_COMPARE_LABELS[choice]) :
