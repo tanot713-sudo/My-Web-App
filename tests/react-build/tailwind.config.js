@@ -35,7 +35,8 @@ module.exports = {
     extend: {
       fontFamily: { sans: ['var(--ome-f)'] },
       colors: {
-        brand: tok(BRAND), brandLight: tok(BRAND_SF),
+        brand: tok(BRAND), brandLight: tok(BRAND_SF), brandStrong: tok('var(--ome-accent-strong)'),
+        'ok-ink': tok('var(--ome-ok-ink)'), 'warn-ink': tok('var(--ome-warn-ink)'), 'err-ink': tok('var(--ome-err-ink)'), 'info-ink': tok('var(--ome-info-ink)'),
         primary: tok(BRAND_DK), secondary: tok(BRAND),
         accent: '#f59e0b', success: '#10b981', danger: '#ef4444',
       },

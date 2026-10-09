@@ -1,0 +1,2 @@
+# ผลรันของ Playwright เมื่อรันจาก root (tests/ มี .gitignore ของตัวเอง)
+test-results/

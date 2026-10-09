@@ -2,6 +2,89 @@
         const TEMPLATES = JSON.parse(document.getElementById('legal-templates').textContent);
         const TYPE_IDS = ['plaint', 'answer', 'petition', 'statement', 'counterclaim', 'prayer', 'police-report'];
 
+        // ── ภาษา UI (ไทย/อังกฤษ) — ตัวบท/ร่างคำฟ้อง/แบบฟอร์มกฎหมายและชื่อแบบร่างที่ผู้ใช้ตั้งเป็นเนื้อหา → data-i18n-skip
+        //    ภาษาไทยในพจนานุกรม th เหมือนข้อความเดิมทุกตัวอักษร · เอกสารที่ส่งออก (.doc/พิมพ์) เป็นไทยเสมอ
+        const T = OME_I18N.scope('legal', {
+            th: {
+                title: 'งานกฎหมาย',
+                subtitle: 'ร่างเอกสาร',
+                pageTitle: 'งานกฎหมาย — ร่างเอกสาร | Tanot',
+                openNav: 'เปิดเมนูแบบร่าง',
+                closeNav: 'ปิดเมนู',
+                drafts: 'แบบร่าง',
+                newDrafts: 'แบบร่างใหม่',
+                savedDrafts: 'แบบร่างที่บันทึกไว้',
+                noDrafts: 'ยังไม่มีแบบร่างที่บันทึก',
+                delDraft: 'ลบแบบร่าง',
+                editingSaved: '(กำลังแก้ไขแบบร่างที่บันทึกไว้)',
+                attach: 'แนบรูปภาพ',
+                dlWord: 'ดาวน์โหลด Word',
+                print: 'พิมพ์',
+                saveDraft: 'บันทึกแบบร่าง',
+                checklistFor: 'เอกสาร/สิ่งที่ควรเตรียมสำหรับ',
+                nameTitle: 'ตั้งชื่อแบบร่าง',
+                namePh: 'เช่น ฟ้องคดีสัญญาเช่า - คุณสมชาย',
+                cancel: 'ยกเลิก',
+                save: 'บันทึก',
+                sync: 'ซิงก์',
+                syncing: 'กำลังซิงก์...',
+                syncConnecting: 'กำลังเชื่อมต่อ Google...',
+                syncOk: 'ซิงก์สำเร็จ',
+                back: 'กลับ Tanot',
+                flashSaved: 'บันทึกแบบร่าง "{name}" แล้ว',
+                flashDeleted: 'ลบแบบร่างแล้ว',
+                flashImage: 'แนบรูปภาพเข้าในเอกสารแล้ว',
+                confirmDelete: 'ลบแบบร่างนี้ถาวร?',
+                eGis: 'โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่',
+                eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
+                eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
+                eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})',
+                eDownload: 'ดาวน์โหลดไม่สำเร็จ (HTTP {c})',
+                eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})'
+            },
+            en: {
+                title: 'Legal work',
+                subtitle: 'Draft documents',
+                pageTitle: 'Legal work — draft documents | Tanot',
+                openNav: 'Open drafts menu',
+                closeNav: 'Close menu',
+                drafts: 'Drafts',
+                newDrafts: 'New drafts',
+                savedDrafts: 'Saved drafts',
+                noDrafts: 'No saved drafts yet',
+                delDraft: 'Delete draft',
+                editingSaved: '(editing a saved draft)',
+                attach: 'Attach image',
+                dlWord: 'Download Word',
+                print: 'Print',
+                saveDraft: 'Save draft',
+                checklistFor: 'Documents to prepare for ',
+                nameTitle: 'Name this draft',
+                namePh: 'e.g. Lease dispute - Mr. Somchai',
+                cancel: 'Cancel',
+                save: 'Save',
+                sync: 'Sync',
+                syncing: 'Syncing...',
+                syncConnecting: 'Connecting to Google...',
+                syncOk: 'Synced',
+                back: 'Back to Tanot',
+                flashSaved: 'Saved draft "{name}"',
+                flashDeleted: 'Draft deleted',
+                flashImage: 'Image attached to the document',
+                confirmDelete: 'Delete this draft permanently?',
+                eGis: 'Could not load Google Identity Services. Try reloading the page',
+                eFolderFind: 'Could not search for the folder (HTTP {c})',
+                eFolderMake: 'Could not create the folder (HTTP {c})',
+                eFileFind: 'Could not search for the file (HTTP {c})',
+                eDownload: 'Download failed (HTTP {c})',
+                eUpload: 'Could not save to Drive (HTTP {c})'
+            }
+        });
+        window.OME_PAGE_LIVE_LANG = true;
+        // ข้อผิดพลาด/ข้อความแจ้งที่พกคีย์ — แปลสดตอนสลับภาษา (ไม่เก็บข้อความที่แปลแล้วไว้)
+        const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
+        const statusText = st => !st ? '' : st.tkey ? T(st.tkey, st.tvars) : (st.raw || '');
+
         // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
         // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับแบบร่าง/มุมมอง
         const icon = (name, cls) => () => (
@@ -64,7 +147,7 @@
             ensureAuth() {
                 return new Promise((resolve, reject) => {
                     if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(new Error('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
+                        reject(tErr('eGis'));
                         return;
                     }
                     if (!this.tokenClient) {
@@ -86,7 +169,7 @@
                 const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eFolderFind', { c: res.status });
                 const data = await res.json();
                 if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
                 const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
@@ -94,7 +177,7 @@
                     headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
                 });
-                if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+                if (!createRes.ok) throw tErr('eFolderMake', { c: createRes.status });
                 const createData = await createRes.json();
                 this.folderId = createData.id;
                 return this.folderId;
@@ -103,14 +186,14 @@
                 const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eFileFind', { c: res.status });
                 const data = await res.json();
                 return (data.files && data.files[0]) || null;
             },
             async downloadFile(fileId) {
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eDownload', { c: res.status });
                 return res.json();
             },
             async uploadFile(name, folderId, existingId, obj) {
@@ -123,7 +206,7 @@
                     : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
                 const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
                     headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eUpload', { c: res.status });
                 return res.json();
             },
         };
@@ -137,12 +220,22 @@
             const [activeDraftId, setActiveDraftId] = useState(null);
             const [drafts, setDrafts] = useState(loadDrafts());
             const [checked, setChecked] = useState(loadChecked());
-            const [notice, setNotice] = useState('');
+            const [notice, setNotice] = useState(null);
             const [nameModal, setNameModal] = useState(false);
             const [draftName, setDraftName] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
             const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState('');
+            const [syncStatus, setSyncStatus] = useState(null);
+            const [lang, setLang] = useState(OME_I18N.lang());
+            useEffect(() => OME_LANG.onChange(l => setLang(l)), []);
+            useEffect(() => { document.title = T('pageTitle'); }, [lang]);
+            const nameDlgRef = useRef(null);
+            useEffect(() => {
+                const d = nameDlgRef.current;
+                if (!d) return;
+                if (nameModal && !d.open) d.showModal();
+                if (!nameModal && d.open) d.close();
+            }, [nameModal]);
 
             const editorRef = useRef(null);
             const fileInputRef = useRef(null);
@@ -160,7 +253,7 @@
                     .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0)),
                 [drafts]);
 
-            const flash = (msg) => { setNotice(msg); setTimeout(() => setNotice(''), 4000); };
+            const flash = (tkey, tvars) => { setNotice({ tkey, tvars }); setTimeout(() => setNotice(null), 4000); };
 
             const loadTemplate = (type) => {
                 setActiveType(type);
@@ -190,14 +283,14 @@
                 setActiveDraftId(id);
                 setContent(html);
                 setNameModal(false);
-                flash('บันทึกแบบร่าง "' + (draftName.trim() || TEMPLATES[activeType].title) + '" แล้ว');
+                flash('flashSaved', { name: draftName.trim() || TEMPLATES[activeType].title });
             };
 
-            const deleteDraft = (id) => {
-                if (!confirm('ลบแบบร่างนี้ถาวร?')) return;
+            const deleteDraft = async (id) => {
+                if (!(await window.tanotConfirmDelete(null, { message: T('confirmDelete') }))) return;
                 setDrafts(d => { const { [id]: _, ...rest } = d; return rest; });
                 if (activeDraftId === id) loadTemplate(activeType);
-                flash('ลบแบบร่างแล้ว');
+                flash('flashDeleted');
             };
 
             const toggleCheck = (i) => {
@@ -214,7 +307,7 @@
                 reader.onload = () => {
                     editorRef.current && editorRef.current.focus();
                     document.execCommand('insertImage', false, reader.result);
-                    flash('แนบรูปภาพเข้าในเอกสารแล้ว');
+                    flash('flashImage');
                 };
                 reader.readAsDataURL(file);
             };
@@ -233,10 +326,10 @@
 
             const syncNow = async () => {
                 setSyncing(true);
-                setSyncStatus('กำลังเชื่อมต่อ Google...');
+                setSyncStatus({ tkey: 'syncConnecting' });
                 try {
                     await DriveSync.ensureAuth();
-                    setSyncStatus('กำลังซิงก์...');
+                    setSyncStatus({ tkey: 'syncing' });
                     const folderId = await DriveSync.ensureFolder();
                     const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
                     const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
@@ -249,9 +342,9 @@
 
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
                         { drafts: mergedDrafts, checked: mergedChecked, savedAt: new Date().toISOString() });
-                    setSyncStatus('ซิงก์สำเร็จ');
+                    setSyncStatus({ tkey: 'syncOk' });
                 } catch (e) {
-                    setSyncStatus('' + (e.message || e));
+                    setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: '' + (e.message || e) });
                 } finally {
                     setSyncing(false);
                 }
@@ -260,71 +353,72 @@
             return (
                 <div className="h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans">
 
-                    <header className="min-h-[64px] bg-white border-b border-slate-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10">
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => setMobileNavOpen(true)} className="md:hidden -ml-1 p-1.5 text-slate-500 hover:text-slate-800" aria-label="เปิดเมนูแบบร่าง">
+                    <header className="min-h-[56px] bg-white border-b border-slate-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <button data-k="menu" onClick={() => setMobileNavOpen(true)} className="btn ghost icon md:hidden -ml-2" aria-label={T('openNav')}>
                                 <Menu />
                             </button>
                             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white"><Scale /></div>
-                            <h1 className="text-base sm:text-lg font-bold text-slate-800">งานกฎหมาย <span className="hidden sm:inline text-slate-400 font-normal">| ร่างเอกสาร</span></h1>
+                            <h1 className="text-lg font-bold text-slate-800">{T('title')} <span className="hidden sm:inline text-slate-500 font-normal">| {T('subtitle')}</span></h1>
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-                            <button
-                                onClick={syncNow}
-                                disabled={syncing}
-                                className="text-xs font-semibold text-slate-500 hover:text-secondary border border-slate-200 hover:border-secondary rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
-                            >
-                                {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
+                                {syncing ? T('syncing') : <>{T('sync')}<span className="hidden sm:inline"> Google Drive</span></>}
                             </button>
-                            {syncStatus && <span className="hidden sm:inline text-xs text-slate-400">{syncStatus}</span>}
-                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ Tanot</a>
+                            {syncStatus && <span className="hidden sm:inline text-sm text-slate-500">{statusText(syncStatus)}</span>}
+                            <a href="./index.html" className="btn ghost sm">&larr; {T('back')}</a>
                         </div>
                     </header>
 
                     <div className="flex flex-1 overflow-hidden relative">
 
                         {mobileNavOpen && (
-                            <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
+                            <div className="fixed inset-x-0 bottom-0 top-12 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
                         )}
 
-                        <aside className={`fixed md:static inset-y-0 left-0 z-40 w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                            <div className="flex items-center justify-between mb-3 md:hidden">
-                                <span className="text-sm font-bold text-slate-700">แบบร่าง</span>
-                                <button onClick={() => setMobileNavOpen(false)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="ปิดเมนู"><CloseIcon /></button>
+                        <aside className={`fixed md:static top-12 bottom-0 left-0 z-40 w-80 max-w-[88vw] bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-3 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                            <div className="flex items-center justify-between mb-2 md:hidden">
+                                <span className="text-base font-bold text-slate-800">{T('drafts')}</span>
+                                <button data-k="closeNav" onClick={() => setMobileNavOpen(false)} className="btn ghost icon" aria-label={T('closeNav')}><CloseIcon /></button>
                             </div>
 
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">แบบร่างใหม่</div>
-                            <div className="space-y-1 mb-6">
+                            <div className="text-sm font-bold text-slate-500 mb-2 px-1">{T('newDrafts')}</div>
+                            <div className="space-y-1 mb-6" data-i18n-skip>
                                 {TYPE_IDS.map(id => {
                                     const active = !activeDraftId && activeType === id;
                                     return (
                                         <button
                                             key={id}
+                                            data-k="template" data-tid={id}
                                             onClick={() => loadTemplate(id)}
-                                            className={`w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? 'bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm' : 'border-transparent text-slate-600 hover:bg-slate-50'}`}
+                                            aria-current={active ? 'true' : undefined}
+                                            className={`list-row !border-0 w-full text-left rounded-lg ${active ? 'bg-blue-50 text-slate-800 font-semibold' : ''}`}
                                         >
                                             <FileText className="shrink-0" />
-                                            <span className="leading-tight">{TEMPLATES[id].title}</span>
+                                            <span className="grow leading-tight">{TEMPLATES[id].title}</span>
                                         </button>
                                     );
                                 })}
                             </div>
 
-                            <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2 px-1 flex items-center gap-1.5">
-                                <FolderOpen /> แบบร่างที่บันทึกไว้ ({draftList.length})
+                            <div className="text-sm font-bold text-slate-500 mb-2 px-1 flex items-center gap-1.5">
+                                <FolderOpen /> {T('savedDrafts')} ({draftList.length})
                             </div>
                             {draftList.length === 0 ? (
-                                <p className="text-xs text-slate-400 px-1">ยังไม่มีแบบร่างที่บันทึก</p>
+                                <p className="text-sm text-slate-500 px-1">{T('noDrafts')}</p>
                             ) : (
-                                <div className="space-y-1">
+                                <div className="space-y-1" data-i18n-skip>
                                     {draftList.map(d => (
-                                        <div key={d.id}
-                                            className={`group flex items-center gap-1 rounded-xl border ${activeDraftId === d.id ? 'bg-blue-50 border-blue-100' : 'border-transparent hover:bg-slate-50'}`}>
-                                            <button onClick={() => openDraft(d.id)} className="flex-1 text-left p-2.5 min-w-0">
-                                                <div className={`text-sm truncate ${activeDraftId === d.id ? 'text-secondary font-semibold' : 'text-slate-600'}`}>{d.name}</div>
-                                                <div className="text-[10px] text-slate-400">{TEMPLATES[d.type]?.title} · {new Date(d.updatedAt).toLocaleDateString('th-TH')}</div>
+                                        <div key={d.id} className="flex items-center gap-2">
+                                            <button data-k="draft" data-did={d.id} onClick={() => openDraft(d.id)}
+                                                aria-current={activeDraftId === d.id ? 'true' : undefined}
+                                                className={`list-row !border-0 text-left rounded-lg flex-1 min-w-0 ${activeDraftId === d.id ? 'bg-blue-50 text-slate-800 font-semibold' : ''}`}>
+                                                <span className="grow min-w-0">
+                                                    <span className="block text-sm truncate">{d.name}</span>
+                                                    <span className="block text-sm text-slate-500 truncate">{TEMPLATES[d.type]?.title} · {OME_I18N.date(d.updatedAt)}</span>
+                                                </span>
                                             </button>
-                                            <button onClick={() => deleteDraft(d.id)} className="p-2 text-slate-300 hover:text-danger shrink-0" aria-label="ลบแบบร่าง"><Trash /></button>
+                                            <button data-k="delDraft" onClick={() => deleteDraft(d.id)} className="btn ghost icon sm shrink-0" aria-label={T('delDraft')}><Trash /></button>
                                         </div>
                                     ))}
                                 </div>
@@ -335,37 +429,33 @@
                             <div className="w-full max-w-3xl">
 
                                 {notice && (
-                                    <div className="mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm animate-fade-in-up">{notice}</div>
+                                    <div className="callout ok mb-4" role="status">{T(notice.tkey, notice.tvars)}</div>
                                 )}
 
                                 <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
                                     <h2 className="text-lg font-bold text-slate-800">
-                                        {activeDraftId && drafts[activeDraftId] ? drafts[activeDraftId].name : TEMPLATES[activeType].title}
-                                        {activeDraftId && <span className="ml-2 text-xs font-normal text-slate-400">(กำลังแก้ไขแบบร่างที่บันทึกไว้)</span>}
+                                        <span data-i18n-skip>{activeDraftId && drafts[activeDraftId] ? drafts[activeDraftId].name : TEMPLATES[activeType].title}</span>
+                                        {activeDraftId && <span className="ml-2 text-sm font-normal text-slate-500">{T('editingSaved')}</span>}
                                     </h2>
                                     <div className="flex flex-wrap gap-2">
-                                        <button onClick={() => fileInputRef.current && fileInputRef.current.click()}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-secondary hover:text-secondary">
-                                            <Image /> แนบรูปภาพ
+                                        <button data-k="attach" onClick={() => fileInputRef.current && fileInputRef.current.click()} className="btn sm">
+                                            <Image /> {T('attach')}
                                         </button>
                                         <input ref={fileInputRef} type="file" accept="image/*" hidden
                                             onChange={e => { const f = e.target.files && e.target.files[0]; if (f) attachImage(f); e.target.value = ''; }} />
-                                        <button onClick={downloadDoc}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-secondary hover:text-secondary">
-                                            <Download /> ดาวน์โหลด Word
+                                        <button data-k="download" onClick={downloadDoc} className="btn sm">
+                                            <Download /> {T('dlWord')}
                                         </button>
-                                        <button onClick={printDoc}
-                                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-xs font-semibold text-slate-600 hover:border-secondary hover:text-secondary">
-                                            <Printer /> พิมพ์
+                                        <button data-k="print" onClick={printDoc} className="btn sm">
+                                            <Printer /> {T('print')}
                                         </button>
-                                        <button onClick={startSave}
-                                            className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-white text-xs font-bold hover:bg-slate-800">
-                                            <Save /> บันทึกแบบร่าง
+                                        <button data-k="saveDraft" onClick={startSave} className="btn primary sm">
+                                            <Save /> {T('saveDraft')}
                                         </button>
                                     </div>
                                 </div>
 
-                                <div id="printArea" className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-200 mb-6">
+                                <div id="printArea" className="card mb-6 p-6 sm:p-8" data-doc-area data-i18n-skip>
                                     <div
                                         ref={editorRef}
                                         className="doc-editor text-slate-700"
@@ -376,16 +466,16 @@
                                 </div>
 
                                 {TEMPLATES[activeType].checklist && TEMPLATES[activeType].checklist.length > 0 && (
-                                    <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                                        <h3 className="text-sm font-bold text-slate-800 mb-3">เอกสาร/สิ่งที่ควรเตรียมสำหรับ{TEMPLATES[activeType].title}</h3>
-                                        <div className="space-y-2">
+                                    <div className="card p-6">
+                                        <h3 className="text-base font-bold text-slate-800 mb-3">{T('checklistFor')}<span data-i18n-skip>{TEMPLATES[activeType].title}</span></h3>
+                                        <div className="space-y-1" data-i18n-skip>
                                             {TEMPLATES[activeType].checklist.map((item, i) => (
-                                                <button key={i} onClick={() => toggleCheck(i)}
-                                                    className="w-full flex items-start gap-2.5 text-left text-sm p-1.5 rounded-lg hover:bg-slate-50">
-                                                    <span className={checkedArr[i] ? 'text-success shrink-0 mt-0.5' : 'text-slate-300 shrink-0 mt-0.5'}>
+                                                <button key={i} data-k="check" onClick={() => toggleCheck(i)} aria-pressed={!!checkedArr[i]}
+                                                    className="list-row !border-0 w-full text-left rounded-lg items-start">
+                                                    <span className={checkedArr[i] ? 'text-success shrink-0 mt-0.5' : 'text-slate-500 shrink-0 mt-0.5'}>
                                                         {checkedArr[i] ? <CheckSquare /> : <Square />}
                                                     </span>
-                                                    <span className={checkedArr[i] ? 'text-slate-400 line-through' : 'text-slate-600'}>{item}</span>
+                                                    <span className={`grow ${checkedArr[i] ? 'text-slate-500 line-through' : 'text-slate-700'}`}>{item}</span>
                                                 </button>
                                             ))}
                                         </div>
@@ -395,26 +485,26 @@
                         </main>
                     </div>
 
-                    {nameModal && (
-                        <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4" onClick={() => setNameModal(false)}>
-                            <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-                                <h3 className="font-bold text-slate-800 mb-3">ตั้งชื่อแบบร่าง</h3>
-                                <input
-                                    type="text"
-                                    value={draftName}
-                                    onChange={e => setDraftName(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && confirmSave()}
-                                    autoFocus
-                                    placeholder="เช่น ฟ้องคดีสัญญาเช่า - คุณสมชาย"
-                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl px-4 py-2.5 text-sm mb-4"
-                                />
-                                <div className="flex gap-2">
-                                    <button onClick={() => setNameModal(false)} className="flex-1 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 text-sm font-bold">ยกเลิก</button>
-                                    <button onClick={confirmSave} className="flex-1 py-2.5 rounded-xl bg-primary text-white text-sm font-bold">บันทึก</button>
-                                </div>
-                            </div>
+                    <dialog ref={nameDlgRef} className="dialog" onClose={() => setNameModal(false)} onClick={e => { if (e.target === nameDlgRef.current) setNameModal(false); }}>
+                        <div className="dialog-head"><h3>{T('nameTitle')}</h3></div>
+                        <div className="dialog-body">
+                            <input
+                                data-k="draftName"
+                                type="text"
+                                value={draftName}
+                                onChange={e => setDraftName(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && confirmSave()}
+                                autoFocus
+                                placeholder={T('namePh')}
+                                aria-label={T('nameTitle')}
+                                className="input w-full"
+                            />
                         </div>
-                    )}
+                        <div className="dialog-foot">
+                            <button data-k="nameCancel" onClick={() => setNameModal(false)} className="btn">{T('cancel')}</button>
+                            <button data-k="nameSave" onClick={confirmSave} className="btn primary">{T('save')}</button>
+                        </div>
+                    </dialog>
                 </div>
             );
         }
