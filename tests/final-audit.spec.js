@@ -157,7 +157,7 @@ test.describe.configure({ timeout: 900000 });
 
 for (const t of TARGETS) {
   if (ONLY && !ONLY.test(t.page)) continue;
-  for (const width of [360, 390, 1100]) {
+  for (const width of [360, 390, ...(process.env.AUDIT_EXTRA_WIDTHS || '').split(',').map(Number).filter(Boolean), 1100]) { // AUDIT_EXTRA_WIDTHS=412,430 เพิ่ม Android ทั่วไป/iPhone Pro Max
     for (const theme of ['light', 'dark']) {
       test(`final-data: ${t.page}|${width}|${theme}`, async ({ page }) => {
         const errors = await open(page, t, { theme, width });

@@ -28,7 +28,7 @@
 .xl-top{flex:0 0 auto;display:flex;flex-direction:column;gap:var(--ome-sp-2);padding:var(--ome-sp-3) var(--ome-sp-4) 0}
 .xl-head{margin:0;gap:var(--ome-sp-3)}
 .xl-head-ic{width:22px;height:22px;color:var(--ome-accent-strong)}
-.xl-filebar .btn .ome-icon{width:15px;height:15px}
+.xl-filebar button .ome-icon{width:15px;height:15px}
 .xl-sp{flex:1}
 .xl-status{display:flex;align-items:center;gap:7px;margin:0;min-height:0;font-weight:600;max-width:100%}
 .xl-status.err{color:var(--ome-err-ink)}
@@ -61,14 +61,16 @@
 .xlr-panel .luckysheet-toolbar-select .luckysheet-toolbar-menu-button-caret{position:static!important}
 /* Luckysheet ตั้งสีไอคอน/ตัวหนังสือเป็น #333 ตายตัว → ในโหมดมืดมองไม่เห็นบนพื้นริบบอน ให้ตามสีตัวอักษรของธีม */
 .xlr-panel [class*="luckysheet"]{color:var(--ome-text-1)}
-[data-theme="dark"] .xlr-panel [class*="luckysheet-toolbar"]:hover{background-color:rgba(255,255,255,.1)}
+[data-theme="dark"] .xlr-panel [class*="luckysheet-toolbar"]:hover{background-color:color-mix(in srgb, var(--ome-text-1) 10%, transparent)}
 /* ซ่อนแถบเครื่องมือเดิมของ Luckysheet หลังย้ายปุ่มออกแล้ว (ตั้งใน JS ด้วย เพื่อคงการวัด layout ตอน init) */
 .luckysheet-wa-editor.xlr-moved{display:none!important}
 /* ช่องพิมพ์ native ซ้อนบนเซลล์ (แก้ปัญหา Luckysheet พิมพ์ไทยตัวหาย) — อยู่บนเซลล์ จึงใช้สีพื้นเดียวกับกริดเสมอ */
+/* สี "ข้อมูล": พื้น/ตัวอักษรเซลล์ในกริดขาว-ดำเสมอ (ช่องพิมพ์ซ้อนต้องตรงกับเซลล์) — ชื่ออยู่ใน DATA_COLOR_VARS ของ tests/theme-guards.mjs */
+:root{--xl-cell-bg:#fff;--xl-cell-ink:#111}
 #xlCellEditor{position:fixed;z-index:99999;display:none;box-sizing:border-box;margin:0;
   border:2px solid var(--ome-accent);border-radius:2px;padding:1px 4px;
   font-family:'TH Sarabun New','Sarabun','Prompt',sans-serif;font-size:15px;line-height:1.35;
-  background:#fff;color:#111;resize:none;outline:none;overflow:hidden;white-space:pre;min-width:82px;
+  background:var(--xl-cell-bg);color:var(--xl-cell-ink);resize:none;outline:none;overflow:hidden;white-space:pre;min-width:82px;
   box-shadow:var(--ome-shadow-2)}
 /* ── วิเคราะห์ข้อมูล (Data Insights): สรุปอัตโนมัติ/รวมตัวสะกด/เส้นแนวโน้ม ── */
 .di-popover{position:fixed;z-index:99998;background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);

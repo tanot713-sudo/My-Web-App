@@ -69,6 +69,9 @@
   --ome-shadow-1:0 1px 2px rgba(16,22,38,.07);
   --ome-shadow-2:0 1px 2px rgba(16,22,38,.06), 0 6px 18px rgba(16,22,38,.08);
   --ome-shadow-3:0 16px 48px rgba(16,22,38,.20);
+  /* ฉากทึบหลัง drawer/dialog และปุ่ม/ป้ายที่วางบนภาพ-วิดีโอ (ต้องอ่านได้บนภาพทุกสี จึงเหมือนกันทั้งสว่าง/มืด) */
+  --ome-scrim:rgba(11,18,35,.5);
+  --ome-media-bg:rgba(0,0,0,.6); --ome-media-ink:#fff; --ome-media-line:rgba(255,255,255,.7);
   --ome-z-sticky:50; --ome-z-nav:100; --ome-z-popover:150; --ome-z-drawer:200;
   --ome-z-toast:1000; --ome-z-modal:9999;
   --ome-dur-1:.12s; --ome-dur-2:.2s; --ome-dur-3:.32s; --ome-ease:cubic-bezier(.2,.8,.2,1);
@@ -321,7 +324,7 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 /* dialog — ใช้กับ <dialog class="dialog"> ของเบราว์เซอร์ (showModal()) */
 :where([data-layout]) .dialog{width:min(460px, calc(100vw - 32px));padding:0;border:0;border-radius:var(--ome-radius-lg);
   background:var(--ome-surface-1);color:var(--ome-text-1);box-shadow:var(--ome-shadow-3)}
-:where([data-layout]) .dialog::backdrop{background:rgba(11,18,35,.5)}
+:where([data-layout]) .dialog::backdrop{background:var(--ome-scrim)}
 :where([data-layout]) .dialog-head{display:flex;align-items:center;gap:8px;padding:18px 20px 0}
 :where([data-layout]) .dialog-head :where(h2,h3){margin:0;flex:1}
 :where([data-layout]) .dialog-body{padding:14px 20px}
@@ -353,6 +356,8 @@ body[data-layout]{margin:0;background:var(--ome-surface-0);color:var(--ome-text-
 /* ฟอร์มในกล่อง: .dialog-form (กว้างพอสำหรับฟอร์ม เลื่อนในกล่อง ช่องห่างกัน) · .check (ติ๊กในบรรทัด) · .form-msg (error ใต้ฟอร์ม)
    .file-list > .file-row (ไฟล์แนบ: ลิงก์ + ขนาด + ปุ่มเอาออก) · .sub-head (หัวรองในการ์ด) · .kpi-value small (หน่วยท้ายตัวเลข) */
 :where([data-layout]) .dialog-form{width:min(600px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
+/* ปุ่มท้ายกล่องค้างชิดขอบล่างของกล่อง (เนื้อหายาว/แนวนอนจอเตี้ย: ปุ่มบันทึกไม่ตกขอบ ไม่ต้องเลื่อนหา — กล่องสั้นไม่เห็นผล) */
+:where([data-layout]) .dialog .dialog-foot{position:sticky;bottom:0;z-index:1;background:var(--ome-surface-1);padding-top:var(--ome-sp-2)}
 :where([data-layout]) .dialog-form .dialog-body > * + *{margin-top:var(--ome-sp-3)}
 :where([data-layout]) .check{display:flex;gap:8px;align-items:center;font-size:var(--ome-fs-sm)}
 :where([data-layout]) .check input{width:auto;height:auto}
@@ -753,7 +758,7 @@ body{padding-bottom:0!important}
 /* ── แถบนำทางกลาง (ฉีดโดย shell.js) — ปุ่มแฮมเบอร์เกอร์ + ลิ้นชักเมนู ──── */
 .ome-nav{position:sticky;top:0;z-index:100;height:var(--ome-nav-h);box-sizing:border-box;
   background:var(--ome-card);border-bottom:1px solid var(--ome-line);
-  display:flex;align-items:center;gap:4px;padding:env(safe-area-inset-top, 0px) 10px 0;
+  display:flex;align-items:center;gap:4px;padding:env(safe-area-inset-top, 0px) calc(10px + env(safe-area-inset-right,0px)) 0 calc(10px + env(safe-area-inset-left,0px));
   font-family:var(--ome-f);font-size:13.5px;box-shadow:0 1px 3px rgba(24,31,54,.04)}
 .ome-nav a,.ome-nav button{font-family:var(--ome-f)}
 .ome-hamburger{width:40px;height:40px;border-radius:10px;border:none;background:transparent;
@@ -775,7 +780,7 @@ body{padding-bottom:0!important}
   opacity:0;pointer-events:none;transition:.2s}
 .ome-drawer-backdrop.open{opacity:1;pointer-events:auto}
 .ome-drawer{position:fixed;top:0;left:0;bottom:0;width:290px;max-width:86vw;background:var(--ome-card);
-  box-sizing:border-box;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);
+  box-sizing:border-box;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);padding-left:env(safe-area-inset-left,0px);
   z-index:200;transform:translateX(-100%);transition:transform .22s ease,box-shadow .22s ease;
   display:flex;flex-direction:column;font-family:var(--ome-f)}
 .ome-drawer.open{transform:translateX(0);box-shadow:var(--ome-shadow-3)} /* เงาเฉพาะตอนเปิด — ตอนปิดเงาเคยล้นเข้าขอบซ้ายของจอ */
@@ -817,10 +822,10 @@ body{padding-bottom:0!important}
 .ome-footer a:hover{color:var(--ome-brand-dk);text-decoration:underline}
 
 /* ── แผงตั้งค่า (dropdown เล็กใต้ปุ่มฟันเฟือง) ──────────────────────── */
-.ome-settings-panel{position:fixed;top:calc(var(--ome-nav-h,48px) + 6px);right:10px;width:220px;
+.ome-settings-panel{position:fixed;top:calc(var(--ome-nav-h,48px) + 6px);right:calc(10px + env(safe-area-inset-right,0px));width:220px;max-height:calc(100dvh - var(--ome-nav-h,48px) - 14px - env(safe-area-inset-bottom,0px));
   background:var(--ome-card);border:1px solid var(--ome-line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);
   z-index:150;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;
-  font-family:var(--ome-f);padding:6px;overflow:hidden}
+  font-family:var(--ome-f);padding:6px;overflow-x:hidden;overflow-y:auto}
 .ome-settings-panel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
 .ome-settings-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 10px;border:none;
   background:transparent;border-radius:9px;color:var(--ome-ink);font-size:13.5px;font-weight:500;
@@ -981,7 +986,7 @@ html[data-bg="settings"][data-theme="dark"]::before{background-image:url(assets/
 .ome-pal,.ome-qa{position:fixed;inset:0;z-index:var(--ome-z-modal);display:flex;justify-content:center;
   background:rgba(11,18,35,.5);font-family:var(--ome-f);color:var(--ome-text-1)}
 .ome-pal[hidden],.ome-qa[hidden]{display:none}
-.ome-pal{align-items:flex-start;padding:max(12vh,calc(var(--ome-nav-h) + 8px)) 14px 14px}
+.ome-pal{align-items:flex-start;padding:max(12vh,calc(var(--ome-nav-h) + 8px)) calc(14px + env(safe-area-inset-right,0px)) calc(14px + env(safe-area-inset-bottom,0px)) calc(14px + env(safe-area-inset-left,0px))}
 .ome-pal-box{width:100%;max-width:580px;max-height:min(70vh,560px);display:flex;flex-direction:column;overflow:hidden;
   background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3)}
 .ome-pal-search{display:flex;align-items:center;gap:10px;padding:0 16px;height:52px;border-bottom:1px solid var(--ome-border);flex-shrink:0}
@@ -1007,7 +1012,7 @@ html[data-bg="settings"][data-theme="dark"]::before{background-image:url(assets/
 .ome-pal-tag{flex-shrink:0;font-size:11.5px;font-weight:600;color:var(--ome-text-2);background:var(--ome-surface-2);
   padding:2px 8px;border-radius:var(--ome-radius-pill)}
 
-.ome-qa{align-items:center;padding:16px}
+.ome-qa{align-items:center;padding:calc(16px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(16px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px))}
 .ome-qa-box{width:100%;max-width:420px;max-height:100%;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding:20px;
   background:var(--ome-surface-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3)}
 .ome-qa-head{display:flex;align-items:center;gap:8px}
@@ -1032,3 +1037,15 @@ html[data-bg="settings"][data-theme="dark"]::before{background-image:url(assets/
   max-width:calc(100vw - 32px);padding:10px 16px;border-radius:var(--ome-radius-md);background:var(--ome-text-1);color:var(--ome-surface-1);
   font-family:var(--ome-f);font-size:var(--ome-fs-sm);font-weight:600;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s}
 .ome-qa-toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ══════════════════════════════════════════════════════════════════
+   มือถือ รอบ 9 — กฎกลางที่ท้ายไฟล์ (ไม่อยู่ใน layer: ต้องชนะ CSS ของหน้า)
+   ══════════════════════════════════════════════════════════════════ */
+/* ช่องกรอก ≥ 16px บนจอแคบ: iOS ซูมหน้าเองตอนแตะช่องที่ตัวอักษรเล็กกว่า 16px แล้วไม่ย่อกลับ
+   (ตัวตรวจ mobileInput) — ยกเว้นพื้นที่แก้เอกสาร (data-doc-area), Luckysheet และช่องพิมพ์ซ้อนเซลล์ของ excel ที่ต้องตรงกับขนาดเซลล์ */
+@media (max-width:700px){
+  :is(input:not([type=checkbox],[type=radio],[type=range],[type=file],[type=color],[type=button],[type=submit],[type=reset],[type=image],[type=hidden]),select,textarea):not([data-doc-area] *,.luckysheet *,#xlCellEditor,.ome-ai-panel *){font-size:max(16px,1em)!important}
+}
+
+/* safe-area แนวนอน (iPhone มีรอยบากซ้าย/ขวา): ดันเนื้อหาออกจากรอยบาก — ค่าเป็น 0 ในแนวตั้ง/เครื่องที่ไม่มีรอยบาก · องค์ประกอบ fixed ใส่เองที่ตัวมัน (ดู repo-guards "safe-area") */
+html{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}

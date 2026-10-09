@@ -92,12 +92,12 @@
   /* ── CSS (ฉีดครั้งเดียว ใช้ตัวแปรสี --ome-* จาก theme.css ที่โหลดอยู่แล้วทุกหน้า จึงสลับมืด/สว่าง
      อัตโนมัติตาม data-theme โดยไม่ต้องกำหนด token สีเองซ้ำแบบหน้าเครื่องมือทั่วไป) ────────────────── */
   var css = ''
-    + '.ome-ai-fab{position:fixed;right:16px;bottom:16px;width:56px;height:56px;border-radius:50%;'
+    + '.ome-ai-fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;'
     + 'background:var(--ome-brand);color:var(--ome-on-accent);border:none;font-size:25px;cursor:pointer;z-index:170;'
     + 'display:grid;place-items:center;box-shadow:var(--ome-shadow-2);font-family:var(--ome-f)}'
     + '.ome-ai-fab .ome-icon{width:24px;height:24px}'
     + '.ome-ai-fab:hover{filter:brightness(1.06)}'
-    + '.ome-ai-panel{position:fixed;right:16px;bottom:82px;width:360px;max-width:92vw;height:520px;'
+    + '.ome-ai-panel{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(82px + env(safe-area-inset-bottom,0px));width:360px;max-width:92vw;height:520px;'
     + 'max-height:72vh;background:var(--ome-card);border-radius:16px;box-shadow:0 14px 40px rgba(0,0,0,.22);'
     + 'z-index:170;display:none;flex-direction:column;overflow:hidden;font-family:var(--ome-f);'
     + 'border:1px solid var(--ome-line)}'
@@ -105,8 +105,18 @@
     /* จอเล็ก: ปุ่มลอยเดิม (56px ชิดขวา-ล่าง 16px) ทับเนื้อหาสำคัญของบางหน้าได้ง่าย (เช่นการ์ดสรุปตัวเลข/
        ปุ่มลบตัวกรองท้ายตาราง) เพราะพื้นที่จอแคบทำให้เนื้อหาเลื่อนมาอยู่ตรงมุมขวาล่างบ่อยกว่าจอใหญ่ ย่อขนาด
        ลงเล็กน้อยให้บังพื้นที่น้อยลง โดยยังคงแตะง่าย (46px ยังเกินเกณฑ์พื้นที่แตะขั้นต่ำ 44px) */
-    + '@media(max-width:480px){.ome-ai-fab{width:46px;height:46px;font-size:20px;right:10px;bottom:10px}}'
-    + '@media(max-width:480px){.ome-ai-panel{right:8px;left:8px;bottom:68px;width:auto;max-width:none;height:auto;max-height:calc(100vh - 100px)}}'
+    + '@media(max-width:480px){.ome-ai-fab{width:46px;height:46px;font-size:20px;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px))}}'
+    + '@media(max-width:480px){.ome-ai-panel{right:calc(8px + env(safe-area-inset-right,0px));left:calc(8px + env(safe-area-inset-left,0px));bottom:calc(68px + env(safe-area-inset-bottom,0px));width:auto;max-width:none;height:auto;max-height:calc(100dvh - 100px - env(safe-area-inset-bottom,0px))}}'
+    /* รอบ 9 — ปุ่มลอยไม่บังเนื้อหาบนมือถือ (≤ 700px): (1) เว้นที่ท้ายหน้า = padding-bottom ของฟุตเตอร์กลาง (body ถูก theme.css บังคับ 0) เท่าปุ่ม + ระยะ + safe-area
+       (หน้า data-layout="app" ที่สูงเท่าจอซ่อนฟุตเตอร์ — เว้นที่ให้ .page แทน ในกฎด้านล่าง) (2) เลื่อนลง = ปุ่มหลบลงไปนอกจอ เลื่อนขึ้น/ถึงบนสุด = กลับมา
+       (3) ช่องพิมพ์ในแผง 16px กัน iOS ซูมตอนแตะ */
+    + '@media(max-width:700px){html.ome-has-fab{--ome-fab-space:calc(46px + 10px + 6px + env(safe-area-inset-bottom,0px))}'
+    + 'html.ome-has-fab body[data-layout="app"] .page{padding-bottom:var(--ome-fab-space)}'
+    + 'html.ome-has-fab .ome-footer{padding-bottom:calc(var(--ome-fab-space) + 8px)}'
+    + '.ome-ai-fab{transition:transform .2s ease,opacity .2s ease}'
+    + '.ome-ai-fab.ome-ai-fab-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom,0px)));opacity:0;pointer-events:none}'
+    + '.ome-ai-inputrow textarea{font-size:16px}}'
+    + '@media(prefers-reduced-motion:reduce){.ome-ai-fab{transition:none}}'
     + '.ome-ai-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;'
     + 'border-bottom:1px solid var(--ome-line);flex-shrink:0}'
     + '.ome-ai-head b{font-size:14px;color:var(--ome-ink)}'
@@ -184,10 +194,31 @@
       '</div>' +
     '</div>';
 
+  /* เลื่อนลง (ตัวเลื่อนไหนก็ได้ รวมกล่องที่เลื่อนในตัวของหน้า app) → ซ่อนปุ่ม · เลื่อนขึ้น หรืออยู่ใกล้บนสุด → แสดง
+     ใช้ capture เพราะ scroll ไม่ bubble · แผงเปิดอยู่ไม่ซ่อน · CSS ซ่อนเฉพาะ ≤ 700px (ด้านบน) */
+  function watchScroll() {
+    var last = new WeakMap(), acc = 0, accDir = 0;
+    document.addEventListener('scroll', function (e) {
+      var t = e.target === document ? document.scrollingElement : e.target;
+      if (!t || (t.closest && t.closest('.ome-ai-panel'))) return;
+      var y = t.scrollTop || 0, prev = last.has(t) ? last.get(t) : y;
+      last.set(t, y);
+      var d = y - prev;
+      if (!d) return;
+      var dir = d > 0 ? 1 : -1;
+      if (dir !== accDir) { accDir = dir; acc = 0; }
+      acc += Math.abs(d);
+      if (panel.classList.contains('open')) { fab.classList.remove('ome-ai-fab-hide'); return; }
+      if (dir > 0 && y > 80 && acc > 24) fab.classList.add('ome-ai-fab-hide');
+      else if (dir < 0 && acc > 8 || y < 60) fab.classList.remove('ome-ai-fab-hide');
+    }, { capture: true, passive: true });
+  }
   function ready() {
+    document.documentElement.classList.add('ome-has-fab');
     document.body.appendChild(fab);
     document.body.appendChild(panel);
     wire();
+    watchScroll();
   }
   if (document.body) ready();
   else document.addEventListener('DOMContentLoaded', ready);

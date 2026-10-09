@@ -6,7 +6,7 @@
 ## ธีม v2 (ROADMAP 0c) — อ่านก่อน
 - ค่าตั้งธีมทั้งหมดอยู่ที่ `theme-boot.js` (`window.OmeTheme`) — สีเน้น 5 (`teal` ปกติ/`blue`/`violet`/`orange`/`graphite`), พื้นผิว 3 (`flat` ปกติ/`soft`/`outline`), ฟอนต์ 2 (`prompt` ปกติ/`ibmplex`)
 - `theme.css` = `@layer tokens, base, components, layouts` + ส่วน compat ท้ายไฟล์ (ไม่มี layer โดยตั้งใจ)
-- คอมโพเนนต์กลาง/เลย์เอาต์ทำงานเมื่อหน้าใส่ `<body data-layout="tool|app|reader|dashboard|hub">` เท่านั้น — ตัวอย่างครบทุกชิ้นที่ `theme-preview.html`
+- คอมโพเนนต์กลาง/เลย์เอาต์ทำงานเมื่อหน้าใส่ `<body data-layout="tool|app|reader|dashboard|hub">` เท่านั้น — คอมโพเนนต์ทุกชิ้นอยู่ใน `theme.css`
 - ไอคอน: `icons.svg` (Lucide) สร้างด้วย `tests/build-icons.mjs` · สีกราฟ: `chart-theme.js` อ่าน `--ome-chart-*`
 - โทเคน v2: `--ome-surface-0/1/2` `--ome-text-1/2/3` `--ome-border(-strong)` `--ome-accent(-strong/-soft)` `--ome-on-accent`
   `--ome-ok|warn|err|info` + `-soft` + `-ink` · `--ome-radius-sm|md|lg|pill` (6/10/14/999) · `--ome-shadow-1..3`

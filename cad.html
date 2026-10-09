@@ -45,9 +45,9 @@
 .cad-tool-section-lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:700;letter-spacing:.04em;text-transform:uppercase;display:block;margin-bottom:var(--ome-sp-2)}
 /* ปุ่มเครื่องมือแบบไอคอนล้วน (ชื่อเครื่องมืออยู่ใน title/tooltip) */
 .cad-tool-grid{display:flex;flex-wrap:wrap;gap:6px}
-.cad-tool-grid .btn{width:38px;height:38px;padding:0;flex-shrink:0}
-.cad-tool-grid .btn svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.cad-tool-grid .btn svg.fill,.cad-tool-grid .btn svg .fill{fill:currentColor;stroke:none}
+.cad-tool-grid button{width:38px;height:38px;padding:0;flex-shrink:0}
+.cad-tool-grid button svg{width:18px;height:18px;display:block;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.cad-tool-grid button svg.fill,.cad-tool-grid button svg .fill{fill:currentColor;stroke:none}
 .cad-tool-list{display:flex;flex-direction:column;gap:6px;margin-top:var(--ome-sp-2)}
 .cad-tool-listitem{width:100%;justify-content:flex-start;height:auto;min-height:32px;padding-top:5px;padding-bottom:5px;text-align:left;font-weight:500}
 .cad-tool-listitem svg{width:16px;height:16px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
@@ -75,11 +75,13 @@
 #finishPolylineBtn{display:none}
 #finishPolylineBtn.show{display:inline-flex}
 
+/* สี "ข้อมูล" ของผืนวาด/ฉาก 3D (กระดาษขาวสำหรับงานวาด, พื้นฉาก 3D) — ไม่ตามสีเน้นของธีม; ชื่อเหล่านี้อยู่ใน DATA_COLOR_VARS ของ tests/theme-guards.mjs */
+:root{--cad-paper:#FFFFFF;--cad-paper-dark:#0F1420;--c3-scene:#E7ECF4;--c3-scene-dark:#0B0E16}
 /* วิวพอร์ตวาดแบบ — ยืดตามพื้นที่ที่เหลือ (cad.js วัดขนาดจากกล่องนี้ตอน resize; สคริปต์ท้ายหน้ายิง resize เมื่อกล่องเปลี่ยนขนาด) */
 .cad-viewport{position:relative;width:100%;flex:1 1 0;min-height:320px;border-radius:var(--ome-radius-md);overflow:hidden;
-  background:#FFFFFF;border:1px solid var(--ome-border);touch-action:none;cursor:crosshair}
+  background:var(--cad-paper);border:1px solid var(--ome-border);touch-action:none;cursor:crosshair}
 .cad-viewport canvas{display:block;width:100%;height:100%}
-[data-theme="dark"] .cad-viewport{background:#0F1420}
+[data-theme="dark"] .cad-viewport{background:var(--cad-paper-dark)}
 .cad-quick3d-row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:10px;flex-shrink:0}
 .cad-status{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-3);margin-top:9px;flex-shrink:0;
   font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-variant-numeric:tabular-nums}
@@ -141,9 +143,9 @@
 .cad-dropdown{position:relative;display:inline-block}
 .cad-dropdown-menu{position:absolute;top:calc(100% + 4px);left:0;background:var(--ome-surface-1);border:1px solid var(--ome-border);
   border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-3);padding:5px;display:flex;flex-direction:column;z-index:var(--ome-z-popover);min-width:170px}
-.cad-dropdown-menu .btn{width:100%;justify-content:flex-start;font-weight:600;gap:var(--ome-sp-2)}
+.cad-dropdown-menu button{width:100%;justify-content:flex-start;font-weight:600;gap:var(--ome-sp-2)}
 .cad-dropdown-menu{gap:var(--ome-sp-2)}
-.cad-dropdown-menu .btn.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.cad-dropdown-menu button.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
 .cad-dropdown-icon{width:16px;height:16px;flex-shrink:0;display:inline-grid;place-items:center}
 .cad-dropdown-icon .ome-icon{width:16px;height:16px}
 .cad-dropdown-sep{height:1px;background:var(--ome-border);margin:4px 2px}
@@ -172,15 +174,16 @@
 .c3-step-suppressed{opacity:.5}
 .c3-step-suppressed span{text-decoration:line-through}
 .c3-editing-tag{color:var(--ome-accent-strong);text-decoration:none!important}
-.c3-viewport-wrap{position:relative;height:min(62vh,560px);border-radius:var(--ome-radius-lg);overflow:hidden;background:#E7ECF4;margin-top:6px}
+.c3-viewport-wrap{position:relative;height:min(62vh,560px);border-radius:var(--ome-radius-lg);overflow:hidden;background:var(--c3-scene);margin-top:6px}
 .c3-viewport-wrap canvas{display:block;width:100%;height:100%}
 .c3-viewport-wrap.c3-pick-cursor canvas{cursor:crosshair}
 .c3-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
-  background:rgba(231,236,244,.92);text-align:center;padding:20px;font-size:var(--ome-fs-sm);color:#5B6477}
+  background:color-mix(in srgb, var(--c3-scene) 92%, transparent);text-align:center;padding:20px;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .c3-spinner{width:34px;height:34px;border-radius:50%;border:3.5px solid var(--ome-accent-soft);border-top-color:var(--ome-accent);animation:c3spin 1s linear infinite}
 @keyframes c3spin{to{transform:rotate(360deg)}}
 .c3-error{color:var(--ome-err-ink);font-weight:700}
-[data-theme="dark"] .c3-viewport-wrap,[data-theme="dark"] .c3-overlay{background:#0B0E16}
+[data-theme="dark"] .c3-viewport-wrap{background:var(--c3-scene-dark)}
+[data-theme="dark"] .c3-overlay{background:color-mix(in srgb, var(--c3-scene-dark) 92%, transparent)}
 [data-theme="dark"] .c3-overlay{color:var(--ome-text-2)}
 /* แถบเครื่องมือลอยตอนร่างภาพตรงในมุมมอง 3 มิติ */
 .c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2);
@@ -202,7 +205,7 @@
 .c3-materials-title{font-size:var(--ome-fs-sm);font-weight:700;color:var(--ome-accent-strong);margin:16px 0 8px}
 .c3-materials-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
 .c3-material-item{width:100%;height:auto;justify-content:flex-start;gap:12px;padding:8px 10px;text-align:left;font-weight:500}
-.c3-material-swatch{width:34px;height:34px;border-radius:8px;background:var(--sw);flex-shrink:0;border:1px solid rgba(0,0,0,.12)}
+.c3-material-swatch{width:34px;height:34px;border-radius:8px;background:var(--sw);flex-shrink:0;border:1px solid var(--ome-border-strong)}
 .c3-material-info{display:flex;flex-direction:column;gap:2px;min-width:0}
 .c3-material-info b{font-size:var(--ome-fs-sm)}
 .c3-material-info small{font-size:var(--ome-fs-xs);color:var(--ome-text-2);line-height:1.4;font-weight:400;white-space:normal}
@@ -217,7 +220,7 @@
   .cad-tool-section:last-child{border-right:0;padding-right:0}
   .cad-tool-section-lbl{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
   .cad-tool-grid{flex-wrap:nowrap;gap:var(--ome-sp-2)}
-  .cad-tool-grid .btn{width:40px;height:40px}
+  .cad-tool-grid button{width:40px;height:40px}
   .cad-tool-list{flex-direction:row;gap:var(--ome-sp-2);margin:0}
   .cad-tool-listitem{width:40px;height:40px;min-height:0;padding:0;justify-content:center;flex:none}
   .cad-tool-listitem > span:not(.cad-dropdown-icon){position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -230,7 +233,7 @@
   .cad-status{margin-top:var(--ome-sp-2)}
   #panelsBtn{display:inline-flex;position:relative}
   /* แผงขวา = ลิ้นชักจากขวา (ปิดอยู่ = ซ่อนจาก tab/อ่านหน้าจอด้วย visibility) */
-  .cad-side-right{position:fixed;top:0;right:0;bottom:0;width:min(360px,92vw);z-index:var(--ome-z-drawer);padding:0 var(--ome-sp-3) var(--ome-sp-4);
+  .cad-side-right{position:fixed;top:0;right:0;bottom:0;width:min(360px,92vw);z-index:var(--ome-z-drawer);padding:env(safe-area-inset-top,0px) calc(var(--ome-sp-3) + env(safe-area-inset-right,0px)) calc(var(--ome-sp-4) + env(safe-area-inset-bottom,0px)) var(--ome-sp-3);
     background:var(--ome-surface-0);box-shadow:var(--ome-shadow-3);overflow-y:auto;transform:translateX(104%);visibility:hidden;
     transition:transform var(--ome-dur-2) var(--ome-ease),visibility 0s linear var(--ome-dur-2)}
   .cad-side-right.open{transform:none;visibility:visible;transition:transform var(--ome-dur-2) var(--ome-ease)}
@@ -245,7 +248,7 @@
   @media(prefers-reduced-motion:reduce){.cad-side-right,.cad-drawer-backdrop{transition:none}}
 }
 @media(max-width:700px){
-  .cad-tool-grid .btn,.cad-tool-listitem{min-width:40px}
+  .cad-tool-grid button,.cad-tool-listitem{min-width:40px}
   .cad-layer-row{flex-wrap:wrap}
   .cad-layer-row .cad-layer-name{flex:1 1 100%;order:-1}
   .cad-layer-row .cad-layer-icon{width:40px;height:40px}

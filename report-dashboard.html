@@ -138,7 +138,7 @@ html,body{overflow-x:clip;max-width:100%}
 .dashboard-focus-value{font-size:var(--ome-fs-xs);font-weight:700;text-align:right}
 .dashboard-attention-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ome-sp-3);padding:4px 0 2px}
 /* เมนูเครื่องมือแดชบอร์ด (ปุ่มแฮมเบอร์เกอร์) */
-.utility-menu-panel{position:fixed;top:calc(var(--ome-nav-h) + 10px);right:16px;width:300px;max-height:calc(100dvh - var(--ome-nav-h) - 24px);overflow:auto;padding:var(--ome-sp-3);
+.utility-menu-panel{position:fixed;top:calc(var(--ome-nav-h) + 10px);right:calc(16px + env(safe-area-inset-right,0px));width:300px;max-height:calc(100dvh - var(--ome-nav-h) - 24px);overflow:auto;padding:var(--ome-sp-3);
   background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);z-index:var(--ome-z-popover)}
 .utility-menu-head{display:flex;align-items:center;justify-content:space-between;padding:0 0 var(--ome-sp-2);margin-bottom:var(--ome-sp-2);border-bottom:1px solid var(--ome-border)}
 .utility-menu-head strong{font-size:var(--ome-fs-sm)}
@@ -190,7 +190,7 @@ body.pc55-presentation :is(#dashboardCommandBar,.dashboard-filter-card,#dashboar
 #customView{position:relative}
 .custom-tools-bar{display:flex;align-items:center;gap:var(--ome-sp-2);min-height:44px;padding:4px 2px 10px}
 .custom-tools-title{flex:1;font-size:var(--ome-fs-md);font-weight:700}
-.custom-tools-panel{position:fixed;top:0;right:0;width:min(360px,92vw);height:100dvh;padding:var(--ome-sp-4);overflow:auto;
+.custom-tools-panel{position:fixed;top:0;right:0;width:min(360px,92vw);height:100dvh;box-sizing:border-box;padding:calc(var(--ome-sp-4) + env(safe-area-inset-top,0px)) calc(var(--ome-sp-4) + env(safe-area-inset-right,0px)) calc(var(--ome-sp-4) + env(safe-area-inset-bottom,0px)) var(--ome-sp-4);overflow:auto;
   background:var(--ome-surface-1);color:var(--ome-text-1);border-left:1px solid var(--ome-border);box-shadow:var(--ome-shadow-3);z-index:var(--ome-z-modal)}
 .custom-tools-panel[hidden]{display:none}
 .custom-tools-panel .utility-menu-section{grid-template-columns:1fr}

@@ -285,6 +285,9 @@
   var SCROLL_OV = /auto|scroll|hidden|clip/;
 
   function skipShell(el, opts) { return !(opts && opts.shell) && !!el.closest(SHELL); }
+  /* mobileCrowd นับปุ่มแชท AI ลอยด้วย (รอบ 9 เอาข้อยกเว้นเดิมออก): ปุ่มอื่นต้องห่างจากมัน ≥ 8px ตอนอยู่ในจอแรก */
+  var SHELL_NO_FAB = '.ome-nav,.ome-drawer,.ome-settings-panel,.ome-footer,.ome-pal,.ome-qa,.ome-ai-panel';
+  function skipShellCrowd(el, opts) { return !(opts && opts.shell) && !!el.closest(SHELL_NO_FAB); }
   function textElements(opts) {
     var out = [], seen = new Set();
     var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -393,13 +396,34 @@
     }
     return false;
   }
+  function inPinned(el) {
+    for (var p = el; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+      var pos = getComputedStyle(p).position;
+      if (pos === 'fixed' || pos === 'sticky') return true;
+    }
+    return false;
+  }
   function mobileCrowd(opts) {
     var bad = [], vw = window.innerWidth, items = [];
     document.querySelectorAll(TAP).forEach(function (el) {
-      if (items.length >= 500 || !visible(el) || skipShell(el, opts) || el.closest('.ome-ai-fab')) return; // ปุ่ม AI ลอยทับเนื้อหาตามตำแหน่งเลื่อน — ไม่นับ
+      if (items.length >= 500 || !visible(el) || skipShellCrowd(el, opts)) return; // รวมปุ่ม AI ลอย (.ome-ai-fab); การทับเนื้อหาท้ายหน้าตรวจที่ mobileFabOverlap
       if (el.tagName === 'A' && !el.matches('.btn,.tile,.list-row,.tab,.chip,[role=button]') && getComputedStyle(el).display === 'inline') return; // ลิงก์ในบรรทัด
       var r = el.getBoundingClientRect();
       if (r.width < 2 || r.height < 2 || cutOffInDialog(el, r)) return;
+      // ถูกบังโดยของอื่น (ส่วนท้ายกล่องที่ค้างทับเนื้อหาที่เลื่อนอยู่ข้างใต้, กล่อง modal ที่เปิดอยู่) = ผู้ใช้กดไม่ได้อยู่แล้ว ไม่นับ
+      var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (cx >= 0 && cy >= 0 && cx < window.innerWidth && cy < window.innerHeight && !el.closest('.ome-ai-fab')) {
+        var stack = document.elementsFromPoint(cx, cy).filter(function (e) { return !e.closest('.ome-ai-fab'); });
+        var topEl = stack[0];
+        if (topEl && !(topEl === el || el.contains(topEl) || topEl.contains(el))) return;
+      }
+      // ส่วนท้ายกล่องที่ค้างขอบล่าง (sticky) ทับเนื้อหาที่เลื่อนอยู่ข้างใต้: นับเฉพาะส่วนที่เห็นเหนือส่วนท้าย
+      var dlg = el.closest('dialog');
+      var foot = dlg && !el.closest('.dialog-foot') ? dlg.querySelector('.dialog-foot') : null;
+      if (foot && getComputedStyle(foot).position === 'sticky') {
+        var fr = foot.getBoundingClientRect();
+        if (r.bottom > fr.top && r.top < fr.top) r = { left: r.left, right: r.right, top: r.top, bottom: fr.top, width: r.width, height: fr.top - r.top };
+      }
       items.push({ el: el, r: r });
     });
     function row(x) { return x.r.width >= vw * 0.6 && x.r.height >= 44; }
@@ -409,6 +433,10 @@
         var a = items[i], b = items[j];
         if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
         if (rectGap(a.r, b.r) >= GAP_MIN) continue;
+        // ปุ่มแชท AI ลอย: เนื้อหาที่เลื่อนผ่านใต้ปุ่มลอยเป็นธรรมชาติของปุ่มลอย (แก้ด้วยซ่อนตอนเลื่อนลง + เว้นที่ท้ายหน้า → mobileFabOverlap)
+        // ที่นี่นับเฉพาะ element ที่ติดจอถาวร (fixed/sticky) ซึ่งทับปุ่มตลอดเวลา
+        var fabPair = a.el.closest('.ome-ai-fab') ? b.el : b.el.closest('.ome-ai-fab') ? a.el : null;
+        if (fabPair && !inPinned(fabPair)) continue;
         if (row(a) && row(b)) continue;
         var grp = a.el.closest('.segmented,.lang-toggle');
         if (grp && grp === b.el.closest('.segmented,.lang-toggle')) continue;
@@ -469,9 +497,103 @@
     });
     return bad.slice(0, 60);
   }
+  /* ── กฎมือถือ รอบ 9 ─────────────────────────────────────────────────────────────────────────────
+     mobileFabOverlap ปุ่มแชท AI ลอย (.ome-ai-fab) ทับ element ที่กดได้ เมื่อเลื่อนทุกตัวเลื่อนไปท้ายสุดแล้วบังคับให้ปุ่มโผล่ (ไม่พึ่งการซ่อนตอนเลื่อนลง)
+                      → วัดว่า "เว้นที่ท้ายหน้า" ได้จริง (padding-bottom ของ body/.page ใน ai-chat-widget.js + theme.css)
+     mobileInput      ช่องกรอก: font-size < 16px (iOS ซูมอัตโนมัติตอนแตะ) · type=text ที่ชื่อ/placeholder/label บอกว่าเป็นอีเมล/เบอร์โทร/จำนวนเงิน-ตัวเลข
+                      แต่ไม่มี type/inputmode ที่เหมาะ · email/tel/password/url ที่ไม่มี autocomplete
+     mobileDialog     กล่องที่เปิดอยู่ (dialog/ลิ้นชัก/palette/เมนู role=dialog): ล้นขอบจอ · เนื้อหายาวแต่ไม่มีที่เลื่อนในกล่อง · ปุ่มท้ายกล่อง (.dialog-foot) ตกขอบ/ถูกตัด
+     (ปิดด้วยปุ่ม/แตะนอกกล่อง/Esc ตรวจเป็นพฤติกรรมใน theme-audit.spec.js "dialogs:" เพราะต้องกดจริง) */
+  var FAB_CLEAR = 'transition:none';
+  function mobileFabOverlap(opts) {
+    var fab = document.querySelector('.ome-ai-fab');
+    if (!fab || !fab.offsetWidth) return [];
+    var scrollers = [document.scrollingElement].concat([].filter.call(document.querySelectorAll('body *'), function (el) {
+      if (el.closest('.ome-ai-panel,.ome-drawer,.ome-settings-panel,.ome-pal')) return false;
+      var cs = getComputedStyle(el);
+      return /auto|scroll/.test(cs.overflowY) && el.scrollHeight > el.clientHeight + 8 && el.clientHeight > 80 && visible(el);
+    }));
+    var saved = scrollers.map(function (el) { return el.scrollTop; });
+    var wasHidden = fab.classList.contains('ome-ai-fab-hide'), oldTr = fab.style.transition;
+    fab.style.transition = 'none'; fab.classList.remove('ome-ai-fab-hide');
+    scrollers.forEach(function (el) { el.scrollTop = el.scrollHeight; });
+    var fr = fab.getBoundingClientRect(), bad = [];
+    document.querySelectorAll(TAP).forEach(function (el) {
+      if (bad.length >= 60 || el.closest('.ome-ai-fab,.ome-ai-panel,.ome-nav,.ome-drawer,.ome-settings-panel') || !visible(el)) return;
+      var r = el.getBoundingClientRect();
+      var l = Math.max(r.left, fr.left), t = Math.max(r.top, fr.top), rr = Math.min(r.right, fr.right), b = Math.min(r.bottom, fr.bottom);
+      if (rr - l <= 1 || b - t <= 1) return;
+      // ลำดับซ้อนที่จุดกึ่งกลางของส่วนที่ซ้อนกัน (บน → ล่าง): ปุ่มแชทต้องอยู่เหนือ element นั้นถึงจะ "บัง" (กล่อง modal/ลิ้นชักที่ z-index สูงกว่าบังปุ่มเองแทน)
+      var els = document.elementsFromPoint((l + rr) / 2, (t + b) / 2), iFab = -1, iEl = -1;
+      for (var i = 0; i < els.length; i++) {
+        if (iFab < 0 && els[i].closest('.ome-ai-fab')) iFab = i;
+        if (iEl < 0 && (els[i] === el || el.contains(els[i]) || els[i].contains(el)) && !els[i].closest('.ome-ai-fab')) iEl = i;
+      }
+      if (iFab >= 0 && iEl >= 0 && iFab < iEl && cutOffInDialog(el, r) === false) bad.push({ sel: selector(el), text: snippet(el), overlap: Math.round(rr - l) + 'x' + Math.round(b - t) });
+    });
+    scrollers.forEach(function (el, i) { el.scrollTop = saved[i]; });
+    fab.style.transition = oldTr; if (wasHidden) fab.classList.add('ome-ai-fab-hide');
+    return bad;
+  }
+  var NUM_HINT = /amount|price|cost|qty|quantity|salary|total|baht|weight|distance|mileage|odometer|จำนวน|ราคา|เงิน|บาท|ยอด|น้ำหนัก|ระยะทาง|ไมล์|กิโล|ดอกเบี้ย|ค่า/i;
+  var EMAIL_HINT = /e-?mail|อีเมล/i, TEL_HINT = /\btel\b|phone|mobile|เบอร์|โทร/i;
+  function labelText(el) {
+    var l = el.labels && el.labels[0] ? el.labels[0].innerText : '';
+    if (!l && el.closest('label')) l = el.closest('label').innerText;
+    return [el.id, el.name, el.getAttribute('placeholder'), el.getAttribute('aria-label'), l].join(' ');
+  }
+  function mobileInput(opts) {
+    var bad = [];
+    document.querySelectorAll('input,textarea,select').forEach(function (el) {
+      if (bad.length >= 80 || !visible(el) || skipShell(el, opts) || el.closest('[data-doc-area],[data-audit-skip],.luckysheet,#luckysheet')) return;
+      var type = (el.getAttribute('type') || 'text').toLowerCase();
+      if (el.tagName === 'INPUT' && /^(checkbox|radio|range|file|color|hidden|image|button|submit|reset)$/.test(type)) return;
+      var fs = parseFloat(getComputedStyle(el).fontSize);
+      if (fs < 15.99) bad.push({ sel: selector(el), text: snippet(el), kind: 'fontSize', px: +fs.toFixed(1) });
+      if (el.tagName !== 'INPUT') return;
+      var hint = labelText(el), mode = el.getAttribute('inputmode');
+      if (type === 'text' && !mode) {
+        if (EMAIL_HINT.test(hint)) bad.push({ sel: selector(el), text: snippet(el), kind: 'type', expect: 'type=email' });
+        else if (TEL_HINT.test(hint)) bad.push({ sel: selector(el), text: snippet(el), kind: 'type', expect: 'type=tel' });
+        else if (NUM_HINT.test(hint) && !/ชื่อ|name|หมายเหตุ|note|memo/i.test(hint)) bad.push({ sel: selector(el), text: snippet(el), kind: 'inputmode', expect: 'inputmode=decimal|numeric' });
+      }
+      if (/^(email|tel|password|url)$/.test(type) && !el.hasAttribute('autocomplete')) bad.push({ sel: selector(el), text: snippet(el), kind: 'autocomplete', type: type });
+    });
+    return bad;
+  }
+  function mobileDialog(opts) {
+    var bad = [], vw = window.innerWidth, vh = window.innerHeight;
+    document.querySelectorAll('dialog[open],[role=dialog]:not(dialog),.ome-drawer.open,.ome-pal:not([hidden]),.ome-settings-panel.open').forEach(function (d) {
+      if (!visible(d)) return;
+      var r = d.getBoundingClientRect(), id = selector(d);
+      if (d.matches('[role=dialog]:not(dialog)') && (r.right <= 0 || r.left >= vw || r.bottom <= 0 || r.top >= vh || getComputedStyle(d).opacity === '0')) return; // ปิดอยู่ (เลื่อนออกนอกจอ/โปร่งใส) ไม่ใช่กล่องที่เปิด
+      if (r.left < -1 || r.right > vw + 1 || r.top < -1 || r.bottom > vh + 1) bad.push({ sel: id, kind: 'offscreen', rect: [r.left, r.top, r.right, r.bottom].map(Math.round) });
+      var scrollable = false, tall = false;
+      [d].concat([].slice.call(d.querySelectorAll('*'))).forEach(function (el) {
+        var cs = getComputedStyle(el);
+        if (el.scrollHeight > el.clientHeight + 2 && el.clientHeight > 0) {
+          if (/auto|scroll/.test(cs.overflowY)) scrollable = true;
+          else if (el === d || /hidden|clip/.test(cs.overflowY)) tall = tall || el === d;
+        }
+      });
+      if (tall && !scrollable) bad.push({ sel: id, kind: 'noScroll', scrollHeight: d.scrollHeight, clientHeight: d.clientHeight });
+      d.querySelectorAll('.dialog-foot button,.dialog-foot a,.modal-foot button').forEach(function (b) {
+        if (!visible(b)) return;
+        var br = b.getBoundingClientRect();
+        if (br.left < -1 || br.right > vw + 1 || br.bottom > vh + 1 || br.top < -1 || br.bottom > r.bottom + 1 || br.right > r.right + 1) bad.push({ sel: selector(b), text: snippet(b), kind: 'footerButton', rect: [br.left, br.top, br.right, br.bottom].map(Math.round) });
+      });
+    });
+    return bad;
+  }
   function mobile(opts) {
     opts = opts || {};
-    return { mobileFont: mobileFont(opts), mobileOverflow: mobileOverflow(opts), mobileClip: mobileClip(opts), mobileCrowd: mobileCrowd(opts), mobileAlign: mobileAlign(opts), mobileRowBreak: mobileRowBreak(opts) };
+    var out = { mobileFont: mobileFont(opts), mobileOverflow: mobileOverflow(opts), mobileClip: mobileClip(opts), mobileCrowd: mobileCrowd(opts), mobileAlign: mobileAlign(opts), mobileRowBreak: mobileRowBreak(opts) };
+    if (!opts.only || opts.only === 'round9') {
+      out.mobileInput = mobileInput(opts);
+      out.mobileDialog = mobileDialog(opts);
+      out.mobileFabOverlap = mobileFabOverlap(opts); // ท้ายสุด: เลื่อนตัวเลื่อนทั้งหมดไปท้ายแล้วคืนค่า
+    }
+    return out;
   }
 
   /* ── ตัวกดสำรวจ (crawler) — หาเฉพาะแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย ── */
@@ -505,5 +627,5 @@
   }
 
   window.__tanotAudit = { audit: audit, textOnPage: textOnPage, sampleOnImage: sampleOnImage, thaiInEn: thaiInEn,
-    crawlCandidates: crawlCandidates, closeOverlays: closeOverlays, mobile: mobile };
+    crawlCandidates: crawlCandidates, closeOverlays: closeOverlays, mobile: mobile, mobileDialog: mobileDialog, mobileOverflow: mobileOverflow };
 })();

@@ -6,16 +6,20 @@
 //     controlBorder  — ขอบ input/select/ปุ่ม outline/segmented ≥ 3:1 กับพื้นข้างๆ (WCAG 1.4.11)
 //     nonCentral     — ปุ่ม/ช่องกรอกที่ไม่ได้ใช้คอมโพเนนต์กลาง (.btn/.tab/.chip/.field … ใน theme.css)
 //     targetSize     — (390px) เป้ากด < 40px
-//     มือถือ (รอบ 3; ที่ 390 ทุกหน้า + 360 เฉพาะหน้าที่แก้ในรอบนั้น = NARROW_360 ด้านล่าง; นิยามอยู่หัวส่วน "กฎตรวจมือถือ" ใน theme-audit-page.js):
+//     มือถือ (รอบ 3 · ทุกหน้าที่ 360 และ 390 ตั้งแต่รอบ 9, +412/430 ด้วย THEME_AUDIT_WIDTHS; นิยามอยู่หัวส่วน "กฎตรวจมือถือ" ใน theme-audit-page.js):
 //       mobileFont     — เนื้อหา < 14px · ข้อความรอง/ป้าย/ปุ่ม < 12px · h1 > 28px · h2 > 22px
 //       mobileOverflow — ตัวหน้าเลื่อนแนวนอน / element เลยขอบจอ
 //       mobileClip     — ข้อความถูกตัดโดยไม่มี ellipsis/title + ตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด
 //       mobileCrowd    — เป้ากด 2 อันห่างกัน < 8px
 //       mobileRowBreak — ปุ่มท้ายแถว (.list-row/.todo-row) ตกลงไปอยู่ใต้เนื้อหา
 //       mobileAlign    — กล่อง/การ์ดพี่น้องขอบซ้าย-ขวาไม่ตรง หรือกว้างไม่เท่ากันในแถวเดียวกัน (> 2px)
+//       รอบ 9: mobileInput (ช่องกรอก < 16px / ชนิดไม่เหมาะ) · mobileDialog (กล่อง/ลิ้นชักล้นจอ ไม่เลื่อน ปุ่มท้ายตกขอบ) ·
+//              mobileFabOverlap (ปุ่มแชท AI ลอยบังปุ่มท้ายหน้า)
 //     textOnImage    — ตัวอักษรบนพื้นหน้าโดยตรงทับภาพพื้นหลัง (data-bg) < 4.5:1 วัดจากพิกเซลจริง
 //   ต่อหน้า (1100 สว่าง): crawl — กดแท็บ/segmented/toggle/ปุ่มเปิด dialog ที่ปลอดภัย แล้วต้องไม่มี console error /
 //     pageerror / request ไป /api (ไม่มี mock) → crawlErrors
+//   ต่อหน้า (รอบ 9) landscape — 844×390 สว่าง: ไม่ล้นแนวนอน + ลิ้นชักเมนู/แผงตั้งค่าอยู่ในจอและเลื่อนถึงรายการสุดท้ายได้ + กล่องที่เปิดจากปุ่มปลอดภัยไม่ล้น
+//   ต่อหน้า (รอบ 9) dialogs — 390×800: กดปุ่มที่ปลอดภัยทีละปุ่ม ทุกกล่อง <dialog class="dialog"> ที่เปิดต้องไม่ล้นจอ/เลื่อนได้/ปุ่มท้ายไม่ตกขอบ และปิดได้เมื่อแตะนอกกล่อง
 //   ต่อหน้า (ome:lang = en): thaiInEn — ข้อความไทยที่มองเห็นใน UI (ยกเว้น [data-i18n-skip])
 //   + bg-level: ทุกกลุ่มภาพ (หน้าตัวแทนกลุ่มละ 1) × 390/1100 × สว่าง/มืด × ระดับภาพพื้นหลัง "อ่อน" และ "ชัด" — ตัวอักษรบนภาพต้องไม่เกิน baseline
 //     ("กลาง" = ค่าเริ่มต้น อยู่ในชุด theme ด้านบนแล้ว) · ตั้ง THEME_AUDIT_BG=soft|mid|strong เพื่อรันชุดเต็มทั้งเว็บที่ระดับนั้น
@@ -33,13 +37,11 @@ const { menuPages, prepare } = require('./helpers');
 
 const PAGES = menuPages();
 if (!PAGES.includes('doc-check-file.html')) PAGES.push('doc-check-file.html'); // หน้าลูกของ doc-check (ไม่อยู่ในเมนู) — รอบ 5
-// หน้าที่ตรวจที่ 360px เพิ่มจาก 390 (หน้าที่แก้ในรอบนั้น — เพิ่มชื่อหน้าที่นี่ทุกรอบ) · index.html ตรวจรวม shell (nav/ฟุตเตอร์) ด้วย
-const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p) || /^invest(-[a-z-]+)?\.html/.test(p) // รอบ 4: ตระกูลลงทุน
-  || /^(word|excel|slides|extract-text|doc-check|doc-check-file|compare|text-to-speech)\.html$/.test(p) // รอบ 5: กลุ่มเอกสาร
-  || /^(cad|electrical|maintenance|run|report-dashboard|tax)\.html(\?.*)?$/.test(p) // รอบ 6: วิศวกรรม/รายงาน/ภาษี (cad3d = redirect ไปแท็บ 3D ของ cad)
-  || /^(review|books|classroom-law|classroom-business|classroom-engineering)\.html$/.test(p) // รอบ 7A: การศึกษา
-  || /^(music|sports|cooking|coding|typing|image-gen|notifications|data|credits)\.html$/.test(p) // รอบ 7B: งานอดิเรก + ตั้งค่า
-  || /^(languages|legal|sim-objects|theme-preview)\.html$/.test(p); // รอบ 8: ปิดท้าย
+// ความกว้างมือถือที่ตรวจทุกหน้า: 360 (Android เล็ก) · 390 (iPhone) — รอบ 9 ทุกหน้าตรวจครบทั้งสองขนาด (เดิมเลือกเฉพาะหน้าที่แก้ในรอบนั้น)
+// เพิ่ม 412 (Android ทั่วไป) / 430 (iPhone Pro Max): THEME_AUDIT_WIDTHS=412,430 npx playwright test theme-audit.spec.js
+// (ผลลงรายงาน/baseline ด้วยคีย์ <หน้า>|<ความกว้าง>|<ธีม> เหมือนกัน — ค่า baseline ของความกว้างใหม่ = 0)
+const EXTRA_WIDTHS = (process.env.THEME_AUDIT_WIDTHS || '').split(',').map((x) => +x.trim()).filter(Boolean);
+const WIDTHS = [360, 390, ...EXTRA_WIDTHS, 1100];
 const WITH_SHELL = (p) => p === 'index.html';
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');
@@ -66,12 +68,12 @@ function ratchet(key, metrics, samples) {
   expect(worse, `${key} แย่ลงจาก tests/theme-baseline.json (ดู tests/theme-report/report.html)`).toEqual([]);
 }
 
-async function open(page, p, { theme, width, lang, bg }) {
+async function open(page, p, { theme, width, height, lang, bg }) {
   const errors = await prepare(page, { theme });
   const level = bg || BG;
   if (level) await page.addInitScript((l) => { try { localStorage.setItem('ome:bg', l); } catch (e) {} }, level);
   if (lang) await page.addInitScript((l) => { try { localStorage.setItem('ome:lang', l); } catch (e) {} }, lang);
-  await page.setViewportSize({ width, height: 800 });
+  await page.setViewportSize({ width, height: height || 800 });
   await page.clock.setFixedTime(new Date('2026-09-30T10:30:00+07:00'));
   await page.goto('/' + p, { waitUntil: 'load' });
   await page.waitForSelector('nav.ome-nav', { timeout: 30000 });
@@ -94,7 +96,7 @@ async function textOnImage(page) {
 }
 
 for (const p of PAGES) {
-  for (const width of NARROW_360(p) ? [360, 390, 1100] : [390, 1100]) {
+  for (const width of WIDTHS) {
     for (const theme of ['light', 'dark']) {
       const key = `${p}|${width}|${theme}`;
       test(`theme: ${key}`, async ({ page }) => {
@@ -164,6 +166,143 @@ for (const p of PAGES) {
     ratchet(`${p}|en`, metrics, samples);
   });
 }
+
+/* ── รอบ 9: กล่อง/ลิ้นชัก/แนวนอน ───────────────────────────────────────────────────────────────────────
+   dialogRound: กดปุ่มที่ปลอดภัย (ชุดเดียวกับ crawl) ทีละปุ่ม — ถ้ามี <dialog> เปิด/กล่อง role=dialog โผล่ → mobileDialog() ต้องว่าง
+   แล้วแตะมุมซ้ายบนของจอ (นอกกล่อง) — dialog.dialog ที่ไม่ใส่ data-keep-open ต้องปิด (shell.js ผูกให้ทุกใบ) */
+async function dialogRound(page, startPath, budgetMs) {
+  const fit = [], close = [];
+  let opened = 0, tapped = 0;
+  const t0 = Date.now();
+  const cands = await page.evaluate(() => (window.__tanotAudit ? window.__tanotAudit.crawlCandidates() : []));
+  for (const c of cands.slice(0, 40)) {
+    if (Date.now() - t0 > budgetMs) break;
+    const loc = page.locator(`[data-audit-crawl="${c.id}"]`);
+    try {
+      if (!(await loc.isVisible())) continue;
+      await loc.click({ timeout: 1500 });
+    } catch (e) { continue; }
+    await page.waitForTimeout(150);
+    if (new URL(page.url()).pathname !== startPath) break;
+    const info = await page.evaluate(() => ({
+      fit: window.__tanotAudit.mobileDialog(),
+      modal: [].filter.call(document.querySelectorAll('dialog[open].dialog'), (d) => !d.hasAttribute('data-keep-open')).map((d) => {
+        const r = d.getBoundingClientRect();
+        return { covers: 2 >= r.left && 2 <= r.right && 2 >= r.top && 2 <= r.bottom };
+      }),
+    }));
+    if (info.modal.length || info.fit.length) opened++;
+    fit.push(...info.fit.map((x) => Object.assign({ via: c.text || c.sel }, x)));
+    if (info.modal.length === 1 && !info.modal[0].covers) {
+      tapped++;
+      await page.mouse.click(2, 2);
+      await page.waitForTimeout(150);
+      const still = await page.evaluate(() => document.querySelectorAll('dialog[open].dialog:not([data-keep-open])').length);
+      if (still) close.push({ sel: c.sel, text: c.text, kind: 'แตะนอกกล่องแล้วไม่ปิด' });
+    }
+    await page.evaluate(() => window.__tanotAudit.closeOverlays());
+    if (await page.locator('[role=dialog]:visible, .ome-pal:not([hidden])').count()) await page.keyboard.press('Escape');
+  }
+  return { fit, close, opened, tapped };
+}
+
+for (const p of PAGES) {
+  test(`dialogs: ${p}`, async ({ page }) => {
+    await page.route('**/api/**', (route) => route.abort());
+    await open(page, p, { theme: 'light', width: 390 });
+    const r = await dialogRound(page, new URL(page.url()).pathname, 15000);
+    const samples = { mobileDialog: r.fit, dialogClose: r.close };
+    const metrics = { mobileDialog: r.fit.length, dialogClose: r.close.length };
+    writePart(`${p}|dialogs`, p, { width: 390, dialogs: true, opened: r.opened, tapped: r.tapped }, metrics, samples);
+    ratchet(`${p}|dialogs`, metrics, samples);
+  });
+
+  test(`landscape: ${p}`, async ({ page }) => {
+    await page.route('**/api/**', (route) => route.abort());
+    await open(page, p, { theme: 'light', width: 844, height: 390 });
+    const startPath = new URL(page.url()).pathname;
+    const overflow = await page.evaluate(() => window.__tanotAudit.mobileOverflow({ shell: false }));
+    // แถบหัว + ลิ้นชักเมนู + แผงตั้งค่า: อยู่ในจอ เลื่อนถึงรายการสุดท้ายได้
+    const shell = [];
+    const nav = await page.evaluate(() => { const n = document.querySelector('nav.ome-nav'); const r = n && n.getBoundingClientRect(); return r ? { top: r.top, bottom: r.bottom, right: r.right, vw: innerWidth, vh: innerHeight } : null; });
+    if (!nav || nav.top < -1 || nav.bottom > 120 || nav.right > nav.vw + 1) shell.push({ sel: 'nav.ome-nav', kind: 'แถบหัวไม่อยู่ในจอ', nav });
+    await page.click('.ome-hamburger');
+    await page.waitForTimeout(350);
+    shell.push(...(await page.evaluate(() => {
+      const out = window.__tanotAudit.mobileDialog();
+      const menu = document.querySelector('.ome-drawer.open .ome-menu');
+      if (menu) {
+        menu.scrollTop = menu.scrollHeight;
+        const links = menu.querySelectorAll('a.ome-menu-link'); let last = null;
+        links.forEach((a) => { if (a.offsetParent && !a.closest('.ome-menu-children:not(.open)')) last = a; });
+        if (last && last.getBoundingClientRect().bottom > innerHeight + 1) out.push({ sel: 'ome-menu', kind: 'รายการสุดท้ายของเมนูเลื่อนไม่ถึง' });
+      } else out.push({ sel: '.ome-drawer', kind: 'ลิ้นชักไม่เปิด' });
+      return out;
+    })));
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+    await page.click('#omeGearBtn');
+    await page.waitForTimeout(250);
+    shell.push(...(await page.evaluate(() => {
+      const out = window.__tanotAudit.mobileDialog();
+      const pn = document.querySelector('.ome-settings-panel.open');
+      if (!pn) out.push({ sel: '.ome-settings-panel', kind: 'แผงตั้งค่าไม่เปิด' });
+      else { pn.scrollTop = pn.scrollHeight; const rows = pn.querySelectorAll('.ome-settings-row'); const lastRow = rows[rows.length - 1]; if (lastRow && lastRow.getBoundingClientRect().bottom > innerHeight + 1) out.push({ sel: '.ome-settings-panel', kind: 'แถวสุดท้ายของแผงตั้งค่าเลื่อนไม่ถึง' }); }
+      return out;
+    })));
+    await page.keyboard.press('Escape');
+    const r = await dialogRound(page, startPath, 10000);
+    const samples = { landscape: overflow.concat(shell, r.fit, r.close) };
+    const metrics = { landscape: samples.landscape.length };
+    writePart(`${p}|landscape`, p, { width: 844, height: 390, opened: r.opened, tapped: r.tapped }, metrics, samples);
+    ratchet(`${p}|landscape`, metrics, samples);
+  });
+}
+
+/* แตะนอกกล่องปิดได้ทุกใบ (shell.js ผูกกลาง): กล่องธรรมดาปิด · data-keep-open ไม่ปิด · ลากเลือกข้อความจากในกล่องออกนอกกล่องไม่ปิด · แตะในกล่องไม่ปิด */
+test('dialog: แตะนอกกล่องปิด (กลาง)', async ({ page }) => {
+  await open(page, 'index.html', { theme: 'light', width: 390 });
+  const res = await page.evaluate(() => {
+    function mk(keep) {
+      const d = document.createElement('dialog');
+      d.className = 'dialog'; if (keep) d.setAttribute('data-keep-open', '');
+      d.innerHTML = '<div class="dialog-body"><p>x</p><input id="t' + (keep ? 'k' : 'n') + '"></div><div class="dialog-foot"><button class="btn" type="button">ok</button></div>';
+      document.body.appendChild(d); d.showModal(); return d;
+    }
+    return [mk(false), mk(true)].map((d) => { const r = d.getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom }; });
+  });
+  expect(res[1].l).toBeGreaterThan(2); // กล่องไม่เต็มจอ — มุม (2,2) เป็นพื้นหลัง
+  // กล่องล่าสุด (keep-open) อยู่บนสุด: แตะนอก → ไม่ปิด
+  await page.mouse.click(2, 2);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(2);
+  // ปิด keep-open ด้วย Esc แล้วแตะนอก กล่องธรรมดาปิด
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(1);
+  // กดลงในกล่องแล้วปล่อยนอกกล่อง = ไม่ปิด
+  const box = res[0];
+  await page.mouse.move((box.l + box.r) / 2, (box.t + box.b) / 2);
+  await page.mouse.down();
+  await page.mouse.move(2, 2);
+  await page.mouse.up();
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(1);
+  // พิมพ์ในกล่องแล้ว = แตะนอกกล่องไม่ปิด (กันข้อมูลที่กรอกหาย) · ต้อง Esc/ปุ่มปิดเอง
+  await page.fill('#tn', 'ข้อมูลที่กรอกค้าง');
+  await page.mouse.click(2, 2);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(1);
+  expect(await page.inputValue('#tn')).toBe('ข้อมูลที่กรอกค้าง');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(0);
+  // เปิดใหม่ = สถานะ "พิมพ์แล้ว" ถูกล้าง แตะนอกกล่องปิดได้ตามปกติ
+  await page.evaluate(() => document.querySelector('#tn').closest('dialog').showModal());
+  await page.mouse.click(2, 2);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(0);
+});
 
 /* ระดับภาพพื้นหลัง "อ่อน"/"ชัด" ทุกกลุ่มภาพ — ตัวอักษรบนภาพวัดจากพิกเซลจริง ต้องไม่เกิน baseline ของหน้าเดียวกัน (ไม่มี baseline = 0) */
 const BG_PAGES = (() => {
