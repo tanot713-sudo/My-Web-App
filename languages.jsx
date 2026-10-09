@@ -134,8 +134,8 @@
         const Brain = icon('brain', 'w-5 h-5');
         const BookOpen = icon('book-open', 'w-5 h-5');
         const Volume2 = icon('volume-2', 'w-4 h-4');
-        const CheckCircle = icon('check-circle-2', 'w-5 h-5 text-green-500');
-        const XCircle = icon('x-circle', 'w-5 h-5 text-red-500');
+        const CheckCircle = icon('check-circle-2', 'w-5 h-5 text-ok-ink');
+        const XCircle = icon('x-circle', 'w-5 h-5 text-err-ink');
         const Languages = icon('languages', 'w-4 h-4');
         const Menu = icon('menu', 'w-5 h-5');
         const CloseIcon = icon('x', 'w-5 h-5');
@@ -327,6 +327,7 @@
             "ตัวเลข-วันที่-เวลา": "Numbers, dates & time",
             "ตัวอย่างคำแปล:": "Example translation:",
             "ตัวอักษร": "Characters",
+            "แต่งจากคำที่ทวน": "Write from review words",
             "แต่งประโยคภาษา{l} โดยใช้คำเหล่านี้ให้ได้มากที่สุด": "Write a sentence in {l} using as many of these words as you can",
             "แต่งประโยคภาษา{l}ที่นี่...": "Write a sentence in {l} here...",
             "แต่งประโยคภาษา{l}อะไรก็ได้ แล้วให้ AI ช่วยตรวจ": "Write any sentence in {l} and let the AI check it",
@@ -348,6 +349,7 @@
             "บอกเวลา": "Telling time",
             "บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})": "Could not save to Drive (HTTP {c})",
             "บันทึกล่าสุด {d}": "Last saved {d}",
+            "เบราว์เซอร์/อุปกรณ์นี้ไม่มีเสียงอ่านสำหรับภาษานี้ติดตั้งไว้ (ข้อจำกัดของอุปกรณ์ ไม่ใช่เว็บพัง) ลองเปิดด้วย Chrome บนคอมพิวเตอร์ หรือเพิ่มเสียงอ่านในตั้งค่าระบบดูครับ": "This browser/device has no text-to-speech voice installed for this language (a device limitation, not a site bug). Try Chrome on a computer or add a voice in your system settings",
             "แบบทดสอบความเข้าใจ": "Comprehension test",
             "แบบทดสอบความเข้าใจภาษาเขมร": "Khmer comprehension test",
             "แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง": "Cantonese comprehension test",
@@ -367,9 +369,11 @@
             "ปิด": "Close",
             "ปิดเมนู": "Close menu",
             "เปลี่ยนเป็น {x}": "Switch to {x}",
+            "เปลี่ยนภาษา": "Change language",
             "เปิดเมนูภาษา": "Open language menu",
             "เปิดไมค์ไม่สำเร็จ — ตรวจสอบว่าอนุญาตให้เว็บนี้ใช้ไมโครโฟนแล้ว": "Could not open the microphone — check that this site is allowed to use it",
             "แปล": "Translate",
+            "แปลไทย→ภาษา": "Translate Thai → language",
             "แปลประโยคนี้เป็นภาษา{l}:": "Translate this sentence into {l}:",
             "ไปส่วนต่อไป": "Next section",
             "ผลแบบทดสอบ": "Test result",
@@ -419,6 +423,7 @@
             "ฟังบทสนทนาอีกครั้ง": "Listen to the conversation again",
             "ฟัง-พูด": "Listen & speak",
             "ฟังเรื่องสั้น": "Short stories",
+            "ฟังแล้วเขียน": "Listen & write",
             "ฟังแล้วพิมพ์": "Listen & type",
             "ฟังเสียง": "Play audio",
             "ฟังเสียง (ฟังซ้ำได้)": "Play the audio (replay any time)",
@@ -430,6 +435,7 @@
             "ฟีเจอร์ถอดเสียงอัตโนมัติยังไม่รองรับ iPhone/iPad — ลองฟังเสียงที่อัดเทียบกับต้นฉบับด้วยหูแทนได้": "Automatic transcription is not available on iPhone/iPad — compare your recording with the original by ear instead",
             "ฟีเจอร์เสริมสำหรับภาษา{l}": "Extras for {l}",
             "ภาพลำดับขีดจาก": "Stroke-order image from",
+            "ภาษา{l}ยังไม่มีโหมด \"ฝึกเขียนตัวอักษร\" (ตอนนี้มีแค่ภาษาจีน ญี่ปุ่น เกาหลี และอังกฤษ) — สลับไปโหมด \"แต่งประโยคอิสระ\" ให้แล้ว": "{l} has no \"Practise writing characters\" mode yet (only Chinese, Japanese, Korean and English for now) — switched to \"Free sentence writing\"",
             "(ไม่ได้ยินเสียงพูด)": "(no speech heard)",
             "ไม่ทราบสาเหตุ": "Unknown cause",
             "ไม่พบภาษาที่ตรงกับคำค้นหา": "No language matches your search",
@@ -761,13 +767,13 @@
                     <div>
                         <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">{tx('คุณพิมพ์:')}</span>
                         {typedDiff.map((c, i) => (
-                            <span key={i} className={c.same ? 'text-gray-500' : 'bg-red-100 text-red-700 rounded-sm'}>{c.ch}</span>
+                            <span key={i} className={c.same ? 'text-gray-500' : 'bg-red-100 text-err-ink rounded-sm'}>{c.ch}</span>
                         ))}
                     </div>
                     <div>
                         <span className="text-[10px] font-sans font-bold text-gray-400 uppercase mr-1">{tx('ที่ถูกต้อง:')}</span>
                         {correctDiff.map((c, i) => (
-                            <span key={i} className={c.same ? 'text-gray-700' : 'bg-green-100 text-green-700 font-bold rounded-sm'}>{c.ch}</span>
+                            <span key={i} className={c.same ? 'text-gray-700' : 'bg-green-100 text-ok-ink font-bold rounded-sm'}>{c.ch}</span>
                         ))}
                     </div>
                 </div>
@@ -1514,7 +1520,7 @@
             '(ห้ามใช้คำอื่น) แล้วตามด้วย "คำอธิบาย:" ห้ามตอบเป็นภาษาอื่นนอกจากไทย';
 
         function AiFeedbackErrorNote({ children }) {
-            return <p className="text-sm text-red-600 mt-3">❌ {children}</p>;
+            return <p className="text-sm text-err-ink mt-3">❌ {children}</p>;
         }
 
         // ── กระดานเขียนด้วยลายมือ (รองรับนิ้ว/สไตลัส/Apple Pencil บน iPad ผ่าน Pointer Events —
@@ -1763,7 +1769,7 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-err-ink font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
                         {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
                         {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
@@ -1952,7 +1958,7 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-err-ink font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
                         {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
                         {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
@@ -2513,7 +2519,7 @@
                         )}
                     </svg>
                     <div className="flex items-center justify-center gap-3 mt-1.5">
-                        {feedback === 'wrong' && <span className="text-[11px] text-red-500 font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
+                        {feedback === 'wrong' && <span className="text-[11px] text-err-ink font-semibold">{tx('ยังไม่ตรง ลองใหม่อีกครั้ง')}</span>}
                         {!finished && <button type="button" onClick={skipStroke} className="btn ghost sm">{tx('ข้ามขีดนี้')}</button>}
                         {finished && <button type="button" onClick={restart} className="btn ghost sm">{tx('ลากใหม่อีกรอบ')}</button>}
                     </div>
@@ -2616,11 +2622,11 @@
         function PoolModeToggle({ mode, setMode }) {
             return (
                 <div className="segmented mb-3">
-                    <button type="button" onClick={() => setMode('script')}
+                    <button type="button" data-k="pool-script" onClick={() => setMode('script')}
                         aria-pressed={mode === 'script'}>
                         <TypeIcon /> {tx('ตัวอักษร')}
                     </button>
-                    <button type="button" onClick={() => setMode('word')}
+                    <button type="button" data-k="pool-word" onClick={() => setMode('word')}
                         aria-pressed={mode === 'word'}>
                         <BookIcon /> {tx('คำศัพท์')}
                     </button>
@@ -2674,7 +2680,7 @@
                     <div className="text-center py-6">
                         <div className="text-7xl font-bold text-gray-900 mb-4 pt-3 leading-[1.3]">{c.char}</div>
                         {!revealed ? (
-                            <button onClick={() => { setRevealed(true); speak(c.char, langCode); }}
+                            <button data-k="reveal" onClick={() => { setRevealed(true); speak(c.char, langCode); }}
                                 className="btn">
                                 {tx('แตะเพื่อดูคำอ่าน/ความหมาย')}
                             </button>
@@ -2697,17 +2703,17 @@
                             <div className="border-t border-gray-100 pt-4 mt-2">
                                 <p className="text-sm font-semibold text-gray-700 mb-2">{tx('พิมพ์คำอ่าน ({label}) ของตัวนี้:', { label: readingLabel })}</p>
                                 <div className="flex gap-2">
-                                    <input value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
+                                    <input data-k="reading" aria-label={tx('พิมพ์คำอ่านของตัวนี้:')} value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
                                         onKeyDown={e => e.key === 'Enter' && !readingResult && checkReading()}
                                         disabled={!!readingResult} placeholder={langId === 'lang-jp' ? tx('เช่น a') : tx('เช่น nǐ')}
                                         className="input flex-1" />
                                     {!readingResult && (
-                                        <button onClick={checkReading} disabled={!readingTyped.trim()}
+                                        <button data-k="checkReading" onClick={checkReading} disabled={!readingTyped.trim()}
                                             className="btn primary">{tx('ตรวจ')}</button>
                                     )}
                                 </div>
                                 {readingResult && (
-                                    <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-green-600' : readingResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
+                                    <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-ok-ink' : readingResult === 'almost' ? 'text-warn-ink' : 'text-err-ink'}`}>
                                         {readingResult === 'correct' ? tx('✅ ถูกต้อง') : readingResult === 'almost' ? tx('🟡 เกือบถูก') : tx('❌ ที่ถูกคือ {a}', { a: reading })}
                                     </p>
                                 )}
@@ -2715,11 +2721,11 @@
 
                             <div className="mt-6">
                                 <p className="text-xs text-gray-400 mb-2">{tx('จำตัวนี้ได้แค่ไหน?')}</p>
-                                <div className="grid grid-cols-4 gap-2">
-                                    <button onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
-                                    <button onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
-                                    <button onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
-                                    <button onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <button data-k="rate1" onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
+                                    <button data-k="rate2" onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
+                                    <button data-k="rate3" onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
+                                    <button data-k="rate4" onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
                                 </div>
                             </div>
                         </>
@@ -2762,7 +2768,7 @@
                                         <p className="text-[11px] text-gray-400 mb-1">{t.nameTh}</p>
                                         <p className="text-[10px] text-gray-400 mb-1">{t.symbol}</p>
                                         <p className="text-[11px] text-gray-500 mb-1.5">{t.desc}</p>
-                                        <p className="text-brand font-bold text-sm">{t.examples.join(' · ')}</p>
+                                        <p className="text-brandStrong font-bold text-sm">{t.examples.join(' · ')}</p>
                                     </div>
                                 ))}
                             </div>
@@ -2786,9 +2792,9 @@
                                 <div className="space-y-2">
                                     {VN_TONE_DATA.exceptions.map((ex, i) => (
                                         <div key={i} className="rounded-lg bg-amber-50 border border-amber-100 p-2.5">
-                                            <p className="font-semibold text-amber-800 text-sm">{ex.titleTh}</p>
-                                            <p className="text-xs text-amber-700 mt-0.5">{ex.descTh}</p>
-                                            <p className="text-xs text-amber-600 mt-1">{ex.examples.join(' · ')}</p>
+                                            <p className="font-semibold text-warn-ink text-sm">{ex.titleTh}</p>
+                                            <p className="text-xs text-warn-ink mt-0.5">{ex.descTh}</p>
+                                            <p className="text-xs text-warn-ink mt-1">{ex.examples.join(' · ')}</p>
                                         </div>
                                     ))}
                                 </div>
@@ -2843,7 +2849,7 @@
                     <div className="text-center py-6">
                         <div className="text-7xl font-bold text-gray-900 mb-4 pt-3 leading-[1.3]">{c.char}</div>
                         {!revealed ? (
-                            <button onClick={() => { setRevealed(true); speak(c.char, langCode); }}
+                            <button data-k="reveal" onClick={() => { setRevealed(true); speak(c.char, langCode); }}
                                 className="btn">
                                 {tx('แตะเพื่อดูชื่อ/คำอ่าน')}
                             </button>
@@ -2889,17 +2895,17 @@
                                 <div className="border-t border-gray-100 pt-4 mt-2">
                                     <p className="text-sm font-semibold text-gray-700 mb-2">{tx('พิมพ์คำอ่านของตัวนี้:')}{readingLabelSuffix}</p>
                                     <div className="flex gap-2">
-                                        <input value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
+                                        <input data-k="reading" aria-label={tx('พิมพ์คำอ่านของตัวนี้:')} value={readingTyped} onChange={e => setReadingTyped(e.target.value)}
                                             onKeyDown={e => e.key === 'Enter' && !readingResult && checkReading()}
                                             disabled={!!readingResult} placeholder={readingPlaceholder}
                                             className="input flex-1" />
                                         {!readingResult && (
-                                            <button onClick={checkReading} disabled={!readingTyped.trim()}
+                                            <button data-k="checkReading" onClick={checkReading} disabled={!readingTyped.trim()}
                                                 className="btn primary">{tx('ตรวจ')}</button>
                                         )}
                                     </div>
                                     {readingResult && (
-                                        <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-green-600' : readingResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
+                                        <p className={`text-sm mt-2 font-semibold ${readingResult === 'correct' ? 'text-ok-ink' : readingResult === 'almost' ? 'text-warn-ink' : 'text-err-ink'}`}>
                                             {readingResult === 'correct' ? tx('✅ ถูกต้อง') : readingResult === 'almost' ? tx('🟡 เกือบถูก') : tx('❌ ที่ถูกคือ {a}', { a: c.reading })}
                                         </p>
                                     )}
@@ -2908,11 +2914,11 @@
 
                             <div className="mt-6">
                                 <p className="text-xs text-gray-400 mb-2">{tx('จำตัวนี้ได้แค่ไหน?')}</p>
-                                <div className="grid grid-cols-4 gap-2">
-                                    <button onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
-                                    <button onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
-                                    <button onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
-                                    <button onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                    <button data-k="rate1" onClick={() => rate(1)} className="btn danger w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ลืมแล้ว')}</button>
+                                    <button data-k="rate2" onClick={() => rate(2)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ยาก')}</button>
+                                    <button data-k="rate3" onClick={() => rate(3)} className="btn w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('จำได้ (+10)')}</button>
+                                    <button data-k="rate4" onClick={() => rate(4)} className="btn primary w-full h-auto min-h-[40px] whitespace-normal py-2">{tx('ง่ายมาก (+10)')}</button>
                                 </div>
                             </div>
                         </>
@@ -3004,14 +3010,14 @@
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                <button type="button" onClick={runOcr} data-k="runOcr" className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
                                 {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
                             {text && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{text}</span>"</p>}
                         </div>
                     )}
 
-                    <button onClick={submit} disabled={!text.trim() || status === 'loading'}
+                    <button data-k="aiSubmit" onClick={submit} disabled={!text.trim() || status === 'loading'}
                         className="btn primary mt-3">
                         {status === 'loading' ? tx('กำลังตรวจ...') : tx('ส่งให้ AI ตรวจ (+15 XP)')}
                     </button>
@@ -3103,8 +3109,8 @@
                         {words.map(w => {
                             const used = checked && checked.find(c => c.key === w.key);
                             return (
-                                <span key={w.key} className={`px-3 py-1 rounded-full text-sm font-semibold border ${used && used.used ? 'bg-green-50 border-green-200 text-green-700' : 'bg-brandLight border-brand text-brand'}`}>
-                                    {w.word} <span className="opacity-60">({w.thai})</span>
+                                <span key={w.key} className={`badge wrap ${used && used.used ? 'ok' : 'accent'}`} data-i18n-skip>
+                                    {w.word} ({w.thai})
                                 </span>
                             );
                         })}
@@ -3124,16 +3130,16 @@
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                <button type="button" onClick={runOcr} data-k="runOcr" className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
                                 {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
                             {text && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{text}</span>"</p>}
                         </div>
                     )}
                     <div className="flex flex-wrap gap-2 mt-3">
-                        <button onClick={checkUsage} disabled={!text.trim()}
+                        <button data-k="checkUsage" onClick={checkUsage} disabled={!text.trim()}
                             className="btn primary">{tx('ตรวจว่าใช้คำครบไหม')}</button>
-                        <button onClick={checkWithAi} disabled={!text.trim() || aiStatus === 'loading'}
+                        <button data-k="aiCheck" onClick={checkWithAi} disabled={!text.trim() || aiStatus === 'loading'}
                             className="btn">
                             {aiStatus === 'loading' ? tx('กำลังตรวจ...') : tx('ตรวจไวยากรณ์ด้วย AI')}
                         </button>
@@ -3206,14 +3212,14 @@
                     </div>
 
                     {inputMode === 'type' ? (
-                        <input value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
+                        <input data-k="dictInput" value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
                             disabled={!!result} placeholder={tx('พิมพ์คำที่ได้ยิน...')}
                             className="input w-full" />
                     ) : (
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                <button type="button" onClick={runOcr} data-k="runOcr" className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
                                 {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
                             {typed && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{typed}</span>"</p>}
@@ -3226,10 +3232,10 @@
                         </div>
                     )}
                     {!result ? (
-                        <button onClick={check} disabled={!typed.trim()}
+                        <button data-k="dictCheck" onClick={check} disabled={!typed.trim()}
                             className="btn primary lg w-full mt-4">{tx('ตรวจคำตอบ')}</button>
                     ) : (
-                        <button onClick={next} className="btn primary lg w-full mt-4">{tx('ข้อต่อไป')}</button>
+                        <button data-k="dictNext" onClick={next} className="btn primary lg w-full mt-4">{tx('ข้อต่อไป')}</button>
                     )}
                 </div>
             );
@@ -3337,23 +3343,23 @@
                         <div>
                             <HandwritingCanvas onReady={setCanvasEl} height={200} />
                             <div className="flex items-center gap-3 mt-2 flex-wrap">
-                                <button type="button" onClick={runOcr} className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
+                                <button type="button" onClick={runOcr} data-k="runOcr" className="btn ghost sm">{tx('✨ แปลงเป็นข้อความ')}</button>
                                 {ocrStatus && <span className="text-sm text-gray-500">{txs(ocrStatus)}</span>}
                             </div>
                             {typed && <p className="text-sm text-gray-500 mt-2">{tx('ข้อความล่าสุด:')} "<span data-i18n-skip>{typed}</span>"</p>}
                         </div>
                     )}
                     <div className="flex flex-wrap gap-2 mt-3">
-                        <button onClick={checkHeuristic} disabled={!typed.trim()}
+                        <button data-k="quick" onClick={checkHeuristic} disabled={!typed.trim()}
                             className="btn primary">{tx('ตรวจแบบเร็ว')}</button>
-                        <button onClick={checkWithAi} disabled={!typed.trim() || aiStatus === 'loading'}
+                        <button data-k="aiCheck" onClick={checkWithAi} disabled={!typed.trim() || aiStatus === 'loading'}
                             className="btn">
                             {aiStatus === 'loading' ? tx('กำลังตรวจ...') : tx('ตรวจด้วย AI (แม่นกว่า)')}
                         </button>
-                        <button onClick={next} className="btn ghost">{tx('ข้าม/ข้อใหม่')}</button>
+                        <button data-k="skip" onClick={next} className="btn ghost">{tx('ข้าม/ข้อใหม่')}</button>
                     </div>
                     {heuristicResult && (
-                        <p className={`text-sm mt-3 font-semibold ${heuristicResult === 'correct' ? 'text-green-600' : heuristicResult === 'almost' ? 'text-amber-600' : 'text-red-600'}`}>
+                        <p className={`text-sm mt-3 font-semibold ${heuristicResult === 'correct' ? 'text-ok-ink' : heuristicResult === 'almost' ? 'text-warn-ink' : 'text-err-ink'}`}>
                             {heuristicResult === 'correct' ? tx('✅ ตรงตัวอย่างอ้างอิง (+10 XP)') : heuristicResult === 'almost' ? tx('🟡 ใกล้เคียง') : tx('❌ ไม่ตรงตัวอย่างอ้างอิง')}
                             <span className="block text-gray-500 font-normal mt-1">
                                 {tx('ตัวอย่างคำแปล:')} <span data-i18n-skip>{item.target}</span>
@@ -3361,7 +3367,7 @@
                         </p>
                     )}
                     {aiFeedback && (
-                        <div className={`mt-3 p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed ${aiVerdict === 'correct' ? 'bg-green-50 border-green-100 text-green-800' : aiVerdict === 'wrong' ? 'bg-red-50 border-red-100 text-red-800' : 'bg-gray-50 border-gray-100 text-gray-700'}`} data-i18n-skip>
+                        <div className={`mt-3 p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed ${aiVerdict === 'correct' ? 'bg-green-50 border-green-100 text-ok-ink' : aiVerdict === 'wrong' ? 'bg-red-50 border-red-100 text-err-ink' : 'bg-gray-50 border-gray-100 text-gray-700'}`} data-i18n-skip>
                             {txs(aiFeedback)}
                         </div>
                     )}
@@ -3389,18 +3395,18 @@
             // ตอนนี้พาเข้ามาแบบเลือกภาษาไว้แล้ว เลยยุบเป็น chip + ปุ่ม "เปลี่ยนภาษา" แทน กางออกเฉพาะตอนต้องใช้จริง
             const [langPickerOpen, setLangPickerOpen] = useState(false);
             // แจ้งเตือนตอนสลับภาษาแล้วโหมด "ฝึกเขียนตัวอักษร" หายไปเงียบๆ (มีแค่ lang-cn/lang-jp) — กันงงว่าทำไมโหมดหาย
-            const [modeNotice, setModeNotice] = useState('');
+            const [modeNotice, setModeNotice] = useState(null); // [ข้อความไทยต้นฉบับ, { id: รหัสภาษา }]
 
             useEffect(() => {
                 if (subMode === 'script' && !hasScript) {
                     setSubMode('compose');
-                    setModeNotice(`ภาษา${lang.title}ยังไม่มีโหมด "ฝึกเขียนตัวอักษร" (ตอนนี้มีแค่ภาษาจีน ญี่ปุ่น เกาหลี และอังกฤษ) — สลับไปโหมด "แต่งประโยคอิสระ" ให้แล้ว`);
+                    setModeNotice(['ภาษา{l}ยังไม่มีโหมด "ฝึกเขียนตัวอักษร" (ตอนนี้มีแค่ภาษาจีน ญี่ปุ่น เกาหลี และอังกฤษ) — สลับไปโหมด "แต่งประโยคอิสระ" ให้แล้ว', { id: langId }]);
                 }
             }, [langId]);
 
             useEffect(() => {
                 if (!modeNotice) return;
-                const t = setTimeout(() => setModeNotice(''), 6000);
+                const t = setTimeout(() => setModeNotice(null), 6000);
                 return () => clearTimeout(t);
             }, [modeNotice]);
 
@@ -3417,24 +3423,22 @@
                         <div>
                             <div className="flex items-center justify-between gap-3 flex-wrap">
                                 <div className="flex items-center gap-2 min-w-0">
-                                    <span className="text-xs text-gray-400 font-semibold shrink-0">{tx('กำลังฝึกเขียน:')}</span>
-                                    <span className="px-3 py-1.5 rounded-full text-sm font-bold bg-brandLight text-brand truncate">{lang.title}</span>
+                                    <span className="text-sm text-gray-500 font-semibold shrink-0">{tx('กำลังฝึกเขียน:')}</span>
+                                    <span className="badge accent truncate">{langTitle(langId)}</span>
                                 </div>
-                                <button type="button" onClick={() => setLangPickerOpen(o => !o)}
+                                <button type="button" data-k="pickLang" onClick={() => setLangPickerOpen(o => !o)}
                                     className="btn sm shrink-0">
-                                    {langPickerOpen ? 'ปิด' : 'เปลี่ยนภาษา'}
+                                    {langPickerOpen ? tx('ปิด') : tx('เปลี่ยนภาษา')}
                                 </button>
                             </div>
                             {langPickerOpen && (
-                                <div className="flex flex-wrap gap-2 mt-3 p-3 bg-white border border-gray-200 rounded-xl">
+                                <div className="card flex flex-wrap gap-2 mt-3 p-3">
                                     {LANG_IDS.map(id => (
-                                        <button key={id} onClick={() => { setLangId(id); setLangPickerOpen(false); }}
+                                        <button key={id} data-k="pickLangItem" data-lang={id} onClick={() => { setLangId(id); setLangPickerOpen(false); }}
                                             className="chip relative" aria-pressed={langId === id}>
-                                            {LANGS[id].title}
+                                            {langTitle(id)}
                                             {dueCounts && dueCounts[id] > 0 && (
-                                                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[15px] h-[15px] px-0.5 rounded-full text-[9px] font-bold leading-none ${langId === id ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
-                                                    {dueCounts[id] > 9 ? '9+' : dueCounts[id]}
-                                                </span>
+                                                <span className="badge err">{dueCounts[id] > 9 ? '9+' : dueCounts[id]}</span>
                                             )}
                                         </button>
                                     ))}
@@ -3443,27 +3447,25 @@
                         </div>
 
                         {modeNotice && (
-                            <div className="flex items-center justify-between gap-3 text-xs bg-amber-50 border border-amber-200 text-amber-700 rounded-lg px-3 py-2">
-                                <span>ℹ️ {modeNotice}</span>
-                                <button type="button" onClick={() => setModeNotice('')} className="btn ghost icon sm shrink-0" aria-label={tx('ปิด')}>✕</button>
+                            <div className="callout warn flex items-center justify-between gap-3">
+                                <span>ℹ️ {tx(modeNotice[0], { l: langTitle(modeNotice[1].id) })}</span>
+                                <button type="button" data-k="noticeClose" onClick={() => setModeNotice(null)} className="btn ghost icon sm shrink-0" aria-label={tx('ปิด')}>✕</button>
                             </div>
                         )}
 
                         <div className="segmented flex-wrap">
                             {SUB_MODES.map(m => (
-                                <button key={m.key} onClick={() => setSubMode(m.key)}
+                                <button key={m.key} data-k={'sub-' + m.key} onClick={() => setSubMode(m.key)}
                                     aria-pressed={subMode === m.key}>
-                                    <m.Icon /> {m.label}
+                                    <m.Icon /> {tx(m.label)}
                                     {m.srsBased && langDue > 0 && (
-                                        <span className={`text-[9px] font-bold rounded-full min-w-[15px] h-[15px] flex items-center justify-center px-0.5 leading-none ${subMode === m.key ? 'bg-white/25 text-white' : 'bg-red-500 text-white'}`}>
-                                            {langDue > 99 ? '99+' : langDue}
-                                        </span>
+                                        <span className="badge err">{langDue > 99 ? '99+' : langDue}</span>
                                     )}
                                 </button>
                             ))}
                         </div>
 
-                        <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
+                        <div className="card p-5 sm:p-6">
                             {subMode === 'script' && hasScript && (
                                 (langId === 'lang-kr' || langId === 'lang-en' || langId === 'lang-de' || langId === 'lang-fr' || langId === 'lang-it' || langId === 'lang-es' || langId === 'lang-pt' || langId === 'lang-ru' || langId === 'lang-in' || langId === 'lang-ar' || langId === 'lang-vn' || langId === 'lang-my' || langId === 'lang-mm' || langId === 'lang-kh' || langId === 'lang-la')
                                     ? <LetterPanel srs={srs} recordSrs={recordSrs} awardXp={awardXp} langId={langId} />
@@ -3604,11 +3606,11 @@
                         const isPicked = c === selected;
                         let cls = '';
                         if (selected != null) {
-                            if (isCorrect) cls = 'border-green-400 bg-green-50 text-green-700';
-                            else if (isPicked) cls = 'border-red-300 bg-red-50 text-red-600';
+                            if (isCorrect) cls = 'bg-green-50 text-ok-ink';
+                            else if (isPicked) cls = 'bg-red-50 text-err-ink';
                         }
                         return (
-                            <button key={i} onClick={() => onPick(c)} aria-disabled={selected != null}
+                            <button key={i} data-k="choice" onClick={() => onPick(c)} aria-disabled={selected != null}
                                 className={`btn item ${cls}`}>{c}</button>
                         );
                     })}
@@ -3700,11 +3702,11 @@
                             <h2 className="text-xl font-bold text-gray-800 mb-1">{tx('ข้อสอบภาษาจีน (จำลอง)')}</h2>
                             <p className="text-sm text-gray-500 mb-5">{tx('เลือกประเภทข้อสอบก่อน:')}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button onClick={() => setExamType('hsk')} className="stat-card">
-                                    <div className="text-lg font-bold text-brand mb-1">HSK</div>
+                                <button onClick={() => setExamType('hsk')} data-k="examType" className="stat-card">
+                                    <div className="text-lg font-bold text-brandStrong mb-1">HSK</div>
                                 </button>
-                                <button onClick={() => setExamType('bct')} className="stat-card">
-                                    <div className="text-lg font-bold text-brand mb-1">BCT</div>
+                                <button onClick={() => setExamType('bct')} data-k="examType" className="stat-card">
+                                    <div className="text-lg font-bold text-brandStrong mb-1">BCT</div>
                                 </button>
                             </div>
                         </div>
@@ -3732,9 +3734,9 @@
                             <p className="text-sm text-gray-500 mb-5">{tx('เลือกระดับที่จะทดสอบ:')}</p>
                             <div className={`grid grid-cols-1 ${examType === 'bct' ? 'sm:grid-cols-2' : 'sm:grid-cols-3'} gap-3`}>
                                 {levels.map(({ lvl, info }) => (
-                                    <button key={lvl} onClick={() => start(examType, lvl)}
+                                    <button key={lvl} data-k="examLevel" onClick={() => start(examType, lvl)}
                                         className="stat-card text-center items-center">
-                                        <div className="text-2xl font-bold text-brand mb-1">{examType === 'bct' ? `BCT (${lvl})` : `HSK${lvl}`}</div>
+                                        <div className="text-2xl font-bold text-brandStrong mb-1">{examType === 'bct' ? `BCT (${lvl})` : `HSK${lvl}`}</div>
                                         <div className="text-sm text-gray-500">{tx(info)}</div>
                                     </button>
                                 ))}
@@ -3756,7 +3758,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ {l}', { l: examLabel })}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{pct >= exam.passPct ? tx('{pct}% ถูกต้อง — ผ่านเกณฑ์ทางการ (≥{p}%) 🎉', { pct, p: exam.passPct }) : tx('{pct}% ถูกต้อง — ยังไม่ถึงเกณฑ์ทางการ ({p}%) ลองฝึกเพิ่ม', { pct, p: exam.passPct })}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -3780,8 +3782,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ระดับเดิม')}</button>
-                                <button onClick={backToLevels} className="btn">{tx('เลือกระดับใหม่')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ระดับเดิม')}</button>
+                                <button onClick={backToLevels} data-k="backLevels" className="btn">{tx('เลือกระดับใหม่')}</button>
                                 <button onClick={backToType} className="btn">{tx('เปลี่ยนเป็น {x}', { x: examType === 'bct' ? 'HSK' : 'BCT' })}</button>
                             </div>
                         </div>
@@ -3799,7 +3801,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -3901,7 +3903,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{examLabel} · {progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {/* ── listen-tf / listen-mc: มีปุ่มฟังเสียงแทนการโชว์ตัวอักษรจีนตรงๆ (จำลองส่วนฟัง) ── */}
@@ -3918,10 +3920,10 @@
                             <>
                                 <p className="text-center text-gray-700 mb-4">{tx('ความหมายคือ')} <span className="font-bold" data-i18n-skip>"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => pickTf(true)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
-                                    <button onClick={() => pickTf(false)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
+                                    <button onClick={() => pickTf(true)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === true ? 'bg-green-50 text-ok-ink' : userAnswer === true ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
+                                    <button onClick={() => pickTf(false)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === false ? 'bg-green-50 text-ok-ink' : userAnswer === false ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -3934,10 +3936,10 @@
                                 </div>
                                 <p className="text-center text-gray-700 mb-4">{tx('ความหมายคือ')} <span className="font-bold" data-i18n-skip>"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => pickTf(true)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
-                                    <button onClick={() => pickTf(false)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
+                                    <button onClick={() => pickTf(true)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === true ? 'bg-green-50 text-ok-ink' : userAnswer === true ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
+                                    <button onClick={() => pickTf(false)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === false ? 'bg-green-50 text-ok-ink' : userAnswer === false ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -3974,24 +3976,24 @@
                                 <div className="min-h-[64px] bg-white rounded-xl border-2 border-dashed border-gray-200 p-3 mb-3 flex flex-wrap gap-2 items-center">
                                     {placedIdx.length === 0 && <span className="text-xs text-gray-300">{tx('แตะคำด้านล่างเพื่อเรียงประโยคที่นี่')}</span>}
                                     {placedIdx.map((idx, i) => (
-                                        <span key={i} className="px-3 py-1.5 rounded-lg bg-brandLight text-brand font-semibold text-sm">{q.scrambled[idx]}</span>
+                                        <span key={i} className="px-3 py-1.5 rounded-lg bg-brandLight text-brandStrong font-semibold text-sm">{q.scrambled[idx]}</span>
                                     ))}
                                 </div>
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {q.scrambled.map((chunk, idx) => (
                                         !placedIdx.includes(idx) && (
-                                            <button key={idx} onClick={() => tapChunk(idx)} disabled={answered}
+                                            <button key={idx} data-k="chunk" onClick={() => tapChunk(idx)} disabled={answered}
                                                 className="btn">{chunk}</button>
                                         )
                                     ))}
                                 </div>
                                 <div className="flex gap-2 mb-2">
                                     <button onClick={undoChunk} disabled={answered || !placedIdx.length} className="btn">{tx('ย้อนกลับ 1 คำ')}</button>
-                                    <button onClick={submitOrder} disabled={answered || placedIdx.length !== q.chunks.length}
+                                    <button onClick={submitOrder} data-k="submitOrder" disabled={answered || placedIdx.length !== q.chunks.length}
                                         className="btn primary flex-1">{tx('ตรวจคำตอบ')}</button>
                                 </div>
                                 {answered && (
-                                    <p className={`text-sm text-center font-semibold ${placedIdx.map(i => q.scrambled[i]).join('') === q.chunks.join('') ? 'text-green-600' : 'text-red-600'}`}>
+                                    <p className={`text-sm text-center font-semibold ${placedIdx.map(i => q.scrambled[i]).join('') === q.chunks.join('') ? 'text-ok-ink' : 'text-err-ink'}`}>
                                         {tx('เฉลย:')} <span data-i18n-skip>{q.chunks.join('')}</span>
                                     </p>
                                 )}
@@ -4011,7 +4013,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -4019,7 +4021,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -4600,11 +4602,11 @@
                             <h2 className="text-xl font-bold text-gray-800 mb-1">{tx('ข้อสอบภาษาอังกฤษ (จำลอง)')}</h2>
                             <p className="text-sm text-gray-500 mb-5">{tx('เลือกประเภทข้อสอบก่อน:')}</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <button onClick={() => start('ielts')} className="stat-card">
-                                    <div className="text-lg font-bold text-brand mb-1">IELTS</div>
+                                <button onClick={() => start('ielts')} data-k="examType" className="stat-card">
+                                    <div className="text-lg font-bold text-brandStrong mb-1">IELTS</div>
                                 </button>
-                                <button onClick={() => start('toeic')} className="stat-card">
-                                    <div className="text-lg font-bold text-brand mb-1">TOEIC</div>
+                                <button onClick={() => start('toeic')} data-k="examType" className="stat-card">
+                                    <div className="text-lg font-bold text-brandStrong mb-1">TOEIC</div>
                                 </button>
                             </div>
                         </div>
@@ -4624,7 +4626,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ {l}', { l: examLabel })}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -4648,7 +4650,7 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ชุดเดิม')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ชุดเดิม')}</button>
                                 <button onClick={backToType} className="btn">{tx('เปลี่ยนเป็น {x}', { x: examType === 'toeic' ? 'IELTS' : 'TOEIC' })}</button>
                             </div>
                         </div>
@@ -4666,7 +4668,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -4758,7 +4760,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{examLabel} · {progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {(q.type === 'listen-tf' || q.type === 'listen-mc') && (
@@ -4774,10 +4776,10 @@
                             <>
                                 <p className="text-center text-gray-700 mb-4">{tx('ความหมายคือ')} <span className="font-bold" data-i18n-skip>"{q.shownThai}"</span> {tx('ใช่หรือไม่?')}</p>
                                 <div className="grid grid-cols-2 gap-2">
-                                    <button onClick={() => pickTf(true)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === true ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === true ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
-                                    <button onClick={() => pickTf(false)} aria-disabled={answered}
-                                        className={`btn lg ${answered ? (q.answer === false ? 'border-green-400 bg-green-50 text-green-700' : userAnswer === false ? 'border-red-300 bg-red-50 text-red-600' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
+                                    <button onClick={() => pickTf(true)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === true ? 'bg-green-50 text-ok-ink' : userAnswer === true ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('✅ ถูก')}</button>
+                                    <button onClick={() => pickTf(false)} data-k="tf" aria-disabled={answered}
+                                        className={`btn lg ${answered ? (q.answer === false ? 'bg-green-50 text-ok-ink' : userAnswer === false ? 'bg-red-50 text-err-ink' : 'text-gray-500') : ''}`}>{tx('❌ ผิด')}</button>
                                 </div>
                             </>
                         )}
@@ -4919,7 +4921,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -4929,7 +4931,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — Introduction</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 1 — Introduction</p>
                                     {IELTS_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -4938,12 +4940,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — Cue Card</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 2 — Cue Card</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{IELTS_SPEAKING.part2}</p>
                                     <button onClick={() => speak(IELTS_SPEAKING.part2, 'en')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — Discussion</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 3 — Discussion</p>
                                     {IELTS_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -4969,7 +4971,7 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
@@ -4987,7 +4989,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -4995,7 +4997,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -5240,8 +5242,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ JLPT N5 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ N5')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ N5')}</div>
                                 <div className="text-xs text-gray-500">{tx('文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ')}</div>
                             </button>
                         </div>
@@ -5260,7 +5262,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ JLPT N5')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -5284,8 +5286,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -5302,7 +5304,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -5348,7 +5350,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">JLPT N5 · {progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'kanji-reading-mc' && (
@@ -5442,7 +5444,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -5696,8 +5698,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ TOPIK I (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ TOPIK I')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ TOPIK I')}</div>
                                 <div className="text-xs text-gray-500">{tx('듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -5716,7 +5718,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ TOPIK I')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -5740,8 +5742,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -5758,7 +5760,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -5803,7 +5805,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">TOPIK I · {progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'kr-word-meaning-mc' && (
@@ -5877,7 +5879,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -6146,8 +6148,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ Goethe-Zertifikat A1 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ Goethe A1')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ Goethe A1')}</div>
                                 <div className="text-xs text-gray-500">{tx('Hören 15 + Lesen 15 + Schreiben 1 + Sprechen 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -6170,7 +6172,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ Goethe A1')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -6194,8 +6196,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -6212,7 +6214,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -6290,7 +6292,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">Goethe A1 · {progressLabel}</span>
                             {(section.key === 'hoeren' || section.key === 'lesen') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -6376,7 +6378,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -6386,7 +6388,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 1 — Sich vorstellen</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Teil 1 — Sich vorstellen</p>
                                     {DE_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -6395,12 +6397,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 2 — Informationen erfragen und geben</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Teil 2 — Informationen erfragen und geben</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{DE_SPEAKING.part2}</p>
                                     <button onClick={() => speak(DE_SPEAKING.part2, 'de')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Teil 3 — Bitte formulieren</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Teil 3 — Bitte formulieren</p>
                                     {DE_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -6426,13 +6428,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -6698,8 +6700,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ DELF A1 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ DELF A1')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ DELF A1')}</div>
                                 <div className="text-xs text-gray-500">{tx('Compréhension orale 15 + écrite 15 + Production écrite 1 + orale 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -6721,7 +6723,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ DELF A1')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -6745,8 +6747,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -6763,7 +6765,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -6841,7 +6843,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">DELF A1 · {progressLabel}</span>
                             {(section.key === 'oral-comp' || section.key === 'ecrite-comp') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -6927,7 +6929,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -6937,7 +6939,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Partie 1 — Entretien dirigé</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Partie 1 — Entretien dirigé</p>
                                     {FR_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -6946,12 +6948,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Partie 2 — Échange d'informations</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Partie 2 — Échange d'informations</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{FR_SPEAKING.part2}</p>
                                     <button onClick={() => speak(FR_SPEAKING.part2, 'fr')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Partie 3 — Dialogue simulé</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Partie 3 — Dialogue simulé</p>
                                     {FR_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -6977,13 +6979,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -7242,8 +7244,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ PLIDA A1 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ PLIDA A1')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ PLIDA A1')}</div>
                                 <div className="text-xs text-gray-500">{tx('Ascolto 15 + Lettura 15 + Scrittura 1 + Parlato 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -7265,7 +7267,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ PLIDA A1')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -7289,8 +7291,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -7307,7 +7309,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -7385,7 +7387,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">PLIDA A1 · {progressLabel}</span>
                             {(section.key === 'ascolto' || section.key === 'lettura') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -7471,7 +7473,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -7481,7 +7483,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Presentarsi</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 1 — Presentarsi</p>
                                     {IT_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -7490,12 +7492,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Parlare di un argomento</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 2 — Parlare di un argomento</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{IT_SPEAKING.part2}</p>
                                     <button onClick={() => speak(IT_SPEAKING.part2, 'it')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Fare una richiesta</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 3 — Fare una richiesta</p>
                                     {IT_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -7521,13 +7523,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -7793,8 +7795,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ DELE A1 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ DELE A1')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ DELE A1')}</div>
                                 <div className="text-xs text-gray-500">{tx('Comprensión auditiva 15 + de lectura 15 + Expresión escrita 1 + oral 1 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -7816,7 +7818,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ DELE A1')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -7840,8 +7842,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -7858,7 +7860,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -7936,7 +7938,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">DELE A1 · {progressLabel}</span>
                             {(section.key === 'auditiva' || section.key === 'lectura') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -8022,7 +8024,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -8032,7 +8034,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Presentarse</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 1 — Presentarse</p>
                                     {ES_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -8041,12 +8043,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Hablar de un tema</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 2 — Hablar de un tema</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{ES_SPEAKING.part2}</p>
                                     <button onClick={() => speak(ES_SPEAKING.part2, 'es')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Hacer una petición</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 3 — Hacer una petición</p>
                                     {ES_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -8072,13 +8074,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -8347,8 +8349,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ CELPE-Bras (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มฝึก CELPE-Bras')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มฝึก CELPE-Bras')}</div>
                                 <div className="text-xs text-gray-500">{tx('Compreensão 30 (แบบฝึกหัดเสริม) + Parte Escrita 1 + Parte Oral 1 ส่วน')}</div>
                             </button>
                         </div>
@@ -8370,7 +8372,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลฝึก CELPE-Bras')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-1 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -8394,8 +8396,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ฝึกใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ฝึกใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -8412,7 +8414,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -8490,7 +8492,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">CELPE-Bras · {progressLabel}</span>
                             {section.key === 'compreensao' && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -8576,7 +8578,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -8586,7 +8588,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 1 — Apresentação pessoal</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 1 — Apresentação pessoal</p>
                                     {PT_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -8595,12 +8597,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 2 — Troca de informações</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 2 — Troca de informações</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{PT_SPEAKING.part2}</p>
                                     <button onClick={() => speak(PT_SPEAKING.part2, 'pt-BR')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Parte 3 — Interpretação</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Parte 3 — Interpretação</p>
                                     {PT_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -8626,13 +8628,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -8916,8 +8918,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ ТРКИ-1 / TORFL A1 (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ ТРКИ-1')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ ТРКИ-1')}</div>
                                 <div className="text-xs text-gray-500">{tx('Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -8939,7 +8941,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ ТРКИ-1')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -8963,8 +8965,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -8981,7 +8983,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -9059,7 +9061,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">ТРКИ-1 · {progressLabel}</span>
                             {(section.key === 'leksika-grammatika' || section.key === 'chtenie' || section.key === 'audirovanie') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -9145,7 +9147,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -9155,7 +9157,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 1 — Представиться</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Часть 1 — Представиться</p>
                                     {RU_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -9164,12 +9166,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 2 — Разговор на тему</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Часть 2 — Разговор на тему</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{RU_SPEAKING.part2}</p>
                                     <button onClick={() => speak(RU_SPEAKING.part2, 'ru')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Часть 3 — Просьба</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Часть 3 — Просьба</p>
                                     {RU_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -9195,13 +9197,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -9476,8 +9478,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ ALPT (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ ALPT')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ ALPT')}</div>
                                 <div className="text-xs text-gray-500">{tx('Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -9499,7 +9501,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ ALPT')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -9523,8 +9525,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -9541,7 +9543,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -9619,7 +9621,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">ALPT · {progressLabel}</span>
                             {(section.key === 'structure' || section.key === 'reading' || section.key === 'listening') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -9705,7 +9707,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -9715,7 +9717,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 1 — التعريف بالنفس</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 1 — التعريف بالنفس</p>
                                     {AR_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700" dir="rtl">{p}</span>
@@ -9724,12 +9726,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 2 — الحديث عن موضوع</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 2 — الحديث عن موضوع</p>
                                     <p className="text-sm text-gray-700 leading-relaxed" dir="rtl">{AR_SPEAKING.part2}</p>
                                     <button onClick={() => speak(AR_SPEAKING.part2, 'ar')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Part 3 — طلب</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Part 3 — طلب</p>
                                     {AR_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700" dir="rtl">{p}</span>
@@ -9755,13 +9757,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -10033,8 +10035,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('ข้อสอบ VLPT (จำลอง)')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มสอบ VLPT')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มสอบ VLPT')}</div>
                                 <div className="text-xs text-gray-500">{tx('Nghe + Đọc + Viết + Nói ครบ 4 ส่วน ตามโครงสร้างจริง')}</div>
                             </button>
                         </div>
@@ -10056,7 +10058,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลสอบ VLPT')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -10080,8 +10082,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('สอบใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเลือกสอบ')}</button>
                             </div>
                         </div>
                     </div>
@@ -10098,7 +10100,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10176,7 +10178,7 @@
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">VLPT · {progressLabel}</span>
                             {(section.key === 'nghe' || section.key === 'doc') && (
-                                <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                                <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                             )}
                         </div>
 
@@ -10262,7 +10264,7 @@
                                             className="btn primary flex-1">
                                             {essayStatus === 'loading' ? tx('กำลังตรวจ (ครั้งแรกอาจช้า)...') : tx('ส่งให้ AI ตรวจ')}
                                         </button>
-                                        <button onClick={skipEssay} className="btn">{tx('ข้ามข้อนี้')}</button>
+                                        <button onClick={skipEssay} data-k="skipEssay" className="btn">{tx('ข้ามข้อนี้')}</button>
                                     </div>
                                 )}
                                 {essayFeedback && <div className="p-4 rounded-xl bg-white border border-gray-200 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed" data-i18n-skip>{txs(essayFeedback)}</div>}
@@ -10272,7 +10274,7 @@
                         {q.type === 'speaking-practice' && (
                             <>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Phần 1 — Giới thiệu bản thân</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Phần 1 — Giới thiệu bản thân</p>
                                     {VN_SPEAKING.part1.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -10281,12 +10283,12 @@
                                     ))}
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-3">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Phần 2 — Trao đổi thông tin</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Phần 2 — Trao đổi thông tin</p>
                                     <p className="text-sm text-gray-700 leading-relaxed">{VN_SPEAKING.part2}</p>
                                     <button onClick={() => speak(VN_SPEAKING.part2, 'vi')} className="btn ghost sm mt-2"><Volume2 /> {tx('ฟัง')}</button>
                                 </div>
                                 <div className="bg-white rounded-xl border border-gray-200 p-4 mb-4">
-                                    <p className="text-xs font-bold text-brand uppercase mb-2">Phần 3 — Yêu cầu</p>
+                                    <p className="text-xs font-bold text-brandStrong uppercase mb-2">Phần 3 — Yêu cầu</p>
                                     {VN_SPEAKING.part3.map((p, i) => (
                                         <div key={i} className="flex items-center justify-between gap-2 py-1.5 border-b border-gray-100 last:border-0">
                                             <span className="text-sm text-gray-700">{p}</span>
@@ -10312,13 +10314,13 @@
                                     </div>
                                 )}
                                 {!answered && (
-                                    <button onClick={markSpeakingDone} className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
+                                    <button onClick={markSpeakingDone} data-k="speakDone" className="btn primary lg w-full">{tx('ฝึกเสร็จแล้ว')}</button>
                                 )}
                             </>
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -10510,8 +10512,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาฮินดี')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -10530,7 +10532,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -10554,8 +10556,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -10572,7 +10574,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10617,7 +10619,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'hi-word-meaning-mc' && (
@@ -10679,7 +10681,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -10855,8 +10857,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษามาเลย์')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('Mendengar (ฟัง) 14 + Membaca (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -10875,7 +10877,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -10899,8 +10901,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -10917,7 +10919,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -10962,7 +10964,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'my-word-meaning-mc' && (
@@ -11023,7 +11025,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -11198,8 +11200,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาพม่า')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -11218,7 +11220,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -11242,8 +11244,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11260,7 +11262,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11305,7 +11307,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'mm-word-meaning-mc' && (
@@ -11366,7 +11368,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -11540,8 +11542,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาเขมร')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('ការស្តាប់ (ฟัง) 14 + ការអាន (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -11560,7 +11562,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -11584,8 +11586,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11602,7 +11604,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11647,7 +11649,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'kh-word-meaning-mc' && (
@@ -11708,7 +11710,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -11883,8 +11885,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาลาว')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -11903,7 +11905,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -11927,8 +11929,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -11945,7 +11947,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -11990,7 +11992,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'la-word-meaning-mc' && (
@@ -12051,7 +12053,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -12238,8 +12240,8 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-5">{tx('แบบทดสอบความเข้าใจภาษาจีนกวางตุ้ง')}</h2>
-                            <button onClick={start} className="stat-card w-full mb-5">
-                                <div className="text-lg font-bold text-brand mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
+                            <button onClick={start} data-k="examStart" className="stat-card w-full mb-5">
+                                <div className="text-lg font-bold text-brandStrong mb-1">{tx('เริ่มทำแบบทดสอบ')}</div>
                                 <div className="text-xs text-gray-500">{tx('聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ')}</div>
                             </button>
                         </div>
@@ -12258,7 +12260,7 @@
                     <div className="flex-1 overflow-y-auto bg-gray-50">
                         <div className="max-w-xl mx-auto p-4 sm:p-6 text-center">
                             <h2 className="text-xl font-bold text-gray-800 mb-2">{tx('ผลแบบทดสอบ')}</h2>
-                            <div className="text-5xl font-bold text-brand my-4">{totalCorrect}/{totalQ}</div>
+                            <div className="text-5xl font-bold text-brandStrong my-4">{totalCorrect}/{totalQ}</div>
                             <p className="text-gray-500 mb-4">{tx('{pct}% ถูกต้อง', { pct })}</p>
                             <div className="grid grid-cols-2 gap-2 mb-5">
                                 {sectionResults.map(r => (
@@ -12282,8 +12284,8 @@
                                 </div>
                             )}
                             <div className="flex gap-2 justify-center flex-wrap">
-                                <button onClick={restart} className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
-                                <button onClick={backToStart} className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
+                                <button onClick={restart} data-k="restart" className="btn primary">{tx('ทำใหม่ (สุ่มโจทย์ใหม่)')}</button>
+                                <button onClick={backToStart} data-k="backStart" className="btn">{tx('กลับหน้าเริ่มต้น')}</button>
                             </div>
                         </div>
                     </div>
@@ -12300,7 +12302,7 @@
                             <div className="text-5xl mb-3">{section.icon}</div>
                             <h2 className="text-2xl font-bold text-gray-800 mb-2">{secTitle(section.title)}</h2>
                             <p className="text-gray-500 mb-6">{tx('{n} ข้อ', { n: section.questions.length })}</p>
-                            <button onClick={() => setShowIntro(false)} className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
+                            <button onClick={() => setShowIntro(false)} data-k="sectionStart" className="btn primary lg">{tx('เริ่มทำส่วนนี้')}</button>
                         </div>
                     </div>
                 );
@@ -12345,7 +12347,7 @@
                     <div className="max-w-xl mx-auto p-4 sm:p-6">
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-sm font-bold text-gray-500 uppercase">{progressLabel}</span>
-                            <span className="text-sm font-bold text-brand">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
+                            <span className="text-sm font-bold text-brandStrong">{tx('ถูก {n} ข้อ', { n: correctInSection })}</span>
                         </div>
 
                         {q.type === 'yue-word-meaning-mc' && (
@@ -12407,7 +12409,7 @@
                         )}
 
                         {answered && (
-                            <button onClick={nextQuestion} className="btn primary lg w-full mt-4">
+                            <button onClick={nextQuestion} data-k="nextQ" className="btn primary lg w-full mt-4">
                                 {qIdx + 1 >= section.questions.length ? (sectionIdx + 1 >= exam.sections.length ? tx('ดูผลสอบ') : tx('ไปส่วนต่อไป')) : tx('ข้อต่อไป')}
                             </button>
                         )}
@@ -12917,11 +12919,11 @@
                                             const picked = answers[i] === c;
                                             let cls = '';
                                             if (checked) {
-                                                if (c === q.correct) cls = 'border-green-400 bg-green-50 text-green-700';
-                                                else if (picked) cls = 'border-red-300 bg-red-50 text-red-600';
+                                                if (c === q.correct) cls = 'bg-green-50 text-ok-ink';
+                                                else if (picked) cls = 'bg-red-50 text-err-ink';
                                             } else if (picked) cls = 'on';
                                             return (
-                                                <button key={ci} aria-disabled={checked} onClick={() => { if (!checked) setAnswers(a => ({ ...a, [i]: c })); }}
+                                                <button key={ci} data-k="choice" aria-disabled={checked} onClick={() => { if (!checked) setAnswers(a => ({ ...a, [i]: c })); }}
                                                     className={`btn item ${cls}`}>{c}</button>
                                             );
                                         })}
@@ -13102,7 +13104,7 @@
                             </p>
                         </div>
                     )}
-                    {status === 'error' && <p className="text-sm text-red-600 mb-4">❌ {txs(transcript)}</p>}
+                    {status === 'error' && <p className="text-sm text-err-ink mb-4">❌ {txs(transcript)}</p>}
 
                     <button onClick={next} className="btn primary lg w-full">{tx('ประโยคต่อไป')}</button>
                 </div>
@@ -13630,11 +13632,11 @@
                                             const picked = answers[i] === c;
                                             let cls = '';
                                             if (checked) {
-                                                if (c === q.correct) cls = 'border-green-400 bg-green-50 text-green-700';
-                                                else if (picked) cls = 'border-red-300 bg-red-50 text-red-600';
+                                                if (c === q.correct) cls = 'bg-green-50 text-ok-ink';
+                                                else if (picked) cls = 'bg-red-50 text-err-ink';
                                             } else if (picked) cls = 'on';
                                             return (
-                                                <button key={ci} aria-disabled={checked} onClick={() => { if (!checked) setAnswers(a => ({ ...a, [i]: c })); }}
+                                                <button key={ci} data-k="choice" aria-disabled={checked} onClick={() => { if (!checked) setAnswers(a => ({ ...a, [i]: c })); }}
                                                     className={`btn item ${cls}`}>{c}</button>
                                             );
                                         })}
@@ -13982,7 +13984,7 @@
                 return (
                     <div className="text-center py-6">
                         <h3 className="text-lg font-semibold text-gray-800 mb-1">{tx('ตัวเลข-วันที่-เวลา')}</h3>
-                        <p className="text-3xl font-extrabold text-brand my-4">{score}/{queue.length}</p>
+                        <p className="text-3xl font-extrabold text-brandStrong my-4">{score}/{queue.length}</p>
                         <p className="text-sm text-gray-500 mb-6">{tx('ตอบถูก {a} จาก {b} ข้อ', { a: score, b: queue.length })}</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                             {NUMBERS_DATES_CATS.map(c => (
@@ -17063,19 +17065,19 @@
                             เหมือน 3 ปุ่มแรก — ทำเป็นคนละ pill กันให้เห็นชัดว่าเป็นคนละหมวด ไม่ใช่ทักษะที่ 4 */}
                         <div className="flex items-center gap-3 flex-wrap">
                             <div className="segmented flex-wrap">
-                                <button onClick={() => setSubMode('listening')} aria-pressed={subMode === 'listening'}>
+                                <button data-k="lsub-listening" onClick={() => setSubMode('listening')} aria-pressed={subMode === 'listening'}>
                                     <Volume2 /> {tx('ฟังเรื่องสั้น')}
                                 </button>
-                                <button onClick={() => setSubMode('shadowing')} aria-pressed={subMode === 'shadowing'}>
+                                <button data-k="lsub-shadowing" onClick={() => setSubMode('shadowing')} aria-pressed={subMode === 'shadowing'}>
                                     <MicIcon /> {tx('พูดตาม')}
                                 </button>
-                                <button onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
+                                <button data-k="lsub-reading" onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
                                     <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
                             </div>
                             <div className="segmented">
-                                <button onClick={() => setSubMode('numbers')} aria-pressed={subMode === 'numbers'}>
-                                    <HashIcon /> {tx('ตัวเลข-วันที่')} <span className="font-normal opacity-70">{tx('(แบบฝึกหัดเสริม)')}</span>
+                                <button data-k="lsub-numbers" onClick={() => setSubMode('numbers')} aria-pressed={subMode === 'numbers'}>
+                                    <HashIcon /> {tx('ตัวเลข-วันที่')} <span className="font-normal">{tx('(แบบฝึกหัดเสริม)')}</span>
                                 </button>
                             </div>
                         </div>
@@ -17109,8 +17111,8 @@
             }, [msg]);
             if (!msg) return null;
             return (
-                <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] max-w-sm w-[92%] bg-gray-900 text-white text-xs sm:text-sm rounded-xl shadow-lg px-4 py-3 text-center leading-relaxed">
-                    {msg}
+                <div className="toast-region" role="status" aria-live="polite">
+                    <div className="toast" data-k="ttsToast">{txs(msg)}</div>
                 </div>
             );
         }
@@ -17437,7 +17439,7 @@
                             data-k="lang" data-lang={id}
                             onClick={() => selectLang(id)}
                             aria-current={active ? 'true' : undefined}
-                            className={`list-row !border-0 flex-1 min-w-0 rounded-lg ${active ? 'bg-brandLight text-brand font-semibold' : ''}`}
+                            className={`list-row !border-0 flex-1 min-w-0 rounded-lg ${active ? 'bg-[var(--ome-accent-soft)] text-[color:var(--ome-accent-strong)] font-semibold' : ''}`}
                         >
                             <Languages /> <span className="grow min-w-0 text-left truncate">{langTitle(id)}</span>
                             {allDone && <CheckCircle />}
@@ -17590,7 +17592,7 @@
                                         <div className={`grid grid-cols-1 sm:grid-cols-${featureTiles.length === 4 ? '4' : '3'} gap-3`}>
                                             {featureTiles.map(f => (
                                                 <button key={f.key} data-k={'feature-' + f.key} onClick={f.act} className="stat-card">
-                                                    <span className="text-brand"><f.Icon /></span>
+                                                    <span className="text-brandStrong"><f.Icon /></span>
                                                     <span className="pr">{tx(f.label)}</span>
                                                 </button>
                                             ))}
@@ -17800,7 +17802,7 @@
 
                                             {result && (
                                                 <div className={`mt-6 p-5 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : result === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`}>
-                                                    <h4 className={`font-bold mb-2 flex items-center gap-2 ${result === 'correct' ? 'text-green-700' : result === 'almost' ? 'text-amber-700' : 'text-red-700'}`}>
+                                                    <h4 className={`font-bold mb-2 flex items-center gap-2 ${result === 'correct' ? 'text-ok-ink' : result === 'almost' ? 'text-warn-ink' : 'text-err-ink'}`}>
                                                         {result === 'correct' ? <CheckCircle /> : result === 'almost' ? <CheckCircle /> : <XCircle />}
                                                         {result === 'correct' ? tx('ถูกต้อง! (+20 XP)') : result === 'almost' ? tx('เกือบถูก! ต่างแค่นิดเดียว (+10 XP)') : tx('ยังไม่ถูก — คำนี้จะไปอยู่ในลิสต์ทบทวน')}
                                                     </h4>

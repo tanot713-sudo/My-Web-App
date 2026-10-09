@@ -105,9 +105,155 @@ function sim(h) {
   };
 }
 
+
+/* ───────── languages.html (React) ───────── */
+const LANG_IDS = ['lang-en', 'lang-jp', 'lang-cn', 'lang-yue', 'lang-kr', 'lang-de', 'lang-in', 'lang-fr', 'lang-it', 'lang-mm', 'lang-kh', 'lang-la', 'lang-vn', 'lang-my', 'lang-ar', 'lang-es', 'lang-pt', 'lang-ru'];
+const FEATURE_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn'];
+function languages(h) {
+  const { dom, settle, closeAll, val } = h;
+  const k = async (p, key, extra) => { await dom(p, `[data-k="${key}"]${extra || ''}`); await settle(p, 200); };
+  const lang = async (p, id) => { await dom(p, `[data-k="lang"][data-lang="${id}"]`); await settle(p, 250); };
+  const fsrs = (due) => ({ stability: 3, difficulty: 5, reps: 2, lapses: 0, lastReview: NOW - 2 * DAY, dueAt: NOW + due, srsIdx: 1 });
+  const cats = { 'lang-en': ['ทักทายและแนะนำตัว', 'การเดินทางและร้านอาหาร', 'การทำงานและสัมภาษณ์งาน'] };
+  const seed = {
+    'lang-practice:xp': '1250',
+    'lang-practice:streak': { count: 5, longest: 12, lastDate: '2026-10-02' },
+    'lang-practice:progress': { 'lang-en:ทักทายและแนะนำตัว': Array(12).fill(true), 'lang-en:การเดินทางและร้านอาหาร': [true, true, false, true], 'lang-jp:ทักทายและแนะนำตัว': Array(12).fill(true) },
+    'lang-practice:notes': { 'lang-en': { text: 'Remember: the past tense of go is went', updatedAt: NOW - DAY } },
+    'lang-practice:wrong': { 'lang-en::ทักทายและแนะนำตัว::1': { langId: 'lang-en', cat: 'ทักทายและแนะนำตัว', idx: 1, count: 3, last: NOW - DAY }, 'lang-jp::ทักทายและแนะนำตัว::0': { langId: 'lang-jp', cat: 'ทักทายและแนะนำตัว', idx: 0, count: 1, last: NOW - 2 * DAY } },
+    'lang-practice:srs': { 'lang-en::vocab-คำศัพท์พื้นฐาน::0': fsrs(10 * DAY), 'lang-en::vocab-คำศัพท์พื้นฐาน::1': fsrs(-DAY), 'lang-en::vocab-คำศัพท์พื้นฐาน::2': fsrs(-2 * DAY), 'lang-jp::vocab-คำศัพท์พื้นฐาน::0': fsrs(-DAY) },
+    'lang-practice:writing': [
+      { id: 'w1', langId: 'lang-en', subMode: 'compose', prompt: '', userText: 'I goed to school', feedback: 'ประโยคที่แก้แล้ว: I went to school', grade: null, xpAwarded: 15, createdAt: NOW - DAY }
+    ]
+  };
+  const exp = async (p, fn, arg) => p.evaluate(fn, arg);
+  // เล่นข้อสอบให้จบเร็วๆ — คลิกตัวเลือกแรก/ปุ่มถัดไปจนเจอหน้าผล (ข้ามข้อเขียน AI + กดฝึกพูดเสร็จ)
+  const finishExam = async (p) => {
+    await exp(p, async () => {
+      const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+      const q = (s) => { const el = document.querySelector(s); return el && el.offsetParent !== null ? el : null; };
+      let idle = 0;
+      for (let g = 0; g < 1200 && idle < 6; g++) {
+        const step = q('[data-k=restart]') ? 'end' : null;
+        if (step === 'end') break;
+        const el = q('[data-k=sectionStart]') || q('[data-k=skipEssay]') || q('[data-k=speakDone]') || q('[data-k=nextQ]');
+        if (el) { el.click(); idle = 0; await sleep(0); continue; }
+        const chunks = [...document.querySelectorAll('[data-k=chunk]')].filter((b) => b.offsetParent !== null);
+        if (chunks.length) { chunks.forEach((b) => b.click()); await sleep(0); const sb = q('[data-k=submitOrder]'); if (sb) sb.click(); idle = 0; await sleep(0); continue; }
+        const c = q('[data-k=choice]:not([aria-disabled=true])') || q('[data-k=tf]:not([aria-disabled=true])');
+        if (c) { c.click(); idle = 0; await sleep(0); continue; }
+        idle++; await sleep(30);
+      }
+    });
+    await settle(p, 400);
+  };
+  const states = [['stream', async () => {}]];
+  FEATURE_LANGS.forEach((id) => states.push([`feature-${id}`, async (p) => { await lang(p, id); await k(p, 'tab-stream'); await settle(p, 250); }]));
+  states.push(
+    ['stream-en', async (p) => { await lang(p, 'lang-en'); await k(p, 'tab-stream'); }],
+    ['filter-hit', async (p) => { await val(p, '[data-k=langFilter]', 'จีน'); await settle(p, 300); }],
+    ['filter-none', async (p) => { await val(p, '[data-k=langFilter]', 'zzzqqq'); await settle(p, 300); }],
+    ['filter-clear', async (p) => { await val(p, '[data-k=langFilter]', ''); await settle(p, 300); }],
+    ['drawer-open', async (p) => { await k(p, 'menu'); await settle(p, 400); }],
+    ['drawer-close', async (p) => { await k(p, 'closeNav'); await settle(p, 400); }],
+    // ฝึกฝน
+    ['practice', async (p) => { await lang(p, 'lang-en'); await k(p, 'tab-practice'); }],
+    ['practice-speak', async (p) => { await dom(p, '.btn.ghost.icon.sm[aria-label]'); await settle(p, 500); }],
+    ['practice-category', async (p) => { await k(p, 'category', ':nth-child(2)'); }],
+    ['practice-wrong', async (p) => { await val(p, '[data-k=answer]', 'zzz'); await k(p, 'check'); }],
+    ['practice-next', async (p) => { await k(p, 'next'); }],
+    ['practice-almost', async (p) => { const t = await exp(p, () => (document.querySelector('.border-brand.bg-brandLight .font-semibold') || {}).textContent || ''); await val(p, '[data-k=answer]', t.slice(0, -1)); await k(p, 'check'); }],
+    ['practice-next2', async (p) => { await k(p, 'next'); }],
+    ['practice-correct', async (p) => { const t = await exp(p, () => (document.querySelector('.border-brand.bg-brandLight .font-semibold') || {}).textContent || ''); await val(p, '[data-k=answer]', t); await k(p, 'check'); }],
+    ['practice-next3', async (p) => { await k(p, 'next'); }],
+    ['mode-dictation', async (p) => { await k(p, 'mode-dictation'); }],
+    ['dictation-wrong', async (p) => { await val(p, '[data-k=answer]', 'qqq'); await k(p, 'check'); }],
+    ['mode-flashcard', async (p) => { await k(p, 'mode-flashcard'); }],
+    ['flashcard-flip', async (p) => { await k(p, 'flashcard'); }],
+    ['flashcard-notyet', async (p) => { await k(p, 'notyet'); }],
+    ['flashcard-flip2', async (p) => { await k(p, 'flashcard'); }],
+    ['flashcard-remembered', async (p) => { await k(p, 'remembered'); }],
+    ['mode-translate', async (p) => { await k(p, 'mode-translate'); }],
+    ['note-type', async (p) => { await val(p, '[data-k=note]', 'Note written by the learner'); await settle(p, 200); }],
+    ['note-write', async (p) => { await dom(p, '.segmented.shrink-0 button:nth-child(2)'); await settle(p, 300); }],
+    ['note-ocr', async (p) => { await k(p, 'noteOcr'); await settle(p, 700); }],
+    ['note-type-back', async (p) => { await dom(p, '.segmented.shrink-0 button:nth-child(1)'); await settle(p, 300); }],
+    ['sync', async (p) => { await k(p, 'sync'); await settle(p, 600); }]
+  );
+  // ฝึกเขียน
+  states.push(['writing-en', async (p) => { await k(p, 'writeLang', '[data-lang="lang-en"]'); await settle(p, 400); }]);
+  states.push(['writing-en-reveal', async (p) => { await k(p, 'reveal'); }]);
+  states.push(['writing-en-reading', async (p) => { await val(p, '[data-k=reading]', 'ei'); await k(p, 'checkReading'); }]);
+  states.push(['writing-en-rate', async (p) => { await k(p, 'rate3'); }]);
+  states.push(['writing-en-pool-word', async (p) => { await k(p, 'pool-word'); await k(p, 'reveal'); await k(p, 'rate1'); }]);
+  states.push(['writing-en-compose', async (p) => { await k(p, 'sub-compose'); await val(p, 'textarea', 'I goed to school yesterday.'); }]);
+  states.push(['writing-en-compose-write', async (p) => { await dom(p, 'main .segmented.mb-2 button:nth-child(2)'); await settle(p, 300); }]);
+  states.push(['writing-en-compose-ocr', async (p) => { await k(p, 'runOcr'); await settle(p, 700); }]);
+  states.push(['writing-en-compose-submit', async (p) => { await exp(p, () => { try { Object.defineProperty(navigator, 'userAgent', { get: () => 'iPhone' }); } catch (e) {} }); await k(p, 'aiSubmit'); await settle(p, 400); }]);
+  states.push(['writing-en-srs-compose', async (p) => { await k(p, 'sub-srsCompose'); await settle(p, 300); }]);
+  states.push(['writing-en-srs-compose-check', async (p) => { await val(p, 'textarea', 'hello world'); await k(p, 'checkUsage'); await settle(p, 300); await k(p, 'aiCheck'); await settle(p, 300); }]);
+  states.push(['writing-en-dictation', async (p) => { await k(p, 'sub-dictation'); await settle(p, 300); }]);
+  states.push(['writing-en-dictation-check', async (p) => { await val(p, '[data-k=dictInput]', 'zzz'); await k(p, 'dictCheck'); await settle(p, 300); }]);
+  states.push(['writing-en-translate', async (p) => { await k(p, 'sub-translate'); await settle(p, 300); }]);
+  states.push(['writing-en-translate-quick', async (p) => { await val(p, 'textarea', 'zzz'); await k(p, 'quick'); await settle(p, 300); await k(p, 'aiCheck'); await settle(p, 300); }]);
+  states.push(['writing-picker', async (p) => { await k(p, 'pickLang'); await settle(p, 300); }]);
+  states.push(['writing-picker-close', async (p) => { await k(p, 'pickLang'); }]);
+  LANG_IDS.forEach((id) => states.push([`writing-${id}`, async (p) => { await k(p, 'pickLang'); await k(p, 'pickLangItem', `[data-lang="${id}"]`); await settle(p, 350); }]));
+  ['lang-cn', 'lang-jp', 'lang-kr', 'lang-ru', 'lang-vn', 'lang-in', 'lang-ar', 'lang-de', 'lang-mm'].forEach((id) => {
+    states.push([`script-${id}`, async (p) => { await k(p, 'pickLang'); await k(p, 'pickLangItem', `[data-lang="${id}"]`); await settle(p, 300); await k(p, 'reveal'); await settle(p, 350); }]);
+    states.push([`script-${id}-rate`, async (p) => { await dom(p, '[data-k=rate2]'); await settle(p, 250); }]);
+  });
+  // ข้อสอบ
+  const examGoto = async (p, id) => { await dom(p, `[data-k="lang"][data-lang="${id}"]`); await settle(p, 200); await k(p, 'tab-exam'); await settle(p, 300); };
+  states.push(['exam-cn-type', async (p) => { await examGoto(p, 'lang-cn'); }]);
+  states.push(['exam-cn-levels', async (p) => { await k(p, 'examType', ':nth-child(1)'); }]);
+  states.push(['exam-cn-intro', async (p) => { await k(p, 'examLevel', ':nth-child(1)'); }]);
+  states.push(['exam-cn-q', async (p) => { await k(p, 'sectionStart'); }]);
+  states.push(['exam-cn-answered', async (p) => { await dom(p, '[data-k=tf]'); await dom(p, '[data-k=choice]'); await settle(p, 250); }]);
+  states.push(['exam-cn-done', async (p) => { await finishExam(p); }]);
+  states.push(['exam-cn-bct', async (p) => { await k(p, 'backLevels'); await settle(p, 200); await k(p, 'examLevel'); await k(p, 'sectionStart'); await finishExam(p); }]);
+  states.push(['exam-en-type', async (p) => { await examGoto(p, 'lang-en'); }]);
+  states.push(['exam-en-ielts-intro', async (p) => { await k(p, 'examType', ':nth-child(1)'); }]);
+  states.push(['exam-en-ielts-q', async (p) => { await k(p, 'sectionStart'); }]);
+  states.push(['exam-en-ielts-done', async (p) => { await finishExam(p); }]);
+  states.push(['exam-en-toeic', async (p) => { await dom(p, '[data-k=restart]'); await settle(p, 200); await k(p, 'examType', ':nth-child(2)'); await settle(p, 200); await k(p, 'sectionStart'); await settle(p, 250); }]);
+  states.push(['exam-en-toeic-done', async (p) => { await finishExam(p); }]);
+  ['lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn', 'lang-my', 'lang-mm', 'lang-kh', 'lang-la'].forEach((id) => {
+    states.push([`exam-${id}-start`, async (p) => { await examGoto(p, id); }]);
+    states.push([`exam-${id}-intro`, async (p) => { await k(p, 'examStart'); }]);
+    states.push([`exam-${id}-q`, async (p) => { await k(p, 'sectionStart'); }]);
+    states.push([`exam-${id}-answered`, async (p) => { await dom(p, '[data-k=choice]'); await settle(p, 250); }]);
+    states.push([`exam-${id}-done`, async (p) => { await finishExam(p); }]);
+  });
+  // ฟัง-พูด
+  states.push(['listen-en', async (p) => { await lang(p, 'lang-en'); await k(p, 'tab-listen'); await settle(p, 400); }]);
+  states.push(['listen-passage', async (p) => { await dom(p, 'main .stat-card'); await settle(p, 300); }]);
+  states.push(['listen-reveal', async (p) => { await dom(p, 'main .btn.ghost.sm.shrink-0:not(.icon)'); await settle(p, 250); }]);
+  states.push(['listen-quiz', async (p) => { await dom(p, 'main .btn.primary.lg.w-full'); await settle(p, 300); }]);
+  states.push(['listen-answer', async (p) => { await exp(p, () => document.querySelectorAll('[data-k=choice]').forEach((b, i) => { if (i % 3 === 0) b.click(); })); await settle(p, 250); await dom(p, 'main .btn.primary.lg.w-full'); await settle(p, 300); }]);
+  states.push(['listen-shadowing', async (p) => { await k(p, 'lsub-shadowing'); await settle(p, 400); }]);
+  states.push(['listen-reading', async (p) => { await k(p, 'lsub-reading'); await settle(p, 400); }]);
+  states.push(['reading-passage', async (p) => { await dom(p, 'main .stat-card'); await settle(p, 300); }]);
+  states.push(['listen-numbers', async (p) => { await k(p, 'lsub-numbers'); await settle(p, 400); }]);
+  states.push(['numbers-cat', async (p) => { await dom(p, 'main .chip:nth-of-type(2)'); await settle(p, 300); }]);
+  states.push(['numbers-answer', async (p) => { await dom(p, '[data-k=choice]'); await settle(p, 250); }]);
+  states.push(['numbers-finish', async (p) => { await exp(p, async () => { const sleep = (ms) => new Promise((r) => setTimeout(r, ms)); for (let g = 0; g < 80; g++) { const c = document.querySelector('[data-k=choice]:not([aria-disabled=true])'); if (c) { c.click(); await sleep(0); } const n = [...document.querySelectorAll('main .btn.primary')].pop(); if (n && /choice|button/.test(n.tagName.toLowerCase()) && document.querySelector('[data-k=choice][aria-disabled=true]')) { n.click(); await sleep(0); } if (!document.querySelector('[data-k=choice]')) break; } }); await settle(p, 400); }]);
+  LANG_IDS.slice(0, 0);
+  states.push(['final', async (p) => { await closeAll(p); await settle(p, 200); }]);
+  return {
+    page: 'languages.html',
+    seed,
+    user: /^\s*$/,
+    overlay: 'aside.translate-x-0',
+    init: 'window.google = undefined; window.Tesseract = {}; window.HanziWriter = { create: function () { return { animateCharacter: function () {}, quiz: function (o) { window.__hwQuiz = o; } }; } }; window.TanotFileReader = Object.assign(window.TanotFileReader || {}, { recognizeText: function () { return Promise.resolve("handwritten text"); }, preprocessForOcr: function (c) { return c; }, PSM_SINGLE_LINE: 7 });',
+    ignoreErrors: /accounts\.google\.com|gsi\/client|ERR_INTERNET_DISCONNECTED|Failed to load resource|cdn\.jsdelivr\.net|tesseract|hanzi/i,
+    states
+  };
+}
+
 const ALLOW = [];
 
 function targets(h) {
-  return [legal(h), sim(h)];
+  return [legal(h), sim(h), languages(h)];
 }
 module.exports = { targets, ALLOW, NOW };
