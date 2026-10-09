@@ -47,6 +47,21 @@ var KB_ROWS = [
   [['a','ฟ','A','ฤ'],['s','ห','S','ฆ'],['d','ก','D','ฏ'],['f','ด','F','โ'],['g','เ','G','ฌ'],['h','้','H','็'],['j','่','J','๋'],['k','า','K','ษ'],['l','ส','L','ศ'],[';','ว',':','ซ'],["'",'ง','"','.']],
   [['z','ผ','Z','('],['x','ป','X',')'],['c','แ','C','ฉ'],['v','อ','V','ฮ'],['b','ิ','B','ฺ'],['n','ื','N','์'],['m','ท','M','?'],[',','ม','<','ฒ'],['.','ใ','>','ฬ'],['/','ฝ','?','ฦ']]
 ];
+/* ชื่อบทเรียนภาษาอังกฤษ (ชื่อบทเป็น UI — ภาษาไทยเดิมอยู่ใน TRACKS ที่ tests/typing.spec.js อ่าน) · [[...]] = ตัวอักษรไทยที่เป็นเนื้อหาฝึก ไม่แปล */
+var LESSON_EN = {
+  'พื้นฐาน a s d f': 'Basics: a s d f', 'พื้นฐาน j k l ;': 'Basics: j k l ;', 'รวมสองมือ': 'Both hands', 'คำสั้นแถวกลาง': 'Short home-row words',
+  'ประโยคแถวกลาง': 'Home-row sentences', 'แถวบน q-p': 'Top row q-p', 'แถวล่าง z-/': 'Bottom row z-/', 'รวมทุกแถว': 'All rows',
+  'ฝึกความแม่นยำ': 'Accuracy practice', 'ฝึกความเร็ว': 'Speed practice',
+  'คำศัพท์ชุด 1': 'Word set 1', 'คำศัพท์ชุด 2': 'Word set 2', 'คำศัพท์ชุด 3': 'Word set 3', 'คำศัพท์ชุด 4': 'Word set 4',
+  'ประโยคที่ 1': 'Sentence 1', 'ประโยคที่ 2': 'Sentence 2', 'ประโยคที่ 3': 'Sentence 3', 'ประโยคที่ 4': 'Sentence 4', 'ประโยคที่ 5': 'Sentence 5', 'ประโยคที่ 6': 'Sentence 6',
+  'พื้นฐาน ฟ ห ก ด': 'Basics: [[ฟ ห ก ด]]', 'พื้นฐาน ่ า ส ว': 'Basics: [[่ า ส ว]]', 'เติมแป้นชิด (เ ้ ง)': 'Adding nearby keys ([[เ ้ ง]])', 'ทบทวนแถวกลาง': 'Home-row review',
+  'แถวบน': 'Top row', 'แถวล่าง': 'Bottom row', 'คำในชีวิตประจำวัน': 'Everyday words', 'คำสองพยางค์': 'Two-syllable words', 'ทบทวนทุกแถว': 'Review all rows',
+  'ตัวใหญ่ มือซ้าย': 'Capitals: left hand', 'ตัวใหญ่ มือขวา': 'Capitals: right hand', 'ตัวใหญ่ ผสม': 'Capitals: mixed',
+  'เครื่องหมาย ! @ # $ %': 'Symbols: ! @ # $ %', 'เครื่องหมาย ( ) : " ?': 'Symbols: ( ) : " ?', 'เครื่องหมายอื่นๆ': 'Other symbols',
+  'ศ ซ โ': '[[ศ ซ โ]]', 'ธ ฉ ฮ': '[[ธ ฉ ฮ]]', 'ณ ญ ษ ฤ': '[[ณ ญ ษ ฤ]]', 'สระ ็ ู': 'Vowels [[็ ู]]', 'วรรณยุกต์ ๊ ๋ และ ์': 'Tone marks [[๊ ๋]] and [[์]]',
+  'ตัวที่ใช้น้อย': 'Rarely used letters', 'อักษรโบราณ ฃ ฅ ฦ': 'Archaic letters [[ฃ ฅ ฦ]]',
+  'เลขไทย ๑–๕': 'Thai digits [[๑–๕]]', 'เลขไทย ๖–๙ และ ๐': 'Thai digits [[๖–๙]] and [[๐]]', 'ตัวเลขในชีวิตจริง': 'Real-life numbers', 'เครื่องหมาย': 'Symbols'
+};
 var HOME_KEYS_EN = ['a','s','d','f','j','k','l',';'];
 
 /* ตารางย้อนกลับ: อักษร -> ตำแหน่งปุ่ม {r,c,shift} — ใช้หาว่าอักษรถัดไปที่ต้องพิมพ์อยู่ปุ่มไหนและต้องกด Shift ไหม
@@ -421,12 +436,22 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     TRACKS.forEach(function (tr) {
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'tt-tab' + (tr.id === state.trackId ? ' active' : '');
+      btn.className = 'tab tt-tab';
+      btn.setAttribute('role', 'tab');
+      btn.setAttribute('aria-selected', String(tr.id === state.trackId));
       btn.textContent = getUILang() === 'en' ? tr.labelEn : tr.label;
       btn.addEventListener('click', function () { selectTrack(tr.id); });
       trackTabs.appendChild(btn);
     });
   }
+
+  /* ชื่อบทตามภาษา UI (ภาษาของแป้น/ข้อความฝึกไม่เกี่ยว) — ตัวอักษรไทยที่เป็นเนื้อหาฝึกใน EN ห่อ data-i18n-skip */
+  function lessonTitleHtml(lesson) {
+    var en = getUILang() === 'en' && LESSON_EN[lesson.title];
+    if (!en) return escHtml(lesson.title);
+    return escHtml(en).replace(/\[\[(.*?)\]\]/g, '<span data-i18n-skip>$1</span>');
+  }
+  function escHtml(x) { return String(x).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   function renderLessonList() {
     var track = trackById(state.trackId);
@@ -436,9 +461,10 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
       var unlocked = isUnlocked(track, i, progress);
       var item = document.createElement('button');
       item.type = 'button';
-      item.className = 'tt-lesson' + (i === state.lessonIndex && !state.sprintMode ? ' active' : '') + (unlocked ? '' : ' locked');
+      item.className = 'btn item tt-lesson' + (i === state.lessonIndex && !state.sprintMode ? ' active' : '') + (unlocked ? '' : ' locked');
+      if (!unlocked) item.setAttribute('aria-disabled', 'true');
       var best = progress[progressKey(track.id, i)];
-      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-lock"/></svg>') + (i + 1) + '. ' + lesson.title + '</span>' +
+      item.innerHTML = '<span class="tt-lesson-title">' + (unlocked ? '' : '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-lock"/></svg>') + (i + 1) + '. ' + lessonTitleHtml(lesson) + '</span>' +
         (best ? '<span class="tt-lesson-best">' + Math.round(best.wpm) + ' ' + t('statsWpm') + '</span>' : '');
       item.addEventListener('click', function () {
         if (unlocked) selectLesson(i);
@@ -830,20 +856,8 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     });
   }
 
-  if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyI18n();
-      renderTrackTabs();
-      renderLessonList();
-      var track = trackById(state.trackId);
-      trackDesc.textContent = track.desc;
-      renderKeyboard(currentLang());
-      highlightNextKey(currentLang());
-      if (statTimeLabel) statTimeLabel.textContent = state.sprintMode ? t('statsTimeLeft') : t('statsTime');
-    });
-  }
-  window.omeApplyLang = function () {
+  /* ภาษา UI (ปุ่มสลับ/แผงตั้งค่า) แยกจากภาษาของแป้นพิมพ์และข้อความฝึก — สลับ UI แล้วแป้น/บทที่กำลังฝึกไม่เปลี่ยน */
+  function relabel() {
     applyI18n();
     renderTrackTabs();
     renderLessonList();
@@ -852,13 +866,18 @@ if (typeof document !== 'undefined' && document.getElementById('typingRoot')) {
     renderKeyboard(currentLang());
     highlightNextKey(currentLang());
     if (statTimeLabel) statTimeLabel.textContent = state.sprintMode ? t('statsTimeLeft') : t('statsTime');
-  };
+  }
+  if (langToggle) {
+    langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
+  }
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(relabel);
 
   applyI18n();
   selectTrack(state.trackId);
 }
 
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { TRACKS: TRACKS, KB_ROWS: KB_ROWS, EN_CHAR_MAP: EN_CHAR_MAP, TH_CHAR_MAP: TH_CHAR_MAP, fingerFor: fingerFor, shiftSideFor: shiftSideFor, buildSprintText: buildSprintText };
+  module.exports = { LESSON_EN: LESSON_EN, TRACKS: TRACKS, KB_ROWS: KB_ROWS, EN_CHAR_MAP: EN_CHAR_MAP, TH_CHAR_MAP: TH_CHAR_MAP, fingerFor: fingerFor, shiftSideFor: shiftSideFor, buildSprintText: buildSprintText };
 }
 })();

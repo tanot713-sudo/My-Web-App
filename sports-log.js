@@ -67,6 +67,7 @@
 
   /* ── ฟอร์ม ── */
   var editing = null; // แถวที่กำลังแก้ (null = บันทึกใหม่)
+  var msgKey = ''; // คีย์ข้อความ error ที่แสดงอยู่ (แปลซ้ำตอนสลับภาษา)
   var uid = newUid();
 
   function kindOptions(selected) {
@@ -86,7 +87,7 @@
     kindOptions('');
     $('logName').value = ''; $('logMin').value = ''; $('logDist').value = ''; $('logKcal').value = '';
     $('logAt').value = localInput(Date.now());
-    $('logMsg').textContent = '';
+    msgKey = ''; $('logMsg').textContent = '';
     $('logCancel').hidden = true; $('logDel').hidden = true;
     $('logSave').querySelector('span').textContent = L('logSave');
     syncKindFields();
@@ -104,7 +105,7 @@
     $('logMin').value = r.minutes;
     $('logDist').value = r.distanceKm != null ? r.distanceKm : '';
     $('logKcal').value = r.kcal != null ? r.kcal : '';
-    $('logMsg').textContent = '';
+    msgKey = ''; $('logMsg').textContent = '';
     $('logCancel').hidden = false; $('logDel').hidden = false;
     $('logSave').querySelector('span').textContent = L('logSaveEdit');
     syncKindFields();
@@ -132,7 +133,8 @@
     var id = editing ? editing.ref || String(editing.id).replace(/^sports:/, '') : uid;
     var out = HC.cleanWorkout(raw, id, { weightKg: latestWeight() });
     if (out.error) {
-      $('logMsg').textContent = L({ kind: 'eKind', name: 'eName', at: 'eAt', minutes: 'eMinutes', distance: 'eDistance', kcal: 'eKcal' }[out.error]);
+      msgKey = { kind: 'eKind', name: 'eName', at: 'eAt', minutes: 'eMinutes', distance: 'eDistance', kcal: 'eKcal' }[out.error];
+      $('logMsg').textContent = L(msgKey);
       return;
     }
     var rec = out.rec, isNew = false;
@@ -167,7 +169,7 @@
     var rows = loadRows().sort(function (a, b) { return b.at - a.at; }).slice(0, VIEW_LIMIT);
     if (!rows.length) { $('logList').innerHTML = '<div class="empty"><p>' + esc(L('empty')) + '</p></div>'; return; }
     var loc = lang() === 'en' ? 'en-GB' : 'th-TH';
-    $('logList').innerHTML = '<div class="list">' + rows.map(function (r) {
+    $('logList').innerHTML = '<div class="list plain">' + rows.map(function (r) {
       var d = new Date(r.at);
       var parts = [num(r.minutes, 1) + ' ' + L('min')];
       if (r.distanceKm != null) parts.push(num(r.distanceKm, 2) + ' ' + L('km'));
@@ -185,11 +187,12 @@
     kindOptions(cur);
     syncKindFields();
     $('logSave').querySelector('span').textContent = editing ? L('logSaveEdit') : L('logSave');
+    $('logMsg').textContent = msgKey ? L(msgKey) : '';
     render();
   }
 
   window.SportsLog = { render: relabel };
   resetForm();
-  render();
+  relabel();
   if (TD && TD.onChange) TD.onChange(render);
 })();

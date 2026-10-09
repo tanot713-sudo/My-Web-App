@@ -61,11 +61,7 @@
 
 /* ── เมนูเลือกบทเรียน (แผงเลื่อนลง จัดกลุ่มตามหมวด) ── */
 .mx-track-menu{position:relative;margin-bottom:var(--ome-sp-4)}
-.mx-track-menu-btn{display:inline-flex;align-items:center;gap:10px;height:40px;padding:0 16px;border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);background:var(--ome-surface-1);color:var(--ome-text-1);font-size:var(--ome-fs-sm);font-weight:600;cursor:pointer;
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
-.mx-track-menu-btn:hover{border-color:var(--ome-border-strong);background:var(--ome-surface-2)}
-.mx-track-menu-btn.open{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong)}
+.mx-track-menu-btn{gap:10px}
 .mx-hamburger-icon{display:flex;flex-direction:column;gap:3.5px;width:18px;flex-shrink:0}
 .mx-hamburger-icon span{display:block;height:2.3px;border-radius:2px;background:currentColor;transition:transform var(--ome-dur-2) var(--ome-ease),opacity var(--ome-dur-2)}
 .mx-track-menu-btn.open .mx-hamburger-icon span:nth-child(1){transform:translateY(5.8px) rotate(45deg)}
@@ -74,27 +70,17 @@
 .mx-track-menu-panel{display:none;position:absolute;top:calc(100% + 8px);left:0;z-index:var(--ome-z-popover);min-width:280px;
   max-width:min(420px,calc(100vw - 40px));max-height:70vh;overflow-y:auto;background:var(--ome-surface-1);
   border:1px solid var(--ome-border);border-radius:var(--ome-radius-lg);box-shadow:var(--ome-shadow-3);padding:10px}
-.mx-track-menu-panel.open{display:block}
-.mx-track-group-label{font-size:11px;font-weight:700;letter-spacing:.05em;color:var(--ome-text-2);padding:10px 10px 6px}
-.mx-track-menu-item{display:block;width:100%;text-align:left;font-size:var(--ome-fs-sm);font-weight:600;padding:9px 12px;border:0;
-  border-radius:var(--ome-radius-md);background:transparent;color:var(--ome-text-1);cursor:pointer}
-.mx-track-menu-item:hover{background:var(--ome-surface-2)}
-.mx-track-menu-item.active{background:var(--ome-accent);color:var(--ome-on-accent)}
+.mx-track-menu-panel.open{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.mx-track-group-label{font-size:var(--ome-fs-xs);font-weight:700;letter-spacing:.05em;color:var(--ome-text-2);padding:10px 10px 6px}
 
 /* ── แถบข้างรายการบทเรียน + พื้นที่เนื้อหา ── */
 .mx-layout{display:grid;grid-template-columns:220px 1fr;gap:18px;align-items:start}
 @media(max-width:820px){.mx-layout{grid-template-columns:1fr}}
 @media(min-width:821px){.mx-sidebar{position:sticky;top:calc(var(--ome-nav-h) + 16px);max-height:calc(100vh - var(--ome-nav-h) - 32px);overflow-y:auto}}
-.mx-item-list{display:flex;flex-direction:column;gap:6px}
-.mx-item{display:flex;align-items:center;gap:8px;text-align:left;background:var(--ome-surface-1);border:1px solid var(--ome-border);
-  border-radius:var(--ome-radius-md);padding:10px 12px;cursor:pointer;font-size:var(--ome-fs-sm);color:var(--ome-text-1);
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
+.mx-item-list{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.mx-item{gap:8px}
 .mx-item .ome-icon{color:var(--ome-text-2)}
-.mx-item:hover{border-color:var(--ome-accent)}
-.mx-item.active{border-color:var(--ome-accent);background:var(--ome-accent-soft);color:var(--ome-accent-strong);font-weight:600}
 .mx-item.active .ome-icon{color:inherit}
-.mx-item.locked{opacity:.55;cursor:not-allowed}
-.mx-item.locked:hover{border-color:var(--ome-border)}
 .mx-lock-msg{display:none;background:var(--ome-warn-soft);color:var(--ome-warn-ink);border-radius:var(--ome-radius-md);padding:8px 12px;
   font-size:var(--ome-fs-xs);font-weight:600;margin-bottom:8px}
 .mx-main{position:relative;padding:22px}
@@ -105,12 +91,9 @@
 .mx-staff-wrap{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:20px 12px;margin-bottom:16px}
 .mx-quiz-prompt{font-size:var(--ome-fs-base);font-weight:600;text-align:center;margin-bottom:4px}
 .mx-answer-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:14px}
-.mx-answer-btn{font-size:var(--ome-fs-md);font-weight:700;width:44px;height:44px;border-radius:var(--ome-radius-md);
-  border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-1);cursor:pointer;
-  transition:border-color var(--ome-dur-1),background var(--ome-dur-1)}
-.mx-answer-btn:hover:not(:disabled){border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.mx-answer-btn{font-size:var(--ome-fs-md);font-weight:700;width:44px;height:44px;padding:0}
 .mx-answer-btn:disabled{opacity:.5;cursor:default}
-.mx-answer-btn.wide{width:auto;height:auto;padding:12px 16px;font-size:var(--ome-fs-sm)}
+.mx-answer-btn.wide{width:auto;height:auto;min-height:44px;padding:12px 16px;font-size:var(--ome-fs-sm);white-space:normal}
 .mx-answer-btn.correct{background:var(--ome-ok-soft);border-color:var(--ome-ok);color:var(--ome-ok-ink)}
 .mx-answer-btn.wrong{background:var(--ome-err-soft);border-color:var(--ome-err);color:var(--ome-err-ink);animation:mx-shake .35s}
 @keyframes mx-shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
@@ -126,7 +109,7 @@
 <main class="page mx-page" id="musicRoot">
 <div class="crumb-row">
   <nav class="crumb"><a href="area.html?a=work" data-i18n="crumbResp">งานที่รับผิดชอบ</a><span class="sep">/</span><span data-i18n="crumbMusic">เรียนดนตรี</span></nav>
-  <button class="lang-toggle" id="langToggle" type="button" aria-label="Switch language / สลับภาษา">
+  <button class="lang-toggle" id="langToggle" type="button" data-i18n-skip data-i18n-attr="aria-label:lang.toggle" aria-label="Switch language / สลับภาษา">
     <span class="lt-th active" data-lt="th">ไทย</span><span class="lt-en" data-lt="en">EN</span>
   </button>
 </div>
@@ -149,7 +132,7 @@
 </div>
 
 <div class="mx-track-menu">
-  <button class="mx-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
+  <button class="btn mx-track-menu-btn" id="trackMenuBtn" type="button" aria-haspopup="true" aria-expanded="false">
     <span class="mx-hamburger-icon" aria-hidden="true"><span></span><span></span><span></span></span>
     <span id="currentTrackLabel"></span>
   </button>

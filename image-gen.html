@@ -55,66 +55,66 @@
 </head>
 <body data-layout="tool">
 <main class="page ig-page">
-  <div class="page-head"><h1>สร้างภาพ</h1></div>
+  <div class="page-head"><h1 data-i18n="ig.title">สร้างภาพ</h1></div>
 
   <section class="card ig-quota" id="quota" aria-live="polite">
-    <div class="ig-quota-row"><span>โควตา AI วันนี้</span><span id="quotaTxt"><b>–</b></span></div>
+    <div class="ig-quota-row"><span data-i18n="ig.quota">โควตา AI วันนี้</span><span id="quotaTxt"><b>–</b></span></div>
     <div class="ig-bar" id="quotaBar"><i></i></div>
   </section>
 
   <section class="card ig-form">
     <div class="field">
-      <label for="prompt">คำสั่ง</label>
+      <label for="prompt" data-i18n="ig.prompt">คำสั่ง</label>
       <textarea id="prompt" maxlength="1500" rows="4" autocomplete="off"></textarea>
     </div>
     <div class="ig-opts">
-      <div class="ig-opt"><span id="lPreset">แบบ</span>
+      <div class="ig-opt"><span id="lPreset" data-i18n="ig.preset">แบบ</span>
         <div class="segmented" id="preset" role="group" aria-labelledby="lPreset">
-          <button type="button" data-v="background">พื้นหลัง</button><button type="button" data-v="icon">ไอคอน</button><button type="button" data-v="free">อิสระ</button>
+          <button type="button" data-v="background" data-i18n="ig.pBackground">พื้นหลัง</button><button type="button" data-v="icon" data-i18n="ig.pIcon">ไอคอน</button><button type="button" data-v="free" data-i18n="ig.pFree">อิสระ</button>
         </div></div>
-      <div class="ig-opt" id="modeBox"><span id="lMode">โหมด</span>
+      <div class="ig-opt" id="modeBox"><span id="lMode" data-i18n="ig.mode">โหมด</span>
         <div class="segmented" id="mode" role="group" aria-labelledby="lMode">
-          <button type="button" data-v="light">สว่าง</button><button type="button" data-v="dark">มืด</button><button type="button" data-v="both">ทั้งคู่</button>
+          <button type="button" data-v="light" data-i18n="ig.mLight">สว่าง</button><button type="button" data-v="dark" data-i18n="ig.mDark">มืด</button><button type="button" data-v="both" data-i18n="ig.mBoth">ทั้งคู่</button>
         </div></div>
-      <div class="ig-opt"><span id="lModel">โมเดล</span>
+      <div class="ig-opt"><span id="lModel" data-i18n="ig.model">โมเดล</span>
         <div class="segmented" id="model" role="group" aria-labelledby="lModel">
-          <button type="button" data-v="fast">เร็ว</button><button type="button" data-v="quality">คุณภาพ</button>
+          <button type="button" data-v="fast" data-i18n="ig.fast">เร็ว</button><button type="button" data-v="quality" data-i18n="ig.quality">คุณภาพ</button>
         </div></div>
-      <div class="ig-opt"><span id="lCount">จำนวน</span>
+      <div class="ig-opt"><span id="lCount" data-i18n="ig.count">จำนวน</span>
         <div class="segmented" id="count" role="group" aria-labelledby="lCount">
           <button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button>
         </div></div>
     </div>
     <div class="ig-acts">
-      <button class="btn" type="button" id="trBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-languages"/></svg>แปลเป็นอังกฤษ</button>
+      <button class="btn" type="button" id="trBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-languages"/></svg><span data-i18n="ig.translate">แปลเป็นอังกฤษ</span></button>
       <span class="grow"></span>
-      <button class="btn primary" type="button" id="genBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span id="genTxt">สร้างภาพ</span></button>
+      <button class="btn primary" type="button" id="genBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span id="genTxt" data-i18n="ig.generate">สร้างภาพ</span></button>
     </div>
   </section>
 
   <section class="card">
-    <div class="card-head"><h2>คลังภาพ</h2></div>
+    <div class="card-head"><h2 data-i18n="ig.library">คลังภาพ</h2></div>
     <div class="ig-tools">
-      <div class="segmented" id="filter" role="group" aria-label="กรอง">
-        <button type="button" data-v="all">ทั้งหมด</button><button type="button" data-v="background">พื้นหลัง</button><button type="button" data-v="icon">ไอคอน</button><button type="button" data-v="free">อิสระ</button>
+      <div class="segmented" id="filter" role="group" data-i18n-attr="aria-label:ig.filter" aria-label="กรอง">
+        <button type="button" data-v="all" data-i18n="ig.fAll">ทั้งหมด</button><button type="button" data-v="background" data-i18n="ig.pBackground">พื้นหลัง</button><button type="button" data-v="icon" data-i18n="ig.pIcon">ไอคอน</button><button type="button" data-v="free" data-i18n="ig.pFree">อิสระ</button>
       </div>
     </div>
     <div class="ig-grid" id="grid" style="margin-top:var(--ome-sp-3)"></div>
-    <div class="empty" id="empty" hidden>ยังไม่มีภาพ</div>
+    <div class="empty" id="empty" data-i18n="ig.empty" hidden>ยังไม่มีภาพ</div>
   </section>
 </main>
 
 <dialog class="dialog ig-dialog" id="view" aria-labelledby="vTitle">
-  <div class="dialog-head"><h2 id="vTitle">ภาพ</h2><button class="btn icon ghost" type="button" id="vClose" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <div class="dialog-head"><h2 id="vTitle" data-i18n="ig.view">ภาพ</h2><button class="btn icon ghost" type="button" id="vClose" data-i18n-attr="aria-label:ig.close" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
   <div class="dialog-body">
     <img class="ig-big" id="vImg" alt="">
     <div class="ig-prompt" id="vPrompt"></div>
     <div class="ig-meta" id="vMeta"></div>
   </div>
   <div class="dialog-foot">
-    <button class="btn danger" type="button" id="vDel" style="margin-right:auto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ลบ</button>
-    <button class="btn" type="button" id="vAgain"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg>สร้างซ้ำแบบนี้</button>
-    <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>ดาวน์โหลด</a>
+    <button class="btn danger" type="button" id="vDel" style="margin-right:auto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="ig.del">ลบ</span></button>
+    <button class="btn" type="button" id="vAgain"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="ig.again">สร้างซ้ำแบบนี้</span></button>
+    <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="ig.download">ดาวน์โหลด</span></a>
   </div>
 </dialog>
 

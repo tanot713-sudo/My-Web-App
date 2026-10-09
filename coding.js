@@ -1172,13 +1172,13 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
 
   function closeTrackMenu() {
     trackMenuPanel.classList.remove('open');
-    trackMenuBtn.classList.remove('open');
+    trackMenuBtn.classList.remove('open', 'on');
     trackMenuBtn.setAttribute('aria-expanded', 'false');
   }
   function toggleTrackMenu() {
     var opening = !trackMenuPanel.classList.contains('open');
     trackMenuPanel.classList.toggle('open', opening);
-    trackMenuBtn.classList.toggle('open', opening);
+    trackMenuBtn.classList.toggle('open', opening); trackMenuBtn.classList.toggle('on', opening);
     trackMenuBtn.setAttribute('aria-expanded', opening ? 'true' : 'false');
   }
   trackMenuBtn.addEventListener('click', function (e) { e.stopPropagation(); toggleTrackMenu(); });
@@ -1204,7 +1204,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       }
       var btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'cx-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
+      btn.className = 'btn ghost item cx-track-menu-item' + (tr.id === state.trackId ? ' active' : '');
       btn.textContent = lang === 'en' ? tr.labelEn : tr.label;
       btn.addEventListener('click', function () { selectTrack(tr.id); closeTrackMenu(); });
       trackMenuPanel.appendChild(btn);
@@ -1217,7 +1217,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
     itemList.innerHTML = '';
     var conceptBtn = document.createElement('button');
     conceptBtn.type = 'button';
-    conceptBtn.className = 'cx-item' + (state.itemIndex === 0 ? ' active' : '');
+    conceptBtn.className = 'btn item cx-item' + (state.itemIndex === 0 ? ' active' : '');
     conceptBtn.textContent = '' + t('conceptLabel');
     conceptBtn.addEventListener('click', function () { selectItem(0); });
     itemList.appendChild(conceptBtn);
@@ -1228,9 +1228,10 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       var passed = !!progress[progressKey(track.id, idx)];
       var item = document.createElement('button');
       item.type = 'button';
-      item.className = 'cx-item' + (idx === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      item.className = 'btn item cx-item' + (idx === state.itemIndex ? ' active' : '') + (unlocked ? '' : ' locked');
+      if (!unlocked) item.setAttribute('aria-disabled', 'true');
       if (passed || !unlocked) item.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (passed ? 'circle-check' : 'lock') + '"/></svg>';
-      item.appendChild(document.createTextNode((idx) + '. ' + ex.title));
+      var ttl = document.createElement('span'); ttl.setAttribute('data-i18n-skip', ''); ttl.textContent = idx + '. ' + ex.title; item.appendChild(ttl); /* ชื่อบทโค้ดเป็นเนื้อหา (ไทยล้วน) */
       item.addEventListener('click', function () {
         if (unlocked) selectItem(idx);
         else showLockMsg();
@@ -1282,7 +1283,8 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       setCode(isReading ? '' : (drafts[draftKey] !== undefined ? drafts[draftKey] : track.concept.example));
     } else {
       var ex = track.exercises[idx - 1];
-      itemHeading.textContent = t('exerciseTitle', { n: idx }) + ': ' + ex.title;
+      itemHeading.textContent = t('exerciseTitle', { n: idx }) + ': ';
+      var exTitle = document.createElement('span'); exTitle.setAttribute('data-i18n-skip', ''); exTitle.textContent = ex.title; itemHeading.appendChild(exTitle);
       instructionsBox.textContent = isReading ? ex.content : ex.instructions;
       setCode(isReading ? '' : (drafts[draftKey] !== undefined ? drafts[draftKey] : ex.starter));
     }
@@ -1367,7 +1369,7 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
       var row = document.createElement('div');
       row.className = 'cx-test-row ' + (r.pass ? 'pass' : 'fail');
       row.innerHTML = '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + (r.pass ? 'circle-check' : 'circle-x') + '"/></svg>';
-      row.appendChild(document.createTextNode(r.label));
+      var lbl = document.createElement('span'); lbl.setAttribute('data-i18n-skip', ''); lbl.textContent = r.label; row.appendChild(lbl); /* คำอธิบายข้อตรวจเป็นเนื้อหาบทเรียน */
       testsList.appendChild(row);
     });
   }
@@ -1496,17 +1498,10 @@ if (typeof document !== 'undefined' && document.getElementById('codingRoot')) {
   }
 
   if (langToggle) {
-    langToggle.addEventListener('click', function () {
-      setUILang(getUILang() === 'en' ? 'th' : 'en');
-      applyI18n();
-      renderTrackTabs();
-      renderItemList();
-      selectItem(state.itemIndex);
-    });
+    langToggle.addEventListener('click', function () { OME_LANG.set(getUILang() === 'en' ? 'th' : 'en'); });
   }
-  window.omeApplyLang = function () {
-    applyI18n(); renderTrackTabs(); renderItemList(); selectItem(state.itemIndex);
-  };
+  window.OME_PAGE_LIVE_LANG = true;
+  OME_LANG.onChange(function () { applyI18n(); renderTrackTabs(); renderItemList(); selectItem(state.itemIndex); });
 
   applyI18n();
   renderTrackTabs();
