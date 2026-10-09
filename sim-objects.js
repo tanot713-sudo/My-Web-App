@@ -1324,6 +1324,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       refreshMyModelsCatalog().then(function () { if (uploadMsg) setUploadBusy(true, uploadMsg); });
       renderInspector();
       setCsgHint(csgHintKey);
+      var sb = $('s3SaveBar');
+      if (sb && sb.textContent) sb.textContent = T('saved');
     });
   }
 

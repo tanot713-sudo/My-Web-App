@@ -548,7 +548,7 @@
             "Structure & Vocabulary + Reading + Listening + Writing + Speaking ครบ 5 ส่วน ตามโครงสร้างจริง": "Structure & Vocabulary + Reading + Listening + Writing + Speaking, all 5 sections as in the real exam",
             "Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение ครบ 5 ส่วน ตามโครงสร้างจริง": "Лексика. Грамматика + Чтение + Аудирование + Письмо + Говорение, all 5 sections as in the real exam",
             "सुनना (ฟัง) 14 + पढ़ना (อ่าน) 30 = 44 ข้อ": "सुनना (listening) 14 + पढ़ना (reading) 30 = 44 questions",
-            "ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ": "ການຟັง (listening) 14 + ການອ່ານ (reading) 30 = 44 questions",
+            "ການຟັง (ฟัง) 14 + ການອ່ານ (อ่าน) 30 = 44 ข้อ": "ການຟັງ (listening) 14 + ການອ່ານ (reading) 30 = 44 questions",
             "နားထောင်ခြင်း (ฟัง) 14 + ဖတ်ခြင်း (อ่าน) 30 = 44 ข้อ": "နားထောင်ခြင်း (listening) 14 + ဖတ်ခြင်း (reading) 30 = 44 questions",
             "ការស្តាប់ (ฟัง) 14 + ការអាន (อ่าน) 30 = 44 ข้อ": "ការស្តាប់ (listening) 14 + ការអាន (reading) 30 = 44 questions",
             "듣기 (ฟัง) 30 + 읽기 (อ่าน) 40 = 70 ข้อ ตามโครงสร้างจริง": "듣기 (listening) 30 + 읽기 (reading) 40 = 70 questions, as in the real exam",
@@ -2688,7 +2688,7 @@
                             </button>
                         ) : (
                             <div className="space-y-1">
-                                <p className="text-xl font-bold text-gray-800">{reading}</p>
+                                <p className="text-xl font-bold text-gray-800" data-i18n-skip>{reading}</p>
                                 {c.meaningTh && <p className="text-gray-500">{c.meaningTh}</p>}
                                 {c.radical && <p className="text-sm text-gray-400 mt-2"><span data-i18n-skip>{tx('ราก: {r} ({m}) · {n} ขีด', { r: c.radical, m: c.radicalMeaningTh, n: c.strokeCount })}</span></p>}
                                 {!c.radical && c.strokeCount && <p className="text-sm text-gray-400 mt-2">{tx('{n} ขีด', { n: c.strokeCount })}</p>}
@@ -2857,7 +2857,7 @@
                             </button>
                         ) : (
                             <div className="space-y-1">
-                                <p className="text-xl font-bold text-gray-800">{c.name}</p>
+                                <p className="text-xl font-bold text-gray-800" data-i18n-skip>{c.name}</p>
                                 {c.reading && <p className="text-gray-500 text-sm">{tx('เสียง:')} <span data-i18n-skip>{c.reading}</span></p>}
                                 {c.note && <p className="text-xs max-sm:text-sm text-gray-400 mt-1">{c.note}</p>}
                                 {c.formedFrom && <p className="text-sm text-gray-400 mt-2">{tx('ประกอบจาก:')} <span data-i18n-skip>{c.formedFrom}</span></p>}
