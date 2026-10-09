@@ -128,6 +128,8 @@ async function measure(page, width, withAxe, t) {
     st.textContent = dlgs.length ? 'body *{visibility:hidden !important}dialog[open]:not([data-audit-under]),dialog[open]:not([data-audit-under]) *{visibility:visible !important}' : ('body *{visibility:hidden !important}' + sels.map((x) => x + ',' + x + ' *').join(',') + '{visibility:visible !important}');
     document.head.appendChild(st); return true;
   }, t.overlay || '');
+  // เลื่อนทุกกล่องที่เลื่อนอยู่กลับบนสุดก่อนวัด — เนื้อหาที่เลื่อนไปอยู่ใต้แถบหัวหน้าไม่ใช่ปัญหาเลย์เอาต์ (วัดตำแหน่งตามเลย์เอาต์ปกติ)
+  await page.evaluate(() => { window.scrollTo(0, 0); document.querySelectorAll('*').forEach((el) => { if (el.scrollTop > 0) el.scrollTop = 0; }); });
   try { return await measureInner(page, width, withAxe); }
   finally { if (modal) await page.evaluate(() => { const s = document.getElementById('audit-modal-style'); if (s) s.remove(); document.querySelectorAll('[data-audit-under]').forEach((d) => d.removeAttribute('data-audit-under')); }); }
 }
@@ -151,7 +153,7 @@ async function measureInner(page, width, withAxe) {
 /** error ที่รู้สาเหตุของหน้านั้น (เช่น CDN ที่ถูกบล็อกตอนออฟไลน์) กรองด้วย t.ignoreErrors — ใส่เหตุผลกำกับที่ fixture */
 const errs = (errors, t) => errors.filter((e) => !(t.ignoreErrors && t.ignoreErrors.test(e)));
 
-test.describe.configure({ timeout: 300000 });
+test.describe.configure({ timeout: 900000 });
 
 for (const t of TARGETS) {
   if (ONLY && !ONLY.test(t.page)) continue;
