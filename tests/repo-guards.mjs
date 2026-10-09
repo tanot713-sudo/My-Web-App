@@ -211,10 +211,52 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
   const cur = tg.collectStatic();
   tg.writeStaticReport(cur);
   const worse = tg.compareStatic(cur, tg.loadBaseline());
+  const stale = tg.staleAllowList(cur);
+  if (stale.length) fail('theme-static-allow', 'allowlist ใน theme-guards.mjs มีชื่อที่หน้าไม่ได้ใช้แล้ว (ลบออก): ' + stale.map((x) => x.page + ' ' + x.name).join(', '));
   if (worse.length) {
     fail('theme-static', 'แย่ลงจาก tests/theme-baseline.json (ใช้ var(--ome-*)/คอมโพเนนต์กลางแทน — ดู .claude/skills/tanot-design): ' +
       worse.map((w) => `${w.page} ${w.metric} ${w.base}→${w.now}${w.detail ? ' (' + w.detail + ')' : ''}`).join('; '));
   } else ok('theme-static', `${Object.keys(cur).length} หน้าไม่แย่ลงจาก baseline (สี hex / ปุ่มนิยามเอง)`);
+}
+
+/* ── 13. มือถือ: viewport-fit=cover + safe-area ของ element ที่ติดขอบจอ (รอบ 9) ──
+   (a) ทุกหน้า .html ที่โหลด theme.css ต้องมี viewport-fit=cover ไม่งั้น env(safe-area-inset-*) เป็น 0 เสมอ (รอยบาก/แถบโฮมของ iPhone)
+   (b) กฎ CSS ที่ position:fixed ติดขอบ (top:0 / bottom / left / right เป็นตัวเลข) ต้องมี env(safe-area-inset-*) ในกฎเดียวกัน
+       — ข้าม: โอเวอร์เลย์เต็มจอ inset:0 ล้วน (backdrop/ฉาก), sticky ในกล่องเลื่อน · ยกเว้นเป็นรายชื่อด้านล่าง (มีเหตุผล) */
+{
+  const bad = [];
+  const pagesHtml = tracked.filter((f) => /^[^/]+\.html$/.test(f) && read(f).includes('href="theme.css"')); // stub redirect ไม่มี UI → ข้าม
+  for (const f of pagesHtml) {
+    const vp = (read(f).match(/<meta[^>]+name="viewport"[^>]*>/i) || [''])[0];
+    if (vp && !/viewport-fit=cover/.test(vp)) bad.push(`${f}: viewport ไม่มี viewport-fit=cover`);
+  }
+  /* ยกเว้นแบบระบุตัวเลือก (selector) + เหตุผล */
+  const ALLOW = [
+    [/\.sl-stage\b/, 'โหมดนำเสนอเต็มจอ: ภาพสไลด์ 16:9 กลางจอ ไม่มีปุ่ม/ข้อความชิดขอบ'],
+    [/html\[data-bg\]::(before|after)/, 'ภาพ/scrim พื้นหลังตกแต่ง ไม่มีเนื้อหา'],
+    [/#presentationOverlay|\.lg-modal-ov|\.dashboard-project-detail|\.dashboard-project-backdrop/, 'โอเวอร์เลย์เต็มจอ (inset:0) เนื้อหาอยู่ในกล่องกลางที่มี padding/ขอบของมันเอง'],
+  ];
+  const sources = tracked.filter((f) => /^[^/]+\.(html|css|js)$/.test(f) && !/\.(compiled|min)\.js$/.test(f) && f !== 'sw.js');
+  for (const f of sources) {
+    let css = read(f);
+    if (f.endsWith('.html')) css = [...css.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+    else if (f.endsWith('.js')) { if (!/position\s*:\s*fixed/.test(css)) continue; css = css.replace(/'\s*\+\s*\n?\s*'/g, ''); }
+    css = css.replace(/\/\*[\s\S]*?\*\//g, '');
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*position\s*:\s*fixed[^{}]*)\}/g)) {
+      const sel = m[1].trim().replace(/\s+/g, ' ').slice(-90), d = m[2];
+      const edge = /(?:^|[;\s])(?:bottom|left|right)\s*:\s*(?:\d|calc|var)/.test(d) || /(?:^|[;\s])top\s*:\s*0(?:[;\s]|$)/.test(d);
+      if (!edge || /safe-area-inset/.test(d)) continue;
+      if (ALLOW.some(([re]) => re.test(m[1]))) continue;
+      bad.push(`${f}: ${sel} — position:fixed ติดขอบแต่ไม่มี env(safe-area-inset-*)`);
+    }
+    // sticky ติดล่าง (แถบสถานะ/ปุ่มบันทึกค้างล่าง) ต้องมี safe-area ด้วย
+    for (const m of css.matchAll(/([^{}]+)\{([^{}]*position\s*:\s*sticky[^{}]*[;\s]bottom\s*:[^{}]*)\}/g)) {
+      if (/safe-area-inset/.test(m[2]) || /\.wd-statusbar|\.dialog-foot/.test(m[1])) continue; // .wd-statusbar: padding-bottom ที่มี safe-area อยู่ในกฎหลักของมัน · .dialog-foot: ติดขอบล่างของ "กล่อง" ซึ่งเว้นจากขอบจอเสมอ (max-height 100dvh − 24px)
+      bad.push(`${f}: ${m[1].trim().replace(/\s+/g, ' ').slice(-90)} — position:sticky; bottom แต่ไม่มี env(safe-area-inset-bottom)`);
+    }
+  }
+  if (bad.length) fail('safe-area', bad.join('; '));
+  else ok('safe-area', `${pagesHtml.length} หน้ามี viewport-fit=cover และ element fixed ติดขอบมี safe-area`);
 }
 
 /* ── 1. bump CACHE ── */

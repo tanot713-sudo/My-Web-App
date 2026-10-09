@@ -47,7 +47,7 @@
   .mx-streak-chip{align-self:flex-start}
   .mx-badge-row{justify-content:center;border-left:0;padding-left:0;padding-top:10px;border-top:1px solid var(--ome-border)}}
 
-.mx-toast-wrap{position:fixed;left:20px;bottom:20px;display:flex;flex-direction:column-reverse;gap:8px;z-index:var(--ome-z-toast);pointer-events:none;max-width:calc(100vw - 40px)}
+.mx-toast-wrap{position:fixed;left:calc(20px + env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column-reverse;gap:8px;z-index:var(--ome-z-toast);pointer-events:none;max-width:calc(100vw - 40px)}
 .mx-toast{background:var(--ome-surface-1);border:1px solid var(--ome-accent);border-radius:var(--ome-radius-md);padding:10px 16px;font-size:var(--ome-fs-sm);
   font-weight:600;box-shadow:var(--ome-shadow-3);display:flex;align-items:center;gap:8px;max-width:280px;animation:mx-toast-in var(--ome-dur-3) var(--ome-ease)}
 @keyframes mx-toast-in{from{transform:translateY(12px);opacity:0}to{transform:translateY(0);opacity:1}}

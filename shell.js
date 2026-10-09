@@ -816,6 +816,19 @@
     return el;
   };
 
+  /* ── แตะนอกกล่อง (พื้น ::backdrop) ปิด <dialog class="dialog"> ทุกใบ (รอบ 9, กฎมือถือ) ──
+     ต้องกดลงและปล่อยที่ตัว <dialog> เอง (ลากเลือกข้อความจากในกล่องออกไปนอกกล่องไม่ปิด) · ผ่าน event 'cancel' เหมือน Esc
+     (หน้าที่ preventDefault ไว้ก็ยังกันได้) · dialog ที่กำลังทำงานค้าง/ห้ามปิดโดยไม่ตั้งใจใส่ data-keep-open */
+  var dialogDown = null;
+  document.addEventListener('pointerdown', function (e) { dialogDown = e.target && e.target.tagName === 'DIALOG' ? e.target : null; }, true);
+  document.addEventListener('click', function (e) {
+    var d = e.target;
+    if (!d || d.tagName !== 'DIALOG' || d !== dialogDown || !d.open || !d.classList.contains('dialog') || d.hasAttribute('data-keep-open')) return;
+    var r = d.getBoundingClientRect();
+    if (e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom) return; // แตะที่ขอบ/ช่องว่างในกล่องเอง
+    if (d.dispatchEvent(new Event('cancel', { cancelable: true }))) d.close();
+  }, true);
+
   /* ── ค้นหาด่วน (palette.js) — โหลดตอนใช้ครั้งแรกเท่านั้น ไม่ให้ทุกหน้าแบกโค้ดค้นหาไว้เปล่าๆ ──
      ปุ่มบน nav กับ Ctrl/⌘+K เรียกฟังก์ชันเดียวกัน; OME_MENU (ด้านบน) คือแหล่งข้อมูลที่ palette อ่าน */
   var paletteLoading = null;

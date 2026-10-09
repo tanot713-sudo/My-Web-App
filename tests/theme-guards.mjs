@@ -47,11 +47,47 @@ export function pageCss(file) {
   return stripPrintAndComments(parts.join('\n'));
 }
 
+/* ── ข้อยกเว้นแบบ "ระบุชื่อ" (ไม่ใช่ปิดกฎทั้งหน้า) ──────────────────────────────────────────────
+   DATA_COLOR_VARS: ค่าสีของ "ข้อมูล" ที่ไม่ควรตามธีม (สีกระดาษ/ผืนวาด/ฉาก 3D/QR ดำบนขาว/ช่องพิมพ์บนเซลล์/จอฉาย)
+     ประกาศเป็น custom property ที่มีชื่อ + คอมเมนต์ในหน้า แล้วใช้ผ่าน var(--ชื่อ) — ตัวตรวจไม่นับสีที่อยู่ใน
+     "การประกาศ" ชื่อเหล่านี้ของหน้านั้นเท่านั้น (สี hex ที่เขียนที่อื่นในหน้ายังนับตามเดิม)
+   BUTTON_ALLOW: คลาสปุ่มที่หน้านิยามเองโดยมีเหตุผลทางเทคนิค (ไม่ใช่ UI ของเรา)
+   ชื่อที่ไม่เจอในหน้าแล้ว (ลบโค้ดไปแต่ลืมเอาออก) = repo-guards ล้ม (staleAllow) */
+export const DATA_COLOR_VARS = {
+  'word.html': {
+    '--wd-hit-bg': 'ไฮไลต์ผลค้นหาในกระดาษ (กระดาษขาวทั้งสว่าง/มืด)', '--wd-hit-ink': 'ตัวอักษรบนไฮไลต์ผลค้นหา',
+    '--wd-hit-cur-bg': 'ไฮไลต์ผลค้นหาที่เลือกอยู่', '--wd-hit-cur-ink': 'ตัวอักษรบนไฮไลต์ที่เลือกอยู่',
+    '--wd-mark-bg': 'พื้น <mark> ในเนื้อหาเอกสาร',
+    '--wd-cap-surface-1': 'ชุดสีกระดาษตอนสร้าง PDF (html2canvas ต้องได้สีสว่างเสมอ)', '--wd-cap-surface-2': 'ชุดสีกระดาษตอนสร้าง PDF',
+    '--wd-cap-text-1': 'ชุดสีกระดาษตอนสร้าง PDF', '--wd-cap-text-2': 'ชุดสีกระดาษตอนสร้าง PDF', '--wd-cap-text-3': 'ชุดสีกระดาษตอนสร้าง PDF',
+    '--wd-cap-border': 'ชุดสีกระดาษตอนสร้าง PDF', '--wd-cap-border-strong': 'ชุดสีกระดาษตอนสร้าง PDF',
+    '--wd-cap-info': 'ชุดสีกระดาษตอนสร้าง PDF', '--wd-cap-info-ink': 'ชุดสีกระดาษตอนสร้าง PDF', '--wd-cap-info-soft': 'ชุดสีกระดาษตอนสร้าง PDF',
+  },
+  'cad.html': {
+    '--cad-paper': 'กระดาษของผืนวาดแบบ (ขาว) — สีของงานวาดไม่ตามสีเน้น', '--cad-paper-dark': 'ผืนวาดแบบในโหมดมืด',
+    '--c3-scene': 'พื้นฉาก 3D (สว่าง) ต้องตรงกับพื้นที่ three.js วาด', '--c3-scene-dark': 'พื้นฉาก 3D (มืด)',
+  },
+  'slides.html': { '--sl-stage-bg': 'พื้นดำของโหมดนำเสนอเต็มจอ (จอฉาย ไม่ตามธีม)' },
+  'maintenance.html': { '--mnt-qr-bg': 'QR ต้องดำบนขาวเสมอเพื่อให้สแกนติด', '--mnt-scan-bg': 'พื้นหลังภาพจากกล้องสแกน' },
+  'excel.html': { '--xl-cell-bg': 'พื้นเซลล์ในกริด (ขาว) — ช่องพิมพ์ซ้อนต้องตรงกับเซลล์', '--xl-cell-ink': 'ตัวอักษรเซลล์ในกริด' },
+};
+export const BUTTON_ALLOW = {
+  'excel.html': { '.btn': 'Luckysheet (ไลบรารีของ third-party) โหลด .btn แบบ bootstrap ที่ไม่อยู่ใน layer มาทับปุ่มกลาง — หน้านี้คืนค่าปุ่มกลางด้วยกฎ .btn ชุดเดียว (ดูคอมเมนต์ใน excel.html)' },
+};
+
 const COLOR_RE = /#[0-9a-fA-F]{3,8}\b|\b(?:rgba?|hsla?)\(\s*[\d.]/g;
 /* ปุ่มกลาง (theme.css) — ตัวขยายของ .btn ที่หน้าใช้ร่วมได้ ไม่นับว่านิยามเอง */
 const CENTRAL_BTN_MODS = new Set(['primary', 'ghost', 'danger', 'sm', 'lg', 'icon', 'on', 'active']);
 
-export function analyzeCss(css) {
+export function analyzeCss(css, file) {
+  const allowVars = (file && DATA_COLOR_VARS[file]) || {};
+  const allowBtn = (file && BUTTON_ALLOW[file]) || {};
+  const usedAllow = new Set();
+  for (const name of Object.keys(allowVars)) {
+    // ตัดเฉพาะ "การประกาศ" --name: ค่า; (นับว่าใช้แล้ว) ที่เหลือในหน้ายังถูกนับเป็นสีตามปกติ
+    const re = new RegExp('(^|[;{\\s])' + name.replace(/-/g, '\\-') + '\\s*:\\s*[^;}]*', 'g');
+    css = css.replace(re, (m, p) => { usedAllow.add(name); return p; });
+  }
   const colors = (css.match(COLOR_RE) || []).length;
   const buttons = new Set();
   // เฉพาะส่วน selector (ก่อน {) — ไม่ใช่ค่า property
@@ -62,13 +98,14 @@ export function analyzeCss(css) {
       const name = c[1];
       if (name === 'btn') {
         // .btn ตามด้วยตัวขยายกลางอย่างเดียว (.btn.primary) ก็ยังเป็นการนิยามปุ่มกลางซ้ำ
-        buttons.add('.btn');
+        if (!allowBtn['.btn']) buttons.add('.btn'); else usedAllow.add('.btn');
       } else if (/(^|-)btn$|^btn-/.test(name) && !name.startsWith('ome-') && !CENTRAL_BTN_MODS.has(name)) {
         buttons.add('.' + name);
       }
     }
   }
-  return { hardcodedColors: colors, customButtons: buttons.size, buttonClasses: [...buttons].sort() };
+  const staleAllow = [...Object.keys(allowVars), ...Object.keys(allowBtn)].filter((n) => !usedAllow.has(n));
+  return { hardcodedColors: colors, customButtons: buttons.size, buttonClasses: [...buttons].sort(), staleAllow };
 }
 
 export function themePages() {
@@ -77,7 +114,7 @@ export function themePages() {
 
 export function collectStatic() {
   const out = {};
-  for (const f of themePages()) out[f] = analyzeCss(pageCss(f));
+  for (const f of themePages()) out[f] = analyzeCss(pageCss(f), f);
   return out;
 }
 
@@ -98,6 +135,16 @@ export function writeStaticReport(cur) {
   const dir = path.join(ROOT, 'tests', 'theme-report');
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, 'static.json'), JSON.stringify(cur, null, 1));
+}
+
+/** ชื่อใน allowlist ที่หน้าไม่ได้ประกาศ/ใช้แล้ว — [{page, name}] */
+export function staleAllowList(current) {
+  const out = [];
+  for (const [page, v] of Object.entries(current)) for (const name of v.staleAllow || []) out.push({ page, name });
+  for (const page of [...Object.keys(DATA_COLOR_VARS), ...Object.keys(BUTTON_ALLOW)]) {
+    if (!current[page]) out.push({ page, name: '(ไม่พบหน้า)' });
+  }
+  return out;
 }
 
 /** เทียบกับ baseline — คืนรายการที่แย่ลง [{page, metric, now, base}] */
@@ -143,6 +190,8 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   } else {
     writeStaticReport(cur);
     const worse = compareStatic(cur, loadBaseline());
+    const stale = staleAllowList(cur);
+    if (stale.length) { console.error('allowlist เก่าค้าง: ' + stale.map((x) => x.page + ' ' + x.name).join(', ')); process.exit(1); }
     const rows = Object.entries(cur).sort((a, b) => (b[1].hardcodedColors + b[1].customButtons * 5) - (a[1].hardcodedColors + a[1].customButtons * 5));
     for (const [p, v] of rows.slice(0, 20)) console.log(`${p.padEnd(32)} สี ${String(v.hardcodedColors).padStart(4)}  ปุ่มเอง ${v.customButtons}  ${v.buttonClasses.join(' ')}`);
     if (worse.length) {

@@ -10,14 +10,14 @@ const path = require('path');
 const DIR = path.join(__dirname, 'theme-report');
 const PARTS = path.join(DIR, 'parts');
 const BASELINE_FILE = path.join(__dirname, 'theme-baseline.json');
-const COLS = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'mobileRowBreak', 'crawlErrors', 'thaiInEn'];
+const COLS = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'mobileRowBreak', 'mobileInput', 'mobileDialog', 'mobileFabOverlap', 'landscape', 'dialogClose', 'crawlErrors', 'thaiInEn'];
 const LABEL = {
   axe: 'axe คอนทราสต์', contrast: 'ตัวอักษรบน control', controlBorder: 'ขอบ control', textOnImage: 'ตัวอักษรบนภาพ',
   nonCentral: 'ไม่ใช้คอมโพเนนต์กลาง', targetSize: 'เป้ากด < 40px',
-  mobileFont: 'มือถือ: ตัวอักษรเล็ก/หัวข้อใหญ่', mobileOverflow: 'มือถือ: ล้นจอ', mobileClip: 'มือถือ: ข้อความถูกตัด', mobileCrowd: 'มือถือ: เป้ากดชิด < 8px', mobileAlign: 'มือถือ: กล่องไม่เรียงตรง', mobileRowBreak: 'มือถือ: ปุ่มท้ายแถวตกบรรทัด', crawlErrors: 'error ตอนกดสำรวจ', thaiInEn: 'ไทยหลุดในโหมด EN',
+  mobileFont: 'มือถือ: ตัวอักษรเล็ก/หัวข้อใหญ่', mobileOverflow: 'มือถือ: ล้นจอ', mobileClip: 'มือถือ: ข้อความถูกตัด', mobileCrowd: 'มือถือ: เป้ากดชิด < 8px', mobileAlign: 'มือถือ: กล่องไม่เรียงตรง', mobileRowBreak: 'มือถือ: ปุ่มท้ายแถวตกบรรทัด', mobileInput: 'มือถือ: ช่องกรอก < 16px/ชนิดไม่เหมาะ', mobileDialog: 'มือถือ: กล่อง/ลิ้นชักล้นจอ', mobileFabOverlap: 'มือถือ: ปุ่มแชท AI บังปุ่ม', landscape: 'แนวนอน 844×390: ล้น/เมนูตกขอบ', dialogClose: 'กล่องปิดไม่ได้เมื่อแตะนอกกล่อง', crawlErrors: 'error ตอนกดสำรวจ', thaiInEn: 'ไทยหลุดในโหมด EN',
   hardcodedColors: 'สี hex ในหน้า', customButtons: 'ปุ่มนิยามเอง',
 };
-const WEIGHT = { axe: 1, contrast: 1, controlBorder: 1, textOnImage: 2, nonCentral: 0.5, targetSize: 0.5, mobileFont: 0.5, mobileOverflow: 1, mobileClip: 1, mobileCrowd: 0.5, mobileAlign: 0.5, mobileRowBreak: 0.5, crawlErrors: 5, hardcodedColors: 0.25, customButtons: 2 };
+const WEIGHT = { axe: 1, contrast: 1, controlBorder: 1, textOnImage: 2, nonCentral: 0.5, targetSize: 0.5, mobileFont: 0.5, mobileOverflow: 1, mobileClip: 1, mobileCrowd: 0.5, mobileAlign: 0.5, mobileRowBreak: 0.5, mobileInput: 0.5, mobileDialog: 1, mobileFabOverlap: 1, landscape: 1, dialogClose: 1, crawlErrors: 5, hardcodedColors: 0.25, customButtons: 2 };
 
 function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -94,7 +94,7 @@ code{font-size:12px;word-break:break-all}section{margin-top:28px}summary{cursor:
 }
 
 function summary(rep, n = 15) {
-  const cols = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'mobileRowBreak', 'crawlErrors', 'hardcodedColors', 'customButtons', 'thaiInEn'];
+  const cols = ['axe', 'contrast', 'controlBorder', 'textOnImage', 'nonCentral', 'targetSize', 'mobileFont', 'mobileOverflow', 'mobileClip', 'mobileCrowd', 'mobileAlign', 'mobileRowBreak', 'mobileInput', 'mobileDialog', 'mobileFabOverlap', 'landscape', 'dialogClose', 'crawlErrors', 'hardcodedColors', 'customButtons', 'thaiInEn'];
   let md = `| # | หน้า | คะแนน | ${cols.map((c) => LABEL[c]).join(' | ')} |\n|---|---|---:|${cols.map(() => '---:').join('|')}|\n`;
   rep.ranked.slice(0, n).forEach((p, i) => {
     const pg = rep.pages[p];

@@ -30,7 +30,7 @@
 .sl-head{margin:0;gap:var(--ome-sp-3)}
 .sl-head-icon{width:22px;height:22px;color:var(--ome-accent-strong)}
 .sl-bar{flex-wrap:wrap;gap:var(--ome-sp-2)}
-.sl-bar .btn .ome-icon{width:15px;height:15px}
+.sl-bar button .ome-icon{width:15px;height:15px}
 .sl-bar .sl-name{width:240px;max-width:100%;height:32px}
 .sl-spacer{flex:1}
 .sl-msg{margin:0;min-height:1.2em}
@@ -55,11 +55,11 @@
 .sl-decks{display:flex;flex-direction:column;gap:4px;overflow:auto}
 .sl-deck{display:flex;align-items:center;gap:4px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-1)}
 .sl-deck.on{border-color:var(--ome-accent);background:var(--ome-accent-soft)}
-.sl-deck .btn.pick{flex:1;min-width:0;height:auto;min-height:40px;display:block;text-align:left;font-weight:400;color:var(--ome-text-1);background:none;border:0;padding:8px 10px}
+.sl-deck button.pick{flex:1;min-width:0;height:auto;min-height:40px;display:block;text-align:left;font-weight:400;color:var(--ome-text-1);background:none;border:0;padding:8px 10px}
 .sl-deck .pick b{display:block;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sl-deck .pick span{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
-.sl-deck .btn.icon{width:28px;height:28px;padding:0}
-.sl-deck .btn .ome-icon{width:14px;height:14px}
+.sl-deck button.icon{width:28px;height:28px;padding:0}
+.sl-deck button .ome-icon{width:14px;height:14px}
 .sl-edit textarea{flex:1;min-height:260px;resize:none;tab-size:2;line-height:1.6}
 .sl-empty{margin:auto;text-align:center}
 /* ── ตัวอย่าง ── */
@@ -68,8 +68,8 @@
 .sl-card.on{border-color:var(--ome-accent);background:var(--ome-surface-1)}
 .sl-card-head{display:flex;align-items:center;gap:6px;margin-bottom:6px;flex-wrap:wrap}
 .sl-card-head .select{width:auto;height:28px;font-size:var(--ome-fs-xs);padding:0 6px;max-width:100%}
-.sl-card-head .btn.icon{width:28px;height:28px;padding:0}
-.sl-card-head .btn .ome-icon{width:14px;height:14px}
+.sl-card-head button.icon{width:28px;height:28px;padding:0}
+.sl-card-head button .ome-icon{width:14px;height:14px}
 .sl-s{position:relative;width:100%;aspect-ratio:16/9;container-type:inline-size;overflow:hidden;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);
   font-family:'Prompt','Leelawadee UI',Tahoma,sans-serif;cursor:pointer;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sl-sh{position:absolute;box-sizing:border-box;display:flex;flex-direction:column;overflow:hidden}
@@ -85,12 +85,14 @@
 .sl-tbl{width:100%;border-collapse:collapse}
 .sl-tbl td{padding:.5cqw .9cqw;vertical-align:middle;overflow-wrap:anywhere}
 /* ── โหมดนำเสนอ ── */
-.sl-stage{position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
+/* ฉากนำเสนอเต็มจอ: พื้นดำคงที่ทั้งสว่าง/มืด (สี "ข้อมูล" ของจอฉาย) — ชื่ออยู่ใน DATA_COLOR_VARS ของ tests/theme-guards.mjs */
+:root{--sl-stage-bg:#000}
+.sl-stage{position:fixed;inset:0;z-index:99999;background:var(--sl-stage-bg);display:flex;align-items:center;justify-content:center;user-select:none;-webkit-user-select:none}
 .sl-stage .sl-s{width:min(100vw,calc(100dvh * 16 / 9));border:0;border-radius:0;cursor:default}
 .sl-stage-bar{position:absolute;top:8px;right:8px;display:flex;gap:6px;opacity:.0;transition:opacity .2s}
 .sl-stage:hover .sl-stage-bar,.sl-stage:focus-within .sl-stage-bar{opacity:.85}
-.sl-stage-bar .btn{background:rgba(0,0,0,.55);color:#fff;border-color:rgba(255,255,255,.7)}
-.sl-stage-num{position:absolute;left:12px;bottom:8px;color:#fff;opacity:.45;font-size:14px}
+.sl-stage .sl-stage-bar button{background:var(--ome-media-bg);color:var(--ome-media-ink);border-color:var(--ome-media-line)}
+.sl-stage-num{position:absolute;left:12px;bottom:8px;color:var(--ome-media-ink);opacity:.45;font-size:14px}
 /* ── dialog ── */
 .dialog .field + .field{margin-top:var(--ome-sp-3)}
 .dialog.wide{width:min(720px,calc(100vw - 32px))}
@@ -108,7 +110,7 @@
 }
 @media (max-width:700px){
   .sl-bar .sl-name,.sl-list .sl-q .input{height:40px}
-  .sl-deck .btn.icon,.sl-card-head .btn.icon{width:40px;height:40px}
+  .sl-deck button.icon,.sl-card-head button.icon{width:40px;height:40px}
   .sl-card-head .select{height:40px}
   .sl-card-head,.sl-list .sl-q,.sl-deck{gap:var(--ome-sp-2)}
 }

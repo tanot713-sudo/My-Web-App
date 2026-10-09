@@ -61,8 +61,10 @@ jobs:
         run: npx playwright test smoke.spec.js
       - name: visual (เทียบ baseline)
         run: npx playwright test visual.spec.js
-      - name: theme-audit (คอนทราสต์ axe + control + ตัวอักษรบนภาพพื้นหลัง, เป้ากด 390px, กดสำรวจไม่มี error, ไทยหลุดโหมด EN, สลับภาษาสด — ratchet เทียบ theme-baseline.json)
+      - name: theme-audit (คอนทราสต์ axe + control + ตัวอักษรบนภาพพื้นหลัง, มือถือ 360/390/412/430 + แนวนอน 844x390 + กล่อง/ลิ้นชัก, กดสำรวจไม่มี error, ไทยหลุดโหมด EN, สลับภาษาสด — ratchet เทียบ theme-baseline.json)
         run: npx playwright test theme-audit.spec.js
+        env:
+          THEME_AUDIT_WIDTHS: '412,430'
       - name: Upload theme report
         if: always()
         uses: actions/upload-artifact@v4

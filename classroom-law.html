@@ -92,7 +92,7 @@ details.lesson > summary button{flex-shrink:0}
 .clhb-backdrop{position:fixed;inset:0;background:color-mix(in srgb, var(--ome-text-1) 45%, transparent);z-index:var(--ome-z-drawer);opacity:0;pointer-events:none;transition:opacity var(--ome-dur-2)}
 .clhb-backdrop.open{opacity:1;pointer-events:auto}
 .clhb-panel{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:var(--ome-surface-1);z-index:calc(var(--ome-z-drawer) + 1);
-  box-shadow:var(--ome-shadow-3);transform:translateX(-100%);transition:transform var(--ome-dur-2);overflow-y:auto;padding:16px 0}
+  box-shadow:var(--ome-shadow-3);transform:translateX(-100%);transition:transform var(--ome-dur-2);overflow-y:auto;padding:calc(16px + env(safe-area-inset-top,0px)) 0 calc(16px + env(safe-area-inset-bottom,0px)) env(safe-area-inset-left,0px)}
 .clhb-panel.open{transform:translateX(0)}
 .clhb-panel:not(.open){box-shadow:none;visibility:hidden;transition:transform var(--ome-dur-2),visibility 0s var(--ome-dur-2)}
 .clhb-hd{font-size:var(--ome-fs-md);font-weight:700;padding:4px 18px 14px;border-bottom:1px solid var(--ome-border);margin-bottom:6px}

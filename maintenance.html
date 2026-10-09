@@ -72,9 +72,11 @@
 .mnt-view .head{display:flex;align-items:center;gap:10px}
 .mnt-view .head h2{margin:0;flex:1;min-width:0;overflow-wrap:anywhere}
 .mnt-qrbox{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.mnt-qrbox .qr{width:132px;height:132px;background:#fff;border-radius:var(--ome-radius-md);padding:6px;flex-shrink:0}
+/* สี "ข้อมูล": QR ต้องดำบนขาวเสมอเพื่อให้สแกนติด (ทั้งโหมดมืด) และพื้นหลังภาพจากกล้อง — ชื่ออยู่ใน DATA_COLOR_VARS ของ tests/theme-guards.mjs */
+:root{--mnt-qr-bg:#fff;--mnt-scan-bg:#000}
+.mnt-qrbox .qr{width:132px;height:132px;background:var(--mnt-qr-bg);border-radius:var(--ome-radius-md);padding:6px;flex-shrink:0}
 .mnt-qrbox .qr svg{display:block;width:100%;height:100%}
-.mnt-scan video{width:100%;max-height:50dvh;background:#000;border-radius:var(--ome-radius-md);object-fit:cover}
+.mnt-scan video{width:100%;max-height:50dvh;background:var(--mnt-scan-bg);border-radius:var(--ome-radius-md);object-fit:cover}
 .mnt-scan .msg{min-height:1.4em;font-size:var(--ome-fs-sm);color:var(--ome-err-ink)}
 .insp-dlg{width:min(640px,calc(100vw - 16px))}
 .insp-dlg .dialog-body{display:flex;flex-direction:column;gap:var(--ome-sp-3)}
@@ -93,7 +95,7 @@
 .insp-photos{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .insp-ph{position:relative;width:56px;height:56px;border-radius:var(--ome-radius-md);overflow:hidden;background:var(--ome-surface-2);display:grid;place-items:center;border:1px solid var(--ome-border)}
 .insp-ph img{width:100%;height:100%;object-fit:cover;display:block}
-.insp-ph .x{position:absolute;top:1px;right:1px;width:20px;height:20px;border:0;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:12px;line-height:1;cursor:pointer;padding:0}
+.insp-ph .x{position:absolute;top:1px;right:1px;width:20px;height:20px;border:0;border-radius:50%;background:var(--ome-media-bg);color:var(--ome-media-ink);font-size:12px;line-height:1;cursor:pointer;padding:0}
 .insp-ph.pend::after{content:'';position:absolute;left:2px;bottom:2px;width:8px;height:8px;border-radius:50%;background:var(--ome-warn)}
 .insp-draft{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 12px;border-radius:var(--ome-radius-md);background:var(--ome-warn-soft);color:var(--ome-warn-ink);font-size:var(--ome-fs-sm)}
 .insp-draft[hidden]{display:none}
