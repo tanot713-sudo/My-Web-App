@@ -84,7 +84,7 @@
       chkLicense: 'This business needs no license/specific qualification, or you already have it all (e.g. a food-selling license, a professional license)',
       ynYes: 'Yes', ynNo: 'Not yet', lblOwnCapital: 'Capital you actually have now', phOwnCapital: 'e.g. 25000', chkBtn: 'Check the checklist',
       logTitle: 'Log of Ideas You\'re Considering',
-      lblIdeaName: 'Idea name', phIdeaName: 'e.g. selling snacks online', addBtn: 'Save this idea',
+      lblIdeaName: 'Idea name', phIdeaName: 'e.g. online snacks', addBtn: 'Save this idea',
       logEmptyDefault: 'No ideas logged yet',
       logThIdea: 'Idea', logThStartup: 'Startup capital', logThBreakeven: 'Break-even (units/mo)', logThPayback: 'Payback (mo)', logThProjected: 'Projected profit/mo',
       alertPrice: 'Enter a valid average selling price per unit',

@@ -18,7 +18,7 @@
     th: {
       navInvest: 'การลงทุน', pageTitle: 'ข่าวหุ้น',
       stCountLbl: 'พบข่าว', stTopicLbl: 'หมวดที่เลือก', stUpdatedLbl: 'อัปเดตล่าสุด',
-      searchPh: 'ค้นข่าวหุ้น/บริษัทที่สนใจ เช่น PTT, ปันผล, กนง.', searchBtn: 'ค้นหา',
+      searchPh: 'ค้นข่าว เช่น PTT, ปันผล', searchBtn: 'ค้นหา',
       oppdayLinkText: 'Opportunity Day',
       loadingNewsDefault: 'กำลังโหลดข่าว…', loadingDefault: 'กำลังโหลด…',
       chipMarket: 'ตลาดหุ้นไทย', chipEcon: 'เศรษฐกิจไทย', chipRate: 'ดอกเบี้ย/กนง.', chipIpo: 'ข่าว IPO', chipDiv: 'ปันผลหุ้น', chipOppday: 'Opportunity Day',
@@ -32,7 +32,7 @@
     en: {
       navInvest: 'Investing', pageTitle: 'Stock News',
       stCountLbl: 'Found', stTopicLbl: 'Selected topic', stUpdatedLbl: 'Last updated',
-      searchPh: 'Search for stocks/companies, e.g. PTT, dividends, BOT rate', searchBtn: 'Search',
+      searchPh: 'Search news, e.g. PTT', searchBtn: 'Search',
       oppdayLinkText: 'Opportunity Day',
       loadingNewsDefault: 'Loading news…', loadingDefault: 'Loading…',
       chipMarket: 'Thai Stock Market', chipEcon: 'Thai Economy', chipRate: 'Interest Rate/BOT', chipIpo: 'IPO News', chipDiv: 'Stock Dividends', chipOppday: 'Opportunity Day',
