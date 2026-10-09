@@ -32,7 +32,7 @@ window.TanotImportUI = (function () {
       var extra = '';
       if (it.status === 'merge') extra = '+' + it.added + (it.conflicts ? ' · ' + T('conflictKeep', { n: it.conflicts }) : '');
       if (it.status === 'conflict') {
-        extra = '<select data-i="' + i + '" aria-label="' + T('choose') + '" data-i18n-attr="aria-label:imp.choose">' +
+        extra = '<select class="select" data-i="' + i + '" aria-label="' + T('choose') + '" data-i18n-attr="aria-label:imp.choose">' +
           '<option value="local"' + tx('keepLocal') + '>' + T('keepLocal') + '</option><option value="incoming"' + tx('useIncoming') + '>' + T('useIncoming') + '</option></select>' +
           (it.type === 'ls' ? '<div class="imp-pv"><span' + tx('thisDevice') + '>' + T('thisDevice') + '</span> ' + esc(preview(it.local)) + '</div><div class="imp-pv"><span' + tx('incoming') + '>' + T('incoming') + '</span> ' + esc(preview(it.value)) + '</div>' : '');
       }

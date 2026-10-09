@@ -207,4 +207,153 @@ function typing(h) {
   };
 }
 
-module.exports = { targets(h) { return [music(h), sports(h), coding(h), cooking(h), typing(h)]; }, ALLOW, NOW };
+function imageGen(h) {
+  const items = [];
+  const presets = ['background', 'icon', 'free'];
+  for (let i = 0; i < 7; i++) {
+    const preset = presets[i % 3];
+    items.push({ id: 'img' + i, preset, mode: preset === 'background' ? (i % 2 ? 'dark' : 'light') : null, model: i % 2 ? 'quality' : 'fast', modelId: 'flux', seed: 100 + i,
+      prompt: 'Calm mountain lake at dawn, soft light ' + i, fullPrompt: 'Calm mountain lake at dawn, soft light ' + i + ', wide composition, quiet mood', name: 'img' + i + '.png', mime: 'image/png', w: 1024, h: preset === 'background' ? 576 : 1024, createdAt: NOW - i * 3600e3 });
+  }
+  const PNG = Buffer.from(pngB64, 'base64');
+  const route = async (page) => {
+    await page.route('**/api/**', (route) => {
+      const u = new URL(route.request().url());
+      if (u.pathname === '/api/files') return route.request().method() === 'DELETE' ? route.fulfill({ status: 200, body: '{}' }) : route.fulfill({ contentType: 'image/png', body: PNG });
+      if (u.pathname === '/api/ai/usage') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ day: '2026-10-03', limit: 10000, used: 8200, remaining: 1800, byKind: [] }) });
+      if (u.pathname === '/api/ai/image') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: 'img-new' + Date.now(), name: 'n.png', mime: 'image/png', size: 70, model: 'flux', seed: 5, width: 1024, height: 576, preset: 'background', mode: 'light', prompt: 'x, full' }) });
+      if (u.pathname === '/api/ai/chat') return route.fulfill({ contentType: 'text/event-stream', body: 'data:{"t":"A calm lake at dawn"}\n\ndata:{"done":true}\n\n' });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+  };
+  const seg = (id, v) => async (p) => { await p.evaluate(([id, v]) => document.querySelector('#' + id + ' [data-v="' + v + '"]').click(), [id, v]); await h.settle(p, 250); };
+  const states = [
+    ['base', async () => {}],
+    ['preset-icon', seg('preset', 'icon')], ['preset-free', seg('preset', 'free')], ['preset-bg', seg('preset', 'background')],
+    ['mode-both', seg('mode', 'both')], ['model-quality', seg('model', 'quality')], ['count-3', seg('count', '3')],
+    ['filter-icon', seg('filter', 'icon')], ['filter-all', seg('filter', 'all')],
+    ['translate', async (p) => { await p.fill('#prompt', 'ทะเลสาบยามเช้า'); await h.dom(p, '#trBtn'); await h.settle(p, 500); }],
+    ['generate', async (p) => { await p.fill('#prompt', 'A quiet lake'); await h.dom(p, '#genBtn'); await h.settle(p, 900); }],
+    ['empty-prompt', async (p) => { await p.fill('#prompt', ''); await h.dom(p, '#genBtn'); await h.settle(p, 300); }],
+    ['view', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item').click()); await h.settle(p, 400); }],
+    ['view-close', async (p) => { await h.dom(p, '#vClose'); await h.settle(p, 250); }],
+    ['view-again', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item').click()); await h.settle(p, 300); await h.dom(p, '#vAgain'); await h.settle(p, 300); }],
+    ['view-delete', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item').click()); await h.settle(p, 300); await h.dom(p, '#vDel'); await h.settle(p, 400); }],
+    ['confirm-ok', async (p) => { await p.evaluate(() => { const b = [...document.querySelectorAll('dialog[open] .btn.danger, dialog[open] .btn.primary')].pop(); if (b) b.click(); }); await h.settle(p, 900); }]
+  ];
+  return {
+    page: 'image-gen.html', overlay: '', route, states,
+    init: 'window.TANOT_AI = { enabled: true };',
+    seed: { 'tanot:images:items': items },
+    user: /Calm mountain|A quiet lake|A calm lake/
+  };
+}
+
+function notifications(h) {
+  const items = [
+    { id: 'a', source: 'insurance', title: 'ประกันรถยนต์ใกล้ต่ออายุ', body: 'Policy 123', url: 'insurance.html', due_at: NOW + 3 * DAY, kind: 'push', sent_at: null },
+    { id: 'b', source: 'tax', title: 'Tax filing deadline', body: '', url: 'tax.html', due_at: NOW + 9 * DAY, kind: 'push', sent_at: NOW - DAY },
+    { id: 'c', source: 'maintenance', title: 'PM digest', body: '3 due', url: 'maintenance.html', due_at: NOW + DAY, kind: 'digest', sent_at: null },
+    { id: 'd', source: 'car', title: 'Car tax', body: '', url: 'car.html', due_at: NOW + 20 * DAY, kind: 'push', sent_at: null }
+  ];
+  const set = (st, list, listErr) => async (p) => {
+    await p.evaluate(([st, list, listErr]) => {
+      const P = window.TanotPush;
+      P.state = () => Promise.resolve(st);
+      P.listReminders = () => (listErr ? Promise.reject(Object.assign(new Error('x'), { code: listErr })) : Promise.resolve(list));
+      document.dispatchEvent(new Event('visibilitychange'));
+    }, [st, list, listErr || '']);
+    await h.settle(p, 400);
+  };
+  const OFF = { support: 'ok', permission: 'default', subscribed: false, vapid: 'ok', subs: 1, lastOkAt: NOW - DAY };
+  const ON = { support: 'ok', permission: 'granted', subscribed: true, vapid: 'ok', subs: 2, lastOkAt: NOW - 3600e3 };
+  const stub = (fn) => async (p) => { await p.evaluate(fn); };
+  return {
+    page: 'notifications.html', init: 'window.TANOT_PUSH = { enabled: true };',
+    skipSel: '#ntList',
+    states: [
+      ['base', async () => {}],
+      ['off', set(OFF, items)],
+      ['on-click', async (p) => {
+        await p.evaluate(() => { window.TanotPush.subscribe = () => Promise.resolve(); });
+        await h.dom(p, '#ntOn'); await h.settle(p, 500);
+      }],
+      ['on', set(ON, items)],
+      ['test', async (p) => { await p.evaluate(() => { window.TanotPush.test = () => Promise.resolve({ sent: 1 }); }); await h.dom(p, '#ntTest'); await h.settle(p, 500); }],
+      ['test-fail', async (p) => { await p.evaluate(() => { window.TanotPush.test = () => Promise.resolve({ sent: 0 }); }); await h.dom(p, '#ntTest'); await h.settle(p, 500); }],
+      ['off-click', async (p) => { await p.evaluate(() => { window.TanotPush.unsubscribe = () => Promise.resolve(); }); await h.dom(p, '#ntOff'); await h.settle(p, 500); }],
+      ['empty', set(ON, [])],
+      ['ios', set({ support: 'ios-install' }, [])],
+      ['denied', set({ support: 'denied' }, [])],
+      ['browser', set({ support: 'browser' }, [])],
+      ['vapid', set(Object.assign({}, OFF, { vapid: 'missing' }), items)],
+      ['state-error', set(Object.assign({}, OFF, { error: 'offline' }), items, 'auth')],
+      ['reminders-offline', set(ON, items, 'offline')],
+      ['back', set(ON, items)]
+    ]
+  };
+}
+
+function data(h) {
+  const status = (d) => async (p) => { await p.evaluate((d) => window.dispatchEvent(new CustomEvent('tanot:sync-status', { detail: d })), d); await h.settle(p, 300); };
+  const historyRows = [
+    { at: NOW - DAY, key: 'tanot:notes:one', id: 'tanot:notes:one', data: 'Local value that was replaced by another device ' + 'x'.repeat(60), reason: 'replaced-by-remote' },
+    { at: NOW - 2 * DAY, key: 'tanot:books:items', id: 'b1', data: '{"title":"Atomic Habits"}', reason: 'replaced-by-remote' }
+  ];
+  const route = async (page) => {
+    await page.route('**/api/sync**', (route) => route.fulfill({ contentType: 'application/json', body: route.request().method() === 'GET' ? '{"docs":[],"rev":0,"max":0,"more":false}' : '{"results":[],"rejected":[]}' }));
+  };
+  const importFile = (mutate) => async (p) => {
+    await p.evaluate(async (mutate) => {
+      const snap = await window.TanotData.snapshot();
+      snap.ls = snap.ls || {};
+      const keys = Object.keys(snap.ls);
+      if (keys.length) snap.ls[keys[0]] = typeof snap.ls[keys[0]] === 'string' ? snap.ls[keys[0]] + ' (imported)' : snap.ls[keys[0]];
+      snap.ls['tanot:audit:new'] = '{"a":1}';
+      snap.ls['tanot:notes:one'] = 'Imported different value';
+      const f = new File([JSON.stringify(snap)], 'tanot-backup.json', { type: 'application/json' });
+      const dt = new DataTransfer(); dt.items.add(f);
+      const inp = document.getElementById('dtFile'); inp.files = dt.files; inp.dispatchEvent(new Event('change', { bubbles: true }));
+    }, mutate);
+    await h.settle(p, 900);
+  };
+  return {
+    page: 'data.html', route, init: 'window.TANOT_SYNC = { enabled: true };',
+    seed: { 'tanot:notes:one': 'Local value', 'tanot:audit:keep': '{"k":1}' },
+    skipSel: '#dtPlan .imp-key, #dtHistory .dt-key, .dt-key',
+    wait: async (p) => {
+      await p.evaluate((rows) => new Promise((res) => {
+        const r = indexedDB.open('tanot-data', 1);
+        r.onsuccess = () => { const tx = r.result.transaction('history', 'readwrite'); rows.forEach((x) => tx.objectStore('history').add(x)); tx.oncomplete = () => res(); };
+        r.onerror = () => res();
+      }), historyRows);
+      await p.evaluate(() => window.dispatchEvent(new CustomEvent('tanot:data')));
+      await h.settle(p, 500);
+    },
+    states: [
+      ['base', async () => {}],
+      ['status-ok', status({ state: 'ok', lastSyncAt: NOW - 600e3, pending: 3, lastError: '', skipped: [] })],
+      ['status-syncing', status({ state: 'syncing', lastSyncAt: NOW - 600e3, pending: 0, lastError: '', skipped: ['tanot:big:key'] })],
+      ['status-error', status({ state: 'error', lastSyncAt: 0, pending: 12, lastError: 'HTTP 500', skipped: [] })],
+      ['status-offline', status({ state: 'offline', lastSyncAt: NOW - DAY, pending: 1, lastError: '', skipped: [] })],
+      ['status-auth', status({ state: 'auth', lastSyncAt: NOW - DAY, pending: 1, lastError: '', skipped: [] })],
+      ['sync-now', async (p) => { await h.dom(p, '#dtSyncNow'); await h.settle(p, 500); }],
+      ['drive-list-empty', async (p) => { await p.evaluate(() => { window.DriveBackup = Object.assign(window.DriveBackup || {}, { lastBackupAt: () => 0, list: () => Promise.resolve([]) }); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],
+      ['drive-list', async (p) => { await p.evaluate(() => { DriveBackup.list = () => Promise.resolve([{ id: 'f1', name: 'tanot-backup-2026-10-02-dev1.json' }, { id: 'f2', name: 'tanot-backup-2026-10-01-dev1.json' }]); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],
+      ['drive-list-fail', async (p) => { await p.evaluate(() => { DriveBackup.list = () => Promise.reject(new Error('โหลด Google Identity Services ไม่ได้')); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],
+      ['drive-backup', async (p) => { await p.evaluate(() => { DriveBackup.backupNow = () => Promise.resolve({ name: 'tanot-backup-2026-10-03-dev1.json', keys: 42 }); }); await h.dom(p, '#dtDriveBackup'); await h.settle(p, 400); }],
+      ['drive-backup-fail', async (p) => { await p.evaluate(() => { DriveBackup.backupNow = () => Promise.reject(new Error('quota')); }); await h.dom(p, '#dtDriveBackup'); await h.settle(p, 400); }],
+      ['drive-last', async (p) => { await p.evaluate(([t]) => { DriveBackup.lastBackupAt = () => t; }, [NOW]); await h.settle(p, 100); }],
+      ['import-plan', importFile()],
+      ['import-all-incoming', async (p) => { await p.evaluate(() => { const b = document.querySelector('#dtPlan [data-act="all-incoming"]'); if (b) b.click(); }); await h.settle(p, 300); }],
+      ['import-run', async (p) => { await p.evaluate(() => document.querySelector('#dtPlan [data-act="import"]').click()); await h.settle(p, 1200); }],
+      ['history-restore', async (p) => { await p.evaluate(() => { const b = document.querySelector('#dtHistory button[data-n]'); if (b) b.click(); }); await h.settle(p, 600); }]
+    ]
+  };
+}
+
+function credits(h) {
+  return { page: 'credits.html', skipSel: '', states: [['base', async () => {}], ['bottom', async (p) => { await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight)); await h.settle(p, 200); }]] };
+}
+
+module.exports = { targets(h) { return [music(h), sports(h), coding(h), cooking(h), typing(h), imageGen(h), notifications(h), data(h), credits(h)]; }, ALLOW, NOW };

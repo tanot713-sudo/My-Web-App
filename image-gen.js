@@ -74,11 +74,12 @@
   }
 
   /* ── toast ── */
-  function toast(msg, kind) {
+  function toast(msg, kind) { /* msg = ข้อความ หรือฟังก์ชันที่คืนข้อความตามภาษาปัจจุบัน (แปลสดตอนสลับภาษา) */
     var box = $('toasts');
     var t = document.createElement('div');
     t.className = 'toast' + (kind ? ' ' + kind : '');
-    t.innerHTML = (kind === 'err' ? icon('circle-alert') : '') + '<span>' + esc(msg) + '</span>';
+    t.innerHTML = (kind === 'err' ? icon('circle-alert') : '') + '<span></span>';
+    OME_I18N.live(t.lastChild, typeof msg === 'function' ? msg : function () { return msg; });
     box.appendChild(t);
     setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 5000);
   }
@@ -132,8 +133,8 @@
   /* ── แปลเป็นอังกฤษ ── */
   function translate() {
     var text = $('prompt').value.trim();
-    if (!text) { toast(T('needPrompt'), 'err'); return; }
-    if (!AI || !AI.available()) { toast(errText({ code: 'unavailable' }), 'err'); return; }
+    if (!text) { toast(function () { return T('needPrompt'); }, 'err'); return; }
+    if (!AI || !AI.available()) { toast(function () { return errText({ code: 'unavailable' }); }, 'err'); return; }
     state.busy = true; renderControls();
     AI.chat({
       model: 'fast', maxTokens: 400, temperature: 0.2,
@@ -145,7 +146,7 @@
       var out = String(r.text || '').trim().replace(/^["“]+|["”]+$/g, '');
       if (out) $('prompt').value = out.slice(0, 1500);
       loadQuota();
-    }).catch(function (e) { toast(errText(e), 'err'); })
+    }).catch(function (e) { toast(function () { return errText(e); }, 'err'); })
       .then(function () { state.busy = false; renderControls(); });
   }
 
@@ -158,8 +159,8 @@
   }
   function generate() {
     var prompt = $('prompt').value.trim();
-    if (!prompt) { toast(T('needPrompt'), 'err'); return; }
-    if (!AI || !AI.available()) { toast(errText({ code: 'unavailable' }), 'err'); return; }
+    if (!prompt) { toast(function () { return T('needPrompt'); }, 'err'); return; }
+    if (!AI || !AI.available()) { toast(function () { return errText({ code: 'unavailable' }); }, 'err'); return; }
     var list = jobs(), done = 0;
     progress = null;
     state.busy = true; renderControls();
@@ -178,9 +179,9 @@
       });
     }
     next().then(function () {
-      toast(T('made', { n: done }), 'ok');
+      toast(function () { return T('made', { n: done }); }, 'ok');
     }, function (e) {
-      toast((done ? T('madeStop', { n: done }) : '') + errText(e), 'err');
+      toast(function () { return (done ? T('madeStop', { n: done }) : '') + errText(e); }, 'err');
       loadQuota();
     }).then(function () {
       state.busy = false; progress = null; $('genTxt').textContent = T('generate'); renderControls();
@@ -197,7 +198,7 @@
     var items = sorted();
     $('empty').hidden = items.length > 0;
     $('grid').innerHTML = items.map(function (x) {
-      return '<button type="button" class="ig-item" data-id="' + esc(x.id) + '" aria-label="' + esc(presetName(x.preset)) + ' ' + esc(x.prompt || '') + '">' +
+      return '<button type="button" class="btn ig-item" data-id="' + esc(x.id) + '" aria-label="' + esc(presetName(x.preset)) + ' ' + esc(x.prompt || '') + '">' +
         '<img loading="lazy" alt="" src="' + fileUrl(x.id) + '"><span class="badge">' + esc(presetName(x.preset) || x.preset) + (x.mode ? ' · ' + esc(modeName(x.mode)) : '') + '</span></button>';
     }).join('');
     if (state.openId && !readItems().some(function (x) { return x && x.id === state.openId; })) closeView();
@@ -249,8 +250,8 @@
         // 404 = ไฟล์หายไปแล้ว (ลบจากอีกเครื่อง) — ลบรายการต่อได้ · ข้อผิดพลาดอื่นเก็บรายการไว้ไม่ให้เหลือไฟล์กำพร้าใน R2
         if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
         removeItem(id); closeView(); renderGrid();
-        toast(T('deleted'), 'ok');
-      }).catch(function () { toast(T('delFail'), 'err'); });
+        toast(function () { return T('deleted'); }, 'ok');
+      }).catch(function () { toast(function () { return T('delFail'); }, 'err'); });
     });
   }
 
