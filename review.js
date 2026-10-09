@@ -12,6 +12,30 @@
   var LC = window.LearnCore, FS = window.TanotFSRS;
   window.TANOT_NO_RELOAD_BAR = true; // หน้านี้วาดใหม่เองเมื่อข้อมูลเปลี่ยน
 
+
+  var T = OME_I18N.scope('rv', {
+    th: {
+      title: 'ทบทวนวันนี้', days14: '14 วันล่าสุด', hDeck: 'การ์ด', filterAria: 'ที่มา', hSrc: 'XP ตามที่มา', hSet: 'ตั้งค่า',
+      goal: 'เป้า XP ต่อวัน', rest: 'วันพักต่อสัปดาห์', all: 'ทั้งหมด',
+      src_law: 'กฎหมาย', src_lang: 'ภาษา', src_biz: 'ธุรกิจ', src_eng: 'วิศวกรรม', src_music: 'ดนตรี', src_sports: 'กีฬา', src_cooking: 'ทำอาหาร',
+      src_coding: 'เขียนโค้ด', src_typing: 'พิมพ์ดีด', src_books: 'หนังสือ', area_edu: 'การศึกษา', area_hobby: 'งานอดิเรก/ทักษะ',
+      hr: '{n} ชม.', day: '{n} วัน', mon: '{n} เดือน', doneAll: 'ทบทวนครบแล้ว {n} ใบ', none: 'ไม่มีการ์ดค้างทบทวน', rated: 'ทบทวนแล้ว {n} · ', left: 'เหลือ {n}',
+      kDue: 'ค้างทบทวน', kCards: 'ใบ', kToday: 'XP วันนี้', kStreak: 'ติดต่อกัน', kDays: 'วัน', kTotal: 'XP สะสม', best: 'สูงสุด {n} วัน', restUsed: 'พัก {n} วัน',
+      notYet: 'ยังไม่ได้ฝึกวันนี้', legacy: 'ยอดเดิม {n}', today: 'วันนี้ +{n}', noXp: 'ยังไม่มี XP', optXp: '{n} XP', optDays: '{n} วัน', xpUnit: '{n} XP'
+    },
+    en: {
+      title: 'Review today', days14: 'Last 14 days', hDeck: 'Cards', filterAria: 'Source', hSrc: 'XP by source', hSet: 'Settings',
+      goal: 'Daily XP goal', rest: 'Rest days per week', all: 'All',
+      src_law: 'Law', src_lang: 'Languages', src_biz: 'Business', src_eng: 'Engineering', src_music: 'Music', src_sports: 'Sports', src_cooking: 'Cooking',
+      src_coding: 'Coding', src_typing: 'Typing', src_books: 'Books', area_edu: 'Education', area_hobby: 'Hobbies / skills',
+      hr: '{n} h', day: '{n} d', mon: '{n} mo', doneAll: 'All {n} cards reviewed', none: 'No cards due for review', rated: 'Reviewed {n} · ', left: '{n} left',
+      kDue: 'Due for review', kCards: 'cards', kToday: 'XP today', kStreak: 'Streak', kDays: 'days', kTotal: 'Total XP', best: 'Best {n} days', restUsed: 'Rested {n} days',
+      notYet: 'Not practiced today', legacy: 'Earlier total {n}', today: 'Today +{n}', noXp: 'No XP yet', optXp: '{n} XP', optDays: '{n} days', xpUnit: '{n} XP'
+    }
+  });
+  window.OME_PAGE_LIVE_LANG = true;
+  function setTitle() { document.title = T('title') + ' | Tanot'; }
+  setTitle();
   var LBE = {
     biz: { key: 'lbe:business:srs', page: 'classroom-business.html' },
     eng: { key: 'lbe:engineering:srs', page: 'classroom-engineering.html' }
@@ -28,14 +52,14 @@
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function icon(name, cls) { return '<svg class="ome-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
-  function num(n) { return Math.round(n).toLocaleString('th-TH'); }
+  function num(n) { return OME_I18N.number(Math.round(n)); }
   function isObj(v) { return v && typeof v === 'object' && !Array.isArray(v); }
   function fmtInterval(ms) {
     var h = ms / 3600000;
-    if (h < 23.5) return Math.max(1, Math.round(h)) + ' ชม.';
+    if (h < 23.5) return T('hr', { n: Math.max(1, Math.round(h)) });
     var d = h / 24;
-    if (d < 45) return Math.round(d) + ' วัน';
-    return Math.round(d / 30) + ' เดือน';
+    if (d < 45) return T('day', { n: Math.round(d) });
+    return T('mon', { n: Math.round(d / 30) });
   }
 
   /* ── หน้าการ์ดของห้องเรียนธุรกิจ/วิศวะ: qKey = `${subjId}:${topicId}:${i}` เฉพาะหัวข้อที่มี quiz (ตรงกับ QUESTION_BANK ในหน้านั้น) ── */
@@ -190,8 +214,8 @@
     return LC.lbeNext(card.rec, r >= 2, now).due - now;
   }
   function renderFilter() {
-    var chips = [{ id: 'all', label: 'ทั้งหมด', n: remaining() }];
-    DECK_SRC.forEach(function (s) { var n = remaining(s); if (n) chips.push({ id: s, label: LC.SOURCES[s].label, n: n }); });
+    var chips = [{ id: 'all', label: T('all'), n: remaining() }];
+    DECK_SRC.forEach(function (s) { var n = remaining(s); if (n) chips.push({ id: s, label: T('src_' + s), n: n }); });
     if (filter !== 'all' && !chips.some(function (c) { return c.id === filter; })) filter = 'all';
     $('rvFilter').innerHTML = chips.length > 1 || chips[0].n ? chips.map(function (c) {
       return '<button class="chip" type="button" data-f="' + c.id + '" aria-pressed="' + (filter === c.id) + '">' + esc(c.label) + ' ' + num(c.n) + '</button>';
@@ -201,55 +225,55 @@
     renderFilter();
     var q = queue(), area = $('rvArea'), now = Date.now();
     var more = DECK_SRC.filter(function (s) { return deck.missing[s] && (filter === 'all' || filter === s); }).map(function (s) {
-      return '<a class="btn sm" href="' + LC.SOURCES[s].href + '">' + icon(LC.SOURCES[s].icon) + esc(LC.SOURCES[s].label) + ' ' + num(deck.missing[s]) + '</a>';
+      return '<a class="btn sm" href="' + LC.SOURCES[s].href + '">' + icon(LC.SOURCES[s].icon) + esc(T('src_' + s)) + ' ' + num(deck.missing[s]) + '</a>';
     }).join('');
     more = more ? '<div class="rv-more">' + more + '</div>' : '';
     if (!q.length) {
       area.innerHTML = '<div class="empty">' + icon('circle-check') +
-        '<p class="empty-title">' + (ratedCount ? 'ทบทวนครบแล้ว ' + num(ratedCount) + ' ใบ' : 'ไม่มีการ์ดค้างทบทวน') + '</p></div>' + more;
+        '<p class="empty-title">' + esc(ratedCount ? T('doneAll', { n: num(ratedCount) }) : T('none')) + '</p></div>' + more;
       renderKpis();
       return;
     }
     var c = q[0], S = LC.SOURCES[c.src];
     area.innerHTML =
-      '<div class="rv-card' + (shown ? ' show' : '') + '" id="rvCard" tabindex="0" role="button" aria-expanded="' + shown + '">' +
-        '<span class="src badge">' + icon(S.icon) + esc(S.label + (c.sub ? ' · ' + c.sub : '')) + '</span>' +
-        '<div class="q">' + esc(c.front) + '</div>' +
-        '<div class="a">' + esc(c.back || '—') + '</div>' +
+      '<div class="stat-card rv-card' + (shown ? ' show' : '') + '" id="rvCard" tabindex="0" role="button" aria-expanded="' + shown + '">' +
+        '<span class="src badge">' + icon(S.icon) + esc(T('src_' + c.src)) + (c.sub ? ' · <span data-i18n-skip>' + esc(c.sub) + '</span>' : '') + '</span>' +
+        '<div class="q" data-i18n-skip>' + esc(c.front) + '</div>' +
+        '<div class="a" data-i18n-skip>' + esc(c.back || '—') + '</div>' +
       '</div>' +
       '<div class="rv-rate">' + RATINGS.map(function (x) {
         return '<button class="btn ' + x.cls + '" type="button" data-r="' + x.r + '">' + x.label + '<small>' + fmtInterval(previewMs(c, x.r, now)) + '</small></button>';
       }).join('') + '</div>' +
-      '<div class="rv-progress">' + (ratedCount ? 'ทบทวนแล้ว ' + num(ratedCount) + ' · ' : '') + 'เหลือ ' + num(q.length) + '</div>' + more;
+      '<div class="rv-progress">' + esc((ratedCount ? T('rated', { n: num(ratedCount) }) : '') + T('left', { n: num(q.length) })) + '</div>' + more;
     renderKpis();
   }
   function renderKpis() {
     var s = LC.summary(), due = remaining();
     var pct = Math.min(100, s.goal ? Math.round(s.todayXp / s.goal * 100) : 0);
     var subStreak = [];
-    if (s.streak.longest > s.streak.count) subStreak.push('สูงสุด ' + num(s.streak.longest) + ' วัน');
-    if (s.streak.restUsed) subStreak.push('พัก ' + num(s.streak.restUsed) + ' วัน');
-    if (!s.streak.doneToday && s.streak.count) subStreak.push('ยังไม่ได้ฝึกวันนี้');
+    if (s.streak.longest > s.streak.count) subStreak.push(T('best', { n: num(s.streak.longest) }));
+    if (s.streak.restUsed) subStreak.push(T('restUsed', { n: num(s.streak.restUsed) }));
+    if (!s.streak.doneToday && s.streak.count) subStreak.push(T('notYet'));
     $('rvKpis').innerHTML =
-      '<div class="kpi"><span class="kpi-label">ค้างทบทวน</span><span class="kpi-value" id="rvDue">' + num(due) + ' <small>ใบ</small></span></div>' +
-      '<div class="kpi"><span class="kpi-label">XP วันนี้</span><span class="kpi-value" id="rvToday">' + num(s.todayXp) + ' <small>/ ' + num(s.goal) + '</small></span>' +
+      '<div class="kpi"><span class="kpi-label">' + esc(T('kDue')) + '</span><span class="kpi-value" id="rvDue">' + num(due) + ' <small>' + esc(T('kCards')) + '</small></span></div>' +
+      '<div class="kpi"><span class="kpi-label">' + esc(T('kToday')) + '</span><span class="kpi-value" id="rvToday">' + num(s.todayXp) + ' <small>/ ' + num(s.goal) + '</small></span>' +
         '<div class="bar' + (s.goalMet ? ' ok' : '') + '"><i style="width:' + pct + '%"></i></div></div>' +
-      '<div class="kpi"><span class="kpi-label">ติดต่อกัน</span><span class="kpi-value" id="rvStreak">' + icon('flame', 'flame') + ' ' + num(s.streak.count) + ' <small>วัน</small></span>' +
+      '<div class="kpi"><span class="kpi-label">' + esc(T('kStreak')) + '</span><span class="kpi-value" id="rvStreak">' + icon('flame', 'flame') + ' ' + num(s.streak.count) + ' <small>' + esc(T('kDays')) + '</small></span>' +
         (subStreak.length ? '<span class="sub">' + esc(subStreak.join(' · ')) + '</span>' : '') + '</div>' +
-      '<div class="kpi"><span class="kpi-label">XP สะสม</span><span class="kpi-value" id="rvTotal">' + num(s.total) + '</span>' +
-        (s.legacy ? '<span class="sub">ยอดเดิม ' + num(s.legacy) + '</span>' : '') + '</div>';
+      '<div class="kpi"><span class="kpi-label">' + esc(T('kTotal')) + '</span><span class="kpi-value" id="rvTotal">' + num(s.total) + '</span>' +
+        (s.legacy ? '<span class="sub">' + esc(T('legacy', { n: num(s.legacy) })) + '</span>' : '') + '</div>';
     $('rvDays').innerHTML = s.recent.map(function (d) {
       var cls = 'rv-day' + (d.active ? ' on' : '') + (d.xp >= s.goal ? ' goal' : '') + (d.d === s.today ? ' today' : '');
-      return '<div class="' + cls + '" title="' + esc(d.d + ' · ' + d.xp + ' XP') + '"><i></i><span>' + parseInt(d.d.slice(8), 10) + '</span></div>';
+      return '<div class="' + cls + '" title="' + esc(d.d + ' · ' + T('xpUnit', { n: num(d.xp) })) + '"><i></i><span>' + parseInt(d.d.slice(8), 10) + '</span></div>';
     }).join('');
     var rows = LC.SRC_ORDER.filter(function (k) { return s.bySrc[k] > 0; }).sort(function (a, b) { return s.bySrc[b] - s.bySrc[a]; });
     $('rvSources').className = rows.length ? 'list' : '';
     $('rvSources').innerHTML = rows.length ? rows.map(function (k) {
       var S = LC.SOURCES[k], t = s.todayBySrc[k];
       return '<a class="list-row" href="' + S.href + '"><span class="lead">' + icon(S.icon) + '</span>' +
-        '<span class="grow"><span class="title">' + esc(S.label) + '</span><span class="meta">' + esc(LC.AREAS[S.area]) + (t ? ' · วันนี้ +' + num(t) : '') + '</span></span>' +
-        '<span class="val">' + num(s.bySrc[k]) + ' XP</span></a>';
-    }).join('') : '<div class="empty">' + icon('star') + '<p>ยังไม่มี XP</p></div>';
+        '<span class="grow"><span class="title">' + esc(T('src_' + k)) + '</span><span class="meta">' + esc(T('area_' + S.area)) + (t ? ' · ' + T('today', { n: num(t) }) : '') + '</span></span>' +
+        '<span class="val">' + esc(T('xpUnit', { n: num(s.bySrc[k]) })) + '</span></a>';
+    }).join('') : '<div class="empty">' + icon('star') + '<p>' + esc(T('noXp')) + '</p></div>';
     renderSettings(s);
   }
   function renderSettings(s) {
@@ -257,8 +281,8 @@
     if (document.activeElement === g || document.activeElement === r) return;
     var goals = LC.GOALS.slice();
     if (goals.indexOf(s.goal) === -1) goals.push(s.goal), goals.sort(function (a, b) { return a - b; });
-    g.innerHTML = goals.map(function (v) { return '<option value="' + v + '"' + (v === s.goal ? ' selected' : '') + '>' + v + ' XP</option>'; }).join('');
-    r.innerHTML = LC.RESTS.map(function (v) { return '<option value="' + v + '"' + (v === s.rest ? ' selected' : '') + '>' + v + ' วัน</option>'; }).join('');
+    g.innerHTML = goals.map(function (v) { return '<option value="' + v + '"' + (v === s.goal ? ' selected' : '') + '>' + esc(T('optXp', { n: v })) + '</option>'; }).join('');
+    r.innerHTML = LC.RESTS.map(function (v) { return '<option value="' + v + '"' + (v === s.rest ? ' selected' : '') + '>' + esc(T('optDays', { n: v })) + '</option>'; }).join('');
   }
 
   function flip() {
@@ -298,6 +322,12 @@
     });
   }
 
+  OME_LANG.onChange(function () {
+    setTitle();
+    var g = $('rvGoal'), r = $('rvRest');
+    if (document.activeElement === g || document.activeElement === r) { g.blur(); r.blur(); }
+    renderDeck();
+  });
   renderKpis();
   loadDeck().then(renderDeck, function (e) { console.warn(e); renderDeck(); });
 })();

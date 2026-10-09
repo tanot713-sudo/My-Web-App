@@ -1,6 +1,182 @@
 (() => {
   const { useState, useEffect, useMemo, useRef } = React;
   const COURSE = JSON.parse(document.getElementById("course-data").textContent);
+  const T = OME_I18N.scope("lbe-engineering", {
+    th: {
+      openNav: "\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D",
+      closeNav: "\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39",
+      allTopics: "\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
+      sync: "\u0E0B\u0E34\u0E07\u0E01\u0E4C",
+      syncing: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...",
+      syncConnecting: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D Google...",
+      syncOk: "\u0E0B\u0E34\u0E07\u0E01\u0E4C\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08",
+      back: "\u0E01\u0E25\u0E31\u0E1A Tanot",
+      tabStream: "\u0E2A\u0E15\u0E23\u0E35\u0E21",
+      tabWork: "\u0E07\u0E32\u0E19\u0E40\u0E23\u0E35\u0E22\u0E19",
+      tabReview: "\u0E17\u0E1A\u0E17\u0E27\u0E19",
+      tabExam: "\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21",
+      tabNotes: "\u0E42\u0E19\u0E49\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
+      classroom: "\u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19",
+      progressAll: "\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21",
+      ofTopics: "{done}/{total} \u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D",
+      reviewToday: "\u0E17\u0E1A\u0E17\u0E27\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49",
+      noDue: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14",
+      dueN: "\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E1A\u0E17\u0E27\u0E19",
+      startReview: "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E17\u0E1A\u0E17\u0E27\u0E19",
+      lastExam: "\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+      neverExam: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E40\u0E04\u0E22\u0E2A\u0E2D\u0E1A",
+      startExamAll: "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21",
+      examAgain: "\u0E2A\u0E2D\u0E1A\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07",
+      todo: "\u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E40\u0E2A\u0E23\u0E47\u0E08",
+      allDone: "\u0E17\u0E33\u0E04\u0E23\u0E1A\u0E17\u0E38\u0E01\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27 \u0E40\u0E22\u0E35\u0E48\u0E22\u0E21\u0E21\u0E32\u0E01!",
+      noDueReview: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E1A\u0E17\u0E27\u0E19",
+      reviewDone: "\u0E17\u0E1A\u0E17\u0E27\u0E19\u0E04\u0E23\u0E1A {n} \u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27!",
+      backStream: "\u0E01\u0E25\u0E31\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E2A\u0E15\u0E23\u0E35\u0E21",
+      reviewOf: "\u0E17\u0E1A\u0E17\u0E27\u0E19 {i} / {n}",
+      yourAnswer: "\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13...",
+      reveal: "\u0E14\u0E39\u0E40\u0E09\u0E25\u0E22",
+      answerKey: "\u0E40\u0E09\u0E25\u0E22",
+      recalled: "\u0E08\u0E33\u0E44\u0E14\u0E49 (+30 XP)",
+      notYetTomorrow: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 (\u0E16\u0E32\u0E21\u0E43\u0E2B\u0E21\u0E48\u0E1E\u0E23\u0E38\u0E48\u0E07\u0E19\u0E35\u0E49)",
+      start10: "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A 10 \u0E02\u0E49\u0E2D",
+      start20: "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A 20 \u0E02\u0E49\u0E2D",
+      recent: "\u0E1C\u0E25\u0E2A\u0E2D\u0E1A\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14",
+      scoreIs: "\u0E44\u0E14\u0E49 {s} / {n} \u0E04\u0E30\u0E41\u0E19\u0E19",
+      timeUsed: "\u0E43\u0E0A\u0E49\u0E40\u0E27\u0E25\u0E32 {t} \u0E19\u0E32\u0E17\u0E35",
+      qOf: "\u0E02\u0E49\u0E2D {i} / {n}",
+      typeAns: "\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13...",
+      submit: "\u0E2A\u0E48\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A",
+      correct: "\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01",
+      wrong: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01",
+      resultTime: "{score}/{total} ({m}:{s} \u0E19\u0E32\u0E17\u0E35)",
+      searchNotes: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E43\u0E19\u0E42\u0E19\u0E49\u0E15\u0E17\u0E38\u0E01\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D...",
+      noMatch: "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E42\u0E19\u0E49\u0E15\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E04\u0E33\u0E04\u0E49\u0E19",
+      noNotes: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E42\u0E19\u0E49\u0E15",
+      tabSummary: "\u0E2A\u0E23\u0E38\u0E1B\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32",
+      tabQuiz: "\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E2D\u0E1A",
+      tabMyNotes: "\u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E09\u0E31\u0E19",
+      edit: "\u0E41\u0E01\u0E49\u0E44\u0E02",
+      preview: "\u0E14\u0E39\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07",
+      savedAt: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 {d}",
+      emptyPreview: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32",
+      notePh: "\u0E08\u0E14\u0E2A\u0E23\u0E38\u0E1B \u0E04\u0E33\u0E08\u0E33\u0E01\u0E31\u0E14\u0E04\u0E27\u0E32\u0E21 \u0E2B\u0E23\u0E37\u0E2D\u0E1B\u0E23\u0E30\u0E40\u0E14\u0E47\u0E19\u0E17\u0E35\u0E48\u0E2D\u0E22\u0E32\u0E01\u0E08\u0E33\u0E44\u0E27\u0E49\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49...",
+      keyPoints: "\u0E1B\u0E23\u0E30\u0E40\u0E14\u0E47\u0E19\u0E2A\u0E33\u0E04\u0E31\u0E0D",
+      noContent: "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32",
+      qNofN: "\u0E04\u0E33\u0E16\u0E32\u0E21\u0E17\u0E35\u0E48 {i} \u0E08\u0E32\u0E01 {n}",
+      typeHere: "\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E19\u0E35\u0E48...",
+      refAnswer: "\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E2D\u0E49\u0E32\u0E07\u0E2D\u0E34\u0E07",
+      correctXp: "\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01 (+100 XP)",
+      markedCorrect: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E27\u0E48\u0E32\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01\u0E41\u0E25\u0E49\u0E27",
+      markedWrong: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E27\u0E48\u0E32\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01",
+      savedAns: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E41\u0E25\u0E49\u0E27 (+50 XP)",
+      next: "\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B",
+      seeSummary: "\u0E14\u0E39\u0E2A\u0E23\u0E38\u0E1B\u0E1C\u0E25",
+      allWritten: "\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E2D\u0E1A\u0E04\u0E23\u0E1A\u0E17\u0E38\u0E01\u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27!",
+      topicLabel: "\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D",
+      nQuestions: "{n} \u0E02\u0E49\u0E2D",
+      retry: "\u0E17\u0E33\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07",
+      reflect1: '\u0E2D\u0E18\u0E34\u0E1A\u0E32\u0E22\u0E2B\u0E25\u0E31\u0E01\u0E01\u0E32\u0E23\u0E2A\u0E33\u0E04\u0E31\u0E0D\u0E02\u0E2D\u0E07 "{t}" \u0E15\u0E32\u0E21\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E32\u0E43\u0E08\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13',
+      reflect2: '\u0E22\u0E01\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2A\u0E16\u0E32\u0E19\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E43\u0E0A\u0E49\u0E04\u0E27\u0E32\u0E21\u0E23\u0E39\u0E49\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07 "{t}"',
+      eGis: "\u0E42\u0E2B\u0E25\u0E14 Google Identity Services \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48",
+      eFolderFind: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
+      eFolderMake: "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
+      eFileFind: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
+      eDownload: "\u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
+      eUpload: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E36\u0E49\u0E19 Drive \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
+      title: "\u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23\u0E23\u0E21",
+      subj_engineering: "\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23\u0E23\u0E21",
+      "subj_elec-maint": "\u0E1A\u0E33\u0E23\u0E38\u0E07\u0E23\u0E31\u0E01\u0E29\u0E32\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E1F\u0E1F\u0E49\u0E32"
+    },
+    en: {
+      openNav: "Open topics menu",
+      closeNav: "Close menu",
+      allTopics: "All topics",
+      sync: "Sync",
+      syncing: "Syncing...",
+      syncConnecting: "Connecting to Google...",
+      syncOk: "Sync complete",
+      back: "Back to Tanot",
+      tabStream: "Stream",
+      tabWork: "Coursework",
+      tabReview: "Review",
+      tabExam: "Exam",
+      tabNotes: "All notes",
+      classroom: "Classroom",
+      progressAll: "Overall progress",
+      ofTopics: "{done}/{total} topics",
+      reviewToday: "Review today",
+      noDue: "Nothing due yet",
+      dueN: "items due for review",
+      startReview: "Start review",
+      lastExam: "Latest exams",
+      neverExam: "No exams yet",
+      startExamAll: "Start exam",
+      examAgain: "Take it again",
+      todo: "Unfinished topics",
+      allDone: "All topics done \u2014 great work!",
+      noDueReview: "No items due for review",
+      reviewDone: "Reviewed all {n} items!",
+      backStream: "Back to stream",
+      reviewOf: "Review {i} / {n}",
+      yourAnswer: "Your answer...",
+      reveal: "Show answer",
+      answerKey: "Answer",
+      recalled: "Got it (+30 XP)",
+      notYetTomorrow: "Not yet (ask again tomorrow)",
+      start10: "Start 10 questions",
+      start20: "Start 20 questions",
+      recent: "Recent results",
+      scoreIs: "Scored {s} / {n}",
+      timeUsed: "Time taken {t}",
+      qOf: "Question {i} / {n}",
+      typeAns: "Type your answer...",
+      submit: "Submit answer",
+      correct: "Correct",
+      wrong: "Not yet",
+      resultTime: "{score}/{total} ({m}:{s})",
+      searchNotes: "Search notes across all topics...",
+      noMatch: "No notes match your search",
+      noNotes: "No notes yet",
+      tabSummary: "Summary",
+      tabQuiz: "Written practice",
+      tabMyNotes: "My notes",
+      edit: "Edit",
+      preview: "Preview",
+      savedAt: "Last saved {d}",
+      emptyPreview: "Nothing here yet",
+      notePh: "Write summaries, definitions or points to remember for this topic...",
+      keyPoints: "Key points",
+      noContent: "No content yet",
+      qNofN: "Question {i} of {n}",
+      typeHere: "Type your answer here...",
+      refAnswer: "Reference answer",
+      correctXp: "Correct (+100 XP)",
+      markedCorrect: "Marked as correct",
+      markedWrong: "Marked as not yet correct",
+      savedAns: "Answer saved (+50 XP)",
+      next: "Next question",
+      seeSummary: "See results",
+      allWritten: "You answered every question!",
+      topicLabel: "Topic",
+      nQuestions: "{n} questions",
+      retry: "Practice again",
+      reflect1: 'Explain the key principle of "{t}" in your own understanding',
+      reflect2: 'Give a real situation where knowing "{t}" is needed',
+      eGis: "Could not load Google Identity Services \u2014 try refreshing the page",
+      eFolderFind: "Could not search folders (HTTP {c})",
+      eFolderMake: "Could not create folder (HTTP {c})",
+      eFileFind: "Could not search files (HTTP {c})",
+      eDownload: "Download failed (HTTP {c})",
+      eUpload: "Could not save to Drive (HTTP {c})",
+      title: "Engineering classroom",
+      subj_engineering: "Engineering",
+      "subj_elec-maint": "Electrical maintenance"
+    }
+  });
+  window.OME_PAGE_LIVE_LANG = true;
+  const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
+  const statusText = (st) => !st ? "" : st.tkey ? T(st.tkey, st.tvars) : st.raw || "";
+  const subjLabel = (s) => T("subj_" + (s.subjId || s.id));
   const icon = (name, cls) => () => /* @__PURE__ */ React.createElement("span", { className: "inline-flex", dangerouslySetInnerHTML: { __html: `<i data-lucide="${name}" class="${cls}"></i>` } });
   const Play = icon("play-circle", "w-5 h-5");
   const Check = icon("check-circle-2", "w-5 h-5 text-success");
@@ -17,6 +193,7 @@
   const Menu = icon("menu", "w-5 h-5");
   const CloseIcon = icon("x", "w-5 h-5");
   const NotebookIcon = icon("notebook-pen", "w-5 h-5");
+  const HeadIcon = icon("wrench", "w-5 h-5");
   const enrich = (t) => ({
     id: t.id,
     title: t.title,
@@ -29,10 +206,10 @@
     { id: "elec-maint", label: "\u0E1A\u0E33\u0E23\u0E38\u0E07\u0E23\u0E31\u0E01\u0E29\u0E32\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E1F\u0E1F\u0E49\u0E32", icon: Zap, topics: (COURSE["elec-maint"] || []).map(enrich) }
   ];
   function reflectionPrompts(title) {
-    return [
-      `\u0E2D\u0E18\u0E34\u0E1A\u0E32\u0E22\u0E2B\u0E25\u0E31\u0E01\u0E01\u0E32\u0E23\u0E2A\u0E33\u0E04\u0E31\u0E0D\u0E02\u0E2D\u0E07 "${title}" \u0E15\u0E32\u0E21\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E32\u0E43\u0E08\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13`,
-      `\u0E22\u0E01\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2A\u0E16\u0E32\u0E19\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E43\u0E0A\u0E49\u0E04\u0E27\u0E32\u0E21\u0E23\u0E39\u0E49\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07 "${title}"`
-    ];
+    return [1, 2].map((n) => ({
+      q: T("reflect" + n, { t: title }),
+      reflect: T("reflect" + n, { t: "\0" }).split("\0")
+    }));
   }
   function loadXp() {
     try {
@@ -220,7 +397,7 @@
     ensureAuth() {
       return new Promise((resolve, reject) => {
         if (!window.google || !google.accounts || !google.accounts.oauth2) {
-          reject(new Error("\u0E42\u0E2B\u0E25\u0E14 Google Identity Services \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48"));
+          reject(tErr("eGis"));
           return;
         }
         if (!this.tokenClient) {
@@ -247,7 +424,7 @@
         `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
         { headers: { Authorization: "Bearer " + this.accessToken } }
       );
-      if (!res.ok) throw new Error("\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP " + res.status + ")");
+      if (!res.ok) throw tErr("eFolderFind", { c: res.status });
       const data = await res.json();
       if (data.files && data.files.length) {
         this.folderId = data.files[0].id;
@@ -258,7 +435,7 @@
         headers: { Authorization: "Bearer " + this.accessToken, "Content-Type": "application/json" },
         body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
       });
-      if (!createRes.ok) throw new Error("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP " + createRes.status + ")");
+      if (!createRes.ok) throw tErr("eFolderMake", { c: createRes.status });
       const createData = await createRes.json();
       this.folderId = createData.id;
       return this.folderId;
@@ -269,7 +446,7 @@
         `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
         { headers: { Authorization: "Bearer " + this.accessToken } }
       );
-      if (!res.ok) throw new Error("\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP " + res.status + ")");
+      if (!res.ok) throw tErr("eFileFind", { c: res.status });
       const data = await res.json();
       return data.files && data.files[0] || null;
     },
@@ -278,7 +455,7 @@
         `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
         { headers: { Authorization: "Bearer " + this.accessToken } }
       );
-      if (!res.ok) throw new Error("\u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP " + res.status + ")");
+      if (!res.ok) throw tErr("eDownload", { c: res.status });
       return res.json();
     },
     async uploadFile(name, folderId, existingId, obj) {
@@ -292,7 +469,7 @@
         headers: { Authorization: "Bearer " + this.accessToken },
         body: form
       });
-      if (!res.ok) throw new Error("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E36\u0E49\u0E19 Drive \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP " + res.status + ")");
+      if (!res.ok) throw tErr("eUpload", { c: res.status });
       return res.json();
     }
   };
@@ -315,8 +492,13 @@
     const [srs, setSrs] = useState(loadSrs());
     const [exams, setExams] = useState(loadExams());
     const [syncing, setSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState("");
+    const [syncStatus, setSyncStatus] = useState(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [lang, setLang] = useState(OME_I18N.lang());
+    useEffect(() => OME_LANG.onChange((l) => setLang(l)), []);
+    useEffect(() => {
+      document.title = T("title") + " | Tanot";
+    }, [lang]);
     const [revList, setRevList] = useState([]);
     const [revIndex, setRevIndex] = useState(0);
     const [revAnswer, setRevAnswer] = useState("");
@@ -409,10 +591,10 @@
     };
     const syncNow = async () => {
       setSyncing(true);
-      setSyncStatus("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D Google...");
+      setSyncStatus({ tkey: "syncConnecting" });
       try {
         await DriveSync.ensureAuth();
-        setSyncStatus("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...");
+        setSyncStatus({ tkey: "syncing" });
         const folderId = await DriveSync.ensureFolder();
         const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
         const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
@@ -443,9 +625,9 @@
             savedAt: (/* @__PURE__ */ new Date()).toISOString()
           }
         );
-        setSyncStatus("\u0E0B\u0E34\u0E07\u0E01\u0E4C\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08");
+        setSyncStatus({ tkey: "syncOk" });
       } catch (e) {
-        setSyncStatus("" + (e.message || e));
+        setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: "" + (e.message || e) });
       } finally {
         setSyncing(false);
       }
@@ -456,8 +638,8 @@
       if (topic.kind === "quiz") {
         return topic.data.quiz.map((q) => ({ q: q.q, refAnswer: q.options[q.answer], hasKey: true }));
       }
-      return reflectionPrompts(topic.title).map((q) => ({ q, refAnswer: null, hasKey: false }));
-    }, [topic]);
+      return reflectionPrompts(topic.title).map((p) => ({ q: p.q, reflect: p.reflect, refAnswer: null, hasKey: false }));
+    }, [topic, lang]);
     const level = Math.floor(xp / 250) + 1;
     const noteKey = `${activeSubject}:${topic.id}`;
     const noteText = notes[noteKey] && notes[noteKey].text || "";
@@ -522,211 +704,103 @@
       const key = `${activeSubject}:${topic.id}`;
       if (!completed[key]) setCompleted((c) => ({ ...c, [key]: true }));
     }, [isDone, activeSubject, topic.id]);
-    return /* @__PURE__ */ React.createElement("div", { className: "h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans" }, /* @__PURE__ */ React.createElement("header", { className: "min-h-[64px] bg-white border-b border-slate-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setMobileNavOpen(true), className: "md:hidden -ml-1 p-1.5 text-slate-500 hover:text-slate-800", "aria-label": "\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D" }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("div", { className: "w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold shrink-0" }, "\u0E27"), /* @__PURE__ */ React.createElement("h1", { className: "text-base sm:text-lg font-bold text-slate-800" }, "\u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23\u0E23\u0E21 ", /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-slate-400 font-normal" }, "| Tanot"))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 sm:gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200" }, /* @__PURE__ */ React.createElement(Trophy, null), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-amber-600" }, "Level ", level), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-amber-500 font-medium" }, "(", xp, " XP)")), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: syncNow,
-        disabled: syncing,
-        className: "text-xs font-semibold text-slate-500 hover:text-secondary border border-slate-200 hover:border-secondary rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
-      },
-      syncing ? "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C..." : /* @__PURE__ */ React.createElement(React.Fragment, null, "\u0E0B\u0E34\u0E07\u0E01\u0E4C", /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))
-    ), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-xs text-slate-400" }, syncStatus), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "text-xs font-semibold text-slate-400 hover:text-slate-700" }, "\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot"))), /* @__PURE__ */ React.createElement("div", { className: "h-11 bg-white border-b border-slate-200 flex items-center gap-4 sm:gap-6 px-4 sm:px-6 shrink-0 z-10 overflow-x-auto whitespace-nowrap" }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setView("stream"),
-        className: `h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === "stream" ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`
-      },
-      "\u0E2A\u0E15\u0E23\u0E35\u0E21"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setView("classwork"),
-        className: `h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === "classwork" ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`
-      },
-      "\u0E07\u0E32\u0E19\u0E40\u0E23\u0E35\u0E22\u0E19"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: startReview,
-        className: `h-full text-sm font-semibold border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${view === "review" ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`
-      },
-      "\u0E17\u0E1A\u0E17\u0E27\u0E19",
-      dueKeys.length > 0 && /* @__PURE__ */ React.createElement("span", { className: "bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" }, dueKeys.length)
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => {
-          setExamList([]);
-          setExamIndex(0);
-          setView("exam");
-        },
-        className: `h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === "exam" ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`
-      },
-      "\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setView("allnotes"),
-        className: `h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === "allnotes" ? "border-primary text-primary" : "border-transparent text-slate-400 hover:text-slate-600"}`
-      },
-      "\u0E42\u0E19\u0E49\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14"
-    )), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-6" }, /* @__PURE__ */ React.createElement("div", { className: "rounded-2xl bg-gradient-to-br from-primary to-secondary p-6 sm:p-8 text-white shadow-lg" }, /* @__PURE__ */ React.createElement("p", { className: "text-xs uppercase tracking-widest text-slate-300 mb-2" }, "\u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19"), /* @__PURE__ */ React.createElement("h2", { className: "text-2xl font-bold mb-2" }, "\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23\u0E23\u0E21"), /* @__PURE__ */ React.createElement("div", { className: "mt-6 flex items-center gap-4 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-[200px] max-w-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-xs text-slate-300 mb-1" }, /* @__PURE__ */ React.createElement("span", null, "\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21"), /* @__PURE__ */ React.createElement("span", null, completedCount, "/", totalTopics)), /* @__PURE__ */ React.createElement("div", { className: "h-2 bg-white/20 rounded-full overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "h-full bg-accent rounded-full transition-all", style: { width: `${totalTopics ? completedCount / totalTopics * 100 : 0}%` } }))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full" }, /* @__PURE__ */ React.createElement(Trophy, null), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold" }, "Level ", level)))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-4" }, subjectStats.map((s) => /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        key: s.id,
-        onClick: () => openSubject(s.id),
-        className: "text-left bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow"
-      },
-      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 mb-3 text-slate-500" }, /* @__PURE__ */ React.createElement(s.icon, null), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold uppercase tracking-wide" }, s.label)),
-      /* @__PURE__ */ React.createElement("div", { className: "text-lg font-bold text-slate-800 mb-2" }, s.done, "/", s.total, " \u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D"),
-      /* @__PURE__ */ React.createElement("div", { className: "h-1.5 bg-slate-100 rounded-full overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "h-full bg-secondary rounded-full", style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))
-    ))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-slate-200 p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold text-slate-800 mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Clock, null), " \u0E17\u0E1A\u0E17\u0E27\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49"), dueKeys.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-400" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14") : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("p", { className: "mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-3xl font-bold text-slate-800" }, dueKeys.length), " ", /* @__PURE__ */ React.createElement("span", { className: "text-sm text-slate-500" }, "\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E1A\u0E17\u0E27\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: startReview, className: "px-5 py-2.5 bg-secondary text-white text-sm font-bold rounded-xl" }, "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E17\u0E1A\u0E17\u0E27\u0E19"))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-slate-200 p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold text-slate-800 mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Trophy, null), " \u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14"), exams.length === 0 ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-400 mb-4" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E40\u0E04\u0E22\u0E2A\u0E2D\u0E1A"), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    return /* @__PURE__ */ React.createElement("div", { className: "lbe-app h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-slate-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden -ml-2", "aria-label": T("openNav") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("span", { className: "lbe-headicon" }, /* @__PURE__ */ React.createElement(HeadIcon, null)), /* @__PURE__ */ React.createElement("h1", { className: "text-lg font-bold" }, T("title"), " ", /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-slate-400 font-normal" }, "| Tanot"))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("span", { className: "badge warn" }, /* @__PURE__ */ React.createElement(Trophy, null), " ", /* @__PURE__ */ React.createElement("span", null, "Level ", level), " ", /* @__PURE__ */ React.createElement("span", null, "(", xp, " XP)")), /* @__PURE__ */ React.createElement("button", { "data-k": "sync", onClick: syncNow, disabled: syncing, className: "btn sm" }, syncing ? T("syncing") : /* @__PURE__ */ React.createElement(React.Fragment, null, T("sync"), /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-sm text-slate-500" }, statusText(syncStatus)), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, "\u2190 ", T("back")))), /* @__PURE__ */ React.createElement("div", { className: "tabs bg-white px-2 sm:px-4 shrink-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "tab-stream", onClick: () => setView("stream"), "aria-current": view === "stream" ? "page" : void 0, className: `tab${view === "stream" ? " on" : ""}` }, T("tabStream")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-work", onClick: () => setView("classwork"), "aria-current": view === "classwork" ? "page" : void 0, className: `tab${view === "classwork" ? " on" : ""}` }, T("tabWork")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-review", onClick: startReview, "aria-current": view === "review" ? "page" : void 0, className: `tab${view === "review" ? " on" : ""} inline-flex items-center gap-2` }, T("tabReview"), dueKeys.length > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, dueKeys.length)), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-exam", onClick: () => {
       setExamList([]);
       setExamIndex(0);
       setView("exam");
-    }, className: "px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl" }, "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21")) : /* @__PURE__ */ React.createElement(React.Fragment, null, exams.slice(0, 3).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-between text-sm py-1.5 border-b border-slate-50" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-500" }, new Date(e.date).toLocaleDateString("th-TH")), /* @__PURE__ */ React.createElement("span", { className: `font-bold ${e.score / e.total >= 0.7 ? "text-success" : "text-slate-700"}` }, e.score, "/", e.total))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+    }, "aria-current": view === "exam" ? "page" : void 0, className: `tab${view === "exam" ? " on" : ""}` }, T("tabExam")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-notes", onClick: () => setView("allnotes"), "aria-current": view === "allnotes" ? "page" : void 0, className: `tab${view === "allnotes" ? " on" : ""}` }, T("tabNotes"))), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-4" }, /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 mb-1" }, T("classroom")), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-4" }, subjectStats.length === 1 ? subjLabel(subjectStats[0]) : T("title")), /* @__PURE__ */ React.createElement("div", { className: "max-w-sm" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sm text-slate-500 mb-1" }, /* @__PURE__ */ React.createElement("span", null, T("progressAll")), /* @__PURE__ */ React.createElement("span", null, completedCount, "/", totalTopics)), /* @__PURE__ */ React.createElement("div", { className: "meter" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${totalTopics ? completedCount / totalTopics * 100 : 0}%` } })))), /* @__PURE__ */ React.createElement("div", { className: `grid grid-cols-1 gap-4 ${subjectStats.length > 1 ? "sm:grid-cols-2" : ""}` }, subjectStats.map((s) => /* @__PURE__ */ React.createElement("button", { key: s.id, "data-k": "subj", "data-sid": s.id, onClick: () => openSubject(s.id), className: "stat-card" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-slate-500" }, /* @__PURE__ */ React.createElement(s.icon, null), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold" }, subjLabel(s))), /* @__PURE__ */ React.createElement("div", { className: "text-lg font-bold text-slate-800" }, T("ofTopics", { done: s.done, total: s.total })), /* @__PURE__ */ React.createElement("div", { className: "meter sm" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-4" }, /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Clock, null), " ", T("reviewToday")), dueKeys.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500" }, T("noDue")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("p", { className: "mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-3xl font-bold text-slate-800" }, dueKeys.length), " ", /* @__PURE__ */ React.createElement("span", { className: "text-sm text-slate-500" }, T("dueN"))), /* @__PURE__ */ React.createElement("button", { "data-k": "startReview", onClick: startReview, className: "btn primary" }, T("startReview")))), /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Trophy, null), " ", T("lastExam")), exams.length === 0 ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 mb-4" }, T("neverExam")), /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setExamList([]);
       setExamIndex(0);
       setView("exam");
-    }, className: "mt-3 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl" }, "\u0E2A\u0E2D\u0E1A\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07")))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 md:grid-cols-2 gap-6" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-slate-200 p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold text-slate-800 mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Target, null), " \u0E07\u0E32\u0E19\u0E17\u0E35\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E40\u0E2A\u0E23\u0E47\u0E08"), todoTopics.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-400" }, "\u0E17\u0E33\u0E04\u0E23\u0E1A\u0E17\u0E38\u0E01\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27 \u0E40\u0E22\u0E35\u0E48\u0E22\u0E21\u0E21\u0E32\u0E01!") : /* @__PURE__ */ React.createElement("div", { className: "space-y-1" }, todoTopics.slice(0, 6).map((t) => /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        key: `${t.subjId}:${t.id}`,
-        onClick: () => selectTopic(t.subjId, t.id),
-        className: "w-full flex items-center justify-between gap-2 p-2.5 rounded-lg hover:bg-slate-50 text-left"
-      },
-      /* @__PURE__ */ React.createElement("span", { className: "text-sm text-slate-700 leading-tight" }, t.title),
-      /* @__PURE__ */ React.createElement("span", { className: "text-[10px] font-bold text-slate-400 uppercase shrink-0" }, t.subjLabel)
-    ))))))) : view === "review" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-2xl mx-auto p-4 sm:p-6" }, revIndex >= revList.length ? /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-10 text-center" }, revList.length === 0 ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-slate-800 mb-8" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E02\u0E49\u0E2D\u0E04\u0E23\u0E1A\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E1A\u0E17\u0E27\u0E19")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5" }, /* @__PURE__ */ React.createElement(Trophy, null)), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-slate-800 mb-8" }, "\u0E17\u0E1A\u0E17\u0E27\u0E19\u0E04\u0E23\u0E1A ", revList.length, " \u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27!")), /* @__PURE__ */ React.createElement("button", { onClick: () => setView("stream"), className: "px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm" }, "\u0E01\u0E25\u0E31\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E2A\u0E15\u0E23\u0E35\u0E21")) : (() => {
+    }, className: "btn primary" }, T("startExamAll"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, exams.slice(0, 3).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-between text-sm py-1.5 border-b border-slate-100" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-500" }, OME_I18N.date(e.date)), /* @__PURE__ */ React.createElement("span", { className: `badge ${e.score / e.total >= 0.7 ? "ok" : ""}` }, e.score, "/", e.total))), /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      setExamList([]);
+      setExamIndex(0);
+      setView("exam");
+    }, className: "btn primary mt-3" }, T("examAgain"))))), /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Target, null), " ", T("todo")), todoTopics.length === 0 ? /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500" }, T("allDone")) : /* @__PURE__ */ React.createElement("div", { className: "-mx-2" }, todoTopics.slice(0, 6).map((t) => /* @__PURE__ */ React.createElement("button", { key: `${t.subjId}:${t.id}`, "data-k": "todo", onClick: () => selectTopic(t.subjId, t.id), className: "list-row !border-0 w-full text-left" }, /* @__PURE__ */ React.createElement("span", { className: "grow leading-tight", "data-i18n-skip": true }, t.title), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-500 shrink-0 text-right max-w-[40%]" }, subjLabel(t)))))))) : view === "review" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-2xl mx-auto p-4 sm:p-6" }, revIndex >= revList.length ? /* @__PURE__ */ React.createElement("section", { className: "card text-center" }, revList.length === 0 ? /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-6" }, T("noDueReview")) : /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4" }, /* @__PURE__ */ React.createElement(Trophy, null)), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-6" }, T("reviewDone", { n: revList.length }))), /* @__PURE__ */ React.createElement("button", { onClick: () => setView("stream"), className: "btn primary" }, T("backStream"))) : (() => {
       const rq = QUESTION_BY_KEY[revList[revIndex]];
-      return /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-6 sm:p-8" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-5" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-400 uppercase tracking-widest" }, "\u0E17\u0E1A\u0E17\u0E27\u0E19 ", revIndex + 1, " / ", revList.length), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full" }, rq.topicTitle)), /* @__PURE__ */ React.createElement("h3", { className: "text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug" }, rq.q), /* @__PURE__ */ React.createElement(
+      return /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center gap-2 flex-wrap mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-500" }, T("reviewOf", { i: revIndex + 1, n: revList.length })), /* @__PURE__ */ React.createElement("span", { className: "badge info wrap", "data-i18n-skip": true }, rq.topicTitle)), /* @__PURE__ */ React.createElement("h3", { className: "text-lg sm:text-xl font-bold mb-4 leading-snug", "data-i18n-skip": true }, rq.q), /* @__PURE__ */ React.createElement(
         "textarea",
         {
           value: revAnswer,
           onChange: (e) => setRevAnswer(e.target.value),
           disabled: revRevealed,
           rows: 4,
-          placeholder: "\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13...",
-          className: "w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+          placeholder: T("yourAnswer"),
+          className: "textarea"
         }
-      ), /* @__PURE__ */ React.createElement("div", { className: "mt-5" }, !revRevealed ? /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          onClick: () => setRevRevealed(true),
-          className: "w-full py-3 bg-primary text-white rounded-xl font-bold text-sm"
-        },
-        "\u0E14\u0E39\u0E40\u0E09\u0E25\u0E22"
-      ) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, /* @__PURE__ */ React.createElement("div", { className: "p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1 text-secondary text-sm" }, "\u0E40\u0E09\u0E25\u0E22"), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-700" }, rq.refAnswer)), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => markReview(true), className: "flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold" }, "\u0E08\u0E33\u0E44\u0E14\u0E49 (+30 XP)"), /* @__PURE__ */ React.createElement("button", { onClick: () => markReview(false), className: "flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 (\u0E16\u0E32\u0E21\u0E43\u0E2B\u0E21\u0E48\u0E1E\u0E23\u0E38\u0E48\u0E07\u0E19\u0E35\u0E49)")))));
-    })())) : view === "exam" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-2xl mx-auto p-4 sm:p-6" }, examList.length === 0 ? /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-8 text-center" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold text-slate-800 mb-8" }, "\u0E2A\u0E2D\u0E1A\u0E23\u0E27\u0E21"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3 justify-center mb-8" }, /* @__PURE__ */ React.createElement("button", { onClick: () => startExam(10), className: "px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm" }, "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A 10 \u0E02\u0E49\u0E2D"), /* @__PURE__ */ React.createElement("button", { onClick: () => startExam(20), className: "px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm" }, "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2A\u0E2D\u0E1A 20 \u0E02\u0E49\u0E2D")), exams.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "text-left border-t border-slate-100 pt-5" }, /* @__PURE__ */ React.createElement("h4", { className: "text-xs font-bold text-slate-400 uppercase tracking-wider mb-3" }, "\u0E1C\u0E25\u0E2A\u0E2D\u0E1A\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14"), exams.slice(0, 5).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-between text-sm py-1.5 border-b border-slate-50" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-500" }, new Date(e.date).toLocaleString("th-TH", { dateStyle: "short", timeStyle: "short" })), /* @__PURE__ */ React.createElement("span", { className: `font-bold ${e.score / e.total >= 0.7 ? "text-success" : "text-slate-700"}` }, e.score, "/", e.total, " (", Math.floor(e.sec / 60), ":", String(e.sec % 60).padStart(2, "0"), " \u0E19\u0E32\u0E17\u0E35)"))))) : examIndex >= examList.length ? /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-10 text-center" }, /* @__PURE__ */ React.createElement("div", { className: "w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6" }, /* @__PURE__ */ React.createElement(Trophy, null)), /* @__PURE__ */ React.createElement("h2", { className: "text-2xl font-bold text-slate-800 mb-1" }, "\u0E44\u0E14\u0E49 ", examScore, " / ", examList.length, " \u0E04\u0E30\u0E41\u0E19\u0E19"), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 mb-8" }, "\u0E43\u0E0A\u0E49\u0E40\u0E27\u0E25\u0E32 ", Math.floor((((_a = exams[0]) == null ? void 0 : _a.sec) || 0) / 60), ":", String((((_b = exams[0]) == null ? void 0 : _b.sec) || 0) % 60).padStart(2, "0"), " \u0E19\u0E32\u0E17\u0E35"), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3 justify-center" }, /* @__PURE__ */ React.createElement("button", { onClick: () => {
+      ), /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, !revRevealed ? /* @__PURE__ */ React.createElement("button", { "data-k": "reveal", onClick: () => setRevRevealed(true), className: "btn primary lg w-full" }, T("reveal")) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, /* @__PURE__ */ React.createElement("div", { className: "callout info mb-4" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1 text-sm" }, T("answerKey")), /* @__PURE__ */ React.createElement("p", { className: "text-base", "data-i18n-skip": true }, rq.refAnswer)), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col sm:flex-row gap-3" }, /* @__PURE__ */ React.createElement("button", { "data-k": "recalled", onClick: () => markReview(true), className: "btn primary lg sm:flex-1" }, T("recalled")), /* @__PURE__ */ React.createElement("button", { "data-k": "notyet", onClick: () => markReview(false), className: "btn lg sm:flex-1" }, T("notYetTomorrow"))))));
+    })())) : view === "exam" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-2xl mx-auto p-4 sm:p-6" }, examList.length === 0 ? /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-4" }, T("tabExam")), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col sm:flex-row gap-3 mb-6" }, /* @__PURE__ */ React.createElement("button", { "data-k": "start10", onClick: () => startExam(10), className: "btn primary lg" }, T("start10")), /* @__PURE__ */ React.createElement("button", { "data-k": "start20", onClick: () => startExam(20), className: "btn lg" }, T("start20"))), exams.length > 0 && /* @__PURE__ */ React.createElement("div", { className: "border-t border-slate-100 pt-4" }, /* @__PURE__ */ React.createElement("h4", { className: "text-sm font-bold text-slate-500 mb-3" }, T("recent")), exams.slice(0, 5).map((e, i) => /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-between gap-2 text-sm py-1.5 border-b border-slate-100" }, /* @__PURE__ */ React.createElement("span", { className: "text-slate-500" }, OME_I18N.date(e.date, { dateStyle: "short", timeStyle: "short" })), /* @__PURE__ */ React.createElement("span", { className: `badge ${e.score / e.total >= 0.7 ? "ok" : ""}` }, T("resultTime", { score: e.score, total: e.total, m: Math.floor(e.sec / 60), s: String(e.sec % 60).padStart(2, "0") })))))) : examIndex >= examList.length ? /* @__PURE__ */ React.createElement("section", { className: "card text-center" }, /* @__PURE__ */ React.createElement("div", { className: "w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4" }, /* @__PURE__ */ React.createElement(Trophy, null)), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-1" }, T("scoreIs", { s: examScore, n: examList.length })), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 mb-6" }, T("timeUsed", { t: `${Math.floor((((_a = exams[0]) == null ? void 0 : _a.sec) || 0) / 60)}:${String((((_b = exams[0]) == null ? void 0 : _b.sec) || 0) % 60).padStart(2, "0")}` })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col sm:flex-row gap-3 justify-center" }, /* @__PURE__ */ React.createElement("button", { onClick: () => {
       setExamList([]);
       setExamIndex(0);
-    }, className: "px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm" }, "\u0E2A\u0E2D\u0E1A\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07"), /* @__PURE__ */ React.createElement("button", { onClick: () => setView("stream"), className: "px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl text-sm" }, "\u0E01\u0E25\u0E31\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E2A\u0E15\u0E23\u0E35\u0E21"))) : /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-6 sm:p-8" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-5" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-400 uppercase tracking-widest" }, "\u0E02\u0E49\u0E2D ", examIndex + 1, " / ", examList.length), /* @__PURE__ */ React.createElement("span", { className: "text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full" }, examList[examIndex].topicTitle)), /* @__PURE__ */ React.createElement("h3", { className: "text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug" }, examList[examIndex].q), /* @__PURE__ */ React.createElement(
+    }, className: "btn primary lg" }, T("examAgain")), /* @__PURE__ */ React.createElement("button", { onClick: () => setView("stream"), className: "btn lg" }, T("backStream")))) : /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center gap-2 flex-wrap mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-500" }, T("qOf", { i: examIndex + 1, n: examList.length })), /* @__PURE__ */ React.createElement("span", { className: "badge info wrap", "data-i18n-skip": true }, examList[examIndex].topicTitle)), /* @__PURE__ */ React.createElement("h3", { className: "text-lg sm:text-xl font-bold mb-4 leading-snug", "data-i18n-skip": true }, examList[examIndex].q), /* @__PURE__ */ React.createElement(
       "textarea",
       {
         value: examAnswer,
         onChange: (e) => setExamAnswer(e.target.value),
         disabled: examRevealed,
         rows: 4,
-        placeholder: "\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13...",
-        className: "w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+        placeholder: T("typeAns"),
+        className: "textarea"
       }
-    ), /* @__PURE__ */ React.createElement("div", { className: "mt-5" }, !examRevealed ? /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setExamRevealed(true),
-        disabled: !examAnswer.trim(),
-        className: `w-full py-3 rounded-xl font-bold text-sm ${examAnswer.trim() ? "bg-primary text-white" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`
-      },
-      "\u0E2A\u0E48\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A"
-    ) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, /* @__PURE__ */ React.createElement("div", { className: "p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1 text-secondary text-sm" }, "\u0E40\u0E09\u0E25\u0E22"), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-700" }, examList[examIndex].refAnswer)), /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => markExam(true), className: "flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold" }, "\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01"), /* @__PURE__ */ React.createElement("button", { onClick: () => markExam(false), className: "flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01"))))))) : view === "allnotes" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6" }, /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-2xl border border-slate-200 p-6" }, /* @__PURE__ */ React.createElement("h2", { className: "text-lg font-bold text-slate-800 mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(NotebookIcon, null), " \u0E42\u0E19\u0E49\u0E15\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14"), /* @__PURE__ */ React.createElement(
+    ), /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, !examRevealed ? /* @__PURE__ */ React.createElement("button", { "data-k": "esubmit", onClick: () => setExamRevealed(true), disabled: !examAnswer.trim(), className: "btn primary lg w-full" }, T("submit")) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, /* @__PURE__ */ React.createElement("div", { className: "callout info mb-4" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1 text-sm" }, T("answerKey")), /* @__PURE__ */ React.createElement("p", { className: "text-base", "data-i18n-skip": true }, examList[examIndex].refAnswer)), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col sm:flex-row gap-3" }, /* @__PURE__ */ React.createElement("button", { "data-k": "ecorrect", onClick: () => markExam(true), className: "btn primary lg sm:flex-1" }, T("correct")), /* @__PURE__ */ React.createElement("button", { "data-k": "ewrong", onClick: () => markExam(false), className: "btn lg sm:flex-1" }, T("wrong")))))))) : view === "allnotes" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6" }, /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h2", { className: "text-lg font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(NotebookIcon, null), " ", T("tabNotes")), /* @__PURE__ */ React.createElement(
       "input",
       {
         type: "text",
         value: notesQuery,
         onChange: (e) => setNotesQuery(e.target.value),
-        placeholder: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E43\u0E19\u0E42\u0E19\u0E49\u0E15\u0E17\u0E38\u0E01\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D...",
-        className: "w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl px-4 py-2.5 text-sm mb-5"
+        placeholder: T("searchNotes"),
+        "data-k": "notesQuery",
+        className: "input mb-4"
       }
     ), (() => {
       const q = notesQuery.trim().toLowerCase();
       const entries = Object.entries(notes).filter(([k, v]) => v && v.text && v.text.trim()).map(([k, v]) => ({ key: k, note: v, topic: topicByKey[k] })).filter((e) => e.topic).filter((e) => !q || e.topic.title.toLowerCase().includes(q) || e.note.text.toLowerCase().includes(q)).sort((a, b) => (b.note.updatedAt || 0) - (a.note.updatedAt || 0));
-      if (!entries.length) return /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-400 text-center py-8" }, q ? "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E42\u0E19\u0E49\u0E15\u0E17\u0E35\u0E48\u0E15\u0E23\u0E07\u0E01\u0E31\u0E1A\u0E04\u0E33\u0E04\u0E49\u0E19" : "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E42\u0E19\u0E49\u0E15");
+      if (!entries.length) return /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 text-center py-8" }, q ? T("noMatch") : T("noNotes"));
       return entries.map((e) => /* @__PURE__ */ React.createElement(
         "button",
         {
           key: e.key,
+          "data-k": "noteRow",
           onClick: () => {
             selectTopic(e.topic.subjId, e.topic.id);
             setActiveTab("notes");
           },
-          className: "w-full text-left p-4 rounded-xl border border-slate-100 hover:border-secondary mb-3 transition-colors"
+          className: "stat-card w-full mb-3"
         },
-        /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-1" }, /* @__PURE__ */ React.createElement("span", { className: "font-bold text-sm text-slate-800" }, e.topic.title), /* @__PURE__ */ React.createElement("span", { className: "text-[10px] text-slate-400" }, new Date(e.note.updatedAt).toLocaleDateString("th-TH"))),
-        /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-500 line-clamp-2" }, e.note.text.slice(0, 160))
+        /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center gap-2 w-full" }, /* @__PURE__ */ React.createElement("span", { className: "font-bold text-sm text-slate-800", "data-i18n-skip": true }, e.topic.title), /* @__PURE__ */ React.createElement("span", { className: "text-xs text-slate-500 shrink-0" }, OME_I18N.date(e.note.updatedAt))),
+        /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 line-clamp-2", "data-i18n-skip": true }, e.note.text.slice(0, 160))
       ));
-    })()))) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-1 overflow-hidden relative" }, mobileNavOpen && /* @__PURE__ */ React.createElement("div", { className: "fixed inset-0 bg-black/30 z-30 md:hidden", onClick: () => setMobileNavOpen(false) }), /* @__PURE__ */ React.createElement("aside", { className: `fixed md:static inset-y-0 left-0 z-40 w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? "translate-x-0" : "-translate-x-full"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-3 md:hidden" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-700" }, "\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14"), /* @__PURE__ */ React.createElement("button", { onClick: () => setMobileNavOpen(false), className: "p-1 text-slate-400 hover:text-slate-700", "aria-label": "\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39" }, /* @__PURE__ */ React.createElement(CloseIcon, null))), SUBJECTS.map((s) => /* @__PURE__ */ React.createElement("div", { key: s.id, className: "mb-2" }, /* @__PURE__ */ React.createElement(
+    })()))) : /* @__PURE__ */ React.createElement("div", { className: "flex flex-1 overflow-hidden relative" }, mobileNavOpen && /* @__PURE__ */ React.createElement("div", { className: "fixed inset-x-0 bottom-0 top-12 bg-black/30 z-30 md:hidden", onClick: () => setMobileNavOpen(false) }), /* @__PURE__ */ React.createElement("aside", { className: `fixed md:static top-12 bottom-0 left-0 z-40 w-80 max-w-[88vw] bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-3 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? "translate-x-0" : "-translate-x-full max-md:invisible"}` }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between mb-2 md:hidden" }, /* @__PURE__ */ React.createElement("span", { className: "text-base font-bold" }, T("allTopics")), /* @__PURE__ */ React.createElement("button", { "data-k": "closeNav", onClick: () => setMobileNavOpen(false), className: "btn ghost icon", "aria-label": T("closeNav") }, /* @__PURE__ */ React.createElement(CloseIcon, null))), SUBJECTS.map((s) => /* @__PURE__ */ React.createElement("div", { key: s.id, className: "mb-2" }, /* @__PURE__ */ React.createElement(
       "button",
       {
+        "data-k": "group",
         onClick: () => setOpenGroups((g) => ({ ...g, [s.id]: !g[s.id] })),
-        className: "w-full flex items-center justify-between px-2 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-700"
+        className: "btn ghost w-full justify-between",
+        "aria-expanded": !!openGroups[s.id]
       },
-      /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2" }, /* @__PURE__ */ React.createElement(s.icon, null), " ", s.label, " ", /* @__PURE__ */ React.createElement("span", { className: "text-slate-300 font-normal normal-case" }, "(", s.topics.length, ")")),
+      /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 font-bold" }, /* @__PURE__ */ React.createElement(s.icon, null), " ", subjLabel(s), " ", /* @__PURE__ */ React.createElement("span", { className: "text-slate-500 font-normal" }, "(", s.topics.length, ")")),
       /* @__PURE__ */ React.createElement("span", { className: `transition-transform ${openGroups[s.id] ? "rotate-180" : ""}` }, /* @__PURE__ */ React.createElement(ChevronDown, null))
-    ), openGroups[s.id] && /* @__PURE__ */ React.createElement("div", { className: "space-y-1 mt-1" }, s.topics.map((t) => {
+    ), openGroups[s.id] && /* @__PURE__ */ React.createElement("div", { className: "mt-2" }, s.topics.map((t) => {
       const active = activeSubject === s.id && activeTopicId === t.id;
       return /* @__PURE__ */ React.createElement(
         "button",
         {
           key: t.id,
+          "data-k": "topic",
+          "data-tid": t.id,
           onClick: () => selectTopic(s.id, t.id),
-          className: `w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? "bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm" : "border-transparent text-slate-600 hover:bg-slate-50"}`
+          "aria-current": active ? "true" : void 0,
+          className: `list-row !border-0 w-full text-left rounded-lg ${active ? "bg-blue-50 text-slate-800 font-semibold" : ""}`
         },
-        active ? /* @__PURE__ */ React.createElement(Play, { className: "shrink-0 mt-0.5" }) : completed[`${s.id}:${t.id}`] ? /* @__PURE__ */ React.createElement(Check, { className: "shrink-0 mt-0.5" }) : /* @__PURE__ */ React.createElement(Clock, { className: "shrink-0 mt-1 text-slate-300" }),
-        /* @__PURE__ */ React.createElement("span", { className: "leading-tight" }, t.title)
+        active ? /* @__PURE__ */ React.createElement(Play, { className: "shrink-0" }) : completed[`${s.id}:${t.id}`] ? /* @__PURE__ */ React.createElement(Check, { className: "shrink-0" }) : /* @__PURE__ */ React.createElement(Clock, { className: "shrink-0 text-slate-400" }),
+        /* @__PURE__ */ React.createElement("span", { className: "grow leading-tight", "data-i18n-skip": true }, t.title)
       );
-    }))))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center" }, /* @__PURE__ */ React.createElement("div", { className: "w-full max-w-3xl" }, /* @__PURE__ */ React.createElement("div", { className: "flex gap-4 border-b border-slate-200 mb-6" }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setActiveTab("summary"),
-        className: `pb-3 px-2 text-sm font-semibold transition-colors ${activeTab === "summary" ? "text-secondary border-b-2 border-secondary" : "text-slate-400 hover:text-slate-700"}`
-      },
-      "\u0E2A\u0E23\u0E38\u0E1B\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setActiveTab("quiz"),
-        className: `pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === "quiz" ? "text-secondary border-b-2 border-secondary" : "text-slate-400 hover:text-slate-700"}`
-      },
-      /* @__PURE__ */ React.createElement(Target, null),
-      " \u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E2D\u0E1A"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setActiveTab("notes"),
-        className: `pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === "notes" ? "text-secondary border-b-2 border-secondary" : "text-slate-400 hover:text-slate-700"}`
-      },
-      /* @__PURE__ */ React.createElement(NotebookIcon, null),
-      " \u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E09\u0E31\u0E19 ",
-      noteText && /* @__PURE__ */ React.createElement("span", { className: "w-1.5 h-1.5 rounded-full bg-secondary" })
-    )), activeTab === "notes" ? /* @__PURE__ */ React.createElement("div", { className: "bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap mb-1" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-slate-800 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(NotebookIcon, null), " \u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E09\u0E31\u0E19 \u2014 ", topic.title), /* @__PURE__ */ React.createElement("div", { className: "flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold" }, /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setNotePreview(false),
-        className: `px-3 py-1.5 ${!notePreview ? "bg-secondary text-white" : "text-slate-500 hover:bg-slate-50"}`
-      },
-      "\u0E41\u0E01\u0E49\u0E44\u0E02"
-    ), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: () => setNotePreview(true),
-        className: `px-3 py-1.5 ${notePreview ? "bg-secondary text-white" : "text-slate-500 hover:bg-slate-50"}`
-      },
-      "\u0E14\u0E39\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07"
-    ))), /* @__PURE__ */ React.createElement("p", { className: "text-xs text-slate-400 mb-4 min-h-[1rem]" }, notes[noteKey] ? `\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 ${new Date(notes[noteKey].updatedAt).toLocaleString("th-TH")}` : ""), notePreview ? /* @__PURE__ */ React.createElement(
+    }))))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center" }, /* @__PURE__ */ React.createElement("div", { className: "w-full max-w-[72ch]" }, /* @__PURE__ */ React.createElement("div", { className: "tabs mb-4" }, /* @__PURE__ */ React.createElement("button", { "data-k": "tab-summary", onClick: () => setActiveTab("summary"), className: `tab${activeTab === "summary" ? " on" : ""}` }, T("tabSummary")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-quiz", onClick: () => setActiveTab("quiz"), className: `tab${activeTab === "quiz" ? " on" : ""} inline-flex items-center gap-2` }, /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline-flex" }, /* @__PURE__ */ React.createElement(Target, null)), " ", T("tabQuiz")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-mynotes", onClick: () => setActiveTab("notes"), className: `tab${activeTab === "notes" ? " on" : ""} inline-flex items-center gap-2` }, /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline-flex" }, /* @__PURE__ */ React.createElement(NotebookIcon, null)), " ", T("tabMyNotes"), " ", noteText && /* @__PURE__ */ React.createElement("span", { className: "w-1.5 h-1.5 rounded-full bg-secondary" }))), activeTab === "notes" ? /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap mb-1" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-bold flex items-center gap-2" }, /* @__PURE__ */ React.createElement(NotebookIcon, null), " ", T("tabMyNotes"), " \u2014 ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, topic.title)), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "note-edit", onClick: () => setNotePreview(false), className: !notePreview ? "on" : "" }, T("edit")), /* @__PURE__ */ React.createElement("button", { "data-k": "note-preview", onClick: () => setNotePreview(true), className: notePreview ? "on" : "" }, T("preview")))), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-500 mb-3 min-h-[1.25rem]" }, notes[noteKey] ? T("savedAt", { d: OME_I18N.date(notes[noteKey].updatedAt, { dateStyle: "medium", timeStyle: "short" }) }) : ""), notePreview ? /* @__PURE__ */ React.createElement(
       "div",
       {
-        className: "md-preview border-2 border-slate-100 rounded-xl p-4 min-h-[200px] text-slate-700",
-        dangerouslySetInnerHTML: { __html: noteText.trim() ? mdToHtml(noteText) : '<p style="opacity:.4">\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32</p>' }
+        className: "md-preview border-2 border-slate-100 rounded-xl p-4 min-h-[200px]",
+        "data-i18n-skip": true,
+        dangerouslySetInnerHTML: { __html: noteText.trim() ? mdToHtml(noteText) : `<p style="opacity:.6">${escapeHtml(T("emptyPreview"))}</p>` }
       }
     ) : /* @__PURE__ */ React.createElement(
       "textarea",
@@ -734,48 +808,26 @@
         value: noteText,
         onChange: (e) => updateNote(e.target.value),
         rows: 10,
-        placeholder: "\u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49...",
-        className: "w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-y font-sans leading-relaxed"
+        placeholder: T("notePh"),
+        className: "textarea"
       }
-    )) : activeTab === "summary" ? /* @__PURE__ */ React.createElement("div", { className: "bg-white p-8 rounded-2xl shadow-sm border border-slate-100" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-slate-800 mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Bookmark, null), " ", topic.title), hasSummary(topic) ? /* @__PURE__ */ React.createElement(React.Fragment, null, topic.data.overview && /* @__PURE__ */ React.createElement("p", { className: "text-slate-600 mb-4" }, topic.data.overview), (topic.data.keyConcepts || []).length > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h4", { className: "text-sm font-bold text-slate-400 uppercase tracking-wider mb-2" }, "\u0E1B\u0E23\u0E30\u0E40\u0E14\u0E47\u0E19\u0E2A\u0E33\u0E04\u0E31\u0E0D"), /* @__PURE__ */ React.createElement("ul", { className: "space-y-2" }, topic.data.keyConcepts.map((k, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "flex items-start gap-2 text-sm text-slate-700" }, /* @__PURE__ */ React.createElement("span", { className: "text-secondary mt-1" }, "\u2022"), " ", k)))), topic.data.lesson && /* @__PURE__ */ React.createElement(
+    )) : activeTab === "summary" ? /* @__PURE__ */ React.createElement("section", { className: "card" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(Bookmark, null), " ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, topic.title)), hasSummary(topic) ? /* @__PURE__ */ React.createElement("div", { "data-i18n-skip": true }, topic.data.overview && /* @__PURE__ */ React.createElement("p", { className: "text-base text-slate-600 mb-4 leading-relaxed" }, topic.data.overview), (topic.data.keyConcepts || []).length > 0 && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h4", { className: "text-sm font-bold text-slate-500 mb-2" }, T("keyPoints")), /* @__PURE__ */ React.createElement("ul", { className: "space-y-2" }, topic.data.keyConcepts.map((k, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "flex items-start gap-2 text-base text-slate-700 leading-relaxed" }, /* @__PURE__ */ React.createElement("span", { className: "text-secondary" }, "\u2022"), " ", k)))), topic.data.lesson && /* @__PURE__ */ React.createElement(
       "div",
       {
         className: "md-preview lesson mt-6 pt-2 border-t border-slate-100 text-slate-700",
         dangerouslySetInnerHTML: { __html: mdToHtml(topic.data.lesson) }
       }
-    )) : /* @__PURE__ */ React.createElement("p", { className: "text-slate-400" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E19\u0E37\u0E49\u0E2D\u0E2B\u0E32")) : /* @__PURE__ */ React.createElement("div", { className: "bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden" }, !isDone ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-6" }, /* @__PURE__ */ React.createElement("span", { className: "text-xs font-bold text-slate-400 uppercase tracking-widest" }, "\u0E04\u0E33\u0E16\u0E32\u0E21\u0E17\u0E35\u0E48 ", qIndex + 1, " \u0E08\u0E32\u0E01 ", questions.length)), /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-slate-800 mb-6 leading-tight" }, questions[qIndex].q), /* @__PURE__ */ React.createElement(
+    )) : /* @__PURE__ */ React.createElement("p", { className: "text-slate-500" }, T("noContent"))) : /* @__PURE__ */ React.createElement("section", { className: "card" }, !isDone ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between items-center mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "text-sm font-bold text-slate-500" }, T("qNofN", { i: qIndex + 1, n: questions.length }))), /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold mb-4 leading-snug" }, questions[qIndex].hasKey ? /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, questions[qIndex].q) : /* @__PURE__ */ React.createElement(React.Fragment, null, questions[qIndex].reflect[0], /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, topic.title), questions[qIndex].reflect[1])), /* @__PURE__ */ React.createElement(
       "textarea",
       {
         value: answerText,
         onChange: (e) => setAnswerText(e.target.value),
         disabled: revealed,
         rows: 5,
-        placeholder: "\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13\u0E17\u0E35\u0E48\u0E19\u0E35\u0E48...",
-        className: "w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+        placeholder: T("typeHere"),
+        className: "textarea"
       }
-    ), /* @__PURE__ */ React.createElement("div", { className: "mt-6" }, !revealed ? /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: submitAnswer,
-        disabled: !answerText.trim(),
-        className: `w-full py-3 rounded-xl font-bold text-sm transition-all ${answerText.trim() ? "bg-primary text-white hover:bg-slate-800 shadow-md" : "bg-slate-100 text-slate-400 cursor-not-allowed"}`
-      },
-      "\u0E2A\u0E48\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A"
-    ) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, questions[qIndex].hasKey ? /* @__PURE__ */ React.createElement("div", { className: "p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1 text-secondary" }, "\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E2D\u0E49\u0E32\u0E07\u0E2D\u0E34\u0E07"), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-slate-700 leading-relaxed mb-4" }, questions[qIndex].refAnswer), selfMark === null ? /* @__PURE__ */ React.createElement("div", { className: "flex gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => markSelf(true), className: "px-4 py-2 rounded-lg bg-success text-white text-xs font-bold" }, "\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01 (+100 XP)"), /* @__PURE__ */ React.createElement("button", { onClick: () => markSelf(false), className: "px-4 py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold" }, "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01")) : /* @__PURE__ */ React.createElement("p", { className: `text-sm font-semibold ${selfMark === "correct" ? "text-success" : "text-slate-500"}` }, selfMark === "correct" ? "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E27\u0E48\u0E32\u0E15\u0E2D\u0E1A\u0E16\u0E39\u0E01\u0E41\u0E25\u0E49\u0E27" : "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E27\u0E48\u0E32\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01")) : /* @__PURE__ */ React.createElement("div", { className: "p-4 rounded-xl mb-4 border bg-emerald-50 border-emerald-200" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold text-emerald-700" }, "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E41\u0E25\u0E49\u0E27 (+50 XP)")), (questions[qIndex].hasKey ? selfMark !== null : true) && /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: nextQuestion,
-        className: "w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-blue-600 shadow-md transition-all"
-      },
-      qIndex < questions.length - 1 ? "\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B" : "\u0E14\u0E39\u0E2A\u0E23\u0E38\u0E1B\u0E1C\u0E25"
-    )))) : /* @__PURE__ */ React.createElement("div", { className: "text-center py-12" }, /* @__PURE__ */ React.createElement("div", { className: "w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6" }, /* @__PURE__ */ React.createElement(Trophy, { className: "w-12 h-12 text-accent" })), /* @__PURE__ */ React.createElement("h2", { className: "text-2xl font-bold text-slate-800 mb-2" }, "\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E2D\u0E1A\u0E04\u0E23\u0E1A\u0E17\u0E38\u0E01\u0E02\u0E49\u0E2D\u0E41\u0E25\u0E49\u0E27!"), /* @__PURE__ */ React.createElement("p", { className: "text-slate-500 mb-8" }, '\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D "', topic.title, '" \u2014 ', questions.length, " \u0E02\u0E49\u0E2D"), /* @__PURE__ */ React.createElement(
-      "button",
-      {
-        onClick: restartTopic,
-        className: "px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-      },
-      "\u0E17\u0E33\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07"
-    )))))));
+    ), /* @__PURE__ */ React.createElement("div", { className: "mt-4" }, !revealed ? /* @__PURE__ */ React.createElement("button", { "data-k": "qsubmit", onClick: submitAnswer, disabled: !answerText.trim(), className: "btn primary lg w-full" }, T("submit")) : /* @__PURE__ */ React.createElement("div", { className: "animate-fade-in-up" }, questions[qIndex].hasKey ? /* @__PURE__ */ React.createElement("div", { className: "callout info mb-4" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold mb-1" }, T("refAnswer")), /* @__PURE__ */ React.createElement("p", { className: "text-base leading-relaxed mb-4", "data-i18n-skip": true }, questions[qIndex].refAnswer)) : /* @__PURE__ */ React.createElement("div", { className: "callout ok mb-4" }, /* @__PURE__ */ React.createElement("h4", { className: "font-bold" }, T("savedAns"))), questions[qIndex].hasKey && (selfMark === null ? /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-3 mb-4" }, /* @__PURE__ */ React.createElement("button", { "data-k": "qcorrect", onClick: () => markSelf(true), className: "btn primary" }, T("correctXp")), /* @__PURE__ */ React.createElement("button", { "data-k": "qwrong", onClick: () => markSelf(false), className: "btn" }, T("wrong"))) : /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold mb-4" }, selfMark === "correct" ? T("markedCorrect") : T("markedWrong"))), (questions[qIndex].hasKey ? selfMark !== null : true) && /* @__PURE__ */ React.createElement("button", { "data-k": "qnext", onClick: nextQuestion, className: "btn primary lg w-full" }, qIndex < questions.length - 1 ? T("next") : T("seeSummary"))))) : /* @__PURE__ */ React.createElement("div", { className: "text-center py-8" }, /* @__PURE__ */ React.createElement("div", { className: "w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4" }, /* @__PURE__ */ React.createElement(Trophy, { className: "w-12 h-12 text-accent" })), /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-2" }, T("allWritten")), /* @__PURE__ */ React.createElement("p", { className: "text-slate-500 mb-6" }, T("topicLabel"), ' "', /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, topic.title), '" \u2014 ', T("nQuestions", { n: questions.length })), /* @__PURE__ */ React.createElement("button", { "data-k": "retry", onClick: restartTopic, className: "btn lg" }, T("retry"))))))));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(App, null));

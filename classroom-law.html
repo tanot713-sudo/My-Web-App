@@ -26,8 +26,13 @@
 .cl-page .card > h2,.cl-page .card-head h2{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--ome-fs-base)}
 .cl-page .card .lhd-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
 .cl-page .frow > .field{flex:1 1 130px;min-width:120px}
-.cl-page .field .unit{font-size:11px;color:var(--ome-text-2);font-weight:500}
+.cl-page .field .unit{font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500}
 .cl-page .mini{margin:0}
+@media (max-width:700px){.cl-page .prose{font-size:16px}}
+.cl-page button{height:auto;min-height:38px;padding-top:6px;padding-bottom:6px;white-space:normal;text-align:center}
+.cl-page button.sm{min-height:30px}
+@media (max-width:700px){.cl-page button,.cl-page button.sm{min-height:40px}}
+.cl-page .exsearch select{min-width:0}
 .cl-page :is(.status,.mini):empty{display:none}
 .cl-page .status{margin-top:0}
 .cl-page .view{display:flex;flex-direction:column;gap:var(--ome-card-gap)}
@@ -40,7 +45,7 @@
 /* ── สรุปเนื้อหาบทเรียน (reader) ── */
 .lesson > .disclosure-body{padding-top:4px}
 .lesson-src{font-size:var(--ome-fs-xs);color:var(--ome-text-2);border-top:1px dashed var(--ome-border);margin-top:10px;padding-top:8px}
-.lchips{display:flex;flex-wrap:wrap;gap:7px}
+.lchips{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2)}
 .lprog{display:flex;align-items:center;gap:10px}
 .lprog-bar{flex:1 1 auto;height:8px;border-radius:var(--ome-radius-pill);background:var(--ome-surface-2);overflow:hidden}
 .lprog-fill{height:100%;background:var(--ome-accent);border-radius:inherit;transition:width var(--ome-dur-2)}
@@ -50,20 +55,17 @@
 .lgroup-hd:first-child,.exgroup-hd:first-child{margin-top:0}
 details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-top:6px;padding-bottom:6px}
 .lsum-txt{flex:1 1 auto;min-width:0}
-.lread{flex-shrink:0;display:flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ome-text-2);cursor:pointer;user-select:none}
-.lread input{width:14px;height:14px;cursor:pointer}
-.lnote-btn,.tts-playbtn{flex-shrink:0;border:1px solid var(--ome-border);background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);
-  padding:4px 9px;font-size:11px;font-weight:600;color:var(--ome-text-2);cursor:pointer}
-.lnote-btn:hover,.tts-playbtn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
-.lnote-btn.has{background:var(--ome-accent-soft);border-color:var(--ome-accent);color:var(--ome-accent-strong)}
+.lread{flex-shrink:0;display:flex;align-items:center;gap:var(--ome-sp-2);min-height:40px;padding:0 4px;font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-text-2);cursor:pointer;user-select:none}
+.lread input{width:18px;height:18px;cursor:pointer}
+details.lesson > summary button{flex-shrink:0}
 .lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ome-border)}
 .lnote-ta{min-height:70px}
 .ttsbar{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:10px 12px}
 .ttsbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.ttsbar select{width:auto;height:32px}
+.ttsbar select{width:auto}
 .ttsbar-voice{flex:2 1 200px;min-width:0}
 .ttsbar-rate{flex:0 1 78px}
-.ttsbar-controls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--ome-border)}
+.ttsbar-controls{display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2);margin-top:9px;padding-top:9px;border-top:1px dashed var(--ome-border)}
 .ttsbar-now{font-size:var(--ome-fs-xs);font-weight:600;color:var(--ome-accent-strong);flex:1 1 100%}
 
 /* ── ค้นหา/ข้อสอบตัวอย่าง/mock/drill ── */
@@ -87,19 +89,19 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 .refres-snip{font-size:var(--ome-fs-sm);line-height:1.6}
 
 /* ── เมนูข้างของหน้า (แยกจากลิ้นชักเมนูหลักของเว็บ) ── */
-.clhb-backdrop{position:fixed;inset:0;background:rgba(11,18,35,.45);z-index:var(--ome-z-drawer);opacity:0;pointer-events:none;transition:opacity var(--ome-dur-2)}
+.clhb-backdrop{position:fixed;inset:0;background:color-mix(in srgb, var(--ome-text-1) 45%, transparent);z-index:var(--ome-z-drawer);opacity:0;pointer-events:none;transition:opacity var(--ome-dur-2)}
 .clhb-backdrop.open{opacity:1;pointer-events:auto}
 .clhb-panel{position:fixed;top:0;left:0;bottom:0;width:270px;max-width:82vw;background:var(--ome-surface-1);z-index:calc(var(--ome-z-drawer) + 1);
   box-shadow:var(--ome-shadow-3);transform:translateX(-100%);transition:transform var(--ome-dur-2);overflow-y:auto;padding:16px 0}
 .clhb-panel.open{transform:translateX(0)}
 .clhb-panel:not(.open){box-shadow:none;visibility:hidden;transition:transform var(--ome-dur-2),visibility 0s var(--ome-dur-2)}
 .clhb-hd{font-size:var(--ome-fs-md);font-weight:700;padding:4px 18px 14px;border-bottom:1px solid var(--ome-border);margin-bottom:6px}
-.clhb-group-hd{font-size:11px;font-weight:700;color:var(--ome-text-2);letter-spacing:.04em;padding:14px 18px 4px}
+.clhb-group-hd{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);letter-spacing:.04em;padding:14px 18px 4px}
 .clhb-list{list-style:none;margin:0;padding:0}
-.clhb-list a{display:block;padding:9px 18px;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-1);text-decoration:none;border-left:3px solid transparent}
+.clhb-list a{display:flex;flex-direction:column;justify-content:center;min-height:44px;padding:9px 18px;font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-1);text-decoration:none;border-left:3px solid transparent}
 .clhb-list a:hover{background:var(--ome-surface-2)}
 .clhb-list a.active{background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-left-color:var(--ome-accent)}
-.clhb-list a .sub{display:block;font-size:11px;color:var(--ome-text-2);font-weight:500;margin-top:1px}
+.clhb-list a .sub{display:block;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:500;margin-top:1px}
 
 /* ── เป้าหมาย / สนามสอบ / เช็กเส้นทาง ── */
 .goal-row{display:flex;flex-wrap:wrap;gap:10px}
@@ -117,14 +119,13 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 .exam-edit{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .exam-edit .field{flex:1 1 140px;min-width:130px}
 .exam-prep{margin-top:10px;font-size:var(--ome-fs-xs)}
-.exam-prep summary{cursor:pointer;font-weight:700;color:var(--ome-accent-strong)}
 .exam-prep ul{margin:6px 0 0 18px}
 .exam-prep li.ban{color:var(--ome-err-ink)}
 .exam-link{font-size:var(--ome-fs-xs);font-weight:700;text-decoration:none}
 .career-result{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
 .career-result:empty{display:none}
 .career-box{padding:14px 15px;font-weight:400}
-.career-box .ttl{font-weight:700;display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.career-box .ttl{font-weight:700;display:flex;align-items:center;gap:var(--ome-sp-2);margin-bottom:6px}
 .career-box ul{margin:6px 0 0;padding-left:18px;font-size:var(--ome-fs-xs)}
 .career-box li{margin-bottom:3px}
 
@@ -133,34 +134,29 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 .note-item{border-bottom:1px solid var(--ome-border);padding:10px 0}
 .note-item:last-child{border-bottom:0}
 .note-item .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.note-item .tag{font-size:11px;font-weight:700;color:var(--ome-accent-strong);background:var(--ome-accent-soft);border-radius:var(--ome-radius-sm);padding:1px 8px}
+.note-item .tag{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-accent-strong);background:var(--ome-accent-soft);border-radius:var(--ome-radius-sm);padding:1px 8px}
 .note-item .txt{font-size:var(--ome-fs-sm);margin-top:4px;white-space:pre-wrap}
-.note-item .meta{font-size:11px;color:var(--ome-text-2);margin-top:4px}
-.note-actions{display:flex;gap:6px;flex-shrink:0}
-.note-edit,.note-del{display:inline-grid;place-items:center;width:28px;height:28px;border:0;border-radius:var(--ome-radius-sm);background:transparent;cursor:pointer;flex-shrink:0}
-.note-edit{color:var(--ome-accent-strong)}
-.note-del{color:var(--ome-err)}
-.note-edit:hover,.note-del:hover{background:var(--ome-surface-2)}
+.note-item .meta{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
+.note-actions{display:flex;gap:var(--ome-sp-2);flex-shrink:0}
 .note-group-hd{display:flex;align-items:center;gap:8px;padding:12px 0 6px;border-top:2px solid var(--ome-border)}
 .note-group-hd:first-child{border-top:0;padding-top:0}
 .note-group-hd .mini{margin:0;flex:1}
-.note-del-all{background:none;border:1px solid var(--ome-err);color:var(--ome-err-ink);border-radius:var(--ome-radius-sm);padding:3px 9px;font-size:11.5px;cursor:pointer;flex-shrink:0}
 .flash-card{background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);padding:24px 18px;text-align:center;margin-top:12px;min-height:120px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer}
 .flash-card .q{font-size:var(--ome-fs-md);font-weight:700}
 .flash-card .a{font-size:var(--ome-fs-base);color:var(--ome-accent-strong);display:none}
 .flash-card.show .a{display:block}
 .flash-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
-.flash-btns .btn{flex:1 1 0;min-width:0;padding:0 4px}
+.flash-btns button{flex:1 1 0;min-width:0;padding:0 4px}
 .flash-progress{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:center;margin-top:8px}
-:where([data-layout]) .btn.fsrs-again{border-color:var(--ome-err);color:var(--ome-err-ink)}
-:where([data-layout]) .btn.fsrs-hard{border-color:var(--ome-warn);color:var(--ome-warn-ink)}
-:where([data-layout]) .btn.fsrs-good{border-color:var(--ome-info);color:var(--ome-info-ink)}
-:where([data-layout]) .btn.fsrs-easy{border-color:var(--ome-ok);color:var(--ome-ok-ink)}
-.btn.fsrs-again:hover:not(:disabled){background:var(--ome-err-soft)}
-.btn.fsrs-hard:hover:not(:disabled){background:var(--ome-warn-soft)}
-.btn.fsrs-good:hover:not(:disabled){background:var(--ome-info-soft)}
-.btn.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
+button.fsrs-again{color:var(--ome-err-ink)}
+button.fsrs-hard{color:var(--ome-warn-ink)}
+button.fsrs-good{color:var(--ome-info-ink)}
+button.fsrs-easy{color:var(--ome-ok-ink)}
+button.fsrs-again:hover:not(:disabled){background:var(--ome-err-soft)}
+button.fsrs-hard:hover:not(:disabled){background:var(--ome-warn-soft)}
+button.fsrs-good:hover:not(:disabled){background:var(--ome-info-soft)}
+button.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
 
 /* ── ฝึกเขียนตอบจับเวลา ── */
 .timer-box{text-align:center;padding:16px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg);margin-top:12px}
@@ -180,18 +176,18 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 .stat-box .num{font-size:var(--ome-fs-xl);font-weight:700;color:var(--ome-accent-strong)}
 .stat-box .lbl{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:2px}
 .bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:var(--ome-fs-xs)}
-.bar-row .lbl{width:110px;flex-shrink:0;color:var(--ome-text-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-row .lbl{width:110px;flex-shrink:0;color:var(--ome-text-2);overflow-wrap:anywhere;line-height:1.3}
 .bar-row .track{flex:1;background:var(--ome-surface-2);border-radius:var(--ome-radius-sm);height:16px;overflow:hidden;display:flex}
 .bar-row .fill{background:var(--ome-chart-1);height:100%;border-radius:var(--ome-radius-sm) 0 0 var(--ome-radius-sm);min-width:2px}
 .bar-row .val{width:34px;text-align:right;flex-shrink:0;font-weight:700}
 .srs-track{display:flex;border-radius:var(--ome-radius-md);overflow:hidden;height:22px}
-.srs-seg{display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#FFFFFF;text-shadow:0 1px 1px rgba(0,0,0,.35);min-width:2px}
-.srs-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--ome-text-2)}
+.srs-seg{min-width:2px}
+.srs-legend{display:flex;flex-wrap:wrap;gap:10px;font-size:var(--ome-fs-xs);color:var(--ome-text-2)}
 .srs-legend span{display:inline-flex;align-items:center;gap:4px}
 .srs-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
 .act-graph{display:flex;align-items:flex-end;gap:2px;height:44px}
 .act-bar{flex:1;background:var(--ome-chart-1);border-radius:2px 2px 0 0;min-width:2px;min-height:3px}
-.act-graph-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ome-text-2);margin-top:4px}
+.act-graph-lbl{display:flex;justify-content:space-between;font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px}
 
 .bp-modal-msg{white-space:pre-line;color:var(--ome-text-2)}
 .bp-modal-title{font-size:var(--ome-fs-md);font-weight:700}
@@ -201,89 +197,89 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 
 <div class="clhb-backdrop" id="clHbBackdrop"></div>
 <nav class="clhb-panel" id="clHbPanel">
-  <div class="clhb-hd">เรียนกฎหมาย</div>
+  <div class="clhb-hd" data-i18n="cl.title">เรียนกฎหมาย</div>
   <ul class="clhb-list">
-    <li><a href="#dashboard" data-view="dashboard">สถิติ</a></li>
-    <li><a href="#goals" data-view="goals">เป้าหมาย</a></li>
-    <li><a href="#allnotes" data-view="allnotes">โน้ตทั้งหมด</a></li>
+    <li><a href="#dashboard" data-view="dashboard" data-i18n="cl.navStats">สถิติ</a></li>
+    <li><a href="#goals" data-view="goals" data-i18n="cl.navGoals">เป้าหมาย</a></li>
+    <li><a href="#allnotes" data-view="allnotes" data-i18n="cl.navNotes">โน้ตทั้งหมด</a></li>
   </ul>
-  <div class="clhb-group-hd">วิชาที่ใช้สอบจริง</div>
+  <div class="clhb-group-hd" data-i18n="cl.grpExam">วิชาที่ใช้สอบจริง</div>
   <ul class="clhb-list" id="clSubjectNav"></ul>
-  <div class="clhb-group-hd">รายวิชากฎหมาย</div>
+  <div class="clhb-group-hd" data-i18n="cl.grpCourse">รายวิชากฎหมาย</div>
   <ul class="clhb-list" id="clCourseNav"></ul>
   <ul class="clhb-list">
-    <li><a href="#tools" data-view="tools">เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
+    <li><a href="#tools" data-view="tools" data-i18n="cl.navTools">เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
   </ul>
 </nav>
 
 <main class="page cl-page">
-<nav class="crumb"><a href="index.html">หน้าหลัก</a><span class="sep">/</span>เรียนกฎหมาย</nav>
+<nav class="crumb"><a href="index.html" data-i18n="cl.home">หน้าหลัก</a><span class="sep">/</span><span data-i18n="cl.title">เรียนกฎหมาย</span></nav>
 <div class="page-head">
-  <button class="btn icon" id="clHbToggle" type="button" aria-label="เปิดเมนู"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg></button>
-  <h1>เรียนกฎหมาย</h1>
+  <button class="btn icon" id="clHbToggle" type="button" aria-label="เปิดเมนู" data-i18n-attr="aria-label:cl.openMenu"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-menu"/></svg></button>
+  <h1 data-i18n="cl.title">เรียนกฎหมาย</h1>
 </div>
 
 <!-- ══════════════════ สถิติกราฟการเรียน (หน้าแรกที่เปิดเข้ามาเจอ) ══════════════════ -->
 <div class="view" id="viewDashboard">
   <div class="card">
-    <h2>สถิติกราฟการเรียน</h2>
+    <h2 data-i18n="cl.dashTitle">สถิติกราฟการเรียน</h2>
     <div class="stat-row" id="clStatRow"></div>
   </div>
   <div class="card">
-    <h2>จำนวนโน้ตต่อวิชา</h2>
+    <h2 data-i18n="cl.notesPerSubj">จำนวนโน้ตต่อวิชา</h2>
     <div class="bar-chart" id="clSubjBars"></div>
   </div>
   <div class="card">
-    <h2>ความก้าวหน้าการทบทวน (SRS)</h2>
+    <h2 data-i18n="cl.srsTitle">ความก้าวหน้าการทบทวน (SRS)</h2>
     <div class="srs-track" id="clSrsTrack"></div>
     <div class="srs-legend" id="clSrsLegend"></div>
   </div>
   <div class="card">
-    <h2>กิจกรรม 30 วันล่าสุด</h2>
+    <h2 data-i18n="cl.act30">กิจกรรม 30 วันล่าสุด</h2>
     <div class="act-graph" id="clActGraph"></div>
     <div class="act-graph-lbl"><span id="clActFrom"></span><span id="clActTo"></span></div>
   </div>
   <div class="card">
-    <h2>สถิติฝึกเขียนตอบ</h2>
+    <h2 data-i18n="cl.wrStats">สถิติฝึกเขียนตอบ</h2>
     <div class="bar-chart" id="clWrBars"></div>
-    <p class="note-empty" id="clWrStatsEmpty" style="display:none">ยังไม่มีประวัติฝึกเขียนตอบ</p>
+    <p class="note-empty" id="clWrStatsEmpty" style="display:none" data-i18n="cl.noWrHist">ยังไม่มีประวัติฝึกเขียนตอบ</p>
   </div>
 </div>
 
 <!-- ══════════════════ เป้าหมาย (พาเนลแยก ไม่ใช่หน้าแรก) ══════════════════ -->
 <div class="view" id="viewGoals" style="display:none">
   <div class="card">
-    <h2>เป้าหมาย 3 สายอาชีพ</h2>
+    <h2 data-i18n="cl.goals3">เป้าหมาย 3 สายอาชีพ</h2>
     <div class="goal-row">
-      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg><div><b>ผู้พิพากษา</b><span class="sub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
-      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-landmark"/></svg><div><b>อัยการ</b><span class="sub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
-      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-briefcase"/></svg><div><b>ทนายความ (Law Firm)</b><span class="sub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scale"/></svg><div><b data-i18n="cl.judge">ผู้พิพากษา</b><span class="sub" data-i18n="cl.judgeSub">สอบผู้ช่วยผู้พิพากษา (ก.ต.)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-landmark"/></svg><div><b data-i18n="cl.prosecutor">อัยการ</b><span class="sub" data-i18n="cl.prosecutorSub">สอบอัยการผู้ช่วย (ก.อ.)</span></div></div>
+      <div class="goal-chip"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-briefcase"/></svg><div><b data-i18n="cl.lawyer">ทนายความ (Law Firm)</b><span class="sub" data-i18n="cl.lawyerSub">ตั๋วทนายความ (สภาทนายความ)</span></div></div>
     </div>
   </div>
 
   <div class="card">
-    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> สนามสอบ &amp; นับถอยหลัง</h2>
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> <span data-i18n="cl.examField">สนามสอบ &amp; นับถอยหลัง</span></h2>
     <div id="bpExamList"></div>
   </div>
 
   <div class="card">
-    <h2>เช็กเส้นทาง 3 สายอาชีพ</h2>
+    <h2 data-i18n="cl.career3">เช็กเส้นทาง 3 สายอาชีพ</h2>
     <div class="frow">
-      <div class="field"><label>เนติบัณฑิตแล้วหรือยัง</label>
-        <select id="bpNeti"><option value="no">ยังไม่จบ</option><option value="yes">จบแล้ว</option></select>
+      <div class="field"><label for="bpNeti" data-i18n="cl.netiQ">เนติบัณฑิตแล้วหรือยัง</label>
+        <select id="bpNeti"><option value="no" data-i18n="cl.netiNo">ยังไม่จบ</option><option value="yes" data-i18n="cl.netiYes">จบแล้ว</option></select>
       </div>
-      <div class="field"><label>ประสบการณ์ทำงานด้านกฎหมาย (ปี)</label>
+      <div class="field"><label for="bpExp" data-i18n="cl.expQ">ประสบการณ์ทำงานด้านกฎหมาย (ปี)</label>
         <input type="number" id="bpExp" min="0" step="0.5" placeholder="0">
       </div>
-      <div class="field"><label>วุฒิปริญญาโท/เอกกฎหมาย</label>
-        <select id="bpMaster"><option value="no">ไม่มี</option><option value="th">มี (ในประเทศ)</option><option value="intl">มี (ต่างประเทศ)</option></select>
+      <div class="field"><label for="bpMaster" data-i18n="cl.masterQ">วุฒิปริญญาโท/เอกกฎหมาย</label>
+        <select id="bpMaster"><option value="no" data-i18n="cl.masterNo">ไม่มี</option><option value="th" data-i18n="cl.masterTh">มี (ในประเทศ)</option><option value="intl" data-i18n="cl.masterIntl">มี (ต่างประเทศ)</option></select>
       </div>
-      <div class="field"><label>มีตั๋วทนายความแล้วหรือยัง</label>
-        <select id="bpLawyer"><option value="no">ยังไม่มี</option><option value="yes">มีแล้ว</option></select>
+      <div class="field"><label for="bpLawyer" data-i18n="cl.lawyerQ">มีตั๋วทนายความแล้วหรือยัง</label>
+        <select id="bpLawyer"><option value="no" data-i18n="cl.lawyerNo">ยังไม่มี</option><option value="yes" data-i18n="cl.lawyerYes">มีแล้ว</option></select>
       </div>
     </div>
-    <div><button class="btn primary sm" id="bpCareerBtn" type="button">ประเมินเส้นทาง</button></div>
-    <div class="career-result" id="bpCareerResult"></div>
+    <div><button class="btn primary sm" id="bpCareerBtn" type="button" data-i18n="cl.careerBtn">ประเมินเส้นทาง</button></div>
+    <div class="career-result" id="bpCareerResult" data-i18n-skip></div>
   </div>
 </div>
 
@@ -292,39 +288,39 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 
   <!-- ค้นหามาตรา/ฎีกา รวมทุกวิชา (ไม่ผูกกับวิชาที่เลือก — เห็นตลอด) -->
   <div class="card">
-    <h2>ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
-    <input type="text" id="clRefSearch" placeholder="เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล">
+    <h2 data-i18n="cl.refSearch">ค้นหามาตรา/ฎีกา (ทุกวิชา)</h2>
+    <input type="text" class="input" id="clRefSearch" aria-label="ค้นหามาตรา/ฎีกา" placeholder="เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล" data-i18n-attr="placeholder:cl.refPh,aria-label:cl.refSearch">
     <div id="clRefResults"></div>
   </div>
 
   <div class="card" id="clNotesTitleCard" style="display:none">
-    <h2><span id="clSubjTitle"></span></h2>
-    <p class="mini" id="clSubjFull"></p>
+    <h2><span id="clSubjTitle" data-i18n-skip></span></h2>
+    <p class="mini" id="clSubjFull" data-i18n-skip></p>
   </div>
 
   <!-- สรุปเนื้อหาบทเรียน (เนื้อหากฎหมายจริง ต่อวิชา — ทยอยเพิ่มทีละวิชา) -->
   <div class="card" id="clLessonCard" style="display:none">
-    <div class="lhd-row"><h2>สรุปเนื้อหาบทเรียน</h2>
-      <button class="btn sm" id="clExportPdf" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg> Export PDF ทั้งวิชา</button></div>
+    <div class="lhd-row"><h2 data-i18n="cl.lessonSum">สรุปเนื้อหาบทเรียน</h2>
+      <button class="btn sm" id="clExportPdf" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg> <span data-i18n="cl.exportPdf">Export PDF ทั้งวิชา</span></button></div>
     <p class="mini" id="clExportPdfStatus"></p>
     <div id="clLessonBody"></div>
   </div>
 
   <!-- ข้อสอบตัวอย่าง (แยกจากสรุปเนื้อหาบทเรียนโดยตั้งใจ — ตามที่ผู้ใช้ขอ) -->
   <div class="card" id="clExamCard" style="display:none">
-    <h2>ข้อสอบตัวอย่าง</h2>
+    <h2 data-i18n="cl.sampleExam">ข้อสอบตัวอย่าง</h2>
     <div id="clExamBody"></div>
   </div>
 
   <!-- ข้อสอบจำลอง (Mock Exam) — สุ่มจากธนาคารข้อสอบด้านบน จับเวลาเอง -->
   <div class="card" id="clMockCard" style="display:none">
-    <h2>ข้อสอบจำลอง (Mock Exam)</h2>
+    <h2 data-i18n="cl.mockTitle">ข้อสอบจำลอง (Mock Exam)</h2>
     <div class="frow" id="clMockSetup">
-      <div class="field" style="flex:1 1 120px"><label>จำนวนข้อ</label>
+      <div class="field" style="flex:1 1 120px"><label for="clMockCount" data-i18n="cl.qCount">จำนวนข้อ</label>
         <input type="number" id="clMockCount" value="5" min="1" max="30">
       </div>
       <div class="field" style="flex:2 1 200px"><label>&nbsp;</label>
-        <button class="btn primary sm" id="clMockStart" type="button">เริ่มทำข้อสอบจำลอง</button>
+        <button class="btn primary sm" id="clMockStart" type="button" data-i18n="cl.mockStart">เริ่มทำข้อสอบจำลอง</button>
       </div>
     </div>
     <div id="clMockArea"></div>
@@ -332,36 +328,36 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 
   <!-- ฝึกจำเลขมาตรา (drill สั้นๆ) -->
   <div class="card" id="clDrillCard" style="display:none">
-    <h2>ฝึกจำเลขมาตรา (Drill)</h2>
-    <div><button class="btn primary sm" id="clDrillStart" type="button">เริ่ม Drill</button></div>
+    <h2 data-i18n="cl.drillTitle">ฝึกจำเลขมาตรา (Drill)</h2>
+    <div><button class="btn primary sm" id="clDrillStart" type="button" data-i18n="cl.drillStart">เริ่ม Drill</button></div>
     <div id="clDrillArea"></div>
   </div>
 
   <div class="card">
-    <h2>สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)</h2>
+    <h2 data-i18n="cl.notebook">สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)</h2>
     <div class="frow">
-      <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด</label>
-        <input type="text" id="bpNoteSubj" placeholder="เช่น ป.พ.พ. บรรพ 1">
+      <div class="field" style="flex:1 1 160px"><label for="bpNoteSubj" data-i18n="cl.subjCat">วิชา/หมวด</label>
+        <input type="text" id="bpNoteSubj" placeholder="เช่น ป.พ.พ. บรรพ 1" data-i18n-attr="placeholder:cl.subjPh">
       </div>
-      <div class="field" style="flex:2 1 260px"><label>คำถาม (ด้านหน้าการ์ด)</label>
-        <input type="text" id="bpNoteQ" placeholder="เช่น มาตรา 420 ว่าด้วยเรื่องอะไร">
+      <div class="field" style="flex:2 1 260px"><label for="bpNoteQ" data-i18n="cl.cardQ">คำถาม (ด้านหน้าการ์ด)</label>
+        <input type="text" id="bpNoteQ" placeholder="เช่น มาตรา 420 ว่าด้วยเรื่องอะไร" data-i18n-attr="placeholder:cl.cardQPh">
       </div>
     </div>
-    <div class="field"><label>คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
-      <textarea id="bpNoteA" rows="3" placeholder="สรุปหลักกฎหมาย/เนื้อหาโน้ต"></textarea>
+    <div class="field"><label for="bpNoteA" data-i18n="cl.cardA">คำตอบ/เนื้อหา (ด้านหลังการ์ด)</label>
+      <textarea id="bpNoteA" rows="3" placeholder="สรุปหลักกฎหมาย/เนื้อหาโน้ต" data-i18n-attr="placeholder:cl.cardAPh"></textarea>
     </div>
     <div class="row">
-      <button class="btn primary sm" id="bpNoteAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> บันทึกโน้ต/การ์ด</button>
-      <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none">ยกเลิกการแก้ไข</button>
+      <button class="btn primary sm" id="bpNoteAdd" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg> <span data-i18n="cl.saveNote">บันทึกโน้ต/การ์ด</span></button>
+      <button class="btn sm" id="bpNoteCancelEdit" type="button" style="display:none" data-i18n="cl.cancelEdit">ยกเลิกการแก้ไข</button>
     </div>
 
     <div id="bpAutoFlashWrap">
-      <button class="btn sm" id="bpAutoFlash" type="button">สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
+      <button class="btn sm" id="bpAutoFlash" type="button" data-i18n="cl.autoFlash">สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)</button>
       <div class="status" id="bpAutoFlashStatus"></div>
     </div>
 
     <div class="row">
-      <button class="btn sm" id="bpReviewBtn" type="button">เริ่มทบทวนวันนี้ (FSRS)</button>
+      <button class="btn sm" id="bpReviewBtn" type="button" data-i18n="cl.startReview">เริ่มทบทวนวันนี้ (FSRS)</button>
       <span class="mini" id="bpReviewCount"></span>
     </div>
     <div id="bpReviewArea"></div>
@@ -370,59 +366,59 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
   </div>
 
   <div class="card">
-    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> ฝึกเขียนตอบจับเวลา</h2>
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-clock"/></svg> <span data-i18n="cl.wrTitle">ฝึกเขียนตอบจับเวลา</span></h2>
     <div class="frow">
-      <div class="field"><label>วิชา</label>
-        <input type="text" id="bpWrSubj" placeholder="เช่น กฎหมายอาญา">
+      <div class="field"><label for="bpWrSubj" data-i18n="cl.subject">วิชา</label>
+        <input type="text" id="bpWrSubj" placeholder="เช่น กฎหมายอาญา" data-i18n-attr="placeholder:cl.wrSubjPh">
       </div>
-      <div class="field"><label>เวลา (นาที)</label>
+      <div class="field"><label for="bpWrMin" data-i18n="cl.timeMin">เวลา (นาที)</label>
         <input type="number" id="bpWrMin" value="15" min="1">
       </div>
     </div>
-    <div class="field"><label>โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)</label>
-      <textarea id="bpWrPrompt" rows="2" placeholder="วางโจทย์ข้อสอบที่จะฝึกตอบ"></textarea>
+    <div class="field"><label for="bpWrPrompt" data-i18n="cl.wrPrompt">โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)</label>
+      <textarea id="bpWrPrompt" rows="2" placeholder="วางโจทย์ข้อสอบที่จะฝึกตอบ" data-i18n-attr="placeholder:cl.wrPromptPh"></textarea>
     </div>
     <div class="row">
-      <button class="btn primary sm" id="bpWrStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg> เริ่มจับเวลา</button>
-      <button class="btn sm" id="bpWrStop" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg> หยุด</button>
+      <button class="btn primary sm" id="bpWrStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg> <span data-i18n="cl.wrStart">เริ่มจับเวลา</span></button>
+      <button class="btn sm" id="bpWrStop" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg> <span data-i18n="cl.stop">หยุด</span></button>
     </div>
     <div class="timer-box" id="bpWrTimerBox" style="display:none">
       <div class="timer-num" id="bpWrTimerNum">--:--</div>
-      <textarea id="bpWrAnswer" rows="8" placeholder="เขียนคำตอบที่นี่…" style="margin-top:12px"></textarea>
+      <textarea class="textarea" id="bpWrAnswer" rows="8" aria-label="เขียนคำตอบที่นี่…" placeholder="เขียนคำตอบที่นี่…" style="margin-top:12px" data-i18n-attr="placeholder:cl.wrAnswerPh,aria-label:cl.wrAnswerPh"></textarea>
       <ul class="chk-list" id="bpWrChecklist" style="text-align:left"></ul>
-      <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px">บันทึกผลฝึก</button>
+      <button class="btn primary sm" id="bpWrSave" type="button" style="margin-top:10px" data-i18n="cl.wrSave">บันทึกผลฝึก</button>
     </div>
     <div class="table-wrap" id="bpWrTable" style="display:none">
       <table class="table">
-        <thead><tr><th>วันที่</th><th>วิชา</th><th>เวลาที่ใช้</th><th>เช็กลิสต์ผ่าน</th><th></th></tr></thead>
+        <thead><tr><th data-i18n="cl.thDate">วันที่</th><th data-i18n="cl.subject">วิชา</th><th data-i18n="cl.thTime">เวลาที่ใช้</th><th data-i18n="cl.thChk">เช็กลิสต์ผ่าน</th><th></th></tr></thead>
         <tbody id="bpWrTbody"></tbody>
       </table>
     </div>
-    <p class="note-empty" id="bpWrEmpty">ยังไม่มีประวัติการฝึกเขียนตอบ</p>
+    <p class="note-empty" id="bpWrEmpty" data-i18n="cl.noWrHist2">ยังไม่มีประวัติการฝึกเขียนตอบ</p>
   </div>
 
   <div class="card">
-    <h2>นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
-    <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop">แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
+    <h2 data-i18n="cl.importTitle">นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต</h2>
+    <label class="ocr-drop" for="bpOcrFile" id="bpOcrDrop" data-i18n="cl.ocrDrop">แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร</label>
     <input type="file" id="bpOcrFile" accept="image/*" capture="environment" style="display:none">
-    <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก">
+    <img id="bpOcrPreview" class="ocr-preview" alt="ตัวอย่างรูปที่เลือก" data-i18n-attr="alt:cl.ocrPreview">
     <div class="status" id="bpOcrStatus"></div>
     <div class="frow" id="bpOcrEditWrap" style="display:none">
-      <div class="field" style="flex:1 1 160px"><label>วิชา/หมวด (สำหรับบันทึกเป็นโน้ต)</label>
-        <input type="text" id="bpOcrSubj" placeholder="เช่น เนติภาค 1 ปี 2568">
+      <div class="field" style="flex:1 1 160px"><label for="bpOcrSubj" data-i18n="cl.ocrSubj">วิชา/หมวด (สำหรับบันทึกเป็นโน้ต)</label>
+        <input type="text" id="bpOcrSubj" placeholder="เช่น เนติภาค 1 ปี 2568" data-i18n-attr="placeholder:cl.ocrSubjPh">
       </div>
     </div>
-    <textarea id="bpOcrText" rows="6" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="display:none"></textarea>
+    <textarea class="textarea" id="bpOcrText" rows="6" aria-label="ข้อความที่แปลงได้" placeholder="ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก" style="display:none" data-i18n-attr="placeholder:cl.ocrTextPh,aria-label:cl.ocrTextPh"></textarea>
     <div class="row">
-      <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none">บันทึกเป็นโน้ตเดียว</button>
-      <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none">แบ่งเป็นรายมาตรา</button>
+      <button class="btn primary sm" id="bpOcrSave" type="button" style="display:none" data-i18n="cl.ocrSave">บันทึกเป็นโน้ตเดียว</button>
+      <button class="btn sm" id="bpMatraSplitBtn" type="button" style="display:none" data-i18n="cl.splitMatra">แบ่งเป็นรายมาตรา</button>
     </div>
     <div id="bpMatraSplitWrap" style="display:none">
       <p class="mini" id="bpMatraSplitStatus"></p>
       <ul class="chk-list" id="bpMatraList"></ul>
       <div class="row" style="margin-top:8px">
-        <button class="btn primary sm" id="bpMatraSaveBtn" type="button">บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
-        <button class="btn sm" id="bpMatraCancelBtn" type="button">ยกเลิก</button>
+        <button class="btn primary sm" id="bpMatraSaveBtn" type="button" data-i18n="cl.matraSave">บันทึกมาตราที่เลือกเป็นโน้ตแยก</button>
+        <button class="btn sm" id="bpMatraCancelBtn" type="button" data-i18n="cl.cancel">ยกเลิก</button>
       </div>
     </div>
   </div>
@@ -431,32 +427,32 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 <!-- ══════════════════ เครื่องมือรวม (ไม่ผูกกับวิชาใดวิชาหนึ่ง) ══════════════════ -->
 <div class="view" id="viewTools" style="display:none">
   <div class="card">
-    <h2>ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
-    <div><button class="btn sm" id="bpDriveListBtn" type="button">โหลดรายชื่อไฟล์จาก Drive</button></div>
+    <h2 data-i18n="cl.driveFiles">ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
+    <div><button class="btn sm" id="bpDriveListBtn" type="button" data-i18n="cl.driveList">โหลดรายชื่อไฟล์จาก Drive</button></div>
     <div class="status" id="bpDriveListStatus"></div>
     <ul class="note-list" id="bpDriveFileList"></ul>
 
     <div class="field" style="max-width:260px">
-      <label>อัปโหลดเข้าโฟลเดอร์ไหน</label>
-      <select id="bpUploadTargetFolder"><option value="">(โฟลเดอร์หลัก)</option></select>
+      <label for="bpUploadTargetFolder" data-i18n="cl.uploadTo">อัปโหลดเข้าโฟลเดอร์ไหน</label>
+      <select id="bpUploadTargetFolder"><option value="" data-i18n="cl.rootFolder">(โฟลเดอร์หลัก)</option></select>
     </div>
-    <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
+    <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" data-i18n="cl.uploadDrop">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
     <input type="file" id="bpUploadFiles" multiple style="display:none">
     <div class="status" id="bpUploadStatus"></div>
   </div>
 
   <div class="card">
-    <h2>ซิงก์ Google Drive ส่วนตัว</h2>
+    <h2 data-i18n="cl.driveSync">ซิงก์ Google Drive ส่วนตัว</h2>
     <div class="drive-row">
-      <button class="btn sm" id="driveConnectBtn" type="button">เชื่อมต่อ Google Drive</button>
+      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="cl.driveConnect">เชื่อมต่อ Google Drive</button>
       <span class="status" id="driveStatusTxt"></span>
     </div>
   </div>
 
   <div class="card">
-    <h2>ล้างข้อมูลเก่า</h2>
+    <h2 data-i18n="cl.cleanTitle">ล้างข้อมูลเก่า</h2>
     <div class="row">
-      <button class="btn sm" id="bpCleanNotesBtn" type="button">ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
+      <button class="btn sm" id="bpCleanNotesBtn" type="button" data-i18n="cl.cleanBtn">ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว</button>
       <span class="mini" id="bpCleanNotesStatus"></span>
     </div>
     <p class="mini" id="bpStorageInfo"></p>

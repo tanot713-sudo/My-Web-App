@@ -12,22 +12,62 @@
 
   var B = window.BooksCalc, LC = window.LearnCore, TD = window.TanotData;
   var K = { items: 'tanot:books:items', logs: 'tanot:books:logs', notes: 'tanot:books:notes', cards: 'tanot:books:cards', settings: 'tanot:books:settings', ui: 'tanot:books:ui' };
-  var SHELVES = [['want', 'อยากอ่าน'], ['reading', 'กำลังอ่าน'], ['done', 'อ่านจบ']];
+  var SHELVES = ['want', 'reading', 'done'];
   var GOALS = [6, 12, 24, 36, 52];
+
+  var T = OME_I18N.scope('bk', {
+    th: {
+      title: 'หนังสือ', add: 'เพิ่มหนังสือ', tabShelf: 'ชั้นหนังสือ', tabStats: 'สถิติ', tabNotes: 'ไฮไลต์', shelfAria: 'ชั้น',
+      wkTitle: 'หน้าต่อสัปดาห์', wkAria: 'หน้าต่อสัปดาห์ 8 สัปดาห์ล่าสุด', goalTitle: 'เป้าหนังสือปีนี้', goalAria: 'เป้าเล่มต่อปี',
+      logTitle: 'บันทึกการอ่าน', bookAria: 'หนังสือ', addNote: 'เพิ่มไฮไลต์', searchLbl: 'ค้นหาหนังสือ (Open Library)', search: 'ค้นหา',
+      titleLbl: 'ชื่อหนังสือ', author: 'ผู้แต่ง', shelf: 'ชั้น', pages: 'จำนวนหน้า', readTo: 'อ่านถึงหน้า', start: 'วันเริ่ม', end: 'วันจบ',
+      rating: 'คะแนน', review: 'รีวิวสั้น', date: 'วันที่', lPages: 'อ่านกี่หน้า', lMin: 'กี่นาที', page: 'หน้า', nText: 'ข้อความ / โน้ต',
+      nQ: 'คำถามหน้าการ์ด (ไม่บังคับ)', want: 'อยากอ่าน', reading: 'กำลังอ่าน', done: 'อ่านจบ', del: 'ลบ', cancel: 'ยกเลิก', save: 'บันทึก',
+      startRead: 'เริ่มอ่าน', note: 'ไฮไลต์', edit: 'แก้ไข', pagesOf: '{a} / {b} หน้า', readToN: 'อ่านถึงหน้า {n}', started: 'เริ่ม {d}', finished: 'จบ {d}',
+      empty: 'ยังไม่มีหนังสือ', kWeekPages: 'หน้าสัปดาห์นี้', kWeekMin: 'นาทีสัปดาห์นี้', kYear: 'อ่านจบปีนี้', kTotal: 'หน้าที่บันทึกทั้งหมด',
+      uPages: 'หน้า', uMin: 'นาที', uBooks: 'เล่ม', weekTip: 'สัปดาห์เริ่ม {d} · {n} หน้า', booksN: '{n} เล่ม', nPages: '{n} หน้า', nMin: '{n} นาที',
+      delLog: 'ลบบันทึก', noLogs: 'ยังไม่มีบันทึกการอ่าน', allBooks: 'ทุกเล่ม', isCard: 'เป็นการ์ดแล้ว', cardDue: ' · ถึงรอบทบทวน',
+      mkcard: 'ทำเป็นการ์ดทบทวน', pageN: ' · หน้า {n}', noNotes: 'ยังไม่มีไฮไลต์', offline: 'ออฟไลน์ — กรอกเอง', searching: 'กำลังค้นหา…',
+      notFound: 'ไม่พบ — กรอกเอง', failed: 'ค้นหาไม่ได้ — กรอกเอง', needTitle: 'ใส่ชื่อหนังสือ', needDate: 'เลือกวันที่', needPages: 'ใส่จำนวนหน้าหรือนาที',
+      needText: 'ใส่ข้อความ', addFirst: 'เพิ่มหนังสือก่อน', editBook: 'แก้ไขหนังสือ', editNote: 'แก้ไขไฮไลต์', noRating: 'ไม่ให้คะแนน',
+      starsAria: 'คะแนน {n} จาก 5', cDelBook: 'ลบหนังสือเล่มนี้ พร้อมบันทึกการอ่าน ไฮไลต์ และการ์ดทบทวนของเล่มนี้?', cDelLog: 'ลบบันทึกการอ่านนี้?',
+      cDelNote: 'ลบไฮไลต์นี้ (และการ์ดทบทวนของไฮไลต์นี้)?'
+    },
+    en: {
+      title: 'Books', add: 'Add book', tabShelf: 'Shelf', tabStats: 'Stats', tabNotes: 'Highlights', shelfAria: 'Shelf',
+      wkTitle: 'Pages per week', wkAria: 'Pages per week, last 8 weeks', goalTitle: 'Reading goal this year', goalAria: 'Books per year',
+      logTitle: 'Reading log', bookAria: 'Book', addNote: 'Add highlight', searchLbl: 'Search books (Open Library)', search: 'Search',
+      titleLbl: 'Title', author: 'Author', shelf: 'Shelf', pages: 'Pages', readTo: 'Read up to page', start: 'Start date', end: 'Finish date',
+      rating: 'Rating', review: 'Short review', date: 'Date', lPages: 'Pages read', lMin: 'Minutes', page: 'Page', nText: 'Text / note',
+      nQ: 'Card question (optional)', want: 'Want to read', reading: 'Reading', done: 'Finished', del: 'Delete', cancel: 'Cancel', save: 'Save',
+      startRead: 'Start reading', note: 'Highlight', edit: 'Edit', pagesOf: '{a} / {b} pages', readToN: 'Read up to page {n}', started: 'Started {d}', finished: 'Finished {d}',
+      empty: 'No books yet', kWeekPages: 'Pages this week', kWeekMin: 'Minutes this week', kYear: 'Finished this year', kTotal: 'Total pages logged',
+      uPages: 'pages', uMin: 'min', uBooks: 'books', weekTip: 'Week of {d} · {n} pages', booksN: '{n} books', nPages: '{n} pages', nMin: '{n} min',
+      delLog: 'Delete entry', noLogs: 'No reading log yet', allBooks: 'All books', isCard: 'Already a card', cardDue: ' · due for review',
+      mkcard: 'Make review card', pageN: ' · page {n}', noNotes: 'No highlights yet', offline: 'Offline — enter it yourself', searching: 'Searching…',
+      notFound: 'Not found — enter it yourself', failed: 'Search failed — enter it yourself', needTitle: 'Enter a title', needDate: 'Choose a date', needPages: 'Enter pages or minutes',
+      needText: 'Enter some text', addFirst: 'Add a book first', editBook: 'Edit book', editNote: 'Edit highlight', noRating: 'No rating',
+      starsAria: 'Rating {n} of 5', cDelBook: 'Delete this book with its reading log, highlights and review cards?', cDelLog: 'Delete this reading entry?',
+      cDelNote: 'Delete this highlight (and its review card)?'
+    }
+  });
+  window.OME_PAGE_LIVE_LANG = true;
+  function setTitle() { document.title = T('title') + ' | Tanot'; }
+  setTitle();
 
   function $(id) { return document.getElementById(id); }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
-  function num(n) { return (Number(n) || 0).toLocaleString('th-TH', { maximumFractionDigits: 0 }); }
+  function num(n) { return OME_I18N.number(Number(n) || 0, { maximumFractionDigits: 0 }); }
   function today() { return B.dayKey(Date.now()); }
-  function dateTh(k) { var d = B.parseDay(k); return d ? d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : ''; }
+  function dateTh(k) { var d = B.parseDay(k); return d ? OME_I18N.date(d, { day: 'numeric', month: 'short', year: '2-digit' }) : ''; }
   function newId(p) {
     if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
     return p + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   }
   function openDlg(d) { if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', ''); }
   function closeDlg(d) { if (d.close) d.close(); else d.removeAttribute('open'); }
-  function stars(n) { return n ? '<span class="bk-stars" aria-label="คะแนน ' + n + ' จาก 5">' + '★'.repeat(n) + '☆'.repeat(5 - n) + '</span>' : ''; }
+  function stars(n) { return n ? '<span class="bk-stars" aria-label="' + esc(T('starsAria', { n: n })) + '">' + '★'.repeat(n) + '☆'.repeat(5 - n) + '</span>' : ''; }
   function award(n) { if (LC && LC.award) LC.award('books', n); }
 
   /* ── storage: อ่านสดทุกครั้ง · เขียนด้วย getItem → แก้ → setItem (tanot-data รู้ว่าหน้านี้เห็นแถวจากเครื่องอื่นแล้ว ลบแล้วไม่ถูก merge ใส่กลับ) ── */
@@ -70,14 +110,14 @@
   }
   function bookRow(b) {
     var p = B.progress(b), acts = [];
-    if (b.status === 'want') acts.push(['start', 'เริ่มอ่าน', 'primary']);
-    if (b.status === 'reading') { acts.push(['log', 'บันทึกการอ่าน', 'primary']); acts.push(['finish', 'อ่านจบ', '']); }
-    acts.push(['note', 'ไฮไลต์', '']); acts.push(['edit', 'แก้ไข', '']);
+    if (b.status === 'want') acts.push(['start', T('startRead'), 'primary']);
+    if (b.status === 'reading') { acts.push(['log', T('logTitle'), 'primary']); acts.push(['finish', T('done'), '']); }
+    acts.push(['note', T('note'), '']); acts.push(['edit', T('edit'), '']);
     var meta = [];
-    if (b.pages) meta.push(num(b.status === 'want' ? 0 : b.current) + ' / ' + num(b.pages) + ' หน้า');
-    else if (b.current) meta.push('อ่านถึงหน้า ' + num(b.current));
-    if (b.startedAt) meta.push('เริ่ม ' + dateTh(b.startedAt));
-    if (b.finishedAt) meta.push('จบ ' + dateTh(b.finishedAt));
+    if (b.pages) meta.push(T('pagesOf', { a: num(b.status === 'want' ? 0 : b.current), b: num(b.pages) }));
+    else if (b.current) meta.push(T('readToN', { n: num(b.current) }));
+    if (b.startedAt) meta.push(T('started', { d: dateTh(b.startedAt) }));
+    if (b.finishedAt) meta.push(T('finished', { d: dateTh(b.finishedAt) }));
     return '<div class="bk-book" data-bid="' + esc(b.id) + '">' + coverHtml(b) +
       '<div class="bk-body"><div class="bk-title">' + esc(b.title) + '</div>' +
       (b.author ? '<div class="bk-meta">' + esc(b.author) + '</div>' : '') +
@@ -91,42 +131,42 @@
   function renderShelf() {
     var all = books(), cur = ui.shelf || 'reading';
     $('shelfSeg').innerHTML = SHELVES.map(function (s) {
-      return '<button type="button" data-shelf="' + s[0] + '" aria-pressed="' + (cur === s[0]) + '">' + s[1] + ' ' + num(B.byStatus(all, s[0]).length) + '</button>';
+      return '<button type="button" data-shelf="' + s + '" aria-pressed="' + (cur === s) + '">' + esc(T(s)) + ' ' + num(B.byStatus(all, s).length) + '</button>';
     }).join('');
     var list = B.byStatus(all, cur).sort(function (a, b) {
       return cur === 'done' ? String(b.finishedAt).localeCompare(String(a.finishedAt)) : b.createdAt - a.createdAt;
     });
     $('shelf').innerHTML = list.length ? list.map(bookRow).join('') :
-      '<div class="empty">' + icon('book-open') + '<p class="empty-title">ยังไม่มีหนังสือ</p></div>';
+      '<div class="empty">' + icon('book-open') + '<p class="empty-title">' + esc(T('empty')) + '</p></div>';
   }
   function renderStats() {
     var logs = load(K.logs).map(B.cleanLog), wk = B.weekly(logs, Date.now(), 8), cur = wk[wk.length - 1];
     var ys = B.yearSummary(books(), settings(), Date.now()), totalPages = logs.reduce(function (s, l) { return s + l.pages; }, 0);
     function k(label, value, unit, id) { return '<div class="kpi"><div class="kpi-label">' + label + '</div><div class="kpi-value" id="' + id + '">' + value + (unit ? '<small>' + unit + '</small>' : '') + '</div></div>'; }
-    $('kpis').innerHTML = k('หน้าสัปดาห์นี้', num(cur.pages), 'หน้า', 'kWeekPages') + k('นาทีสัปดาห์นี้', num(cur.minutes), 'นาที', 'kWeekMin') +
-      k('อ่านจบปีนี้', num(ys.done) + ' / ' + num(ys.goal), 'เล่ม', 'kYear') + k('หน้าที่บันทึกทั้งหมด', num(totalPages), 'หน้า', 'kTotal');
+    $('kpis').innerHTML = k(T('kWeekPages'), num(cur.pages), T('uPages'), 'kWeekPages') + k(T('kWeekMin'), num(cur.minutes), T('uMin'), 'kWeekMin') +
+      k(T('kYear'), num(ys.done) + ' / ' + num(ys.goal), T('uBooks'), 'kYear') + k(T('kTotal'), num(totalPages), T('uPages'), 'kTotal');
     var max = Math.max.apply(null, wk.map(function (w) { return w.pages; }).concat([1]));
     $('chart').innerHTML = wk.map(function (w, i) {
       var d = B.parseDay(w.start);
-      return '<div class="bk-col' + (i === wk.length - 1 ? ' cur' : '') + '" title="สัปดาห์เริ่ม ' + esc(dateTh(w.start)) + ' · ' + w.pages + ' หน้า"><b>' + (w.pages ? num(w.pages) : '') + '</b><i style="height:' + Math.round(w.pages / max * 100) + '%"></i><span>' + d.getDate() + '/' + (d.getMonth() + 1) + '</span></div>';
+      return '<div class="bk-col' + (i === wk.length - 1 ? ' cur' : '') + '" title="' + esc(T('weekTip', { d: dateTh(w.start), n: w.pages })) + '"><b>' + (w.pages ? num(w.pages) : '') + '</b><i style="height:' + Math.round(w.pages / max * 100) + '%"></i><span>' + d.getDate() + '/' + (d.getMonth() + 1) + '</span></div>';
     }).join('');
     var goals = GOALS.slice();
     if (goals.indexOf(ys.goal) === -1) { goals.push(ys.goal); goals.sort(function (a, b) { return a - b; }); }
-    if (document.activeElement !== $('goalSel')) $('goalSel').innerHTML = goals.map(function (g) { return '<option value="' + g + '"' + (g === ys.goal ? ' selected' : '') + '>' + g + ' เล่ม</option>'; }).join('');
+    if (document.activeElement !== $('goalSel')) $('goalSel').innerHTML = goals.map(function (g) { return '<option value="' + g + '"' + (g === ys.goal ? ' selected' : '') + '>' + esc(T('booksN', { n: g })) + '</option>'; }).join('');
     $('goalBox').innerHTML = '<div class="bk-bar' + (ys.done >= ys.goal ? ' ok' : '') + '"><i style="width:' + ys.pct + '%"></i></div>';
     var titles = {};
     books().forEach(function (b) { titles[b.id] = b.title; });
     var rows = logs.filter(function (l) { return l.date; }).sort(function (a, b) { return b.date.localeCompare(a.date) || b.ts - a.ts; }).slice(0, 30);
     $('logList').innerHTML = rows.length ? rows.map(function (l) {
       return '<div class="list-row" data-lid="' + esc(l.id) + '"><span class="grow"><span class="title">' + esc(titles[l.bookId] || '—') + '</span><span class="meta" style="display:block">' +
-        esc(dateTh(l.date) + ' · ' + (l.pages ? num(l.pages) + ' หน้า' : '') + (l.pages && l.minutes ? ' · ' : '') + (l.minutes ? num(l.minutes) + ' นาที' : '')) + '</span></span>' +
-        '<button class="btn sm ghost icon" type="button" data-act="del-log" aria-label="ลบบันทึก">' + icon('trash-2') + '</button></div>';
-    }).join('') : '<div class="empty">' + icon('clock') + '<p class="empty-title">ยังไม่มีบันทึกการอ่าน</p></div>';
+        esc(dateTh(l.date) + ' · ' + (l.pages ? T('nPages', { n: num(l.pages) }) : '') + (l.pages && l.minutes ? ' · ' : '') + (l.minutes ? T('nMin', { n: num(l.minutes) }) : '')) + '</span></span>' +
+        '<button class="btn sm ghost icon" type="button" data-act="del-log" aria-label="' + esc(T('delLog')) + '">' + icon('trash-2') + '</button></div>';
+    }).join('') : '<div class="empty">' + icon('clock') + '<p class="empty-title">' + esc(T('noLogs')) + '</p></div>';
   }
   function renderNotes() {
     var all = books(), sel = $('noteBook'), keep = sel.value || ui.noteBook || '';
     if (document.activeElement !== sel) {
-      sel.innerHTML = '<option value="">ทุกเล่ม</option>' + all.map(function (b) { return '<option value="' + esc(b.id) + '">' + esc(b.title) + '</option>'; }).join('');
+      sel.innerHTML = '<option value="">' + esc(T('allBooks')) + '</option>' + all.map(function (b) { return '<option value="' + esc(b.id) + '">' + esc(b.title) + '</option>'; }).join('');
       sel.value = all.some(function (b) { return b.id === keep; }) ? keep : '';
     }
     var titles = {}, cards = {};
@@ -136,12 +176,12 @@
     var list = load(K.notes).map(B.cleanNote).filter(function (n) { return !sel.value || n.bookId === sel.value; }).sort(function (a, b) { return b.ts - a.ts; });
     $('noteList').innerHTML = list.length ? list.map(function (n) {
       var c = cards[B.cardId(n.id)];
-      var cardBtn = c ? '<span class="badge ' + (Number(c.dueAt) <= now ? 'warn' : 'ok') + '">เป็นการ์ดแล้ว' + (Number(c.dueAt) <= now ? ' · ถึงรอบทบทวน' : '') + '</span>'
-        : '<button class="btn sm primary" type="button" data-act="mkcard">' + icon('brain') + 'ทำเป็นการ์ดทบทวน</button>';
+      var cardBtn = c ? '<span class="badge ' + (Number(c.dueAt) <= now ? 'warn' : 'ok') + '">' + esc(T('isCard') + (Number(c.dueAt) <= now ? T('cardDue') : '')) + '</span>'
+        : '<button class="btn sm primary" type="button" data-act="mkcard">' + icon('brain') + esc(T('mkcard')) + '</button>';
       return '<div class="bk-note" data-nid="' + esc(n.id) + '"><div class="bk-quote">' + esc(n.text) + '</div>' +
-        '<div class="bk-meta">' + esc((titles[n.bookId] || '—') + (n.page ? ' · หน้า ' + n.page : '')) + '</div>' +
-        '<div class="bk-acts">' + cardBtn + '<button class="btn sm" type="button" data-act="edit-note">แก้ไข</button><button class="btn sm ghost" type="button" data-act="del-note">ลบ</button></div></div>';
-    }).join('') : '<div class="empty">' + icon('highlighter') + '<p class="empty-title">ยังไม่มีไฮไลต์</p></div>';
+        '<div class="bk-meta">' + esc((titles[n.bookId] || '—') + (n.page ? T('pageN', { n: n.page }) : '')) + '</div>' +
+        '<div class="bk-acts">' + cardBtn + '<button class="btn sm" type="button" data-act="edit-note">' + esc(T('edit')) + '</button><button class="btn sm ghost" type="button" data-act="del-note">' + esc(T('del')) + '</button></div></div>';
+    }).join('') : '<div class="empty">' + icon('highlighter') + '<p class="empty-title">' + esc(T('noNotes')) + '</p></div>';
   }
   function render() {
     var tab = ui.tab || 'shelf';
@@ -161,7 +201,7 @@
   function openBook(b) {
     editing = b || null;
     meta = { coverId: b ? b.coverId : 0, olKey: b ? b.olKey : '' };
-    $('bTitleH').textContent = b ? 'แก้ไขหนังสือ' : 'เพิ่มหนังสือ';
+    $('bTitleH').textContent = b ? T('editBook') : T('add');
     fillBook(b || { status: ui.shelf || 'want' });
     $('searchBox').hidden = !!b; $('sQ').value = ''; $('sRes').innerHTML = ''; $('sMsg').textContent = ''; $('bMsg').textContent = '';
     $('bDel').hidden = !b;
@@ -172,27 +212,27 @@
     var q = $('sQ').value.trim(), seq = ++searchSeq;
     if (!q) return;
     $('sRes').innerHTML = '';
-    if (navigator.onLine === false) { $('sMsg').textContent = 'ออฟไลน์ — กรอกเอง'; return; }
-    $('sMsg').textContent = 'กำลังค้นหา…';
+    if (navigator.onLine === false) { $('sMsg').textContent = T('offline'); return; }
+    $('sMsg').textContent = T('searching');
     var ctl = window.AbortController ? new AbortController() : null, t = setTimeout(function () { if (ctl) ctl.abort(); }, 8000);
     fetch(B.searchUrl(q), { credentials: 'omit', referrerPolicy: 'no-referrer', signal: ctl ? ctl.signal : undefined })
       .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
       .then(function (j) {
         if (seq !== searchSeq) return;
         var res = B.parseSearch(j);
-        $('sMsg').textContent = res.length ? '' : 'ไม่พบ — กรอกเอง';
+        $('sMsg').textContent = res.length ? '' : T('notFound');
         $('sRes').innerHTML = res.map(function (b, i) {
-          return '<button type="button" class="bk-hit" data-hit="' + i + '">' + coverHtml(b) + '<span class="bk-body"><span class="bk-title">' + esc(b.title) + '</span><span class="bk-meta">' + esc([b.author, b.pages ? num(b.pages) + ' หน้า' : ''].filter(Boolean).join(' · ')) + '</span></span></button>';
+          return '<button type="button" class="btn bk-hit" data-hit="' + i + '">' + coverHtml(b) + '<span class="bk-body"><span class="bk-title">' + esc(b.title) + '</span><span class="bk-meta">' + esc([b.author, b.pages ? T('nPages', { n: num(b.pages) }) : ''].filter(Boolean).join(' · ')) + '</span></span></button>';
         }).join('');
         $('sRes')._res = res;
       })
-      .catch(function () { if (seq === searchSeq) $('sMsg').textContent = 'ค้นหาไม่ได้ — กรอกเอง'; })
+      .catch(function () { if (seq === searchSeq) $('sMsg').textContent = T('failed'); })
       .then(function () { clearTimeout(t); });
   }
   function saveBook(e) {
     e.preventDefault();
     var title = $('bTitle').value.trim();
-    if (!title) { $('bMsg').textContent = 'ใส่ชื่อหนังสือ'; return; }
+    if (!title) { $('bMsg').textContent = T('needTitle'); return; }
     var rec = B.cleanBook(Object.assign({}, editing || {}, {
       id: editing ? editing.id : newId('b'), title: title, author: $('bAuthor').value, status: $('bStatus').value,
       pages: $('bPages').value, current: $('bCur').value, startedAt: $('bStart').value, finishedAt: $('bEnd').value,
@@ -205,7 +245,7 @@
     closeDlg($('bdlg')); render();
   }
   function deleteBook(id) {
-    window.tanotConfirm('ลบหนังสือเล่มนี้ พร้อมบันทึกการอ่าน ไฮไลต์ และการ์ดทบทวนของเล่มนี้?', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+    window.tanotConfirm(T('cDelBook'), { danger: true, okLabel: T('del') }).then(function (ok) {
       if (!ok) return;
       removeWhere(K.items, function (x) { return x.id === id; });
       removeWhere(K.logs, function (x) { return x.bookId === id; });
@@ -228,9 +268,9 @@
     var b = bookById(logBook && logBook.id);
     if (!b) { closeDlg($('ldlg')); return; }
     var date = $('lDate').value, pages = Math.floor(Number($('lPages').value)) || 0, min = Math.floor(Number($('lMin').value)) || 0, to = Math.floor(Number($('lTo').value)) || 0;
-    if (!B.parseDay(date)) { $('lMsg').textContent = 'เลือกวันที่'; return; }
+    if (!B.parseDay(date)) { $('lMsg').textContent = T('needDate'); return; }
     if (!pages && to) pages = Math.max(to - b.current, 0);
-    if (!pages && !min) { $('lMsg').textContent = 'ใส่จำนวนหน้าหรือนาที'; return; }
+    if (!pages && !min) { $('lMsg').textContent = T('needPages'); return; }
     upsert(K.logs, { id: newId('l'), bookId: b.id, date: date, pages: pages, minutes: min, ts: Date.now() });
     commit(B.applyLog(b, { date: date, pages: pages, to: to }));
     award(B.XP.log);
@@ -246,10 +286,10 @@
   }
   function openNote(n, bookId) {
     if (!noteBooksOptions(n ? n.bookId : bookId || $('noteBook').value || (books().filter(function (b) { return b.status === 'reading'; })[0] || {}).id)) {
-      window.tanotAlert('เพิ่มหนังสือก่อน'); return;
+      window.tanotAlert(T('addFirst')); return;
     }
     editNote = n || null;
-    $('nTitleH').textContent = n ? 'แก้ไขไฮไลต์' : 'ไฮไลต์';
+    $('nTitleH').textContent = n ? T('editNote') : T('tabNotes');
     $('nPage').value = n && n.page ? n.page : ''; $('nText').value = n ? n.text : ''; $('nQ').value = n ? n.q : ''; $('nMsg').textContent = '';
     openDlg($('ndlg')); $('nText').focus();
   }
@@ -266,7 +306,7 @@
   function saveNote(e) {
     e.preventDefault();
     var text = $('nText').value.trim();
-    if (!text) { $('nMsg').textContent = 'ใส่ข้อความ'; return; }
+    if (!text) { $('nMsg').textContent = T('needText'); return; }
     var n = B.cleanNote({ id: editNote ? editNote.id : newId('n'), bookId: $('nBookSel').value, page: $('nPage').value, text: text, q: $('nQ').value, cardId: editNote ? editNote.cardId : '', ts: editNote ? editNote.ts : Date.now() });
     upsert(K.notes, n);
     if (n.cardId) makeCard(n, Date.now()); // แก้หน้าการ์ดตามไฮไลต์ ตารางทบทวนเดิมไม่ถูกล้าง
@@ -320,7 +360,7 @@
   $('logList').addEventListener('click', function (e) {
     var a = e.target.closest('[data-act="del-log"]'), row = e.target.closest('[data-lid]');
     if (!a || !row) return;
-    window.tanotConfirm('ลบบันทึกการอ่านนี้?', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+    window.tanotConfirm(T('cDelLog'), { danger: true, okLabel: T('del') }).then(function (ok) {
       if (ok) { removeWhere(K.logs, function (x) { return x.id === row.dataset.lid; }); render(); }
     });
   });
@@ -336,7 +376,7 @@
       makeCard(n, Date.now());
       render();
     } else if (a.dataset.act === 'del-note') {
-      window.tanotConfirm('ลบไฮไลต์นี้ (และการ์ดทบทวนของไฮไลต์นี้)?', { danger: true, okLabel: 'ลบ' }).then(function (ok) {
+      window.tanotConfirm(T('cDelNote'), { danger: true, okLabel: T('del') }).then(function (ok) {
         if (!ok) return;
         removeWhere(K.notes, function (x) { return x.id === n.id; });
         removeWhere(K.cards, function (x) { return x.id === B.cardId(n.id); });
@@ -345,7 +385,20 @@
     }
   });
 
-  $('bRating').innerHTML = '<option value="0">ไม่ให้คะแนน</option>' + [1, 2, 3, 4, 5].map(function (i) { return '<option value="' + i + '">' + '★'.repeat(i) + '</option>'; }).join('');
+  function ratingOpts() {
+    var v = $('bRating').value;
+    $('bRating').innerHTML = '<option value="0">' + esc(T('noRating')) + '</option>' + [1, 2, 3, 4, 5].map(function (i) { return '<option value="' + i + '">' + '★'.repeat(i) + '</option>'; }).join('');
+    if (v) $('bRating').value = v;
+  }
+  ratingOpts();
   if (TD && TD.onChange) TD.onChange(render);
+  OME_LANG.onChange(function () {
+    setTitle();
+    ratingOpts();
+    if (!$('bdlg').open) $('bTitleH').textContent = T('title');
+    if (!$('ldlg').open) $('lTitleH').textContent = T('logTitle');
+    if (!$('ndlg').open) $('nTitleH').textContent = T('tabNotes');
+    render();
+  });
   render();
 })();
