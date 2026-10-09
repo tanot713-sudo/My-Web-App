@@ -68,6 +68,10 @@
 .mp-trend-bars b{width:40%;border-radius:3px 3px 0 0;min-height:2px;display:block}
 .mp-trend-mo{font-size:var(--ome-fs-xs);color:var(--ome-text-2);margin-top:4px;white-space:nowrap}
 @media (max-width:700px){.mp-trend{gap:0;padding:0}.mp-trend-bars{gap:1px}}
+/* จอแคบ ≤ 480px: 12 คอลัมน์กว้างไม่ถึงความกว้างป้ายเดือนไทย ("ธ.ค." ~27px ที่ 360px) — คอลัมน์ต้องหดได้ (min-width:0)
+   และแสดงป้ายเดือนเว้นเดือน (ม.ค. มี.ค. …) แทนการย่อตัวอักษรจนต่ำกว่า 12px หรือให้ป้ายล้นจอ */
+.mp-trend-col{min-width:0}
+@media (max-width:480px){.mp-trend-col:nth-child(even) .mp-trend-mo{visibility:hidden}}
 
 /* ── ปฏิทิน ── */
 .mp-cal-head{display:flex;align-items:center;gap:12px}
