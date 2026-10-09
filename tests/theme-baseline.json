@@ -416,9 +416,9 @@
   "classroom-business.html": {"hardcodedColors":0,"customButtons":0},
   "classroom-engineering.html": {"hardcodedColors":0,"customButtons":0},
   "classroom-law.html": {"hardcodedColors":0,"customButtons":0},
-  "coding.html": {"hardcodedColors":1,"customButtons":1},
+  "coding.html": {"hardcodedColors":0,"customButtons":1},
   "compare.html": {"hardcodedColors":0,"customButtons":0},
-  "cooking.html": {"hardcodedColors":0,"customButtons":3},
+  "cooking.html": {"hardcodedColors":0,"customButtons":1},
   "credits.html": {"hardcodedColors":0,"customButtons":0},
   "data.html": {"hardcodedColors":0,"customButtons":0},
   "doc-check-file.html": {"hardcodedColors":1,"customButtons":0},
@@ -458,7 +458,7 @@
   "tax.html": {"hardcodedColors":0,"customButtons":0},
   "text-to-speech.html": {"hardcodedColors":0,"customButtons":0},
   "theme-preview.html": {"hardcodedColors":0,"customButtons":0},
-  "typing.html": {"hardcodedColors":0,"customButtons":1},
+  "typing.html": {"hardcodedColors":0,"customButtons":0},
   "word.html": {"hardcodedColors":16,"customButtons":1}
  }
 }
