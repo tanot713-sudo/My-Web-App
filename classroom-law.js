@@ -15,6 +15,526 @@
     });
   }
   var DAY_MS = 86400000;
+  /* ข้อความสถานะที่ค้างบนจอ: แปลสดตอนสลับภาษา (OME_I18N.live) — fn() คืนข้อความตามภาษาปัจจุบัน */
+  function liveStatus(el, fn, cls) {
+    if (!el) return;
+    if (cls !== undefined) el.className = cls;
+    OME_I18N.live(el, fn);
+  }
+  function dateStr(d, opts) { return OME_I18N.date(d, opts || { day: 'numeric', month: 'short', year: 'numeric' }); }
+  function nowTime() { return OME_I18N.date(new Date(), { hour: '2-digit', minute: '2-digit' }); }
+  /* ภาษา UI (ไทย/อังกฤษ) — ชื่อวิชา/ตัวบท/บทเรียน/ข้อสอบ/โน้ตของผู้ใช้เป็นเนื้อหา ไม่แปล (data-i18n-skip) */
+  var T = OME_I18N.scope('cl', {
+    th: {
+      noLesson: 'ยังไม่มีเนื้อหาสรุปสำหรับวิชานี้ครับ — จะทยอยเพิ่มทีละวิชาในเวอร์ชันถัดๆ ไป ระหว่างนี้ใช้สมุดโน้ตด้านล่างจดสรุปเองไปพลางก่อนได้',
+      readProg: 'อ่านแล้ว {r}/{n} หัวข้อ ({p}%)',
+      playAll: 'เล่นทั้งวิชาต่อเนื่อง',
+      prev: 'ก่อนหน้า',
+      pause: 'พัก',
+      next: 'ถัดไป',
+      stop: 'หยุด',
+      noTts: 'เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome',
+      listen: 'ฟัง',
+      noteBtn: 'โน้ต',
+      readDone: 'อ่านแล้ว',
+      lessonNotePh: 'จดโน้ตส่วนตัวของหัวข้อนี้ — เช่น จุดที่ยังไม่แม่น หรือคำถามที่จะไปถามอาจารย์',
+      noVoice: '(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองกด "เล่น" อีกครั้ง)',
+      voice: 'เสียงอ่าน',
+      speed: 'ความเร็ว',
+      pdfLib: 'โหลดไลบรารีสร้าง PDF ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ต) — ใช้ปุ่มพิมพ์ของเบราว์เซอร์แทนแล้วเลือก "บันทึกเป็น PDF"',
+      pdfMaking: 'กำลังสร้างไฟล์ PDF… (อาจใช้เวลาสักครู่ถ้าเนื้อหายาว)',
+      pdfDone: 'ดาวน์โหลด PDF แล้ว ({n} หน้า)',
+      pdfFail: 'สร้าง PDF ไม่สำเร็จ: ',
+      reading: 'กำลังอ่าน: ',
+      resume: 'เล่นต่อ',
+      topicN: 'หัวข้อ ',
+      noSample: 'ยังไม่มีข้อสอบตัวอย่างสำหรับวิชานี้ครับ — จะทยอยเพิ่มทีหลัง',
+      exSearchPh: 'ค้นด้วยคำสำคัญหรือเลขมาตรา เช่น กลฉ้อฉล, มาตรา 150',
+      allTopics: 'ทุกหัวข้อ',
+      qNo: 'ข้อ {n}. ',
+      listenQ: 'ฟังโจทย์',
+      seeAnswer: 'ดูแนวคำตอบ',
+      exEmpty: 'ไม่พบข้อสอบที่ตรงกับคำค้นครับ ลองคำอื่นหรือล้างตัวกรองดู',
+      examLabel: 'ข้อสอบ ข้อ {n}',
+      mockQ: 'ข้อที่ {i}/{n}',
+      mockFinish: 'ส่งคำตอบ / ดูสรุปผล',
+      mockNext: 'ข้อต่อไป →',
+      cancel: 'ยกเลิก',
+      mockDone: 'ทำครบ {n} ข้อ ใช้เวลาไป {t}',
+      mockAgain: 'ทำชุดใหม่',
+      drillDone: 'ทำไป {t} ข้อ ตอบถูก {c} ข้อ ({p}%)',
+      reveal: 'ดูเฉลย',
+      wrong: 'ตอบผิด',
+      right: 'ตอบถูก',
+      drillSoFar: 'ทำไปแล้ว {n} ข้อ',
+      drillRight: 'ถูก {c}/{t}',
+      min2: 'พิมพ์อย่างน้อย 2 ตัวอักษรครับ',
+      noResult: 'ไม่พบผลลัพธ์สำหรับ',
+      sampleQ: 'ข้อสอบตัวอย่าง ข้อ {n}',
+      kindExam: 'ข้อสอบ',
+      kindLesson: 'สรุปเนื้อหา',
+      goSee: 'ไปดู →',
+      moreHits: 'พบทั้งหมด {n} จุด แสดง 40 จุดแรก — ลองพิมพ์คำที่เจาะจงขึ้นเพื่อกรองผลลัพธ์ให้แคบลง',
+      confirm: 'ยืนยัน',
+      ok: 'ตกลง',
+      noExamDate: 'ยังไม่กรอกวันสอบ',
+      inDays: 'อีก {n} วัน',
+      today: 'วันนี้!',
+      daysAgo: 'ผ่านไปแล้ว {n} วัน',
+      applyOpen: 'เปิดรับสมัคร:',
+      to: 'ถึง',
+      examDay: 'วันสอบ:',
+      applyStart: 'เปิดรับสมัคร',
+      applyEnd: 'ปิดรับสมัคร',
+      examDate: 'วันสอบ',
+      prepSum: 'สิ่งที่ต้องเตรียม / ของต้องห้ามในห้องสอบ (แนวทางทั่วไป — เช็กประกาศจริงเสมอ)',
+      officialLink: 'ดูประกาศทางการล่าสุด',
+      cNetiBase: 'เนติบัณฑิตแล้ว (คุณสมบัติพื้นฐานสนามใหญ่)',
+      cJudgeNoNeti: 'ยังไม่จบเนติบัณฑิต (จำเป็นสำหรับสนามใหญ่)',
+      cJudgeExp: 'มีประสบการณ์ทำงานกฎหมาย {n} ปี (เข้าเกณฑ์ขั้นต่ำทั่วไปของสนามใหญ่)',
+      cJudgeLowExp: 'ประสบการณ์ทำงานกฎหมายยังน้อย (สนามใหญ่มักกำหนดขั้นต่ำ ~2 ปีขึ้นไป แล้วแต่ประเภทงาน)',
+      cJudgeMasterTh: 'มีวุฒิปริญญาโท/เอกกฎหมายในประเทศ (อาจเข้าเกณฑ์สนามเล็กบางสถาบัน)',
+      cJudgeMasterIntl: 'มีวุฒิปริญญาโทกฎหมายต่างประเทศ (อาจเข้าเกณฑ์ "สนามจิ๋ว")',
+      cNoNeti: 'ยังไม่จบเนติบัณฑิต',
+      cProsExp: 'มีประสบการณ์ทำงานกฎหมาย {n} ปี',
+      cProsLowExp: 'ประสบการณ์ทำงานกฎหมายยังน้อย (สนามใหญ่มักกำหนดขั้นต่ำ ~2 ปีขึ้นไป)',
+      cProsMaster: 'มีวุฒิปริญญาโท/เอกกฎหมาย (อาจเข้าเกณฑ์สนามเล็กบางสถาบัน)',
+      cHasLicense: 'มีตั๋วทนายความแล้ว — สมัครงาน Law Firm ได้เลย',
+      cLawyerNeti: 'เนติบัณฑิตแล้ว — สมัครอบรมวิชาว่าความ (ตั๋วรุ่น) กับสภาทนายความได้',
+      cLawyerNoNeti: 'ยังไม่จบเนติบัณฑิต (เส้นทาง "ตั๋วรุ่น" ต้องใช้วุฒิเนติบัณฑิตหรือเทียบเท่าสมัครอบรม)',
+      cLawyerNoLicense: 'ยังไม่มีตั๋วทนายความ — ต้องอบรมภาคทฤษฎี 6 เดือน + ภาคปฏิบัติ 6 เดือน (ตั๋วรุ่น) หรือฝึกงานสำนักงานทนาย 1 ปีเต็มก่อนสอบ (ตั๋วปี)',
+      judge: 'ผู้พิพากษา',
+      prosecutor: 'อัยการ',
+      lawyerFirm: 'ทนายความ (Law Firm)',
+      pickSubject: 'เลือกวิชาก่อนครับ (กดจากเมนูหัวเรื่อง)',
+      noHighlights: 'ไม่พบคำที่ขีดเน้น (==...==) ในสรุปเนื้อหาบทเรียนวิชานี้',
+      madeCards: 'สร้างการ์ดใหม่ {a} ใบจาก {n} คำที่ขีดเน้นทั้งหมด (ข้ามที่มีอยู่แล้ว)',
+      noNewTerms: 'ไม่มีคำใหม่ — สร้างการ์ดจากคำที่ขีดเน้นทั้งหมดไปแล้วก่อนหน้านี้',
+      saveEdit: 'บันทึกการแก้ไข',
+      saveNote: 'บันทึกโน้ต/การ์ด',
+      noStorageInfo: 'เบราว์เซอร์นี้ไม่รองรับการแสดงพื้นที่จัดเก็บ',
+      storageUsed: 'พื้นที่จัดเก็บที่ใช้ในเว็บนี้ (ทุกเครื่องมือรวมกัน): {u} MB จากโควตาที่เบราว์เซอร์ให้ ~{q} MB',
+      noNotes: 'ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย',
+      noSubj: 'ไม่ระบุวิชา',
+      nNotes: '{n} โน้ต',
+      delAllSubj: 'ลบทั้งหมดในวิชานี้',
+      editNote: 'แก้ไขโน้ต',
+      delNote: 'ลบโน้ต',
+      nextReview: 'ทบทวนรอบถัดไป: ',
+      confirmDelAll: 'ลบโน้ตทั้งหมด {n} รายการในวิชา "{s}" ใช่หรือไม่? กู้คืนไม่ได้',
+      delWhole: 'ลบทั้งวิชา',
+      dueToday: ' — วันนี้มี {n} การ์ดที่ถึงกำหนดทบทวน',
+      noneDue: ' — วันนี้ไม่มีการ์ดค้างทบทวน',
+      noCardsDue: 'ไม่มีการ์ดที่ถึงกำหนดทบทวนวันนี้',
+      allReviewed: 'ทบทวนครบทุกการ์ดของวันนี้แล้ว',
+      noExtra: '(ไม่มีเนื้อหาเพิ่มเติม)',
+      cardNo: 'การ์ดที่ {i} / {n}',
+      chkMatra: 'อ้างมาตราที่เกี่ยวข้องแม่นยำ',
+      chkDika: 'อ้างฎีกาที่เกี่ยวข้อง (ถ้าจำเป็น)',
+      chkComplete: 'ตอบครบทุกประเด็นที่โจทย์ถาม',
+      nMin: '{n} นาที',
+      del: 'ลบ',
+      cleaned: 'ล้างข้อความไม่ต้องการออกจาก {n} โน้ตแล้ว',
+      nothingToClean: 'ไม่พบข้อความที่ต้องล้างในโน้ตที่มีอยู่ตอนนี้',
+      ocrDone: 'แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)',
+      section: 'มาตรา ',
+      foundSections: 'พบ {n} มาตรา — ติ๊กออกได้ถ้ามีจุดที่แบ่งผิด (เช่น ข้อความอ้างอิงมาตราอื่นในเนื้อหา) แล้วตรวจทานอีกครั้งก่อนบันทึก',
+      ocrBusy: 'กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่',
+      ocrLoadFail: 'โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่',
+      ocrPct: 'กำลังแปลงข้อความ… {p}%',
+      ocrFail: 'แปลงข้อความไม่สำเร็จ: ',
+      savedAsNote: 'บันทึกเป็นโน้ตแล้ว',
+      noSections: 'ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน',
+      savedSplit: 'บันทึกแยกเป็นโน้ตแล้ว {n} มาตรา',
+      rootFolder: '(โฟลเดอร์หลัก)',
+      driveNotConn: 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน',
+      findFolders: 'กำลังค้นโฟลเดอร์ย่อย…',
+      loadingFiles: 'กำลังโหลดรายชื่อไฟล์จาก {n} โฟลเดอร์…',
+      foundFiles: 'พบ {n} ไฟล์ (รวมในโฟลเดอร์ย่อยแล้ว)',
+      noFiles: 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้ (เช็กแล้วรวมโฟลเดอร์ย่อยด้วย)',
+      modified: 'แก้ไขล่าสุด: ',
+      open: 'เปิดดู',
+      extract: 'แยกข้อความ',
+      uploadedAll: 'อัปโหลดครบ {n} ไฟล์แล้ว',
+      uploading: 'กำลังอัปโหลด ({i}/{n}): ',
+      fetching: 'กำลังดึงไฟล์ "{s}"…',
+      extracted: 'แยกข้อความจาก "{s}" เสร็จแล้ว',
+      extractFail: 'แยกข้อความไม่สำเร็จ: ',
+      eUploadFile: 'อัปโหลด "{s}" ไม่สำเร็จ ({c})',
+      eFetchFile: 'ดึงไฟล์ไม่สำเร็จ ({c})',
+      ePdfLib: 'โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่',
+      eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({c})',
+      eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ ({c})',
+      eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ ({c})',
+      eDownload: 'ดาวน์โหลดไม่สำเร็จ ({c})',
+      eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({c})',
+      noIdb: 'เบราว์เซอร์นี้ไม่รองรับ IndexedDB',
+      driveConnected: 'เชื่อมต่อ Google Drive แล้ว',
+      driveConnect: 'เชื่อมต่อ Google Drive',
+      autoConnFail: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
+      connFail: 'เชื่อมต่อไม่สำเร็จ: ',
+      gisLoading: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่',
+      askingPerm: 'กำลังขอสิทธิ์เชื่อมต่อ…',
+      syncing: 'กำลังซิงก์…',
+      syncedWith: 'ซิงก์กับ Google Drive แล้ว · ',
+      lastSynced: 'ซิงก์ล่าสุด ',
+      sessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง',
+      syncFail: 'ซิงก์ไม่สำเร็จ: ',
+      statNotes: 'โน้ตทั้งหมด',
+      statDue: 'ถึงกำหนดทบทวนวันนี้',
+      statWriting: 'ครั้งที่ฝึกเขียนตอบ',
+      daysTo: 'วันจนถึง ',
+      noUpcoming: 'ยังไม่มีวันสอบที่กำลังจะถึง',
+      other: 'อื่นๆ',
+      srsNew: 'ใหม่',
+      srsShort: 'สั้น (<2วัน)',
+      srs25: '2-5 วัน',
+      srs510: '5-10 วัน',
+      srs1020: '10-20 วัน',
+      srs20: '20 วัน+',
+      nActs: '{n} กิจกรรม',
+      nTimes: '{n} ครั้ง',
+      pageTitle: 'เรียนกฎหมาย | Tanot',
+      title: 'เรียนกฎหมาย',
+      navStats: 'สถิติ',
+      navGoals: 'เป้าหมาย',
+      navNotes: 'โน้ตทั้งหมด',
+      grpExam: 'วิชาที่ใช้สอบจริง',
+      grpCourse: 'รายวิชากฎหมาย',
+      navTools: 'เครื่องมือรวม (Drive/ตั้งค่า)',
+      home: 'หน้าหลัก',
+      openMenu: 'เปิดเมนู',
+      dashTitle: 'สถิติกราฟการเรียน',
+      notesPerSubj: 'จำนวนโน้ตต่อวิชา',
+      srsTitle: 'ความก้าวหน้าการทบทวน (SRS)',
+      act30: 'กิจกรรม 30 วันล่าสุด',
+      wrStats: 'สถิติฝึกเขียนตอบ',
+      noWrHist: 'ยังไม่มีประวัติฝึกเขียนตอบ',
+      goals3: 'เป้าหมาย 3 สายอาชีพ',
+      judgeSub: 'สอบผู้ช่วยผู้พิพากษา (ก.ต.)',
+      prosecutorSub: 'สอบอัยการผู้ช่วย (ก.อ.)',
+      lawyer: 'ทนายความ (Law Firm)',
+      lawyerSub: 'ตั๋วทนายความ (สภาทนายความ)',
+      examField: 'สนามสอบ & นับถอยหลัง',
+      career3: 'เช็กเส้นทาง 3 สายอาชีพ',
+      netiQ: 'เนติบัณฑิตแล้วหรือยัง',
+      netiNo: 'ยังไม่จบ',
+      netiYes: 'จบแล้ว',
+      expQ: 'ประสบการณ์ทำงานด้านกฎหมาย (ปี)',
+      masterQ: 'วุฒิปริญญาโท/เอกกฎหมาย',
+      masterNo: 'ไม่มี',
+      masterTh: 'มี (ในประเทศ)',
+      masterIntl: 'มี (ต่างประเทศ)',
+      lawyerQ: 'มีตั๋วทนายความแล้วหรือยัง',
+      lawyerNo: 'ยังไม่มี',
+      lawyerYes: 'มีแล้ว',
+      careerBtn: 'ประเมินเส้นทาง',
+      refSearch: 'ค้นหามาตรา/ฎีกา (ทุกวิชา)',
+      refPh: 'เช่น มาตรา 150, หรือ 747/2544, หรือ กลฉ้อฉล',
+      lessonSum: 'สรุปเนื้อหาบทเรียน',
+      exportPdf: 'Export PDF ทั้งวิชา',
+      sampleExam: 'ข้อสอบตัวอย่าง',
+      mockTitle: 'ข้อสอบจำลอง (Mock Exam)',
+      qCount: 'จำนวนข้อ',
+      mockStart: 'เริ่มทำข้อสอบจำลอง',
+      drillTitle: 'ฝึกจำเลขมาตรา (Drill)',
+      drillStart: 'เริ่ม Drill',
+      notebook: 'สมุดโน้ต + Flashcard (ทบทวนแบบเว้นระยะ)',
+      subjCat: 'วิชา/หมวด',
+      subjPh: 'เช่น ป.พ.พ. บรรพ 1',
+      cardQ: 'คำถาม (ด้านหน้าการ์ด)',
+      cardQPh: 'เช่น มาตรา 420 ว่าด้วยเรื่องอะไร',
+      cardA: 'คำตอบ/เนื้อหา (ด้านหลังการ์ด)',
+      cardAPh: 'สรุปหลักกฎหมาย/เนื้อหาโน้ต',
+      cancelEdit: 'ยกเลิกการแก้ไข',
+      autoFlash: 'สร้าง flashcard จากคำที่ขีดเน้นในบทเรียน (วิชานี้)',
+      startReview: 'เริ่มทบทวนวันนี้ (FSRS)',
+      wrTitle: 'ฝึกเขียนตอบจับเวลา',
+      subject: 'วิชา',
+      wrSubjPh: 'เช่น กฎหมายอาญา',
+      timeMin: 'เวลา (นาที)',
+      wrPrompt: 'โจทย์ (พิมพ์เอง หรือวางจากที่เตรียมไว้)',
+      wrPromptPh: 'วางโจทย์ข้อสอบที่จะฝึกตอบ',
+      wrStart: 'เริ่มจับเวลา',
+      wrAnswerPh: 'เขียนคำตอบที่นี่…',
+      wrSave: 'บันทึกผลฝึก',
+      thDate: 'วันที่',
+      thTime: 'เวลาที่ใช้',
+      thChk: 'เช็กลิสต์ผ่าน',
+      noWrHist2: 'ยังไม่มีประวัติการฝึกเขียนตอบ',
+      importTitle: 'นำเข้าข้อความ → ตรวจทาน → บันทึกโน้ต',
+      ocrDrop: 'แตะเพื่อถ่ายรูป/เลือกรูปหน้าเอกสาร',
+      ocrPreview: 'ตัวอย่างรูปที่เลือก',
+      ocrSubj: 'วิชา/หมวด (สำหรับบันทึกเป็นโน้ต)',
+      ocrSubjPh: 'เช่น เนติภาค 1 ปี 2568',
+      ocrTextPh: 'ข้อความที่แปลงได้จะขึ้นตรงนี้ — แก้ไข/ตรวจทานก่อนบันทึก',
+      ocrSave: 'บันทึกเป็นโน้ตเดียว',
+      splitMatra: 'แบ่งเป็นรายมาตรา',
+      matraSave: 'บันทึกมาตราที่เลือกเป็นโน้ตแยก',
+      driveFiles: 'ไฟล์ในโฟลเดอร์ Drive ของฉัน',
+      driveList: 'โหลดรายชื่อไฟล์จาก Drive',
+      uploadTo: 'อัปโหลดเข้าโฟลเดอร์ไหน',
+      uploadDrop: 'แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)',
+      driveSync: 'ซิงก์ Google Drive ส่วนตัว',
+      cleanTitle: 'ล้างข้อมูลเก่า',
+      cleanBtn: 'ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว'
+    },
+    en: {
+      noLesson: 'No summary content for this subject yet — more will be added over time. Meanwhile, use the notebook below to write your own summary.',
+      readProg: 'Read {r}/{n} topics ({p}%)',
+      playAll: 'Play whole subject',
+      prev: 'Previous',
+      pause: 'Pause',
+      next: 'Next',
+      stop: 'Stop',
+      noTts: 'This browser does not support live read-aloud (Web Speech API) — try Chrome',
+      listen: 'Listen',
+      noteBtn: 'Note',
+      readDone: 'Read',
+      lessonNotePh: 'Your private note for this topic — e.g. weak points or questions for your teacher',
+      noVoice: '(No voices found yet — some browsers load them slowly, try Play again)',
+      voice: 'Voice',
+      speed: 'Speed',
+      pdfLib: 'Could not load the PDF library (internet required) — use the browser print button and choose "Save as PDF"',
+      pdfMaking: 'Creating the PDF… (may take a moment for long content)',
+      pdfDone: 'PDF downloaded ({n} pages)',
+      pdfFail: 'Could not create PDF: ',
+      reading: 'Reading: ',
+      resume: 'Resume',
+      topicN: 'Topic ',
+      noSample: 'No sample exam for this subject yet — more will be added later',
+      exSearchPh: 'Search by keyword or section number, e.g. fraud, Section 150',
+      allTopics: 'All topics',
+      qNo: 'Q{n}. ',
+      listenQ: 'Listen to question',
+      seeAnswer: 'Show model answer',
+      exEmpty: 'No questions match your search — try other words or clear the filter',
+      examLabel: 'Exam question {n}',
+      mockQ: 'Question {i}/{n}',
+      mockFinish: 'Submit / see results',
+      mockNext: 'Next question →',
+      cancel: 'Cancel',
+      mockDone: 'Completed {n} questions in {t}',
+      mockAgain: 'New set',
+      drillDone: 'Answered {t} questions, {c} correct ({p}%)',
+      reveal: 'Show answer',
+      wrong: 'Wrong',
+      right: 'Correct',
+      drillSoFar: 'Answered {n} so far',
+      drillRight: 'Correct {c}/{t}',
+      min2: 'Type at least 2 characters',
+      noResult: 'No results for',
+      sampleQ: 'Sample exam question {n}',
+      kindExam: 'exam',
+      kindLesson: 'summary',
+      goSee: 'Go →',
+      moreHits: '{n} matches in total, showing the first 40 — try a more specific term',
+      confirm: 'Confirm',
+      ok: 'OK',
+      noExamDate: 'Exam date not set',
+      inDays: '{n} days left',
+      today: 'Today!',
+      daysAgo: '{n} days ago',
+      applyOpen: 'Applications open:',
+      to: 'to',
+      examDay: 'Exam date:',
+      applyStart: 'Applications open',
+      applyEnd: 'Applications close',
+      examDate: 'Exam date',
+      prepSum: 'What to bring / prohibited items in the exam room (general guide — always check the official announcement)',
+      officialLink: 'Latest official announcement',
+      cNetiBase: 'Passed the Thai Bar (baseline for the main exam round)',
+      cJudgeNoNeti: 'Thai Bar not completed yet (required for the main round)',
+      cJudgeExp: '{n} years of legal work experience (meets the usual minimum for the main round)',
+      cJudgeLowExp: 'Little legal work experience so far (the main round usually requires ~2+ years, depending on the type of work)',
+      cJudgeMasterTh: 'Domestic master’s/doctoral law degree (may qualify for some institutions’ smaller rounds)',
+      cJudgeMasterIntl: 'Foreign master’s law degree (may qualify for the "mini round")',
+      cNoNeti: 'Thai Bar not completed yet',
+      cProsExp: '{n} years of legal work experience',
+      cProsLowExp: 'Little legal work experience so far (the main round usually requires ~2+ years)',
+      cProsMaster: 'Master’s/doctoral law degree (may qualify for some institutions’ smaller rounds)',
+      cHasLicense: 'Already hold a lawyer’s licence — you can apply to law firms right away',
+      cLawyerNeti: 'Passed the Thai Bar — you can apply for the Lawyers Council training course (cohort licence)',
+      cLawyerNoNeti: 'Thai Bar not completed yet (the "cohort licence" route requires the Thai Bar or equivalent to enrol)',
+      cLawyerNoLicense: 'No lawyer’s licence yet — needs 6 months of theory + 6 months of practice training (cohort licence) or a full year of internship at a law office before the exam (annual licence)',
+      judge: 'Judge',
+      prosecutor: 'Public prosecutor',
+      lawyerFirm: 'Lawyer (law firm)',
+      pickSubject: 'Pick a subject first (from the menu)',
+      noHighlights: 'No highlighted terms (==...==) found in this subject’s lesson summary',
+      madeCards: 'Created {a} new cards from {n} highlighted terms (existing ones skipped)',
+      noNewTerms: 'No new terms — cards for all highlighted terms were already created',
+      saveEdit: 'Save changes',
+      saveNote: 'Save note / card',
+      noStorageInfo: 'This browser cannot show storage usage',
+      storageUsed: 'Storage used by this site (all tools combined): {u} MB of the ~{q} MB the browser allows',
+      noNotes: 'No notes yet — add one above',
+      noSubj: 'No subject',
+      nNotes: '{n} notes',
+      delAllSubj: 'Delete all in this subject',
+      editNote: 'Edit note',
+      delNote: 'Delete note',
+      nextReview: 'Next review: ',
+      confirmDelAll: 'Delete all {n} notes in "{s}"? This cannot be undone.',
+      delWhole: 'Delete whole subject',
+      dueToday: ' — {n} cards due for review today',
+      noneDue: ' — no cards due for review today',
+      noCardsDue: 'No cards due for review today',
+      allReviewed: 'All of today’s cards are reviewed',
+      noExtra: '(no additional content)',
+      cardNo: 'Card {i} / {n}',
+      chkMatra: 'Cite the relevant sections accurately',
+      chkDika: 'Cite relevant Supreme Court rulings (if needed)',
+      chkComplete: 'Answer every issue the question asks',
+      nMin: '{n} min',
+      del: 'Delete',
+      cleaned: 'Removed unwanted text from {n} notes',
+      nothingToClean: 'No text to clean in the current notes',
+      ocrDone: 'Text converted — review it carefully before saving (especially section and case numbers)',
+      section: 'Section ',
+      foundSections: 'Found {n} sections — untick any wrongly split (e.g. text that merely cites another section) and review again before saving',
+      ocrBusy: 'Converting text (OCR)… this may take a moment',
+      ocrLoadFail: 'Could not load the text converter — refresh the page and try again',
+      ocrPct: 'Converting text… {p}%',
+      ocrFail: 'Text conversion failed: ',
+      savedAsNote: 'Saved as a note',
+      noSections: 'No "Section <number>" pattern (at least 2 sections) found in this text — try "Save as a single note" instead',
+      savedSplit: 'Saved {n} sections as separate notes',
+      rootFolder: '(Main folder)',
+      driveNotConn: 'Google Drive is not connected — press "Connect Google Drive" in the card below first',
+      findFolders: 'Looking for subfolders…',
+      loadingFiles: 'Loading the file list from {n} folders…',
+      foundFiles: 'Found {n} files (including subfolders)',
+      noFiles: 'No other files in this folder (subfolders checked too)',
+      modified: 'Last modified: ',
+      open: 'Open',
+      extract: 'Extract text',
+      uploadedAll: 'Uploaded all {n} files',
+      uploading: 'Uploading ({i}/{n}): ',
+      fetching: 'Fetching file "{s}"…',
+      extracted: 'Extracted text from "{s}"',
+      extractFail: 'Text extraction failed: ',
+      eUploadFile: 'Upload of "{s}" failed ({c})',
+      eFetchFile: 'Could not fetch the file ({c})',
+      ePdfLib: 'Could not load the PDF reader — refresh the page and try again',
+      eFolderFind: 'Could not search folders ({c})',
+      eFolderMake: 'Could not create the folder ({c})',
+      eFileFind: 'Could not search files ({c})',
+      eDownload: 'Download failed ({c})',
+      eUpload: 'Could not save to Drive ({c})',
+      noIdb: 'This browser does not support IndexedDB',
+      driveConnected: 'Google Drive connected',
+      driveConnect: 'Connect Google Drive',
+      autoConnFail: 'Automatic connection failed (the browser may be blocking cross-site cookies) — press Connect again',
+      connFail: 'Connection failed: ',
+      gisLoading: 'Loading Google Identity Services… wait 2–3 seconds and try again',
+      askingPerm: 'Requesting permission to connect…',
+      syncing: 'Syncing…',
+      syncedWith: 'Synced with Google Drive · ',
+      lastSynced: 'Last synced ',
+      sessionExpired: 'Session expired — press Connect Drive again',
+      syncFail: 'Sync failed: ',
+      statNotes: 'Total notes',
+      statDue: 'Due for review today',
+      statWriting: 'Written practice sessions',
+      daysTo: 'Days until ',
+      noUpcoming: 'No upcoming exam date',
+      other: 'Other',
+      srsNew: 'New',
+      srsShort: 'Short (<2 d)',
+      srs25: '2–5 d',
+      srs510: '5–10 d',
+      srs1020: '10–20 d',
+      srs20: '20+ d',
+      nActs: '{n} activities',
+      nTimes: '{n} times',
+      pageTitle: 'Law study | Tanot',
+      title: 'Law study',
+      navStats: 'Stats',
+      navGoals: 'Goals',
+      navNotes: 'All notes',
+      grpExam: 'Subjects for the real exams',
+      grpCourse: 'Law courses',
+      navTools: 'Tools (Drive / settings)',
+      home: 'Home',
+      openMenu: 'Open menu',
+      dashTitle: 'Study stats',
+      notesPerSubj: 'Notes per subject',
+      srsTitle: 'Review progress (SRS)',
+      act30: 'Last 30 days of activity',
+      wrStats: 'Written practice stats',
+      noWrHist: 'No written practice history yet',
+      goals3: 'Goals for 3 career paths',
+      judgeSub: 'Assistant judge exam (Judicial Commission)',
+      prosecutorSub: 'Assistant prosecutor exam (Public Prosecutors Commission)',
+      lawyer: 'Lawyer (law firm)',
+      lawyerSub: 'Lawyer licence (Lawyers Council)',
+      examField: 'Exam dates & countdown',
+      career3: 'Career path check',
+      netiQ: 'Passed the Thai Bar yet?',
+      netiNo: 'Not yet',
+      netiYes: 'Passed',
+      expQ: 'Legal work experience (years)',
+      masterQ: 'Master’s/doctoral law degree',
+      masterNo: 'None',
+      masterTh: 'Yes (domestic)',
+      masterIntl: 'Yes (foreign)',
+      lawyerQ: 'Hold a lawyer’s licence yet?',
+      lawyerNo: 'Not yet',
+      lawyerYes: 'Yes',
+      careerBtn: 'Check my path',
+      refSearch: 'Search sections / rulings (all subjects)',
+      refPh: 'e.g. Section 150, or 747/2544, or fraud',
+      lessonSum: 'Lesson summary',
+      exportPdf: 'Export whole subject as PDF',
+      sampleExam: 'Sample exam',
+      mockTitle: 'Mock exam',
+      qCount: 'Number of questions',
+      mockStart: 'Start mock exam',
+      drillTitle: 'Section number drill',
+      drillStart: 'Start drill',
+      notebook: 'Notebook + flashcards (spaced review)',
+      subjCat: 'Subject / category',
+      subjPh: 'e.g. Civil Code, Book 1',
+      cardQ: 'Question (card front)',
+      cardQPh: 'e.g. What does Section 420 cover?',
+      cardA: 'Answer / content (card back)',
+      cardAPh: 'Summary of the legal principle / note content',
+      cancelEdit: 'Cancel editing',
+      autoFlash: 'Create flashcards from highlighted terms in the lesson (this subject)',
+      startReview: 'Start today’s review (FSRS)',
+      wrTitle: 'Timed written practice',
+      subject: 'Subject',
+      wrSubjPh: 'e.g. Criminal law',
+      timeMin: 'Time (minutes)',
+      wrPrompt: 'Question (type it or paste your prepared one)',
+      wrPromptPh: 'Paste the exam question to practise',
+      wrStart: 'Start timer',
+      wrAnswerPh: 'Write your answer here…',
+      wrSave: 'Save practice result',
+      thDate: 'Date',
+      thTime: 'Time used',
+      thChk: 'Checklist passed',
+      noWrHist2: 'No written practice history yet',
+      importTitle: 'Import text → review → save as notes',
+      ocrDrop: 'Tap to take / choose a photo of the document page',
+      ocrPreview: 'Preview of the selected image',
+      ocrSubj: 'Subject / category (for the saved notes)',
+      ocrSubjPh: 'e.g. Thai Bar Part 1, 2025',
+      ocrTextPh: 'Converted text appears here — edit / review before saving',
+      ocrSave: 'Save as a single note',
+      splitMatra: 'Split by section',
+      matraSave: 'Save selected sections as separate notes',
+      driveFiles: 'Files in my Drive folder',
+      driveList: 'Load file list from Drive',
+      uploadTo: 'Upload into which folder',
+      uploadDrop: 'Tap to choose files to upload (multiple allowed)',
+      driveSync: 'Private Google Drive sync',
+      cleanTitle: 'Clean up old data',
+      cleanBtn: 'Remove unwanted text from existing notes'
+    }
+  });
+  window.OME_PAGE_LIVE_LANG = true;
 
   /* ══════════════════ วิชาที่ใช้สอบจริง (ขับเคลื่อนพาเนล hamburger + กรองเครื่องมือรายวิชา) ══════════════════
      จับคู่กับโน้ต/ฝึกเขียนโดยเทียบว่าข้อความวิชาที่ผู้ใช้กรอก (subj) มีคำว่า label อยู่หรือไม่
@@ -939,12 +1459,12 @@
   function renderLessonContent(subject) {
     var card = $('clLessonCard'), body = $('clLessonBody');
     if (!card || !body) return;
-    if ($('clExportPdfStatus')) $('clExportPdfStatus').textContent = '';
+    if ($('clExportPdfStatus')) liveStatus($('clExportPdfStatus'), null, '');
     if (!subject) { card.style.display = 'none'; return; }
     var entry = LESSON_CONTENT[subject.id];
     card.style.display = '';
     if (!entry || !entry.parts || !entry.parts.length) {
-      body.innerHTML = '<p class="mini">ยังไม่มีเนื้อหาสรุปสำหรับวิชานี้ครับ — จะทยอยเพิ่มทีละวิชาในเวอร์ชันถัดๆ ไป ระหว่างนี้ใช้สมุดโน้ตด้านล่างจดสรุปเองไปพลางก่อนได้</p>';
+      body.innerHTML = '<p class="mini">' + esc(T('noLesson')) + '</p>';
       return;
     }
     var parts = entry.parts;
@@ -957,39 +1477,39 @@
     var chipsHtml = parts.length > 1
       ? '<div class="lchips">' + parts.map(function (p, i) {
           var isRead = !!readMap[p.title];
-          return '<button type="button" class="lchip' + (isRead ? ' done' : '') + '" data-lidx="' + i + '">' +
-            esc(lessonChipLabel(p.title)) + (isRead ? '' : '') + '</button>';
+          return '<button type="button" class="chip lchip' + (isRead ? ' on' : '') + '" data-lidx="' + i + '" data-i18n-skip>' +
+            esc(lessonChipLabel(p.title)) + '</button>';
         }).join('') + '</div>'
       : '';
 
     var progHtml = '<div class="lprog"><div class="lprog-bar"><div class="lprog-fill" style="width:' + pct + '%"></div></div>' +
-      '<span class="lprog-txt">อ่านแล้ว ' + readCount + '/' + parts.length + ' หัวข้อ (' + pct + '%)</span></div>';
+      '<span class="lprog-txt">' + esc(T('readProg', { r: readCount, n: parts.length, p: pct })) + '</span></div>';
 
     var ttsBarHtml = '<div class="ttsbar"><div class="ttsbar-row">' +
-      '<select class="ttsbar-voice" id="clTtsVoice"></select>' +
-      '<select class="ttsbar-rate" id="clTtsRate"><option value="0.85">0.85x</option><option value="1" selected>1x</option>' +
+      '<select class="select ttsbar-voice" id="clTtsVoice"></select>' +
+      '<select class="select ttsbar-rate" id="clTtsRate"><option value="0.85">0.85x</option><option value="1" selected>1x</option>' +
       '<option value="1.15">1.15x</option><option value="1.3">1.3x</option></select>' +
-      '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">เล่นทั้งวิชาต่อเนื่อง</button></div>' +
+      '<button class="btn primary sm" id="clTtsPlaylistBtn" type="button">' + esc(T('playAll')) + '</button></div>' +
       '<div class="ttsbar-controls" id="clTtsControls" style="display:none">' +
       '<span class="ttsbar-now" id="clTtsNow"></span>' +
-      '<button class="btn sm" id="clTtsPrev" type="button">' + icon('chevron-left') + ' ก่อนหน้า</button>' +
-      '<button class="btn sm" id="clTtsPauseBtn" type="button">' + icon('pause') + ' พัก</button>' +
-      '<button class="btn sm" id="clTtsNext" type="button">ถัดไป ' + icon('chevron-right') + '</button>' +
-      '<button class="btn sm" id="clTtsStopBtn" type="button">' + icon('square') + ' หยุด</button></div>' +
-      (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">เบราว์เซอร์นี้ไม่รองรับเสียงอ่านสด (Web Speech API) — ลองเปิดด้วย Chrome</p>' : '') +
+      '<button class="btn sm" id="clTtsPrev" type="button">' + icon('chevron-left') + ' ' + esc(T('prev')) + '</button>' +
+      '<button class="btn sm" id="clTtsPauseBtn" type="button">' + icon('pause') + ' ' + esc(T('pause')) + '</button>' +
+      '<button class="btn sm" id="clTtsNext" type="button">' + esc(T('next')) + ' ' + icon('chevron-right') + '</button>' +
+      '<button class="btn sm" id="clTtsStopBtn" type="button">' + icon('square') + ' ' + esc(T('stop')) + '</button></div>' +
+      (!window.speechSynthesis ? '<p class="mini" style="margin-top:6px">' + esc(T('noTts')) + '</p>' : '') +
       '</div>';
 
     function renderPart(p, i, openIt) {
       var isRead = !!readMap[p.title];
       var noteText = noteMap[p.title] || '';
       return '<details class="lesson disclosure" id="lpart-' + i + '"' + (openIt ? ' open' : '') + '>' +
-        '<summary><span class="lsum-txt">' + esc(p.title) + '</span>' +
-        '<button type="button" class="tts-playbtn" data-ttsplay="' + i + '">ฟัง</button>' +
-        '<button type="button" class="lnote-btn' + (noteText ? ' has' : '') + '" data-lnotebtn="' + i + '">โน้ต' + (noteText ? '' : '') + '</button>' +
-        '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> อ่านแล้ว</label></summary>' +
-        '<div class="disclosure-body prose">' + mdToHtml(p.md) +
+        '<summary><span class="lsum-txt" data-i18n-skip>' + esc(p.title) + '</span>' +
+        '<button type="button" class="btn sm tts-playbtn" data-ttsplay="' + i + '">' + esc(T('listen')) + '</button>' +
+        '<button type="button" class="btn sm lnote-btn' + (noteText ? ' on' : '') + '" data-lnotebtn="' + i + '">' + esc(T('noteBtn')) + '</button>' +
+        '<label class="lread"><input type="checkbox" data-lread="' + i + '"' + (isRead ? ' checked' : '') + '> ' + esc(T('readDone')) + '</label></summary>' +
+        '<div class="disclosure-body prose" data-i18n-skip>' + mdToHtml(p.md) +
         '<div class="lnote-wrap" id="lnotewrap-' + i + '" style="display:' + (noteText ? '' : 'none') + '">' +
-        '<textarea class="lnote-ta" data-lnotearea="' + i + '" placeholder="จดโน้ตส่วนตัวของหัวข้อนี้ — เช่น จุดที่ยังไม่แม่น หรือคำถามที่จะไปถามอาจารย์">' +
+        '<textarea class="textarea lnote-ta" data-lnotearea="' + i + '" aria-label="' + esc(T('lessonNotePh')) + '" placeholder="' + esc(T('lessonNotePh')) + '">' +
         esc(noteText) + '</textarea></div>' +
         '</div></details>';
     }
@@ -1001,7 +1521,7 @@
         var startIdx = idx;
         var slice = parts.slice(idx, idx + g.count);
         idx += g.count;
-        return '<div class="lgroup-hd">' + esc(g.label) + '</div>' +
+        return '<div class="lgroup-hd" data-i18n-skip>' + esc(g.label) + '</div>' +
           slice.map(function (p, j) { return renderPart(p, startIdx + j, startIdx + j === 0); }).join('');
       }).join('');
     } else {
@@ -1011,7 +1531,7 @@
     body.innerHTML = chipsHtml + progHtml + ttsBarHtml + partsHtml;
 
     if (window.speechSynthesis) {
-      var voiceSel = $('clTtsVoice');
+      var voiceSel = $('clTtsVoice'); voiceSel.setAttribute('aria-label', T('voice')); $('clTtsRate').setAttribute('aria-label', T('speed'));
       var voices = ttsVoicesCache.length ? ttsVoicesCache : window.speechSynthesis.getVoices();
       var sorted = voices.slice().sort(function (a, b) {
         var at = /^th/i.test(a.lang) ? 0 : 1, bt = /^th/i.test(b.lang) ? 0 : 1;
@@ -1019,7 +1539,7 @@
       });
       voiceSel.innerHTML = sorted.length
         ? sorted.map(function (v) { return '<option value="' + esc(v.name) + '">' + esc(v.name) + ' (' + esc(v.lang) + ')</option>'; }).join('')
-        : '<option value="">(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองกด "เล่น" อีกครั้ง)</option>';
+        : '<option value="">' + esc(T('noVoice')) + '</option>';
       var preferredName = getPreferredTtsVoiceName() || (pickDefaultThaiVoice(voices) && pickDefaultThaiVoice(voices).name) || '';
       if (preferredName) voiceSel.value = preferredName;
       voiceSel.addEventListener('change', function () { setPreferredTtsVoiceName(voiceSel.value); });
@@ -1069,8 +1589,7 @@
         var btn = body.querySelector('[data-lnotebtn="' + i + '"]');
         if (btn) {
           var has = !!ta.value.trim();
-          btn.classList.toggle('has', has);
-          btn.textContent = has ? 'โน้ต' : 'โน้ต';
+          btn.classList.toggle('on', has);
         }
       });
     });
@@ -1095,14 +1614,15 @@
     var status = $('clExportPdfStatus');
     var jsPDFctor = window.jspdf && window.jspdf.jsPDF;
     if (!jsPDFctor || !window.html2canvas) {
-      if (status) status.textContent = 'โหลดไลบรารีสร้าง PDF ไม่สำเร็จ (ต้องต่ออินเทอร์เน็ต) — ใช้ปุ่มพิมพ์ของเบราว์เซอร์แทนแล้วเลือก "บันทึกเป็น PDF"';
+      liveStatus(status, function () { return T('pdfLib'); });
       window.print();
       return;
     }
     var entry = LESSON_CONTENT[subject.id];
     if (!entry || !entry.parts || !entry.parts.length) return;
-    if (status) status.textContent = 'กำลังสร้างไฟล์ PDF… (อาจใช้เวลาสักครู่ถ้าเนื้อหายาว)';
+    liveStatus(status, function () { return T('pdfMaking'); });
     var wrap = document.createElement('div');
+    wrap.setAttribute('data-i18n-skip', ''); // กล่องซ่อนสำหรับสร้างไฟล์ส่งออก (ไฟล์ส่งออกเป็นไทยเสมอ)
     wrap.style.cssText = 'position:fixed;left:-9999px;top:0;width:794px;background:#fff;color:#1F2430;' +
       'padding:36px;font-family:Prompt,sans-serif;box-sizing:border-box';
     var html = '<h1 style="font-size:22px;margin:0 0 4px">' + esc(subject.label) + '</h1>' +
@@ -1135,9 +1655,9 @@
         pdf.addImage(c2.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, pageWmm, sh / pxPerMm);
       }
       pdf.save(subject.label.replace(/[^\wก-๙\-]+/g, '_') + '-สรุปเนื้อหา.pdf');
-      if (status) status.textContent = 'ดาวน์โหลด PDF แล้ว (' + totalPages + ' หน้า)';
+      liveStatus(status, function () { return T('pdfDone', { n: totalPages }); });
     } catch (e) {
-      if (status) status.textContent = 'สร้าง PDF ไม่สำเร็จ: ' + e.message;
+      liveStatus(status, function () { return T('pdfFail') + e.message; });
     } finally {
       document.body.removeChild(wrap);
     }
@@ -1219,8 +1739,8 @@
     if (!controls) return; // อาจสลับหน้าไปแล้ว ไม่มีแถบให้อัปเดต
     if (!ttsState) { controls.style.display = 'none'; return; }
     controls.style.display = '';
-    var nowEl = $('clTtsNow'); if (nowEl) nowEl.textContent = 'กำลังอ่าน: ' + ttsState.label;
-    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.innerHTML = ttsState.paused ? icon('play') + ' เล่นต่อ' : icon('pause') + ' พัก';
+    var nowEl = $('clTtsNow'); if (nowEl) nowEl.innerHTML = esc(T('reading')) + '<span data-i18n-skip>' + esc(ttsState.label) + '</span>';
+    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.innerHTML = ttsState.paused ? icon('play') + ' ' + esc(T('resume')) : icon('pause') + ' ' + esc(T('pause'));
     var prevBtn = $('clTtsPrev'), nextBtn = $('clTtsNext');
     if (prevBtn) prevBtn.style.display = ttsState.playlist ? '' : 'none';
     if (nextBtn) nextBtn.style.display = ttsState.playlist ? '' : 'none';
@@ -1578,7 +2098,7 @@
     ]
   };
   function examTopicLabel(t) {
-    return NITIKAM_TOPIC_LABEL[t] || ('หัวข้อ ' + t);
+    return NITIKAM_TOPIC_LABEL[t] || (T('topicN') + t);
   }
   function renderExamQuestions(subject) {
     var card = $('clExamCard'), body = $('clExamBody');
@@ -1587,7 +2107,7 @@
     var list = EXAM_QUESTIONS[subject.id];
     card.style.display = '';
     if (!list || !list.length) {
-      body.innerHTML = '<p class="mini">ยังไม่มีข้อสอบตัวอย่างสำหรับวิชานี้ครับ — จะทยอยเพิ่มทีหลัง</p>';
+      body.innerHTML = '<p class="mini">' + esc(T('noSample')) + '</p>';
       return;
     }
     var hasTopics = list.some(function (it) { return !!it.topic; });
@@ -1602,20 +2122,19 @@
     }
 
     var searchHtml = '<div class="exsearch">' +
-      '<input type="text" id="exqSearch" placeholder="ค้นด้วยคำสำคัญหรือเลขมาตรา เช่น กลฉ้อฉล, มาตรา 150">' +
-      (hasTopics ? '<select id="exqTopicFilter"><option value="">ทุกหัวข้อ</option>' +
-        topicSet.map(function (t) { return '<option value="' + t + '">' + esc(examTopicLabel(t)) + '</option>'; }).join('') +
+      '<input type="text" class="input" id="exqSearch" aria-label="' + esc(T('exSearchPh')) + '" placeholder="' + esc(T('exSearchPh')) + '">' +
+      (hasTopics ? '<select class="select" id="exqTopicFilter" aria-label="' + esc(T('allTopics')) + '"><option value="">' + esc(T('allTopics')) + '</option>' +
+        topicSet.map(function (t) { return '<option value="' + t + '" data-i18n-skip>' + esc(examTopicLabel(t)) + '</option>'; }).join('') +
         '</select>' : '') +
       '</div>';
 
     function renderItem(item, i) {
-      return '<details class="lesson examq disclosure" id="exq-' + i + '"><summary><span class="lsum-txt">ข้อ ' + (i + 1) + '. ' +
-        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span>' +
-        (window.speechSynthesis ? '<button type="button" class="tts-playbtn" data-ttsexam="' + i + '">ฟังโจทย์</button>' : '') +
+      return '<details class="lesson examq disclosure" id="exq-' + i + '"><summary><span class="lsum-txt">' + esc(T('qNo', { n: i + 1 })) + '<span data-i18n-skip>' + esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span></span>' +
+        (window.speechSynthesis ? '<button type="button" class="btn sm tts-playbtn" data-ttsexam="' + i + '">' + esc(T('listenQ')) + '</button>' : '') +
         '</summary>' +
-        '<div class="disclosure-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details class="disclosure" style="margin-top:8px"><summary>ดูแนวคำตอบ</summary>' +
-        '<div class="disclosure-body prose">' + mdToHtml(item.a) + '</div></details>' +
+        '<div class="disclosure-body"><div data-i18n-skip>' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
+        '<details class="disclosure" style="margin-top:8px"><summary>' + esc(T('seeAnswer')) + '</summary>' +
+        '<div class="disclosure-body prose" data-i18n-skip>' + mdToHtml(item.a) + '</div></details>' +
         '</div></details>';
     }
 
@@ -1624,7 +2143,7 @@
       listHtml = topicSet.map(function (t) {
         var idxs = [];
         list.forEach(function (it, i) { if (it.topic === t) idxs.push(i); });
-        return '<div class="exgroup-hd" data-exgrp="' + t + '">' + esc(examTopicLabel(t)) + '</div>' +
+        return '<div class="exgroup-hd" data-i18n-skip data-exgrp="' + t + '">' + esc(examTopicLabel(t)) + '</div>' +
           idxs.map(function (i) { return renderItem(list[i], i); }).join('');
       }).join('');
     } else {
@@ -1632,14 +2151,14 @@
     }
 
     body.innerHTML = searchHtml +
-      '<p class="exempty" id="exqEmpty" style="display:none">ไม่พบข้อสอบที่ตรงกับคำค้นครับ ลองคำอื่นหรือล้างตัวกรองดู</p>' +
+      '<p class="exempty" id="exqEmpty" style="display:none">' + esc(T('exEmpty')) + '</p>' +
       '<div id="exqList">' + listHtml + '</div>';
 
     Array.prototype.forEach.call(body.querySelectorAll('[data-ttsexam]'), function (btn) {
       btn.addEventListener('click', function (e) {
         e.stopPropagation();
         var i = +btn.getAttribute('data-ttsexam');
-        speakRaw('ข้อสอบ ข้อ ' + (i + 1), list[i].q, 1);
+        speakRaw(T('examLabel', { n: i + 1 }), list[i].q, 1);
       });
     });
 
@@ -1724,13 +2243,13 @@
     var isLast = mockState.idx === mockState.idxs.length - 1;
     area.innerHTML =
       '<div class="mock-hd"><span class="mock-timer" id="clMockTimer">00:00</span>' +
-      '<span class="mock-progress">ข้อที่ ' + (mockState.idx + 1) + '/' + mockState.idxs.length + '</span></div>' +
-      '<div class="mock-q">' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
+      '<span class="mock-progress">' + esc(T('mockQ', { i: mockState.idx + 1, n: mockState.idxs.length })) + '</span></div>' +
+      '<div class="mock-q" data-i18n-skip>' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
       '<div class="frow" style="margin-top:12px">' +
       (isLast
-        ? '<button class="btn primary sm" id="clMockFinish" type="button">ส่งคำตอบ / ดูสรุปผล</button>'
-        : '<button class="btn primary sm" id="clMockNext" type="button">ข้อต่อไป →</button>') +
-      '<button class="btn sm" id="clMockAbort" type="button">ยกเลิก</button></div>';
+        ? '<button class="btn primary sm" id="clMockFinish" type="button">' + esc(T('mockFinish')) + '</button>'
+        : '<button class="btn primary sm" id="clMockNext" type="button">' + esc(T('mockNext')) + '</button>') +
+      '<button class="btn sm" id="clMockAbort" type="button">' + esc(T('cancel')) + '</button></div>';
     if (isLast) { $('clMockFinish').addEventListener('click', finishMockExam); }
     else { $('clMockNext').addEventListener('click', function () { mockState.idx++; renderMockQuestion(); }); }
     $('clMockAbort').addEventListener('click', abortMockExam);
@@ -1741,16 +2260,16 @@
     var idxs = mockState.idxs, list = mockState.list;
     var reviewHtml = idxs.map(function (qi, n) {
       var item = list[qi];
-      return '<details class="lesson disclosure"><summary>ข้อ ' + (n + 1) + '. ' +
-        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</summary>' +
-        '<div class="disclosure-body">' + mdToHtml('**โจทย์**\n\n' + item.q) +
-        '<details class="disclosure" style="margin-top:8px"><summary>ดูแนวคำตอบ</summary><div class="disclosure-body prose">' +
+      return '<details class="lesson disclosure"><summary>' + esc(T('qNo', { n: n + 1 })) + '<span data-i18n-skip>' +
+        esc(item.q.length > 60 ? item.q.slice(0, 60) + '…' : item.q) + '</span></summary>' +
+        '<div class="disclosure-body"><div data-i18n-skip>' + mdToHtml('**โจทย์**\n\n' + item.q) + '</div>' +
+        '<details class="disclosure" style="margin-top:8px"><summary>' + esc(T('seeAnswer')) + '</summary><div class="disclosure-body prose" data-i18n-skip>' +
         mdToHtml(item.a) + '</div></details></div></details>';
     }).join('');
     $('clMockArea').innerHTML =
-      '<div class="callout ok">ทำครบ ' + idxs.length + ' ข้อ ใช้เวลาไป ' + fmtMmSs(elapsedMs) + '</div>' +
+      '<div class="callout ok">' + esc(T('mockDone', { n: idxs.length, t: fmtMmSs(elapsedMs) })) + '</div>' +
       reviewHtml +
-      '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">ทำชุดใหม่</button></div>';
+      '<div class="frow" style="margin-top:14px"><button class="btn sm" id="clMockAgain" type="button">' + esc(T('mockAgain')) + '</button></div>';
     logActivity('mockexam');
     mockState = null;
     $('clMockAgain').addEventListener('click', function () { $('clMockArea').innerHTML = ''; $('clMockSetup').style.display = ''; });
@@ -1794,7 +2313,7 @@
     var area = $('clDrillArea');
     if (!area) return;
     area.innerHTML = (d && d.total)
-      ? '<div class="callout ' + (d.correct / d.total >= 0.7 ? 'ok' : 'warn') + '">ทำไป ' + d.total + ' ข้อ ตอบถูก ' + d.correct + ' ข้อ (' + Math.round(d.correct / d.total * 100) + '%)</div>'
+      ? '<div class="callout ' + (d.correct / d.total >= 0.7 ? 'ok' : 'warn') + '">' + esc(T('drillDone', { t: d.total, c: d.correct, p: Math.round(d.correct / d.total * 100) })) + '</div>'
       : '';
     if (d && d.total) logActivity('drill');
   }
@@ -1812,17 +2331,17 @@
     var item = drillState.bank[drillState.queue[drillState.idx]];
     area.innerHTML =
       '<div class="drill-card" id="clDrillCardBox">' +
-      '<div class="drill-scenario">' + esc(item.scenario) + '</div>' +
-      '<div class="drill-ans">' + esc(item.answer) + '</div>' +
-      '<div class="drill-why">' + esc(item.why) + '</div>' +
+      '<div class="drill-scenario" data-i18n-skip>' + esc(item.scenario) + '</div>' +
+      '<div class="drill-ans" data-i18n-skip>' + esc(item.answer) + '</div>' +
+      '<div class="drill-why" data-i18n-skip>' + esc(item.why) + '</div>' +
       '</div>' +
       '<div class="frow" style="margin-top:10px;justify-content:center" id="clDrillPreAnswer">' +
-      '<button class="btn primary sm" id="clDrillReveal" type="button">ดูเฉลย</button></div>' +
+      '<button class="btn primary sm" id="clDrillReveal" type="button">' + esc(T('reveal')) + '</button></div>' +
       '<div class="frow" style="margin-top:10px;justify-content:center;display:none" id="clDrillPostAnswer">' +
-      '<button class="btn sm fsrs-again" id="clDrillWrong" type="button">ตอบผิด</button>' +
-      '<button class="btn sm fsrs-easy" id="clDrillRight" type="button">ตอบถูก</button></div>' +
-      '<div class="drill-progress">ทำไปแล้ว ' + drillState.total + ' ข้อ · <span class="drill-score">ถูก ' + drillState.correct + '/' + drillState.total + '</span>' +
-      ' &nbsp;<button class="btn sm" id="clDrillStop" type="button">หยุด</button></div>';
+      '<button class="btn sm fsrs-again" id="clDrillWrong" type="button">' + esc(T('wrong')) + '</button>' +
+      '<button class="btn sm fsrs-easy" id="clDrillRight" type="button">' + esc(T('right')) + '</button></div>' +
+      '<div class="drill-progress">' + esc(T('drillSoFar', { n: drillState.total })) + ' · <span class="drill-score">' + esc(T('drillRight', { c: drillState.correct, t: drillState.total })) + '</span>' +
+      ' &nbsp;<button class="btn sm" id="clDrillStop" type="button">' + esc(T('stop')) + '</button></div>';
     $('clDrillReveal').addEventListener('click', function () {
       $('clDrillCardBox').classList.add('show');
       $('clDrillPreAnswer').style.display = 'none';
@@ -1851,13 +2370,13 @@
       var entry = LESSON_CONTENT[s.id];
       if (entry && entry.parts) {
         entry.parts.forEach(function (p, i) {
-          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: p.title, kind: 'สรุปเนื้อหา', text: p.md, jumpKind: 'lesson', jumpIdx: i });
+          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: p.title, kind: 'lesson', text: p.md, jumpKind: 'lesson', jumpIdx: i });
         });
       }
       var qs = EXAM_QUESTIONS[s.id];
       if (qs) {
         qs.forEach(function (item, i) {
-          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: 'ข้อสอบตัวอย่าง ข้อ ' + (i + 1), kind: 'ข้อสอบ', text: item.q + '\n' + item.a, jumpKind: 'exam', jumpIdx: i });
+          out.push({ subjLabel: s.label, hash: hashOf[s.id], loc: 'exam:' + (i + 1), kind: 'exam', text: item.q + '\n' + item.a, jumpKind: 'exam', jumpIdx: i });
         });
       }
     });
@@ -1867,7 +2386,7 @@
     var box = $('clRefResults');
     if (!box) return;
     query = (query || '').trim();
-    if (query.length < 2) { box.innerHTML = query ? '<p class="mini">พิมพ์อย่างน้อย 2 ตัวอักษรครับ</p>' : ''; return; }
+    if (query.length < 2) { box.innerHTML = query ? '<p class="mini">' + esc(T('min2')) + '</p>' : ''; return; }
     var ql = query.toLowerCase();
     var hay = buildReferenceHaystack();
     var results = [];
@@ -1882,13 +2401,14 @@
       results.push({ subjLabel: h.subjLabel, loc: h.loc, kind: h.kind, hash: h.hash, jumpKind: h.jumpKind, jumpIdx: h.jumpIdx,
         snippetHtml: snippetEsc.replace(reHi, '<mark>$1</mark>') });
     });
-    if (!results.length) { box.innerHTML = '<p class="mini">ไม่พบผลลัพธ์สำหรับ "' + esc(query) + '" ครับ</p>'; return; }
+    if (!results.length) { box.innerHTML = '<p class="mini">' + esc(T('noResult')) + ' "' + esc(query) + '"</p>'; return; }
     var shown = results.slice(0, 40);
     box.innerHTML = shown.map(function (r, i) {
-      return '<div class="refres-item"><div class="refres-loc">' + esc(r.subjLabel) + ' — ' + esc(r.loc) + ' (' + esc(r.kind) + ')' +
-        ' <button type="button" class="lnote-btn" data-refjump="' + i + '" style="margin-left:6px">ไปดู →</button></div>' +
-        '<div class="refres-snip">' + r.snippetHtml + '</div></div>';
-    }).join('') + (results.length > 40 ? '<p class="mini" style="margin-top:6px">พบทั้งหมด ' + results.length + ' จุด แสดง 40 จุดแรก — ลองพิมพ์คำที่เจาะจงขึ้นเพื่อกรองผลลัพธ์ให้แคบลง</p>' : '');
+      var loc = /^exam:/.test(r.loc) ? T('sampleQ', { n: r.loc.slice(5) }) : r.loc;
+      return '<div class="refres-item"><div class="refres-loc"><span data-i18n-skip>' + esc(r.subjLabel) + '</span> — ' + (/^exam:/.test(r.loc) ? esc(loc) : '<span data-i18n-skip>' + esc(loc) + '</span>') + ' (' + esc(r.kind === 'exam' ? T('kindExam') : T('kindLesson')) + ')' +
+        ' <button type="button" class="btn sm lnote-btn" data-refjump="' + i + '" style="margin-left:6px">' + esc(T('goSee')) + '</button></div>' +
+        '<div class="refres-snip" data-i18n-skip>' + r.snippetHtml + '</div></div>';
+    }).join('') + (results.length > 40 ? '<p class="mini" style="margin-top:6px">' + esc(T('moreHits', { n: results.length })) + '</p>' : '');
     Array.prototype.forEach.call(box.querySelectorAll('[data-refjump]'), function (btn) {
       btn.addEventListener('click', function () {
         var r = shown[+btn.getAttribute('data-refjump')];
@@ -1950,12 +2470,12 @@
   }
   function bpConfirm(message, title) {
     return showModal({
-      title: title || 'ยืนยัน',
+      title: title || T('confirm'),
       message: message,
       cancelValue: false,
       buttons: [
-        { label: 'ยกเลิก', value: false },
-        { label: 'ตกลง', value: true, primary: true }
+        { label: T('cancel'), value: false },
+        { label: T('ok'), value: true, primary: true }
       ]
     }).then(function (v) { return v === true; });
   }
@@ -2001,29 +2521,29 @@
     wrap.innerHTML = EXAM_TYPES.map(function (ex) {
       var d = dates[ex.key] || {};
       var days = daysUntil(d.examDate);
-      var cdCls = 'exam-cd unset', cdTxt = 'ยังไม่กรอกวันสอบ';
+      var cdCls = 'exam-cd unset', cdTxt = T('noExamDate');
       if (days !== null) {
-        if (days > 0) { cdTxt = 'อีก ' + days + ' วัน'; cdCls = 'exam-cd'; }
-        else if (days === 0) { cdTxt = 'วันนี้!'; cdCls = 'exam-cd'; }
-        else { cdTxt = 'ผ่านไปแล้ว ' + (-days) + ' วัน'; cdCls = 'exam-cd past'; }
+        if (days > 0) { cdTxt = T('inDays', { n: days }); cdCls = 'exam-cd'; }
+        else if (days === 0) { cdTxt = T('today'); cdCls = 'exam-cd'; }
+        else { cdTxt = T('daysAgo', { n: -days }); cdCls = 'exam-cd past'; }
       }
       var prepLi = ex.prep.map(function (p) { return '<li>' + esc(p) + '</li>'; }).join('');
       var banLi = ex.banned.map(function (p) { return '<li class="ban">' + esc(p) + '</li>'; }).join('');
       return '<div class="exam-card" data-key="' + ex.key + '">' +
-        '<div class="exam-hd"><span class="name">' + ex.icon + ' ' + esc(ex.name) + '</span>' +
+        '<div class="exam-hd"><span class="name" data-i18n-skip>' + ex.icon + ' ' + esc(ex.name) + '</span>' +
         '<span class="' + cdCls + '">' + cdTxt + '</span></div>' +
         '<div class="exam-dates">' +
-          '<span>เปิดรับสมัคร: <b>' + (d.applyStart ? esc(d.applyStart) : '—') + '</b> ถึง <b>' + (d.applyEnd ? esc(d.applyEnd) : '—') + '</b></span>' +
-          '<span>วันสอบ: <b>' + (d.examDate ? esc(d.examDate) : '—') + '</b></span>' +
+          '<span>' + esc(T('applyOpen')) + ' <b>' + (d.applyStart ? esc(d.applyStart) : '—') + '</b> ' + esc(T('to')) + ' <b>' + (d.applyEnd ? esc(d.applyEnd) : '—') + '</b></span>' +
+          '<span>' + esc(T('examDay')) + ' <b>' + (d.examDate ? esc(d.examDate) : '—') + '</b></span>' +
         '</div>' +
         '<div class="exam-edit">' +
-          '<div class="field"><label>เปิดรับสมัคร</label><input type="date" data-f="applyStart" value="' + (d.applyStart || '') + '"></div>' +
-          '<div class="field"><label>ปิดรับสมัคร</label><input type="date" data-f="applyEnd" value="' + (d.applyEnd || '') + '"></div>' +
-          '<div class="field"><label>วันสอบ</label><input type="date" data-f="examDate" value="' + (d.examDate || '') + '"></div>' +
+          '<div class="field"><label>' + esc(T('applyStart')) + '</label><input type="date" aria-label="' + esc(T('applyStart')) + '" data-f="applyStart" value="' + (d.applyStart || '') + '"></div>' +
+          '<div class="field"><label>' + esc(T('applyEnd')) + '</label><input type="date" aria-label="' + esc(T('applyEnd')) + '" data-f="applyEnd" value="' + (d.applyEnd || '') + '"></div>' +
+          '<div class="field"><label>' + esc(T('examDate')) + '</label><input type="date" aria-label="' + esc(T('examDate')) + '" data-f="examDate" value="' + (d.examDate || '') + '"></div>' +
         '</div>' +
-        '<details class="exam-prep"><summary>สิ่งที่ต้องเตรียม / ของต้องห้ามในห้องสอบ (แนวทางทั่วไป — เช็กประกาศจริงเสมอ)</summary>' +
-          '<ul>' + prepLi + banLi + '</ul></details>' +
-        '<div style="margin-top:8px"><a class="exam-link" href="' + ex.url + '" target="_blank" rel="noopener">↗ ดูประกาศทางการล่าสุด</a></div>' +
+        '<details class="exam-prep disclosure"><summary>' + esc(T('prepSum')) + '</summary>' +
+          '<ul data-i18n-skip>' + prepLi + banLi + '</ul></details>' +
+        '<div style="margin-top:8px"><a class="exam-link" href="' + ex.url + '" target="_blank" rel="noopener">↗ ' + esc(T('officialLink')) + '</a></div>' +
       '</div>';
     }).join('');
     Array.prototype.forEach.call(wrap.querySelectorAll('.exam-card'), function (card) {
@@ -2048,28 +2568,28 @@
 
     // ผู้พิพากษา
     var judge = { met: [], missing: [] };
-    if (netiOk) judge.met.push('เนติบัณฑิตแล้ว (คุณสมบัติพื้นฐานสนามใหญ่)'); else judge.missing.push('ยังไม่จบเนติบัณฑิต (จำเป็นสำหรับสนามใหญ่)');
-    if (o.exp >= 2) judge.met.push('มีประสบการณ์ทำงานกฎหมาย ' + o.exp + ' ปี (เข้าเกณฑ์ขั้นต่ำทั่วไปของสนามใหญ่)');
-    else judge.missing.push('ประสบการณ์ทำงานกฎหมายยังน้อย (สนามใหญ่มักกำหนดขั้นต่ำ ~2 ปีขึ้นไป แล้วแต่ประเภทงาน)');
-    if (o.master === 'th') judge.met.push('มีวุฒิปริญญาโท/เอกกฎหมายในประเทศ (อาจเข้าเกณฑ์สนามเล็กบางสถาบัน)');
-    if (o.master === 'intl') judge.met.push('มีวุฒิปริญญาโทกฎหมายต่างประเทศ (อาจเข้าเกณฑ์ "สนามจิ๋ว")');
+    if (netiOk) judge.met.push(T('cNetiBase')); else judge.missing.push(T('cJudgeNoNeti'));
+    if (o.exp >= 2) judge.met.push(T('cJudgeExp', { n: o.exp }));
+    else judge.missing.push(T('cJudgeLowExp'));
+    if (o.master === 'th') judge.met.push(T('cJudgeMasterTh'));
+    if (o.master === 'intl') judge.met.push(T('cJudgeMasterIntl'));
     judge.verdict = (netiOk && o.exp >= 2) ? 'go' : (netiOk || o.master !== 'no') ? 'warn' : 'no';
 
     // อัยการ
     var prosecutor = { met: [], missing: [] };
-    if (netiOk) prosecutor.met.push('เนติบัณฑิตแล้ว (คุณสมบัติพื้นฐานสนามใหญ่)'); else prosecutor.missing.push('ยังไม่จบเนติบัณฑิต');
-    if (o.exp >= 2) prosecutor.met.push('มีประสบการณ์ทำงานกฎหมาย ' + o.exp + ' ปี');
-    else prosecutor.missing.push('ประสบการณ์ทำงานกฎหมายยังน้อย (สนามใหญ่มักกำหนดขั้นต่ำ ~2 ปีขึ้นไป)');
-    if (o.master !== 'no') prosecutor.met.push('มีวุฒิปริญญาโท/เอกกฎหมาย (อาจเข้าเกณฑ์สนามเล็กบางสถาบัน)');
+    if (netiOk) prosecutor.met.push(T('cNetiBase')); else prosecutor.missing.push(T('cNoNeti'));
+    if (o.exp >= 2) prosecutor.met.push(T('cProsExp', { n: o.exp }));
+    else prosecutor.missing.push(T('cProsLowExp'));
+    if (o.master !== 'no') prosecutor.met.push(T('cProsMaster'));
     prosecutor.verdict = (netiOk && o.exp >= 2) ? 'go' : (netiOk || o.master !== 'no') ? 'warn' : 'no';
 
     // ทนายความ
     var lawyer = { met: [], missing: [] };
-    if (o.lawyer === 'yes') { lawyer.met.push('มีตั๋วทนายความแล้ว — สมัครงาน Law Firm ได้เลย'); }
+    if (o.lawyer === 'yes') { lawyer.met.push(T('cHasLicense')); }
     else {
-      if (netiOk) lawyer.met.push('เนติบัณฑิตแล้ว — สมัครอบรมวิชาว่าความ (ตั๋วรุ่น) กับสภาทนายความได้');
-      else lawyer.missing.push('ยังไม่จบเนติบัณฑิต (เส้นทาง "ตั๋วรุ่น" ต้องใช้วุฒิเนติบัณฑิตหรือเทียบเท่าสมัครอบรม)');
-      lawyer.missing.push('ยังไม่มีตั๋วทนายความ — ต้องอบรมภาคทฤษฎี 6 เดือน + ภาคปฏิบัติ 6 เดือน (ตั๋วรุ่น) หรือฝึกงานสำนักงานทนาย 1 ปีเต็มก่อนสอบ (ตั๋วปี)');
+      if (netiOk) lawyer.met.push(T('cLawyerNeti'));
+      else lawyer.missing.push(T('cLawyerNoNeti'));
+      lawyer.missing.push(T('cLawyerNoLicense'));
     }
     lawyer.verdict = o.lawyer === 'yes' ? 'go' : netiOk ? 'warn' : 'no';
 
@@ -2092,15 +2612,18 @@
     };
     try { localStorage.setItem(CAREER_KEY, JSON.stringify(o)); } catch (e) {}
     DriveSync.scheduleSync();
+    renderCareerResult(o);
+  }
+  function renderCareerResult(o) {
     var r = evalCareer(o);
     $('bpCareerResult').innerHTML =
-      careerBoxHtml('ผู้พิพากษา', icon('scale'), r.judge) +
-      careerBoxHtml('อัยการ', icon('landmark'), r.prosecutor) +
-      careerBoxHtml('ทนายความ (Law Firm)', icon('briefcase'), r.lawyer);
+      careerBoxHtml(T('judge'), icon('scale'), r.judge) +
+      careerBoxHtml(T('prosecutor'), icon('landmark'), r.prosecutor) +
+      careerBoxHtml(T('lawyerFirm'), icon('briefcase'), r.lawyer);
   }
+  function readCareer() { var o = {}; try { o = JSON.parse(localStorage.getItem(CAREER_KEY)) || {}; } catch (e) {} return o; }
   function loadCareerIntoForm() {
-    var o = {};
-    try { o = JSON.parse(localStorage.getItem(CAREER_KEY)) || {}; } catch (e) {}
+    var o = readCareer();
     if (o.neti) $('bpNeti').value = o.neti;
     if (o.exp != null) $('bpExp').value = o.exp;
     if (o.master) $('bpMaster').value = o.master;
@@ -2120,7 +2643,7 @@
   function openNotesDb() {
     if (idbOpenPromise) return idbOpenPromise;
     idbOpenPromise = new Promise(function (resolve, reject) {
-      if (!window.indexedDB) { reject(new Error('เบราว์เซอร์นี้ไม่รองรับ IndexedDB')); return; }
+      if (!window.indexedDB) { reject(new Error(T('noIdb'))); return; }
       var req = indexedDB.open(IDB_NAME, IDB_VERSION);
       req.onupgradeneeded = function (e) {
         var db = e.target.result;
@@ -2214,9 +2737,9 @@
   }
   function autoFlashFromHighlights(subject) {
     var status = $('bpAutoFlashStatus');
-    if (!subject) { status.textContent = 'เลือกวิชาก่อนครับ (กดจากเมนูหัวเรื่อง)'; status.className = 'status err'; return; }
+    if (!subject) { liveStatus(status, function () { return T('pickSubject'); }, 'status err'); return; }
     var items = extractHighlightFlashcards(subject.id);
-    if (!items.length) { status.textContent = 'ไม่พบคำที่ขีดเน้น (==...==) ในสรุปเนื้อหาบทเรียนวิชานี้'; status.className = 'status'; return; }
+    if (!items.length) { liveStatus(status, function () { return T('noHighlights'); }, 'status'); return; }
     var notes = loadNotes();
     var existingKeys = {};
     notes.forEach(function (n) { existingKeys[(n.subj || '') + '|' + n.q] = 1; });
@@ -2230,10 +2753,9 @@
       added++;
     });
     if (added) { saveNotes(notes); logActivity('note'); renderNoteList(); renderReviewCount(); }
-    status.textContent = added
-      ? 'สร้างการ์ดใหม่ ' + added + ' ใบจาก ' + items.length + ' คำที่ขีดเน้นทั้งหมด (ข้ามที่มีอยู่แล้ว)'
-      : 'ไม่มีคำใหม่ — สร้างการ์ดจากคำที่ขีดเน้นทั้งหมดไปแล้วก่อนหน้านี้';
-    status.className = 'status ok';
+    liveStatus(status, function () {
+      return added ? T('madeCards', { a: added, n: items.length }) : T('noNewTerms');
+    }, 'status ok');
   }
   function deleteNote(id) {
     saveNotes(loadNotes().filter(function (n) { return n.id !== id; }));
@@ -2265,14 +2787,14 @@
     $('bpNoteSubj').value = n.subj || '';
     $('bpNoteQ').value = n.q || '';
     $('bpNoteA').value = n.a || '';
-    $('bpNoteAdd').textContent = 'บันทึกการแก้ไข';
+    $('bpNoteAdd').textContent = T('saveEdit');
     $('bpNoteCancelEdit').style.display = '';
     $('bpNoteSubj').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   function cancelEditNote() {
     editingNoteId = null;
     $('bpNoteQ').value = ''; $('bpNoteA').value = '';
-    $('bpNoteAdd').textContent = '+ บันทึกโน้ต/การ์ด';
+    $('bpNoteAdd').innerHTML = icon('plus') + ' <span>' + esc(T('saveNote')) + '</span>';
     $('bpNoteCancelEdit').style.display = 'none';
   }
   function updateNote(id, subj, q, a) {
@@ -2292,19 +2814,19 @@
     var el = $('bpStorageInfo');
     if (!el) return;
     if (!navigator.storage || !navigator.storage.estimate) {
-      el.textContent = 'เบราว์เซอร์นี้ไม่รองรับการแสดงพื้นที่จัดเก็บ';
+      el.textContent = T('noStorageInfo');
       return;
     }
     navigator.storage.estimate().then(function (est) {
       var fmtMB = function (bytes) { return (bytes / 1048576).toFixed(bytes < 1048576 ? 2 : 1); };
-      el.textContent = 'พื้นที่จัดเก็บที่ใช้ในเว็บนี้ (ทุกเครื่องมือรวมกัน): ' + fmtMB(est.usage || 0) + ' MB จากโควตาที่เบราว์เซอร์ให้ ~' + fmtMB(est.quota || 0) + ' MB';
+      el.textContent = T('storageUsed', { u: fmtMB(est.usage || 0), q: fmtMB(est.quota || 0) });
     }).catch(function () { el.textContent = ''; });
   }
   function renderNoteList() {
     var notes = loadNotes();
     if (currentSubjectFilter) notes = notes.filter(function (n) { return noteMatchesSubject(n, currentSubjectFilter); });
     var el = $('bpNoteList');
-    if (!notes.length) { el.innerHTML = '<p class="note-empty">ยังไม่มีโน้ต — เพิ่มด้านบนได้เลย</p>'; renderStorageInfo(); return; }
+    if (!notes.length) { el.innerHTML = '<p class="note-empty">' + esc(T('noNotes')) + '</p>'; renderStorageInfo(); return; }
     /* จัดกลุ่มตามวิชา/หมวด เพื่อให้มีปุ่ม "ลบทั้งหมด" ต่อกลุ่ม — สำคัญมากเมื่อเพิ่งใช้
        "แบ่งเป็นรายมาตรา" แล้วได้โน้ตทีเดียวหลายสิบรายการในวิชาเดียวกัน */
     var groups = [], byKey = {};
@@ -2328,17 +2850,17 @@
     });
     el.innerHTML = groups.map(function (g) {
       return '<li class="note-group-hd">' +
-        '<span class="tag">' + (g.subj ? esc(g.subj) : 'ไม่ระบุวิชา') + '</span>' +
-        '<span class="mini">' + g.items.length + ' โน้ต</span>' +
-        '<button class="note-del-all" data-delsubj="' + esc(g.subj) + '">ลบทั้งหมดในวิชานี้</button>' +
+        '<span class="tag"' + (g.subj ? ' data-i18n-skip' : '') + '>' + (g.subj ? esc(g.subj) : esc(T('noSubj'))) + '</span>' +
+        '<span class="mini">' + esc(T('nNotes', { n: g.items.length })) + '</span>' +
+        '<button class="btn sm" data-delsubj="' + esc(g.subj) + '">' + esc(T('delAllSubj')) + '</button>' +
       '</li>' +
       g.items.map(function (n) {
         return '<li class="note-item" data-id="' + n.id + '">' +
           '<div class="hd"><span></span>' +
-          '<span class="note-actions"><button class="note-edit" data-edit="' + n.id + '" aria-label="แก้ไขโน้ต">' + icon('pencil') + '</button>' +
-          '<button class="note-del" data-del="' + n.id + '" aria-label="ลบโน้ต">' + icon('trash-2') + '</button></span></div>' +
-          '<div class="txt"><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
-          '<div class="meta">ทบทวนรอบถัดไป: ' + new Date(n.dueAt).toLocaleDateString('th-TH') + '</div>' +
+          '<span class="note-actions"><button class="btn sm ghost icon note-edit" data-edit="' + n.id + '" aria-label="' + esc(T('editNote')) + '">' + icon('pencil') + '</button>' +
+          '<button class="btn sm ghost icon note-del" data-del="' + n.id + '" aria-label="' + esc(T('delNote')) + '">' + icon('trash-2') + '</button></span></div>' +
+          '<div class="txt" data-i18n-skip><b>' + esc(n.q) + '</b>' + (n.a ? '<br>' + esc(n.a) : '') + '</div>' +
+          '<div class="meta">' + esc(T('nextReview')) + dateStr(n.dueAt, { year: 'numeric', month: 'numeric', day: 'numeric' }) + '</div>' +
         '</li>';
       }).join('');
     }).join('');
@@ -2357,8 +2879,8 @@
     var notes = loadNotes();
     var match = notes.filter(function (n) { return (n.subj || '') === subj; });
     if (!match.length) return;
-    var label = subj || 'ไม่ระบุวิชา';
-    bpConfirm('ลบโน้ตทั้งหมด ' + match.length + ' รายการในวิชา "' + label + '" ใช่หรือไม่? กู้คืนไม่ได้', 'ลบทั้งวิชา').then(function (ok) {
+    var label = subj || T('noSubj');
+    bpConfirm(T('confirmDelAll', { n: match.length, s: label }), T('delWhole')).then(function (ok) {
       if (!ok) return;
       if (editingNoteId && match.some(function (n) { return n.id === editingNoteId; })) cancelEditNote();
       saveNotes(loadNotes().filter(function (n) { return (n.subj || '') !== subj; }));
@@ -2374,7 +2896,7 @@
   }
   function renderReviewCount() {
     var n = dueNotes().length;
-    $('bpReviewCount').textContent = n ? ' — วันนี้มี ' + n + ' การ์ดที่ถึงกำหนดทบทวน' : ' — วันนี้ไม่มีการ์ดค้างทบทวน';
+    $('bpReviewCount').textContent = n ? T('dueToday', { n: n }) : T('noneDue');
   }
   /* ══════════════════ ตารางทบทวน — โมเดล FSRS ══════════════════
      ตัวคำนวณอยู่ใน fsrs.js (ไฟล์กลาง ใช้ร่วมกับหน้าภาษาและหน้าทบทวนวันนี้) — ชื่อฟังก์ชันเดิมคงไว้ให้โค้ดส่วนอื่นเรียกได้เหมือนเดิม */
@@ -2383,27 +2905,27 @@
   function startReview() {
     reviewQueue = dueNotes();
     reviewIdx = 0;
-    if (!reviewQueue.length) { $('bpReviewArea').innerHTML = '<p class="note-empty">ไม่มีการ์ดที่ถึงกำหนดทบทวนวันนี้</p>'; return; }
+    if (!reviewQueue.length) { $('bpReviewArea').innerHTML = '<p class="note-empty">' + esc(T('noCardsDue')) + '</p>'; return; }
     renderReviewCard();
   }
   function renderReviewCard() {
     var area = $('bpReviewArea');
     if (reviewIdx >= reviewQueue.length) {
-      area.innerHTML = '<p class="note-empty">ทบทวนครบทุกการ์ดของวันนี้แล้ว</p>';
+      area.innerHTML = '<p class="note-empty">' + esc(T('allReviewed')) + '</p>';
       renderReviewCount(); renderNoteList();
       return;
     }
     var n = reviewQueue[reviewIdx];
     area.innerHTML =
-      '<div class="flash-card" id="bpFlashCard"><div class="q">' + esc(n.q) + '</div>' +
-      '<div class="a">' + esc(n.a || '(ไม่มีเนื้อหาเพิ่มเติม)') + '</div></div>' +
+      '<div class="flash-card" id="bpFlashCard" data-i18n-skip><div class="q">' + esc(n.q) + '</div>' +
+      '<div class="a">' + esc(n.a || T('noExtra')) + '</div></div>' +
       '<div class="flash-btns">' +
         '<button class="btn sm fsrs-again" id="bpFlashAgain" type="button">Again</button>' +
         '<button class="btn sm fsrs-hard" id="bpFlashHard" type="button">Hard</button>' +
         '<button class="btn sm fsrs-good" id="bpFlashGood" type="button">Good</button>' +
         '<button class="btn sm fsrs-easy" id="bpFlashEasy" type="button">Easy</button>' +
       '</div>' +
-      '<div class="flash-progress">การ์ดที่ ' + (reviewIdx + 1) + ' / ' + reviewQueue.length + '</div>';
+      '<div class="flash-progress">' + esc(T('cardNo', { i: reviewIdx + 1, n: reviewQueue.length })) + '</div>';
     $('bpFlashCard').addEventListener('click', function () { this.classList.toggle('show'); });
     $('bpFlashAgain').addEventListener('click', function () { answerCard(n, 1); });
     $('bpFlashHard').addEventListener('click', function () { answerCard(n, 2); });
@@ -2437,6 +2959,7 @@
     try { localStorage.setItem(WRITING_KEY, JSON.stringify(a)); } catch (e) {}
     DriveSync.scheduleSync();
   }
+  function subjCell(subj) { return subj && subj !== '(ไม่ระบุวิชา)' ? '<span data-i18n-skip>' + esc(subj) + '</span>' : esc(T('noSubj')); }
   var wrTimer = null, wrTotalSec = 0, wrRemainSec = 0, wrStartTs = 0;
   function fmtClock(sec) {
     var neg = sec < 0; sec = Math.abs(sec);
@@ -2449,9 +2972,9 @@
     $('bpWrTimerBox').style.display = '';
     $('bpWrAnswer').value = '';
     $('bpWrChecklist').innerHTML =
-      '<li><label><input type="checkbox" id="bpChkMatra"> อ้างมาตราที่เกี่ยวข้องแม่นยำ</label></li>' +
-      '<li><label><input type="checkbox" id="bpChkDika"> อ้างฎีกาที่เกี่ยวข้อง (ถ้าจำเป็น)</label></li>' +
-      '<li><label><input type="checkbox" id="bpChkComplete"> ตอบครบทุกประเด็นที่โจทย์ถาม</label></li>';
+      '<li><label><input type="checkbox" id="bpChkMatra"> ' + esc(T('chkMatra')) + '</label></li>' +
+      '<li><label><input type="checkbox" id="bpChkDika"> ' + esc(T('chkDika')) + '</label></li>' +
+      '<li><label><input type="checkbox" id="bpChkComplete"> ' + esc(T('chkComplete')) + '</label></li>';
     $('bpWrStart').disabled = true; $('bpWrStop').disabled = false;
     tickWriting();
     wrTimer = setInterval(tickWriting, 1000);
@@ -2497,11 +3020,11 @@
     table.style.display = ''; empty.style.display = 'none';
     tbody.innerHTML = all.map(function (w) {
       var passed = [w.checklist.matra, w.checklist.dika, w.checklist.complete].filter(Boolean).length;
-      return '<tr><td>' + new Date(w.ts).toLocaleDateString('th-TH') + '</td>' +
-        '<td>' + esc(w.subj) + '</td>' +
-        '<td>' + fmtClock(w.elapsedSec).replace('+', '') + ' / ' + w.minutes + ' นาที</td>' +
+      return '<tr><td>' + dateStr(w.ts, { year: 'numeric', month: 'numeric', day: 'numeric' }) + '</td>' +
+        '<td>' + subjCell(w.subj) + '</td>' +
+        '<td>' + fmtClock(w.elapsedSec).replace('+', '') + ' / ' + esc(T('nMin', { n: w.minutes })) + '</td>' +
         '<td>' + passed + '/3</td>' +
-        '<td><button class="note-del" data-wdel="' + w.id + '" aria-label="ลบ">' + icon('trash-2') + '</button></td></tr>';
+        '<td><button class="btn sm ghost icon note-del" data-wdel="' + w.id + '" aria-label="' + esc(T('del')) + '">' + icon('trash-2') + '</button></td></tr>';
     }).join('');
     Array.prototype.forEach.call(tbody.querySelectorAll('[data-wdel]'), function (b) {
       b.addEventListener('click', function () { deleteWriting(b.dataset.wdel); });
@@ -2541,12 +3064,11 @@
     renderNoteList();
     renderReviewCount();
     var status = $('bpCleanNotesStatus');
-    if (status) status.textContent = changed ? ('ล้างข้อความไม่ต้องการออกจาก ' + changed + ' โน้ตแล้ว') : 'ไม่พบข้อความที่ต้องล้างในโน้ตที่มีอยู่ตอนนี้';
+    liveStatus(status, function () { return changed ? T('cleaned', { n: changed }) : T('nothingToClean'); });
   }
   function showTextForReview(text, subjHint, statusMsg) {
     text = stripBoilerplate(text);
-    $('bpOcrStatus').className = 'status ok';
-    $('bpOcrStatus').textContent = statusMsg || 'แปลงข้อความเสร็จแล้ว — ตรวจทานให้ดีก่อนบันทึก (โดยเฉพาะเลขมาตรา/เลขฎีกา)';
+    liveStatus($('bpOcrStatus'), function () { return statusMsg || T('ocrDone'); }, 'status ok');
     if (subjHint && !$('bpOcrSubj').value) $('bpOcrSubj').value = subjHint;
     $('bpOcrText').value = text || '';
     $('bpOcrText').style.display = '';
@@ -2599,10 +3121,10 @@
     list.innerHTML = sections.map(function (s, i) {
       var snip = s.text.replace(/^มาตรา\s*[๐-๙0-9\/\s]+(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)?\s*/, '').slice(0, 70);
       return '<li><label><input type="checkbox" checked data-mi="' + i + '">' +
-        '<span class="mnum">มาตรา ' + esc(s.num) + '</span> <span class="msnip">' + esc(snip) + (s.text.length > 70 ? '…' : '') + '</span>' +
+        '<span class="mnum" data-i18n-skip>' + esc(T('section')) + esc(s.num) + '</span> <span class="msnip" data-i18n-skip title="' + esc(snip) + '">' + esc(snip) + (s.text.length > 70 ? '…' : '') + '</span>' +
         '</label></li>';
     }).join('');
-    $('bpMatraSplitStatus').textContent = 'พบ ' + sections.length + ' มาตรา — ติ๊กออกได้ถ้ามีจุดที่แบ่งผิด (เช่น ข้อความอ้างอิงมาตราอื่นในเนื้อหา) แล้วตรวจทานอีกครั้งก่อนบันทึก';
+    liveStatus($('bpMatraSplitStatus'), function () { return T('foundSections', { n: sections.length }); });
     $('bpMatraSplitWrap').style.display = '';
     $('bpMatraSplitWrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -2613,41 +3135,39 @@
       var url = URL.createObjectURL(f);
       var img = $('bpOcrPreview'); img.src = url; img.style.display = '';
       var status = $('bpOcrStatus');
-      status.className = 'status'; status.textContent = 'กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
-      if (!window.Tesseract) { status.className = 'status err'; status.textContent = 'โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'; return; }
+      liveStatus(status, function () { return T('ocrBusy'); }, 'status');
+      if (!window.Tesseract) { liveStatus(status, function () { return T('ocrLoadFail'); }, 'status err'); return; }
       /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน
          OCR (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้อ่านแม่นขึ้น */
       var ocrPromise = window.TanotFileReader
         ? window.TanotFileReader.readImageFile(f, { onProgress: function () {
-            status.textContent = 'กำลังแปลงข้อความ (OCR)… อาจใช้เวลาสักครู่';
+            liveStatus(status, function () { return T('ocrBusy'); });
           } })
         : window.Tesseract.recognize(f, 'tha+eng', {
             logger: function (m) {
               if (m.status === 'recognizing text') {
-                status.textContent = 'กำลังแปลงข้อความ… ' + Math.round((m.progress || 0) * 100) + '%';
+                status.textContent = T('ocrPct', { p: Math.round((m.progress || 0) * 100) });
               }
             }
           }).then(function (result) { return (result.data && result.data.text) || ''; });
       ocrPromise.then(function (text) {
         showTextForReview(text || '');
       }).catch(function (err) {
-        status.className = 'status err';
-        status.textContent = 'แปลงข้อความไม่สำเร็จ: ' + (err && err.message ? err.message : err);
+        liveStatus(status, function () { return T('ocrFail') + (err && err.frKey && window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(err) : (err && err.message ? err.message : err)); }, 'status err');
       });
     });
     $('bpOcrSave').addEventListener('click', function () {
       var text = $('bpOcrText').value;
       if (!text.trim()) return;
       addNote($('bpOcrSubj').value, text.split('\n')[0].slice(0, 80) || 'โน้ตที่นำเข้า', text);
-      resetOcrUi('บันทึกเป็นโน้ตแล้ว');
+      resetOcrUi(function () { return T('savedAsNote'); });
     });
     $('bpMatraSplitBtn').addEventListener('click', function () {
       var text = $('bpOcrText').value;
       var sections = splitByMatra(text);
       if (!sections.length) {
         $('bpMatraSplitWrap').style.display = 'none';
-        $('bpOcrStatus').className = 'status err';
-        $('bpOcrStatus').textContent = 'ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน';
+        liveStatus($('bpOcrStatus'), function () { return T('noSections'); }, 'status err');
         return;
       }
       renderMatraPreview(sections);
@@ -2668,16 +3188,15 @@
       });
       if (!n) return;
       $('bpMatraSplitWrap').style.display = 'none';
-      resetOcrUi('บันทึกแยกเป็นโน้ตแล้ว ' + n + ' มาตรา');
+      resetOcrUi(function () { return T('savedSplit', { n: n }); });
     });
   }
-  function resetOcrUi(msg) {
+  function resetOcrUi(msg) { // msg = ฟังก์ชันคืนข้อความตามภาษาปัจจุบัน
     $('bpOcrText').value = ''; $('bpOcrText').style.display = 'none';
     $('bpOcrSave').style.display = 'none';
     $('bpMatraSplitBtn').style.display = 'none';
     $('bpMatraSplitWrap').style.display = 'none';
-    $('bpOcrStatus').className = 'status ok';
-    $('bpOcrStatus').textContent = msg;
+    liveStatus($('bpOcrStatus'), msg, 'status ok');
     $('bpOcrPreview').style.display = 'none';
     $('bpOcrFile').value = '';
   }
@@ -2717,25 +3236,24 @@
     if (!sel) return;
     var prevValue = sel.value;
     sel.innerHTML = folders.map(function (fo) {
-      return '<option value="' + fo.id + '">' + (fo.path ? esc(fo.path) : '(โฟลเดอร์หลัก)') + '</option>';
+      return '<option value="' + fo.id + '">' + (fo.path ? esc(fo.path) : esc(T('rootFolder'))) + '</option>';
     }).join('');
     if (prevValue && folders.some(function (fo) { return fo.id === prevValue; })) sel.value = prevValue;
   }
   function listDriveFiles() {
     var status = $('bpDriveListStatus'), list = $('bpDriveFileList');
     if (!DriveSync.connected || !DriveSync.accessToken) {
-      status.className = 'status err';
-      status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
+      liveStatus(status, function () { return T('driveNotConn'); }, 'status err');
       return;
     }
-    status.className = 'status'; status.textContent = 'กำลังค้นโฟลเดอร์ย่อย…';
+    liveStatus(status, function () { return T('findFolders'); }, 'status');
     var folders;
     DriveSync.ensureFolder().then(function (folderId) {
       return listSubfoldersRecursive(folderId, 4);
     }).then(function (f) {
       folders = f;
       renderUploadFolderOptions(folders);
-      status.textContent = 'กำลังโหลดรายชื่อไฟล์จาก ' + folders.length + ' โฟลเดอร์…';
+      liveStatus(status, function () { return T('loadingFiles', { n: folders.length }); });
       return Promise.all(folders.map(function (fo) {
         var q = encodeURIComponent("'" + fo.id + "' in parents and mimeType!='" + FOLDER_MIME + "' and trashed=false");
         return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)')
@@ -2747,17 +3265,16 @@
     }).then(function (groups) {
         var files = [].concat.apply([], groups).filter(function (f) { return f.name !== DRIVE_FILE_NAME; }); // ข้ามไฟล์ข้อมูลของแอปเอง
         files.sort(function (a, b) { return new Date(b.modifiedTime) - new Date(a.modifiedTime); });
-        status.className = 'status ok';
-        status.textContent = files.length ? ('พบ ' + files.length + ' ไฟล์ (รวมในโฟลเดอร์ย่อยแล้ว)') : 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้ (เช็กแล้วรวมโฟลเดอร์ย่อยด้วย)';
+        liveStatus(status, function () { return files.length ? T('foundFiles', { n: files.length }) : T('noFiles'); }, 'status ok');
         if (!files.length) { list.innerHTML = ''; return; }
         list.innerHTML = files.map(function (f) {
           var canExtract = f.mimeType === 'application/pdf' || (f.mimeType && f.mimeType.indexOf('image/') === 0);
           return '<li class="note-item" data-fid="' + f.id + '" data-mime="' + esc(f.mimeType) + '" data-name="' + esc(f.name) + '">' +
             '<div class="hd"><span class="tag">' + fileIcon(f.mimeType) + ' ' + esc(f.name) + '</span></div>' +
-            '<div class="meta">' + (f._path ? '' + esc(f._path) + ' · ' : '') + 'แก้ไขล่าสุด: ' + new Date(f.modifiedTime).toLocaleString('th-TH') + '</div>' +
+            '<div class="meta">' + (f._path ? '' + esc(f._path) + ' · ' : '') + esc(T('modified')) + dateStr(f.modifiedTime, { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
             '<div class="frow" style="margin-top:6px">' +
-              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">เปิดดู</a>' +
-              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">แยกข้อความ</button>' : '') +
+              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">' + esc(T('open')) + '</a>' +
+              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">' + esc(T('extract')) + '</button>' : '') +
             '</div></li>';
         }).join('');
         Array.prototype.forEach.call(list.querySelectorAll('[data-extract]'), function (b) {
@@ -2783,13 +3300,12 @@
     form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
     form.append('file', file);
     return DriveSync.authFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: form })
-      .then(function (r) { if (!r.ok) throw new Error('อัปโหลด "' + file.name + '" ไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+      .then(function (r) { if (!r.ok) throw new Error(T('eUploadFile', { s: file.name, c: r.status })); return r.json(); });
   }
   function uploadFilesToDrive(files) {
     var status = $('bpUploadStatus');
     if (!DriveSync.connected || !DriveSync.accessToken) {
-      status.className = 'status err';
-      status.textContent = 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน';
+      liveStatus(status, function () { return T('driveNotConn'); }, 'status err');
       return;
     }
     var chosenId = $('bpUploadTargetFolder').value;
@@ -2799,38 +3315,36 @@
       var i = 0;
       function next() {
         if (i >= list.length) {
-          status.className = 'status ok';
-          status.textContent = 'อัปโหลดครบ ' + list.length + ' ไฟล์แล้ว';
+          liveStatus(status, function () { return T('uploadedAll', { n: list.length }); }, 'status ok');
           listDriveFiles();
           return Promise.resolve();
         }
         var f = list[i++];
-        status.className = 'status'; status.textContent = 'กำลังอัปโหลด (' + i + '/' + list.length + '): ' + f.name;
+        var cur = i;
+        liveStatus(status, function () { return T('uploading', { i: cur, n: list.length }) + f.name; }, 'status');
         return uploadOneFile(f, parentId).then(next);
       }
       return next();
     }).catch(function (e) {
-      status.className = 'status err';
-      status.textContent = '' + (e.message || e);
+      liveStatus(status, function () { return '' + (e.message || e); }, 'status err');
     });
   }
 
   function extractFromDriveFile(fileId, mime, name) {
     var status = $('bpDriveListStatus');
-    status.className = 'status'; status.textContent = 'กำลังดึงไฟล์ "' + name + '"…';
+    liveStatus(status, function () { return T('fetching', { s: name }); }, 'status');
     DriveSync.authFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')
-      .then(function (r) { if (!r.ok) throw new Error('ดึงไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.arrayBuffer(); })
+      .then(function (r) { if (!r.ok) throw new Error(T('eFetchFile', { c: r.status })); return r.arrayBuffer(); })
       .then(function (buf) {
         if (mime === 'application/pdf') return extractPdfText(buf);
         return extractImageText(buf, mime);
       })
       .then(function (text) {
-        status.className = 'status ok'; status.textContent = 'แยกข้อความจาก "' + name + '" เสร็จแล้ว';
+        liveStatus(status, function () { return T('extracted', { s: name }); }, 'status ok');
         showTextForReview(text, name.replace(/\.[^.]+$/, ''));
       })
       .catch(function (e) {
-        status.className = 'status err';
-        status.textContent = 'แยกข้อความไม่สำเร็จ: ' + (e.message || e);
+        liveStatus(status, function () { return T('extractFail') + (e.message || e); }, 'status err');
       });
   }
   /* ต่อข้อความจาก PDF ทีละบรรทัดจริงตามที่ pdf.js รายงาน (แต่ละชิ้นข้อความมี hasEOL บอกว่า
@@ -2848,7 +3362,7 @@
     return lines.join('\n');
   }
   function extractPdfText(arrayBuffer) {
-    if (!window.pdfjsLib) return Promise.reject(new Error('โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
+    if (!window.pdfjsLib) return Promise.reject(new Error(T('ePdfLib')));
     return window.pdfjsLib.getDocument({ data: arrayBuffer }).promise.then(function (doc) {
       var pages = [], chain = Promise.resolve();
       var _loop = function (i) {
@@ -2865,7 +3379,7 @@
     });
   }
   function extractImageText(arrayBuffer, mime) {
-    if (!window.Tesseract) return Promise.reject(new Error('โหลดตัวแปลงข้อความไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่'));
+    if (!window.Tesseract) return Promise.reject(new Error(T('ocrLoadFail')));
     var blob = new Blob([arrayBuffer], { type: mime || 'image/jpeg' });
     /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — เตรียมภาพก่อน OCR
        (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu) ช่วยให้อ่านแม่นขึ้นชัดเจน */
@@ -2881,19 +3395,18 @@
   var DRIVE_FOLDER_NAME = 'เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา';
   var DRIVE_FILE_NAME = 'bar-prep-data.json';
   var DRIVE_CONNECTED_KEY = 'tanot:barprep:driveConnected';
-  function nowTime() { return new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }); }
 
   var DriveSync = {
     tokenClient: null, accessToken: null, folderId: null, fileId: null,
     connected: false, syncing: false, pending: false, timer: null,
 
-    setStatus: function (text, cls) {
+    setStatus: function (text, cls) { // text = สตริง หรือฟังก์ชันที่คืนข้อความตามภาษาปัจจุบัน (แปลสดตอนสลับภาษา)
       var el = $('driveStatusTxt'); if (!el) return;
-      el.textContent = text; el.className = 'status' + (cls ? ' ' + cls : '');
+      liveStatus(el, typeof text === 'function' ? text : function () { return text; }, 'status' + (cls ? ' ' + cls : ''));
     },
     setBtn: function () {
       var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? 'เชื่อมต่อ Google Drive แล้ว' : 'เชื่อมต่อ Google Drive';
+      b.textContent = this.connected ? T('driveConnected') : T('driveConnect');
     },
     init: function () {
       try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
@@ -2907,7 +3420,7 @@
           use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
           callback: function (resp) {
             if (resp.error) {
-              self.setStatus(self.connected ? 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง' : 'เชื่อมต่อไม่สำเร็จ: ' + resp.error, 'err');
+              self.setStatus(function () { return self.connected ? T('autoConnFail') : T('connFail') + resp.error; }, 'err');
               return;
             }
             self.accessToken = resp.access_token;
@@ -2921,8 +3434,8 @@
       })();
     },
     connect: function () {
-      if (!this.tokenClient) { this.setStatus('กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่', 'err'); return; }
-      this.setStatus('กำลังขอสิทธิ์เชื่อมต่อ…', '');
+      if (!this.tokenClient) { this.setStatus(function () { return T('gisLoading'); }, 'err'); return; }
+      this.setStatus(function () { return T('askingPerm'); }, '');
       this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
     },
     authFetch: function (url, opts) {
@@ -2935,13 +3448,13 @@
       if (self.folderId) return Promise.resolve(self.folderId);
       var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(T('eFolderFind', { c: r.status })); return r.json(); })
         .then(function (data) {
           if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
           return self.authFetch('https://www.googleapis.com/drive/v3/files', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+          }).then(function (r) { if (!r.ok) throw new Error(T('eFolderMake', { c: r.status })); return r.json(); })
             .then(function (d) { self.folderId = d.id; return self.folderId; });
         });
     },
@@ -2950,13 +3463,13 @@
       if (self.fileId) return Promise.resolve(self.fileId);
       var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
       return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(T('eFileFind', { c: r.status })); return r.json(); })
         .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
     },
     download: function () {
       var self = this;
       return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (' + r.status + ')'); return r.json(); });
+        .then(function (r) { if (!r.ok) throw new Error(T('eDownload', { c: r.status })); return r.json(); });
     },
     upload: function (obj) {
       var self = this;
@@ -2968,7 +3481,7 @@
         ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
         : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
       return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (' + r.status + ')'); return r.json(); })
+        .then(function (r) { if (!r.ok) throw new Error(T('eUpload', { c: r.status })); return r.json(); })
         .then(function (d) { if (d.id) self.fileId = d.id; return d; });
     },
     mergeById: function (a, b) {
@@ -2987,7 +3500,7 @@
     },
     firstSync: function () {
       var self = this;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(function () { return T('syncing'); }, '');
       /* ต้องรอ notesReady ก่อนเสมอ — สมุดโน้ตอยู่ใน IndexedDB (async) ถ้า sync อัตโนมัติทำงาน
          เร็วกว่าโหลดแคชเสร็จ (เช่น Google reauth เงียบๆ ตอนเปิดหน้า) loadNotes() อาจยังว่างอยู่
          จะ merge/อัปโหลดทับข้อมูลจริงในเครื่องหายได้ */
@@ -3008,8 +3521,8 @@
           renderNoteList(); renderReviewCount(); renderWritingHistory(); renderExams(); loadCareerIntoForm();
           return self.upload(self.payload());
         })
-        .then(function () { self.setStatus('ซิงก์กับ Google Drive แล้ว · ' + nowTime(), 'ok'); listDriveFiles(); })
-        .catch(function (e) { self.setStatus('' + (e.message || e), 'err'); });
+        .then(function () { var tm = nowTime(); self.setStatus(function () { return T('syncedWith') + tm; }, 'ok'); listDriveFiles(); })
+        .catch(function (e) { self.setStatus(function () { return '' + (e.message || e); }, 'err'); });
     },
     scheduleSync: function () {
       var self = this;
@@ -3022,17 +3535,17 @@
       var self = this;
       if (self.syncing) { self.pending = true; return; }
       self.pending = false; self.syncing = true;
-      self.setStatus('กำลังซิงก์…', '');
+      self.setStatus(function () { return T('syncing'); }, '');
       notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
         .then(function () { return self.upload(self.payload()); })
-        .then(function () { self.setStatus('ซิงก์ล่าสุด ' + nowTime(), 'ok'); })
+        .then(function () { var tm = nowTime(); self.setStatus(function () { return T('lastSynced') + tm; }, 'ok'); })
         .catch(function (e) {
           var msg = String(e && e.message || e);
           if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
             self.accessToken = null;
-            self.setStatus('เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง', 'err');
+            self.setStatus(function () { return T('sessionExpired'); }, 'err');
           } else {
-            self.setStatus('ซิงก์ไม่สำเร็จ: ' + msg, 'err');
+            self.setStatus(function () { return T('syncFail') + msg; }, 'err');
           }
         })
         .finally(function () {
@@ -3053,13 +3566,13 @@
   }
   function renderSubjectNav() {
     $('clSubjectNav').innerHTML = SUBJECTS.map(function (s) {
-      return '<li><a href="#subject-' + s.id + '" data-view="subject-' + s.id + '">' + esc(s.label) +
+      return '<li><a href="#subject-' + s.id + '" data-view="subject-' + s.id + '" data-i18n-skip>' + esc(s.label) +
         '<span class="sub">' + esc(s.full) + '</span></a></li>';
     }).join('');
     var courseNav = $('clCourseNav');
     if (courseNav) {
       courseNav.innerHTML = COURSE_SUBJECTS.map(function (s) {
-        return '<li><a href="#course-' + s.id + '" data-view="course-' + s.id + '">' + esc(s.label) +
+        return '<li><a href="#course-' + s.id + '" data-view="course-' + s.id + '" data-i18n-skip>' + esc(s.label) +
           '<span class="sub">' + esc(s.full) + '</span></a></li>';
       }).join('');
     }
@@ -3133,13 +3646,13 @@
       }
     });
     var boxes = [
-      { num: notes.length, lbl: 'โน้ตทั้งหมด' },
-      { num: due, lbl: 'ถึงกำหนดทบทวนวันนี้' },
-      { num: writingCount, lbl: 'ครั้งที่ฝึกเขียนตอบ' },
-      { num: nearest ? nearest.days : '—', lbl: nearest ? ('วันจนถึง ' + nearest.name) : 'ยังไม่มีวันสอบที่กำลังจะถึง' }
+      { num: notes.length, lbl: T('statNotes') },
+      { num: due, lbl: T('statDue') },
+      { num: writingCount, lbl: T('statWriting') },
+      { num: nearest ? nearest.days : '—', lbl: nearest ? T('daysTo') : T('noUpcoming'), name: nearest ? nearest.name : '' }
     ];
     $('clStatRow').innerHTML = boxes.map(function (b) {
-      return '<div class="stat-box"><div class="num">' + esc(b.num) + '</div><div class="lbl">' + esc(b.lbl) + '</div></div>';
+      return '<div class="stat-box"><div class="num">' + esc(b.num) + '</div><div class="lbl">' + esc(b.lbl) + (b.name ? '<span data-i18n-skip>' + esc(b.name) + '</span>' : '') + '</div></div>';
     }).join('');
   }
   function renderSubjBars() {
@@ -3151,17 +3664,17 @@
       for (var i = 0; i < SUBJECTS.length; i++) { if (noteMatchesSubject(n, SUBJECTS[i])) { matched = SUBJECTS[i]; break; } }
       if (matched) counts[matched.id]++; else other++;
     });
-    var rows = SUBJECTS.map(function (s) { return { lbl: s.label, val: counts[s.id] }; });
-    rows.push({ lbl: 'อื่นๆ', val: other });
+    var rows = SUBJECTS.map(function (s) { return { lbl: s.label, val: counts[s.id], skip: true }; });
+    rows.push({ lbl: T('other'), val: other });
     var max = Math.max.apply(null, rows.map(function (r) { return r.val; }).concat([1]));
     $('clSubjBars').innerHTML = rows.map(function (r) {
       var pct = Math.round(r.val / max * 100);
-      return '<div class="bar-row"><span class="lbl">' + esc(r.lbl) + '</span>' +
+      return '<div class="bar-row"><span class="lbl"' + (r.skip ? ' data-i18n-skip' : '') + '>' + esc(r.lbl) + '</span>' +
         '<span class="track"><span class="fill" style="width:' + pct + '%"></span></span>' +
         '<span class="val">' + r.val + '</span></div>';
     }).join('');
   }
-  var SRS_LABELS = ['ใหม่', 'สั้น (<2วัน)', '2-5 วัน', '5-10 วัน', '10-20 วัน', '20 วัน+'];
+  var SRS_LABELS = ['srsNew', 'srsShort', 'srs25', 'srs510', 'srs1020', 'srs20'];
   var SRS_COLORS = ['var(--ome-text-3)', 'var(--ome-chart-4)', 'var(--ome-chart-1)', 'var(--ome-chart-7)', 'var(--ome-chart-3)', 'var(--ome-chart-6)'];
   /* จัดกลุ่มการ์ดตาม stability (ความเสถียรของความจำ, วัน) จากโมเดล FSRS แทนขั้นบันไดเดิม
      การ์ดที่ยังไม่เคยถูกทบทวนด้วย FSRS (stability เป็น null — รวมถึงการ์ดเก่าจากระบบขั้นบันได
@@ -3183,10 +3696,10 @@
     $('clSrsTrack').innerHTML = counts.map(function (c, i) {
       if (!c) return '';
       var pct = Math.round(c / total * 100);
-      return '<div class="srs-seg" style="width:' + pct + '%;background:' + SRS_COLORS[i] + '">' + (pct >= 8 ? c : '') + '</div>';
+      return '<div class="srs-seg" style="width:' + pct + '%;background:' + SRS_COLORS[i] + '" title="' + esc(T(SRS_LABELS[i])) + ' (' + c + ')"></div>';
     }).join('');
     $('clSrsLegend').innerHTML = SRS_LABELS.map(function (lbl, i) {
-      return '<span><i style="background:' + SRS_COLORS[i] + '"></i>' + esc(lbl) + ' (' + counts[i] + ')</span>';
+      return '<span><i style="background:' + SRS_COLORS[i] + '"></i>' + esc(T(lbl)) + ' (' + counts[i] + ')</span>';
     }).join('');
   }
   function renderActivityGraph() {
@@ -3201,10 +3714,10 @@
     var max = Math.max.apply(null, counts.concat([1]));
     $('clActGraph').innerHTML = counts.map(function (c) {
       var h = c > 0 ? Math.max(Math.round(c / max * 100), 8) : 2;
-      return '<div class="act-bar" style="height:' + h + '%" title="' + c + ' กิจกรรม"></div>';
+      return '<div class="act-bar" style="height:' + h + '%" title="' + esc(T('nActs', { n: c })) + '"></div>';
     }).join('');
-    $('clActFrom').textContent = new Date(starts[0]).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-    $('clActTo').textContent = new Date(starts[starts.length - 1]).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+    $('clActFrom').textContent = dateStr(starts[0], { day: 'numeric', month: 'short' });
+    $('clActTo').textContent = dateStr(starts[starts.length - 1], { day: 'numeric', month: 'short' });
   }
   function renderWrBars() {
     var all = loadWriting();
@@ -3222,10 +3735,10 @@
     var rows = Object.keys(bySubj).map(function (k) {
       var d = bySubj[k];
       var rate = d.total ? Math.round(d.passed / d.total * 100) : 0;
-      return { lbl: k + ' (' + d.count + ' ครั้ง)', val: rate };
+      return { lbl: k === '(ไม่ระบุวิชา)' ? '' : k, sub: k === '(ไม่ระบุวิชา)', n: d.count, val: rate };
     });
     wrap.innerHTML = rows.map(function (r) {
-      return '<div class="bar-row"><span class="lbl">' + esc(r.lbl) + '</span>' +
+      return '<div class="bar-row"><span class="lbl">' + (r.sub ? '' : '<span data-i18n-skip>' + esc(r.lbl) + '</span>') + (r.sub ? esc(T('noSubj')) : '') + ' (' + esc(T('nTimes', { n: r.n })) + ')</span>' +
         '<span class="track"><span class="fill" style="width:' + r.val + '%"></span></span>' +
         '<span class="val">' + r.val + '%</span></div>';
     }).join('');
@@ -3282,6 +3795,26 @@
     DriveSync.init();
 
     renderSubjectNav();
+    document.title = T('pageTitle');
+    OME_LANG.onChange(function () {
+      document.title = T('pageTitle');
+      renderSubjectNav();
+      renderExams();
+      if (localStorage.getItem(CAREER_KEY)) renderCareerResult(readCareer());
+      DriveSync.setBtn();
+      renderLessonContent(currentSubjectFilter);
+      renderExamQuestions(currentSubjectFilter);
+      if (mockState && mockState.list) renderMockQuestion();
+      if (drillState) renderDrillQuestion();
+      renderNoteList();
+      renderReviewCount();
+      if (reviewQueue.length && reviewIdx < reviewQueue.length) renderReviewCard();
+      renderWritingHistory();
+      renderDashboard();
+      renderTtsBar();
+      if ($('clRefSearch').value) renderRefSearchResults($('clRefSearch').value);
+      Array.prototype.forEach.call(document.querySelectorAll('.clhb-list a'), function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + (location.hash.replace(/^#/, '') || 'dashboard')); });
+    });
     $('clHbToggle').addEventListener('click', function () {
       if ($('clHbPanel').classList.contains('open')) closeHamburger(); else openHamburger();
     });

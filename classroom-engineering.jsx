@@ -1,6 +1,185 @@
         const { useState, useEffect, useMemo, useRef } = React;
         const COURSE = JSON.parse(document.getElementById('course-data').textContent);
 
+        // ── ภาษา UI (ไทย/อังกฤษ) — เนื้อหาบทเรียน/ข้อสอบ/โน้ตของผู้ใช้เป็นเนื้อหา ไม่แปล (data-i18n-skip) ──
+        const T = OME_I18N.scope('lbe-engineering', {
+            th: {
+                openNav: 'เปิดเมนูหัวข้อ',
+                closeNav: 'ปิดเมนู',
+                allTopics: 'หัวข้อทั้งหมด',
+                sync: 'ซิงก์',
+                syncing: 'กำลังซิงก์...',
+                syncConnecting: 'กำลังเชื่อมต่อ Google...',
+                syncOk: 'ซิงก์สำเร็จ',
+                back: 'กลับ Tanot',
+                tabStream: 'สตรีม',
+                tabWork: 'งานเรียน',
+                tabReview: 'ทบทวน',
+                tabExam: 'สอบรวม',
+                tabNotes: 'โน้ตทั้งหมด',
+                classroom: 'ห้องเรียน',
+                progressAll: 'ความคืบหน้ารวม',
+                ofTopics: '{done}/{total} หัวข้อ',
+                reviewToday: 'ทบทวนวันนี้',
+                noDue: 'ยังไม่มีข้อครบกำหนด',
+                dueN: 'ข้อครบกำหนดทบทวน',
+                startReview: 'เริ่มทบทวน',
+                lastExam: 'สอบรวมล่าสุด',
+                neverExam: 'ยังไม่เคยสอบ',
+                startExamAll: 'เริ่มสอบรวม',
+                examAgain: 'สอบอีกครั้ง',
+                todo: 'งานที่ยังไม่เสร็จ',
+                allDone: 'ทำครบทุกหัวข้อแล้ว เยี่ยมมาก!',
+                noDueReview: 'ยังไม่มีข้อครบกำหนดทบทวน',
+                reviewDone: 'ทบทวนครบ {n} ข้อแล้ว!',
+                backStream: 'กลับหน้าสตรีม',
+                reviewOf: 'ทบทวน {i} / {n}',
+                yourAnswer: 'คำตอบของคุณ...',
+                reveal: 'ดูเฉลย',
+                answerKey: 'เฉลย',
+                recalled: 'จำได้ (+30 XP)',
+                notYetTomorrow: 'ยังไม่ได้ (ถามใหม่พรุ่งนี้)',
+                start10: 'เริ่มสอบ 10 ข้อ',
+                start20: 'เริ่มสอบ 20 ข้อ',
+                recent: 'ผลสอบล่าสุด',
+                scoreIs: 'ได้ {s} / {n} คะแนน',
+                timeUsed: 'ใช้เวลา {t} นาที',
+                qOf: 'ข้อ {i} / {n}',
+                typeAns: 'พิมพ์คำตอบของคุณ...',
+                submit: 'ส่งคำตอบ',
+                correct: 'ตอบถูก',
+                wrong: 'ยังไม่ถูก',
+                resultTime: '{score}/{total} ({m}:{s} นาที)',
+                searchNotes: 'ค้นหาในโน้ตทุกหัวข้อ...',
+                noMatch: 'ไม่พบโน้ตที่ตรงกับคำค้น',
+                noNotes: 'ยังไม่มีโน้ต',
+                tabSummary: 'สรุปเนื้อหา',
+                tabQuiz: 'แบบฝึกเขียนตอบ',
+                tabMyNotes: 'โน้ตของฉัน',
+                edit: 'แก้ไข',
+                preview: 'ดูตัวอย่าง',
+                savedAt: 'บันทึกล่าสุด {d}',
+                emptyPreview: 'ยังไม่มีเนื้อหา',
+                notePh: 'จดสรุป คำจำกัดความ หรือประเด็นที่อยากจำไว้สำหรับหัวข้อนี้...',
+                keyPoints: 'ประเด็นสำคัญ',
+                noContent: 'ยังไม่มีเนื้อหา',
+                qNofN: 'คำถามที่ {i} จาก {n}',
+                typeHere: 'พิมพ์คำตอบของคุณที่นี่...',
+                refAnswer: 'คำตอบอ้างอิง',
+                correctXp: 'ตอบถูก (+100 XP)',
+                markedCorrect: 'บันทึกว่าตอบถูกแล้ว',
+                markedWrong: 'บันทึกว่ายังไม่ถูก',
+                savedAns: 'บันทึกคำตอบแล้ว (+50 XP)',
+                next: 'ข้อต่อไป',
+                seeSummary: 'ดูสรุปผล',
+                allWritten: 'เขียนตอบครบทุกข้อแล้ว!',
+                topicLabel: 'หัวข้อ',
+                nQuestions: '{n} ข้อ',
+                retry: 'ทำแบบฝึกอีกครั้ง',
+                reflect1: 'อธิบายหลักการสำคัญของ "{t}" ตามความเข้าใจของคุณ',
+                reflect2: 'ยกตัวอย่างสถานการณ์จริงที่ต้องใช้ความรู้เรื่อง "{t}"',
+                eGis: 'โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่',
+                eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
+                eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
+                eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})',
+                eDownload: 'ดาวน์โหลดไม่สำเร็จ (HTTP {c})',
+                eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})',
+                title: 'ห้องเรียนวิศวกรรม',
+                subj_engineering: 'วิศวกรรม',
+                'subj_elec-maint': 'บำรุงรักษาระบบไฟฟ้า'
+            },
+            en: {
+                openNav: 'Open topics menu',
+                closeNav: 'Close menu',
+                allTopics: 'All topics',
+                sync: 'Sync',
+                syncing: 'Syncing...',
+                syncConnecting: 'Connecting to Google...',
+                syncOk: 'Sync complete',
+                back: 'Back to Tanot',
+                tabStream: 'Stream',
+                tabWork: 'Coursework',
+                tabReview: 'Review',
+                tabExam: 'Exam',
+                tabNotes: 'All notes',
+                classroom: 'Classroom',
+                progressAll: 'Overall progress',
+                ofTopics: '{done}/{total} topics',
+                reviewToday: 'Review today',
+                noDue: 'Nothing due yet',
+                dueN: 'items due for review',
+                startReview: 'Start review',
+                lastExam: 'Latest exams',
+                neverExam: 'No exams yet',
+                startExamAll: 'Start exam',
+                examAgain: 'Take it again',
+                todo: 'Unfinished topics',
+                allDone: 'All topics done — great work!',
+                noDueReview: 'No items due for review',
+                reviewDone: 'Reviewed all {n} items!',
+                backStream: 'Back to stream',
+                reviewOf: 'Review {i} / {n}',
+                yourAnswer: 'Your answer...',
+                reveal: 'Show answer',
+                answerKey: 'Answer',
+                recalled: 'Got it (+30 XP)',
+                notYetTomorrow: 'Not yet (ask again tomorrow)',
+                start10: 'Start 10 questions',
+                start20: 'Start 20 questions',
+                recent: 'Recent results',
+                scoreIs: 'Scored {s} / {n}',
+                timeUsed: 'Time taken {t}',
+                qOf: 'Question {i} / {n}',
+                typeAns: 'Type your answer...',
+                submit: 'Submit answer',
+                correct: 'Correct',
+                wrong: 'Not yet',
+                resultTime: '{score}/{total} ({m}:{s})',
+                searchNotes: 'Search notes across all topics...',
+                noMatch: 'No notes match your search',
+                noNotes: 'No notes yet',
+                tabSummary: 'Summary',
+                tabQuiz: 'Written practice',
+                tabMyNotes: 'My notes',
+                edit: 'Edit',
+                preview: 'Preview',
+                savedAt: 'Last saved {d}',
+                emptyPreview: 'Nothing here yet',
+                notePh: 'Write summaries, definitions or points to remember for this topic...',
+                keyPoints: 'Key points',
+                noContent: 'No content yet',
+                qNofN: 'Question {i} of {n}',
+                typeHere: 'Type your answer here...',
+                refAnswer: 'Reference answer',
+                correctXp: 'Correct (+100 XP)',
+                markedCorrect: 'Marked as correct',
+                markedWrong: 'Marked as not yet correct',
+                savedAns: 'Answer saved (+50 XP)',
+                next: 'Next question',
+                seeSummary: 'See results',
+                allWritten: 'You answered every question!',
+                topicLabel: 'Topic',
+                nQuestions: '{n} questions',
+                retry: 'Practice again',
+                reflect1: 'Explain the key principle of "{t}" in your own understanding',
+                reflect2: 'Give a real situation where knowing "{t}" is needed',
+                eGis: 'Could not load Google Identity Services — try refreshing the page',
+                eFolderFind: 'Could not search folders (HTTP {c})',
+                eFolderMake: 'Could not create folder (HTTP {c})',
+                eFileFind: 'Could not search files (HTTP {c})',
+                eDownload: 'Download failed (HTTP {c})',
+                eUpload: 'Could not save to Drive (HTTP {c})',
+                title: 'Engineering classroom',
+                subj_engineering: 'Engineering',
+                'subj_elec-maint': 'Electrical maintenance'
+            },
+        });
+        window.OME_PAGE_LIVE_LANG = true;
+        // ข้อผิดพลาดที่พกคีย์ข้อความ — บรรทัดสถานะแปลสดตอนสลับภาษา (ไม่เก็บข้อความที่แปลแล้วไว้)
+        const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
+        const statusText = st => !st ? '' : st.tkey ? T(st.tkey, st.tvars) : (st.raw || '');
+        const subjLabel = s => T('subj_' + (s.subjId || s.id));
+
         // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
         // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับหัวข้อ
         const icon = (name, cls) => () => (
@@ -21,6 +200,7 @@
         const Menu = icon('menu', 'w-5 h-5');
         const CloseIcon = icon('x', 'w-5 h-5');
         const NotebookIcon = icon('notebook-pen', 'w-5 h-5');
+        const HeadIcon = icon('wrench', 'w-5 h-5');
 
         // หมวด = คีย์ใน course-data (id หมวด/หัวข้อเป็นส่วนหนึ่งของคีย์การ์ดทบทวน "<หมวด>:<หัวข้อ>:<ลำดับข้อ>" — ห้ามเปลี่ยน)
         // หัวข้อที่มี quiz เป็นแบบฝึกมีเฉลย และเข้าระบบทบทวนเว้นช่วง + สอบรวม + review.html อัตโนมัติ
@@ -36,10 +216,10 @@
         ];
 
         function reflectionPrompts(title) {
-            return [
-                `อธิบายหลักการสำคัญของ "${title}" ตามความเข้าใจของคุณ`,
-                `ยกตัวอย่างสถานการณ์จริงที่ต้องใช้ความรู้เรื่อง "${title}"`,
-            ];
+            return [1, 2].map(n => ({
+                q: T('reflect' + n, { t: title }),
+                reflect: T('reflect' + n, { t: '\u0000' }).split('\u0000'),
+            }));
         }
 
         function loadXp() {
@@ -179,7 +359,7 @@
             ensureAuth() {
                 return new Promise((resolve, reject) => {
                     if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(new Error('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
+                        reject(tErr('eGis'));
                         return;
                     }
                     if (!this.tokenClient) {
@@ -201,7 +381,7 @@
                 const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eFolderFind', { c: res.status });
                 const data = await res.json();
                 if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
                 const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
@@ -209,7 +389,7 @@
                     headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
                     body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
                 });
-                if (!createRes.ok) throw new Error('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP ' + createRes.status + ')');
+                if (!createRes.ok) throw tErr('eFolderMake', { c: createRes.status });
                 const createData = await createRes.json();
                 this.folderId = createData.id;
                 return this.folderId;
@@ -218,14 +398,14 @@
                 const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ค้นหาไฟล์ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eFileFind', { c: res.status });
                 const data = await res.json();
                 return (data.files && data.files[0]) || null;
             },
             async downloadFile(fileId) {
                 const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
                     { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw new Error('ดาวน์โหลดไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eDownload', { c: res.status });
                 return res.json();
             },
             async uploadFile(name, folderId, existingId, obj) {
@@ -238,7 +418,7 @@
                     : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
                 const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
                     headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw new Error('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP ' + res.status + ')');
+                if (!res.ok) throw tErr('eUpload', { c: res.status });
                 return res.json();
             },
         };
@@ -261,8 +441,11 @@
             const [srs, setSrs] = useState(loadSrs());
             const [exams, setExams] = useState(loadExams());
             const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState('');
+            const [syncStatus, setSyncStatus] = useState(null);
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
+            const [lang, setLang] = useState(OME_I18N.lang());
+            useEffect(() => OME_LANG.onChange(l => setLang(l)), []);
+            useEffect(() => { document.title = T('title') + ' | Tanot'; }, [lang]);
 
             // เซสชันทบทวน (spaced repetition)
             const [revList, setRevList] = useState([]);       // qKey[]
@@ -337,10 +520,10 @@
 
             const syncNow = async () => {
                 setSyncing(true);
-                setSyncStatus('กำลังเชื่อมต่อ Google...');
+                setSyncStatus({ tkey: 'syncConnecting' });
                 try {
                     await DriveSync.ensureAuth();
-                    setSyncStatus('กำลังซิงก์...');
+                    setSyncStatus({ tkey: 'syncing' });
                     const folderId = await DriveSync.ensureFolder();
                     const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
                     const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
@@ -363,9 +546,9 @@
                     await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
                         { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, notes: mergedNotes,
                           srs: mergedSrs, exams: mergedExams, savedAt: new Date().toISOString() });
-                    setSyncStatus('ซิงก์สำเร็จ');
+                    setSyncStatus({ tkey: 'syncOk' });
                 } catch (e) {
-                    setSyncStatus('' + (e.message || e));
+                    setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: '' + (e.message || e) });
                 } finally {
                     setSyncing(false);
                 }
@@ -378,8 +561,8 @@
                 if (topic.kind === 'quiz') {
                     return topic.data.quiz.map(q => ({ q: q.q, refAnswer: q.options[q.answer], hasKey: true }));
                 }
-                return reflectionPrompts(topic.title).map(q => ({ q, refAnswer: null, hasKey: false }));
-            }, [topic]);
+                return reflectionPrompts(topic.title).map(p => ({ q: p.q, reflect: p.reflect, refAnswer: null, hasKey: false }));
+            }, [topic, lang]);
 
             const level = Math.floor(xp / 250) + 1;
 
@@ -458,207 +641,160 @@
             }, [isDone, activeSubject, topic.id]);
 
             return (
-                <div className="h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans">
+                <div className="lbe-app h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans">
 
-                    <header className="min-h-[64px] bg-white border-b border-slate-200 flex items-center flex-wrap gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10">
-                        <div className="flex items-center gap-2">
-                            <button onClick={() => setMobileNavOpen(true)} className="md:hidden -ml-1 p-1.5 text-slate-500 hover:text-slate-800" aria-label="เปิดเมนูหัวข้อ">
+                    <header className="bg-white border-b border-slate-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <button data-k="menu" onClick={() => setMobileNavOpen(true)} className="btn ghost icon md:hidden -ml-2" aria-label={T('openNav')}>
                                 <Menu />
                             </button>
-                            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-white font-bold shrink-0">ว</div>
-                            <h1 className="text-base sm:text-lg font-bold text-slate-800">ห้องเรียนวิศวกรรม <span className="hidden sm:inline text-slate-400 font-normal">| Tanot</span></h1>
+                            <span className="lbe-headicon"><HeadIcon /></span>
+                            <h1 className="text-lg font-bold">{T('title')} <span className="hidden sm:inline text-slate-400 font-normal">| Tanot</span></h1>
                         </div>
-                        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-                            <div className="flex items-center gap-2 bg-amber-50 px-3 py-1.5 rounded-full border border-amber-200">
-                                <Trophy />
-                                <span className="text-sm font-bold text-amber-600">Level {level}</span>
-                                <span className="text-xs text-amber-500 font-medium">({xp} XP)</span>
-                            </div>
-                            <button
-                                onClick={syncNow}
-                                disabled={syncing}
-                                className="text-xs font-semibold text-slate-500 hover:text-secondary border border-slate-200 hover:border-secondary rounded-full px-3 py-1.5 disabled:opacity-50 transition-colors"
-                            >
-                                {syncing ? 'กำลังซิงก์...' : <>ซิงก์<span className="hidden sm:inline"> Google Drive</span></>}
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="badge warn"><Trophy /> <span>Level {level}</span> <span>({xp} XP)</span></span>
+                            <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
+                                {syncing ? T('syncing') : <>{T('sync')}<span className="hidden sm:inline"> Google Drive</span></>}
                             </button>
-                            {syncStatus && <span className="hidden sm:inline text-xs text-slate-400">{syncStatus}</span>}
-                            <a href="./index.html" className="text-xs font-semibold text-slate-400 hover:text-slate-700">&larr; กลับ Tanot</a>
+                            {syncStatus && <span className="hidden sm:inline text-sm text-slate-500">{statusText(syncStatus)}</span>}
+                            <a href="./index.html" className="btn ghost sm">&larr; {T('back')}</a>
                         </div>
                     </header>
 
-                    <div className="h-11 bg-white border-b border-slate-200 flex items-center gap-4 sm:gap-6 px-4 sm:px-6 shrink-0 z-10 overflow-x-auto whitespace-nowrap">
-                        <button
-                            onClick={() => setView('stream')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'stream' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            สตรีม
+                    <div className="tabs bg-white px-2 sm:px-4 shrink-0">
+                        <button data-k="tab-stream" onClick={() => setView('stream')} aria-current={view === 'stream' ? 'page' : undefined} className={`tab${view === 'stream' ? ' on' : ''}`}>{T('tabStream')}</button>
+                        <button data-k="tab-work" onClick={() => setView('classwork')} aria-current={view === 'classwork' ? 'page' : undefined} className={`tab${view === 'classwork' ? ' on' : ''}`}>{T('tabWork')}</button>
+                        <button data-k="tab-review" onClick={startReview} aria-current={view === 'review' ? 'page' : undefined} className={`tab${view === 'review' ? ' on' : ''} inline-flex items-center gap-2`}>
+                            {T('tabReview')}
+                            {dueKeys.length > 0 && <span className="badge accent">{dueKeys.length}</span>}
                         </button>
-                        <button
-                            onClick={() => setView('classwork')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'classwork' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            งานเรียน
-                        </button>
-                        <button
-                            onClick={startReview}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 flex items-center gap-1.5 ${view === 'review' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            ทบทวน
-                            {dueKeys.length > 0 && <span className="bg-accent text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{dueKeys.length}</span>}
-                        </button>
-                        <button
-                            onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'exam' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            สอบรวม
-                        </button>
-                        <button
-                            onClick={() => setView('allnotes')}
-                            className={`h-full text-sm font-semibold border-b-2 transition-colors shrink-0 ${view === 'allnotes' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
-                        >
-                            โน้ตทั้งหมด
-                        </button>
+                        <button data-k="tab-exam" onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} aria-current={view === 'exam' ? 'page' : undefined} className={`tab${view === 'exam' ? ' on' : ''}`}>{T('tabExam')}</button>
+                        <button data-k="tab-notes" onClick={() => setView('allnotes')} aria-current={view === 'allnotes' ? 'page' : undefined} className={`tab${view === 'allnotes' ? ' on' : ''}`}>{T('tabNotes')}</button>
                     </div>
 
                     {view === 'stream' ? (
                     <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6">
-                            <div className="rounded-2xl bg-gradient-to-br from-primary to-secondary p-6 sm:p-8 text-white shadow-lg">
-                                <p className="text-xs uppercase tracking-widest text-slate-300 mb-2">ห้องเรียน</p>
-                                <h2 className="text-2xl font-bold mb-2">วิศวกรรม</h2>
-                                <div className="mt-6 flex items-center gap-4 flex-wrap">
-                                    <div className="flex-1 min-w-[200px] max-w-xs">
-                                        <div className="flex justify-between text-xs text-slate-300 mb-1">
-                                            <span>ความคืบหน้ารวม</span><span>{completedCount}/{totalTopics}</span>
-                                        </div>
-                                        <div className="h-2 bg-white/20 rounded-full overflow-hidden">
-                                            <div className="h-full bg-accent rounded-full transition-all" style={{width: `${totalTopics ? (completedCount / totalTopics * 100) : 0}%`}}></div>
-                                        </div>
+                        <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-4">
+                            <section className="card">
+                                <p className="text-sm text-slate-500 mb-1">{T('classroom')}</p>
+                                <h2 className="text-xl font-bold mb-4">{subjectStats.length === 1 ? subjLabel(subjectStats[0]) : T('title')}</h2>
+                                <div className="max-w-sm">
+                                    <div className="flex justify-between text-sm text-slate-500 mb-1">
+                                        <span>{T('progressAll')}</span><span>{completedCount}/{totalTopics}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full">
-                                        <Trophy /><span className="text-sm font-bold">Level {level}</span>
-                                    </div>
+                                    <div className="meter"><i style={{width: `${totalTopics ? (completedCount / totalTopics * 100) : 0}%`}}></i></div>
                                 </div>
-                            </div>
+                            </section>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className={`grid grid-cols-1 gap-4 ${subjectStats.length > 1 ? 'sm:grid-cols-2' : ''}`}>
                                 {subjectStats.map(s => (
-                                    <button key={s.id} onClick={() => openSubject(s.id)}
-                                        className="text-left bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-shadow">
-                                        <div className="flex items-center gap-2 mb-3 text-slate-500"><s.icon /><span className="text-xs font-bold uppercase tracking-wide">{s.label}</span></div>
-                                        <div className="text-lg font-bold text-slate-800 mb-2">{s.done}/{s.total} หัวข้อ</div>
-                                        <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                                            <div className="h-full bg-secondary rounded-full" style={{width: `${s.total ? (s.done / s.total * 100) : 0}%`}}></div>
-                                        </div>
+                                    <button key={s.id} data-k="subj" data-sid={s.id} onClick={() => openSubject(s.id)} className="stat-card">
+                                        <div className="flex items-center gap-2 text-slate-500"><s.icon /><span className="text-sm font-bold">{subjLabel(s)}</span></div>
+                                        <div className="text-lg font-bold text-slate-800">{T('ofTopics', { done: s.done, total: s.total })}</div>
+                                        <div className="meter sm"><i style={{width: `${s.total ? (s.done / s.total * 100) : 0}%`}}></i></div>
                                     </button>
                                 ))}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Clock /> ทบทวนวันนี้</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <section className="card">
+                                    <h3 className="font-bold mb-3 flex items-center gap-2"><Clock /> {T('reviewToday')}</h3>
                                     {dueKeys.length === 0 ? (
-                                        <p className="text-sm text-slate-400">ยังไม่มีข้อครบกำหนด</p>
+                                        <p className="text-sm text-slate-500">{T('noDue')}</p>
                                     ) : (
                                         <>
-                                            <p className="mb-4"><span className="text-3xl font-bold text-slate-800">{dueKeys.length}</span> <span className="text-sm text-slate-500">ข้อครบกำหนดทบทวน</span></p>
-                                            <button onClick={startReview} className="px-5 py-2.5 bg-secondary text-white text-sm font-bold rounded-xl">เริ่มทบทวน</button>
+                                            <p className="mb-4"><span className="text-3xl font-bold text-slate-800">{dueKeys.length}</span> <span className="text-sm text-slate-500">{T('dueN')}</span></p>
+                                            <button data-k="startReview" onClick={startReview} className="btn primary">{T('startReview')}</button>
                                         </>
                                     )}
-                                </div>
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Trophy /> สอบรวมล่าสุด</h3>
+                                </section>
+                                <section className="card">
+                                    <h3 className="font-bold mb-3 flex items-center gap-2"><Trophy /> {T('lastExam')}</h3>
                                     {exams.length === 0 ? (
                                         <>
-                                            <p className="text-sm text-slate-400 mb-4">ยังไม่เคยสอบ</p>
-                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl">เริ่มสอบรวม</button>
+                                            <p className="text-sm text-slate-500 mb-4">{T('neverExam')}</p>
+                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="btn primary">{T('startExamAll')}</button>
                                         </>
                                     ) : (
                                         <>
                                             {exams.slice(0, 3).map((e, i) => (
-                                                <div key={i} className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                                                    <span className="text-slate-500">{new Date(e.date).toLocaleDateString('th-TH')}</span>
-                                                    <span className={`font-bold ${e.score / e.total >= 0.7 ? 'text-success' : 'text-slate-700'}`}>{e.score}/{e.total}</span>
+                                                <div key={i} className="flex justify-between text-sm py-1.5 border-b border-slate-100">
+                                                    <span className="text-slate-500">{OME_I18N.date(e.date)}</span>
+                                                    <span className={`badge ${e.score / e.total >= 0.7 ? 'ok' : ''}`}>{e.score}/{e.total}</span>
                                                 </div>
                                             ))}
-                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="mt-3 px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl">สอบอีกครั้ง</button>
+                                            <button onClick={() => { setExamList([]); setExamIndex(0); setView('exam'); }} className="btn primary mt-3">{T('examAgain')}</button>
                                         </>
                                     )}
-                                </div>
+                                </section>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                                    <h3 className="font-bold text-slate-800 mb-4 flex items-center gap-2"><Target /> งานที่ยังไม่เสร็จ</h3>
-                                    {todoTopics.length === 0 ? (
-                                        <p className="text-sm text-slate-400">ทำครบทุกหัวข้อแล้ว เยี่ยมมาก!</p>
-                                    ) : (
-                                        <div className="space-y-1">
-                                            {todoTopics.slice(0, 6).map(t => (
-                                                <button key={`${t.subjId}:${t.id}`} onClick={() => selectTopic(t.subjId, t.id)}
-                                                    className="w-full flex items-center justify-between gap-2 p-2.5 rounded-lg hover:bg-slate-50 text-left">
-                                                    <span className="text-sm text-slate-700 leading-tight">{t.title}</span>
-                                                    <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">{t.subjLabel}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+                            <section className="card">
+                                <h3 className="font-bold mb-3 flex items-center gap-2"><Target /> {T('todo')}</h3>
+                                {todoTopics.length === 0 ? (
+                                    <p className="text-sm text-slate-500">{T('allDone')}</p>
+                                ) : (
+                                    <div className="-mx-2">
+                                        {todoTopics.slice(0, 6).map(t => (
+                                            <button key={`${t.subjId}:${t.id}`} data-k="todo" onClick={() => selectTopic(t.subjId, t.id)} className="list-row !border-0 w-full text-left">
+                                                <span className="grow leading-tight" data-i18n-skip>{t.title}</span>
+                                                <span className="text-xs font-bold text-slate-500 shrink-0 text-right max-w-[40%]">{subjLabel(t)}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
                         </div>
                     </div>
                     ) : view === 'review' ? (
                     <div className="flex-1 overflow-y-auto">
                         <div className="max-w-2xl mx-auto p-4 sm:p-6">
                             {revIndex >= revList.length ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
+                                <section className="card text-center">
                                     {revList.length === 0 ? (
-                                        <>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-8">ยังไม่มีข้อครบกำหนดทบทวน</h2>
-                                        </>
+                                        <h2 className="text-xl font-bold mb-6">{T('noDueReview')}</h2>
                                     ) : (
                                         <>
-                                            <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-5"><Trophy /></div>
-                                            <h2 className="text-xl font-bold text-slate-800 mb-8">ทบทวนครบ {revList.length} ข้อแล้ว!</h2>
+                                            <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4"><Trophy /></div>
+                                            <h2 className="text-xl font-bold mb-6">{T('reviewDone', { n: revList.length })}</h2>
                                         </>
                                     )}
-                                    <button onClick={() => setView('stream')} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">กลับหน้าสตรีม</button>
-                                </div>
+                                    <button onClick={() => setView('stream')} className="btn primary">{T('backStream')}</button>
+                                </section>
                             ) : (() => {
                                 const rq = QUESTION_BY_KEY[revList[revIndex]];
                                 return (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                                    <div className="flex justify-between items-center mb-5">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ทบทวน {revIndex + 1} / {revList.length}</span>
-                                        <span className="text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full">{rq.topicTitle}</span>
+                                <section className="card">
+                                    <div className="flex justify-between items-center gap-2 flex-wrap mb-4">
+                                        <span className="text-sm font-bold text-slate-500">{T('reviewOf', { i: revIndex + 1, n: revList.length })}</span>
+                                        <span className="badge info wrap" data-i18n-skip>{rq.topicTitle}</span>
                                     </div>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug">{rq.q}</h3>
+                                    <h3 className="text-lg sm:text-xl font-bold mb-4 leading-snug" data-i18n-skip>{rq.q}</h3>
                                     <textarea
                                         value={revAnswer}
                                         onChange={e => setRevAnswer(e.target.value)}
                                         disabled={revRevealed}
                                         rows={4}
-                                        placeholder="คำตอบของคุณ..."
-                                        className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+                                        placeholder={T('yourAnswer')}
+                                        className="textarea"
                                     />
-                                    <div className="mt-5">
+                                    <div className="mt-4">
                                         {!revRevealed ? (
-                                            <button onClick={() => setRevRevealed(true)}
-                                                className="w-full py-3 bg-primary text-white rounded-xl font-bold text-sm">ดูเฉลย</button>
+                                            <button data-k="reveal" onClick={() => setRevRevealed(true)} className="btn primary lg w-full">{T('reveal')}</button>
                                         ) : (
                                             <div className="animate-fade-in-up">
-                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                    <h4 className="font-bold mb-1 text-secondary text-sm">เฉลย</h4>
-                                                    <p className="text-sm text-slate-700">{rq.refAnswer}</p>
+                                                <div className="callout info mb-4">
+                                                    <h4 className="font-bold mb-1 text-sm">{T('answerKey')}</h4>
+                                                    <p className="text-base" data-i18n-skip>{rq.refAnswer}</p>
                                                 </div>
-                                                <div className="flex gap-3">
-                                                    <button onClick={() => markReview(true)} className="flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold">จำได้ (+30 XP)</button>
-                                                    <button onClick={() => markReview(false)} className="flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold">ยังไม่ได้ (ถามใหม่พรุ่งนี้)</button>
+                                                <div className="flex flex-col sm:flex-row gap-3">
+                                                    <button data-k="recalled" onClick={() => markReview(true)} className="btn primary lg sm:flex-1">{T('recalled')}</button>
+                                                    <button data-k="notyet" onClick={() => markReview(false)} className="btn lg sm:flex-1">{T('notYetTomorrow')}</button>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </section>
                                 );
                             })()}
                         </div>
@@ -667,83 +803,82 @@
                     <div className="flex-1 overflow-y-auto">
                         <div className="max-w-2xl mx-auto p-4 sm:p-6">
                             {examList.length === 0 ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-                                    <h2 className="text-xl font-bold text-slate-800 mb-8">สอบรวม</h2>
-                                    <div className="flex gap-3 justify-center mb-8">
-                                        <button onClick={() => startExam(10)} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">เริ่มสอบ 10 ข้อ</button>
-                                        <button onClick={() => startExam(20)} className="px-6 py-3 bg-primary text-white font-bold rounded-xl text-sm">เริ่มสอบ 20 ข้อ</button>
+                                <section className="card">
+                                    <h2 className="text-xl font-bold mb-4">{T('tabExam')}</h2>
+                                    <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                                        <button data-k="start10" onClick={() => startExam(10)} className="btn primary lg">{T('start10')}</button>
+                                        <button data-k="start20" onClick={() => startExam(20)} className="btn lg">{T('start20')}</button>
                                     </div>
                                     {exams.length > 0 && (
-                                        <div className="text-left border-t border-slate-100 pt-5">
-                                            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">ผลสอบล่าสุด</h4>
+                                        <div className="border-t border-slate-100 pt-4">
+                                            <h4 className="text-sm font-bold text-slate-500 mb-3">{T('recent')}</h4>
                                             {exams.slice(0, 5).map((e, i) => (
-                                                <div key={i} className="flex justify-between text-sm py-1.5 border-b border-slate-50">
-                                                    <span className="text-slate-500">{new Date(e.date).toLocaleString('th-TH', { dateStyle: 'short', timeStyle: 'short' })}</span>
-                                                    <span className={`font-bold ${e.score / e.total >= 0.7 ? 'text-success' : 'text-slate-700'}`}>{e.score}/{e.total} ({Math.floor(e.sec / 60)}:{String(e.sec % 60).padStart(2, '0')} นาที)</span>
+                                                <div key={i} className="flex justify-between gap-2 text-sm py-1.5 border-b border-slate-100">
+                                                    <span className="text-slate-500">{OME_I18N.date(e.date, { dateStyle: 'short', timeStyle: 'short' })}</span>
+                                                    <span className={`badge ${e.score / e.total >= 0.7 ? 'ok' : ''}`}>{T('resultTime', { score: e.score, total: e.total, m: Math.floor(e.sec / 60), s: String(e.sec % 60).padStart(2, '0') })}</span>
                                                 </div>
                                             ))}
                                         </div>
                                     )}
-                                </div>
+                                </section>
                             ) : examIndex >= examList.length ? (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-10 text-center">
-                                    <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6"><Trophy /></div>
-                                    <h2 className="text-2xl font-bold text-slate-800 mb-1">ได้ {examScore} / {examList.length} คะแนน</h2>
-                                    <p className="text-sm text-slate-500 mb-8">
-                                        ใช้เวลา {Math.floor((exams[0]?.sec || 0) / 60)}:{String((exams[0]?.sec || 0) % 60).padStart(2, '0')} นาที
+                                <section className="card text-center">
+                                    <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4"><Trophy /></div>
+                                    <h2 className="text-xl font-bold mb-1">{T('scoreIs', { s: examScore, n: examList.length })}</h2>
+                                    <p className="text-sm text-slate-500 mb-6">
+                                        {T('timeUsed', { t: `${Math.floor((exams[0]?.sec || 0) / 60)}:${String((exams[0]?.sec || 0) % 60).padStart(2, '0')}` })}
                                     </p>
-                                    <div className="flex gap-3 justify-center">
-                                        <button onClick={() => { setExamList([]); setExamIndex(0); }} className="px-6 py-3 bg-secondary text-white font-bold rounded-xl text-sm">สอบอีกครั้ง</button>
-                                        <button onClick={() => setView('stream')} className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl text-sm">กลับหน้าสตรีม</button>
+                                    <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                                        <button onClick={() => { setExamList([]); setExamIndex(0); }} className="btn primary lg">{T('examAgain')}</button>
+                                        <button onClick={() => setView('stream')} className="btn lg">{T('backStream')}</button>
                                     </div>
-                                </div>
+                                </section>
                             ) : (
-                                <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8">
-                                    <div className="flex justify-between items-center mb-5">
-                                        <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">ข้อ {examIndex + 1} / {examList.length}</span>
-                                        <span className="text-xs font-semibold bg-blue-50 text-secondary px-3 py-1 rounded-full">{examList[examIndex].topicTitle}</span>
+                                <section className="card">
+                                    <div className="flex justify-between items-center gap-2 flex-wrap mb-4">
+                                        <span className="text-sm font-bold text-slate-500">{T('qOf', { i: examIndex + 1, n: examList.length })}</span>
+                                        <span className="badge info wrap" data-i18n-skip>{examList[examIndex].topicTitle}</span>
                                     </div>
-                                    <h3 className="text-lg sm:text-xl font-bold text-slate-800 mb-5 leading-snug">{examList[examIndex].q}</h3>
+                                    <h3 className="text-lg sm:text-xl font-bold mb-4 leading-snug" data-i18n-skip>{examList[examIndex].q}</h3>
                                     <textarea
                                         value={examAnswer}
                                         onChange={e => setExamAnswer(e.target.value)}
                                         disabled={examRevealed}
                                         rows={4}
-                                        placeholder="พิมพ์คำตอบของคุณ..."
-                                        className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+                                        placeholder={T('typeAns')}
+                                        className="textarea"
                                     />
-                                    <div className="mt-5">
+                                    <div className="mt-4">
                                         {!examRevealed ? (
-                                            <button onClick={() => setExamRevealed(true)} disabled={!examAnswer.trim()}
-                                                className={`w-full py-3 rounded-xl font-bold text-sm ${examAnswer.trim() ? 'bg-primary text-white' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}>ส่งคำตอบ</button>
+                                            <button data-k="esubmit" onClick={() => setExamRevealed(true)} disabled={!examAnswer.trim()} className="btn primary lg w-full">{T('submit')}</button>
                                         ) : (
                                             <div className="animate-fade-in-up">
-                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                    <h4 className="font-bold mb-1 text-secondary text-sm">เฉลย</h4>
-                                                    <p className="text-sm text-slate-700">{examList[examIndex].refAnswer}</p>
+                                                <div className="callout info mb-4">
+                                                    <h4 className="font-bold mb-1 text-sm">{T('answerKey')}</h4>
+                                                    <p className="text-base" data-i18n-skip>{examList[examIndex].refAnswer}</p>
                                                 </div>
-                                                <div className="flex gap-3">
-                                                    <button onClick={() => markExam(true)} className="flex-1 py-3 rounded-xl bg-success text-white text-sm font-bold">ตอบถูก</button>
-                                                    <button onClick={() => markExam(false)} className="flex-1 py-3 rounded-xl bg-slate-200 text-slate-600 text-sm font-bold">ยังไม่ถูก</button>
+                                                <div className="flex flex-col sm:flex-row gap-3">
+                                                    <button data-k="ecorrect" onClick={() => markExam(true)} className="btn primary lg sm:flex-1">{T('correct')}</button>
+                                                    <button data-k="ewrong" onClick={() => markExam(false)} className="btn lg sm:flex-1">{T('wrong')}</button>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
-                                </div>
+                                </section>
                             )}
                         </div>
                     </div>
                     ) : view === 'allnotes' ? (
                     <div className="flex-1 overflow-y-auto">
                         <div className="max-w-3xl mx-auto p-4 sm:p-6">
-                            <div className="bg-white rounded-2xl border border-slate-200 p-6">
-                                <h2 className="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><NotebookIcon /> โน้ตทั้งหมด</h2>
+                            <section className="card">
+                                <h2 className="text-lg font-bold mb-4 flex items-center gap-2"><NotebookIcon /> {T('tabNotes')}</h2>
                                 <input
                                     type="text"
                                     value={notesQuery}
                                     onChange={e => setNotesQuery(e.target.value)}
-                                    placeholder="ค้นหาในโน้ตทุกหัวข้อ..."
-                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl px-4 py-2.5 text-sm mb-5"
+                                    placeholder={T('searchNotes')}
+                                    data-k="notesQuery" className="input mb-4"
                                 />
                                 {(() => {
                                     const q = notesQuery.trim().toLowerCase();
@@ -754,58 +889,61 @@
                                         .filter(e => !q || e.topic.title.toLowerCase().includes(q) || e.note.text.toLowerCase().includes(q))
                                         .sort((a, b) => (b.note.updatedAt || 0) - (a.note.updatedAt || 0));
                                     if (!entries.length) return (
-                                        <p className="text-sm text-slate-400 text-center py-8">
-                                            {q ? 'ไม่พบโน้ตที่ตรงกับคำค้น' : 'ยังไม่มีโน้ต'}
+                                        <p className="text-sm text-slate-500 text-center py-8">
+                                            {q ? T('noMatch') : T('noNotes')}
                                         </p>
                                     );
                                     return entries.map(e => (
-                                        <button key={e.key}
+                                        <button key={e.key} data-k="noteRow"
                                             onClick={() => { selectTopic(e.topic.subjId, e.topic.id); setActiveTab('notes'); }}
-                                            className="w-full text-left p-4 rounded-xl border border-slate-100 hover:border-secondary mb-3 transition-colors">
-                                            <div className="flex justify-between items-center mb-1">
-                                                <span className="font-bold text-sm text-slate-800">{e.topic.title}</span>
-                                                <span className="text-[10px] text-slate-400">{new Date(e.note.updatedAt).toLocaleDateString('th-TH')}</span>
+                                            className="stat-card w-full mb-3">
+                                            <div className="flex justify-between items-center gap-2 w-full">
+                                                <span className="font-bold text-sm text-slate-800" data-i18n-skip>{e.topic.title}</span>
+                                                <span className="text-xs text-slate-500 shrink-0">{OME_I18N.date(e.note.updatedAt)}</span>
                                             </div>
-                                            <p className="text-xs text-slate-500 line-clamp-2">{e.note.text.slice(0, 160)}</p>
+                                            <p className="text-sm text-slate-500 line-clamp-2" data-i18n-skip>{e.note.text.slice(0, 160)}</p>
                                         </button>
                                     ));
                                 })()}
-                            </div>
+                            </section>
                         </div>
                     </div>
                     ) : (
                     <div className="flex flex-1 overflow-hidden relative">
 
                         {mobileNavOpen && (
-                            <div className="fixed inset-0 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
+                            <div className="fixed inset-x-0 bottom-0 top-12 bg-black/30 z-30 md:hidden" onClick={() => setMobileNavOpen(false)}></div>
                         )}
 
-                        <aside className={`fixed md:static inset-y-0 left-0 z-40 w-80 bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-4 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-                            <div className="flex items-center justify-between mb-3 md:hidden">
-                                <span className="text-sm font-bold text-slate-700">หัวข้อทั้งหมด</span>
-                                <button onClick={() => setMobileNavOpen(false)} className="p-1 text-slate-400 hover:text-slate-700" aria-label="ปิดเมนู"><CloseIcon /></button>
+                        <aside className={`fixed md:static top-12 bottom-0 left-0 z-40 w-80 max-w-[88vw] bg-white border-r border-slate-200 overflow-y-auto flex flex-col shrink-0 p-3 transform transition-transform duration-200 md:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full max-md:invisible'}`}>
+                            <div className="flex items-center justify-between mb-2 md:hidden">
+                                <span className="text-base font-bold">{T('allTopics')}</span>
+                                <button data-k="closeNav" onClick={() => setMobileNavOpen(false)} className="btn ghost icon" aria-label={T('closeNav')}><CloseIcon /></button>
                             </div>
                             {SUBJECTS.map(s => (
                                 <div key={s.id} className="mb-2">
                                     <button
-                                        onClick={() => setOpenGroups(g => ({ ...g, [s.id]: !g[s.id] }))}
-                                        className="w-full flex items-center justify-between px-2 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-700"
+                                        data-k="group" onClick={() => setOpenGroups(g => ({ ...g, [s.id]: !g[s.id] }))}
+                                        className="btn ghost w-full justify-between"
+                                        aria-expanded={!!openGroups[s.id]}
                                     >
-                                        <span className="flex items-center gap-2"><s.icon /> {s.label} <span className="text-slate-300 font-normal normal-case">({s.topics.length})</span></span>
+                                        <span className="flex items-center gap-2 font-bold"><s.icon /> {subjLabel(s)} <span className="text-slate-500 font-normal">({s.topics.length})</span></span>
                                         <span className={`transition-transform ${openGroups[s.id] ? 'rotate-180' : ''}`}><ChevronDown /></span>
                                     </button>
                                     {openGroups[s.id] && (
-                                        <div className="space-y-1 mt-1">
+                                        <div className="mt-2">
                                             {s.topics.map(t => {
                                                 const active = activeSubject === s.id && activeTopicId === t.id;
                                                 return (
                                                     <button
                                                         key={t.id}
+                                                        data-k="topic" data-tid={t.id}
                                                         onClick={() => selectTopic(s.id, t.id)}
-                                                        className={`w-full text-left p-2.5 rounded-xl border flex gap-2 text-sm ${active ? 'bg-blue-50 border-blue-100 text-secondary font-semibold shadow-sm' : 'border-transparent text-slate-600 hover:bg-slate-50'}`}
+                                                        aria-current={active ? 'true' : undefined}
+                                                        className={`list-row !border-0 w-full text-left rounded-lg ${active ? 'bg-blue-50 text-slate-800 font-semibold' : ''}`}
                                                     >
-                                                        {active ? <Play className="shrink-0 mt-0.5" /> : (completed[`${s.id}:${t.id}`] ? <Check className="shrink-0 mt-0.5" /> : <Clock className="shrink-0 mt-1 text-slate-300" />)}
-                                                        <span className="leading-tight">{t.title}</span>
+                                                        {active ? <Play className="shrink-0" /> : (completed[`${s.id}:${t.id}`] ? <Check className="shrink-0" /> : <Clock className="shrink-0 text-slate-400" />)}
+                                                        <span className="grow leading-tight" data-i18n-skip>{t.title}</span>
                                                     </button>
                                                 );
                                             })}
@@ -816,69 +954,52 @@
                         </aside>
 
                         <main className="flex-1 overflow-y-auto p-4 sm:p-6 flex justify-center">
-                            <div className="w-full max-w-3xl">
+                            <div className="w-full max-w-[72ch]">
 
-                                <div className="flex gap-4 border-b border-slate-200 mb-6">
-                                    <button
-                                        onClick={() => setActiveTab('summary')}
-                                        className={`pb-3 px-2 text-sm font-semibold transition-colors ${activeTab === 'summary' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        สรุปเนื้อหา
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('quiz')}
-                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'quiz' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        <Target /> แบบฝึกเขียนตอบ
-                                    </button>
-                                    <button
-                                        onClick={() => setActiveTab('notes')}
-                                        className={`pb-3 px-2 text-sm font-semibold flex items-center gap-2 transition-colors ${activeTab === 'notes' ? 'text-secondary border-b-2 border-secondary' : 'text-slate-400 hover:text-slate-700'}`}
-                                    >
-                                        <NotebookIcon /> โน้ตของฉัน {noteText && <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>}
-                                    </button>
+                                <div className="tabs mb-4">
+                                    <button data-k="tab-summary" onClick={() => setActiveTab('summary')} className={`tab${activeTab === 'summary' ? ' on' : ''}`}>{T('tabSummary')}</button>
+                                    <button data-k="tab-quiz" onClick={() => setActiveTab('quiz')} className={`tab${activeTab === 'quiz' ? ' on' : ''} inline-flex items-center gap-2`}><span className="hidden sm:inline-flex"><Target /></span> {T('tabQuiz')}</button>
+                                    <button data-k="tab-mynotes" onClick={() => setActiveTab('notes')} className={`tab${activeTab === 'notes' ? ' on' : ''} inline-flex items-center gap-2`}><span className="hidden sm:inline-flex"><NotebookIcon /></span> {T('tabMyNotes')} {noteText && <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>}</button>
                                 </div>
 
                                 {activeTab === 'notes' ? (
-                                    <div className="bg-white p-6 sm:p-8 rounded-2xl shadow-sm border border-slate-100">
+                                    <section className="card">
                                         <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
-                                            <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2"><NotebookIcon /> โน้ตของฉัน — {topic.title}</h3>
-                                            <div className="flex rounded-lg border border-slate-200 overflow-hidden text-xs font-semibold">
-                                                <button onClick={() => setNotePreview(false)}
-                                                    className={`px-3 py-1.5 ${!notePreview ? 'bg-secondary text-white' : 'text-slate-500 hover:bg-slate-50'}`}>แก้ไข</button>
-                                                <button onClick={() => setNotePreview(true)}
-                                                    className={`px-3 py-1.5 ${notePreview ? 'bg-secondary text-white' : 'text-slate-500 hover:bg-slate-50'}`}>ดูตัวอย่าง</button>
+                                            <h3 className="text-lg font-bold flex items-center gap-2"><NotebookIcon /> {T('tabMyNotes')} — <span data-i18n-skip>{topic.title}</span></h3>
+                                            <div className="segmented">
+                                                <button data-k="note-edit" onClick={() => setNotePreview(false)} className={!notePreview ? 'on' : ''}>{T('edit')}</button>
+                                                <button data-k="note-preview" onClick={() => setNotePreview(true)} className={notePreview ? 'on' : ''}>{T('preview')}</button>
                                             </div>
                                         </div>
-                                        <p className="text-xs text-slate-400 mb-4 min-h-[1rem]">
-                                            {notes[noteKey] ? `บันทึกล่าสุด ${new Date(notes[noteKey].updatedAt).toLocaleString('th-TH')}` : ''}
+                                        <p className="text-sm text-slate-500 mb-3 min-h-[1.25rem]">
+                                            {notes[noteKey] ? T('savedAt', { d: OME_I18N.date(notes[noteKey].updatedAt, { dateStyle: 'medium', timeStyle: 'short' }) }) : ''}
                                         </p>
                                         {notePreview ? (
-                                            <div className="md-preview border-2 border-slate-100 rounded-xl p-4 min-h-[200px] text-slate-700"
-                                                dangerouslySetInnerHTML={{ __html: noteText.trim() ? mdToHtml(noteText) : '<p style="opacity:.4">ยังไม่มีเนื้อหา</p>' }} />
+                                            <div className="md-preview border-2 border-slate-100 rounded-xl p-4 min-h-[200px]" data-i18n-skip
+                                                dangerouslySetInnerHTML={{ __html: noteText.trim() ? mdToHtml(noteText) : `<p style="opacity:.6">${escapeHtml(T('emptyPreview'))}</p>` }} />
                                         ) : (
                                             <textarea
                                                 value={noteText}
                                                 onChange={e => updateNote(e.target.value)}
                                                 rows={10}
-                                                placeholder="โน้ตของหัวข้อนี้..."
-                                                className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-y font-sans leading-relaxed"
+                                                placeholder={T('notePh')}
+                                                className="textarea"
                                             />
                                         )}
-                                    </div>
+                                    </section>
                                 ) : activeTab === 'summary' ? (
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-                                        <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2"><Bookmark /> {topic.title}</h3>
+                                    <section className="card">
+                                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><Bookmark /> <span data-i18n-skip>{topic.title}</span></h3>
                                         {hasSummary(topic) ? (
-                                            <>
-                                                {topic.data.overview && <p className="text-slate-600 mb-4">{topic.data.overview}</p>}
+                                            <div data-i18n-skip>
+                                                {topic.data.overview && <p className="text-base text-slate-600 mb-4 leading-relaxed">{topic.data.overview}</p>}
                                                 {(topic.data.keyConcepts || []).length > 0 && (
                                                     <>
-                                                        <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">ประเด็นสำคัญ</h4>
+                                                        <h4 className="text-sm font-bold text-slate-500 mb-2">{T('keyPoints')}</h4>
                                                         <ul className="space-y-2">
                                                             {topic.data.keyConcepts.map((k, i) => (
-                                                                <li key={i} className="flex items-start gap-2 text-sm text-slate-700">
-                                                                    <span className="text-secondary mt-1">&bull;</span> {k}
+                                                                <li key={i} className="flex items-start gap-2 text-base text-slate-700 leading-relaxed">
+                                                                    <span className="text-secondary">&bull;</span> {k}
                                                                 </li>
                                                             ))}
                                                         </ul>
@@ -888,22 +1009,24 @@
                                                     <div className="md-preview lesson mt-6 pt-2 border-t border-slate-100 text-slate-700"
                                                         dangerouslySetInnerHTML={{ __html: mdToHtml(topic.data.lesson) }} />
                                                 )}
-                                            </>
+                                            </div>
                                         ) : (
-                                            <p className="text-slate-400">ยังไม่มีเนื้อหา</p>
+                                            <p className="text-slate-500">{T('noContent')}</p>
                                         )}
-                                    </div>
+                                    </section>
                                 ) : (
-                                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                                    <section className="card">
 
                                         {!isDone ? (
                                             <>
-                                                <div className="flex justify-between items-center mb-6">
-                                                    <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">คำถามที่ {qIndex + 1} จาก {questions.length}</span>
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <span className="text-sm font-bold text-slate-500">{T('qNofN', { i: qIndex + 1, n: questions.length })}</span>
                                                 </div>
 
-                                                <h3 className="text-xl font-bold text-slate-800 mb-6 leading-tight">
-                                                    {questions[qIndex].q}
+                                                <h3 className="text-xl font-bold mb-4 leading-snug">
+                                                    {questions[qIndex].hasKey
+                                                        ? <span data-i18n-skip>{questions[qIndex].q}</span>
+                                                        : <>{questions[qIndex].reflect[0]}<span data-i18n-skip>{topic.title}</span>{questions[qIndex].reflect[1]}</>}
                                                 </h3>
 
                                                 <textarea
@@ -911,47 +1034,40 @@
                                                     onChange={e => setAnswerText(e.target.value)}
                                                     disabled={revealed}
                                                     rows={5}
-                                                    placeholder="พิมพ์คำตอบของคุณที่นี่..."
-                                                    className="w-full border-2 border-slate-200 focus:border-secondary outline-none rounded-xl p-4 text-sm text-slate-700 resize-none disabled:bg-slate-50"
+                                                    placeholder={T('typeHere')}
+                                                    className="textarea"
                                                 />
 
-                                                <div className="mt-6">
+                                                <div className="mt-4">
                                                     {!revealed ? (
-                                                        <button
-                                                            onClick={submitAnswer}
-                                                            disabled={!answerText.trim()}
-                                                            className={`w-full py-3 rounded-xl font-bold text-sm transition-all ${answerText.trim() ? 'bg-primary text-white hover:bg-slate-800 shadow-md' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                                                        >
-                                                            ส่งคำตอบ
+                                                        <button data-k="qsubmit" onClick={submitAnswer} disabled={!answerText.trim()} className="btn primary lg w-full">
+                                                            {T('submit')}
                                                         </button>
                                                     ) : (
                                                         <div className="animate-fade-in-up">
                                                             {questions[qIndex].hasKey ? (
-                                                                <div className="p-4 rounded-xl mb-4 border bg-blue-50 border-blue-100">
-                                                                    <h4 className="font-bold mb-1 text-secondary">คำตอบอ้างอิง</h4>
-                                                                    <p className="text-sm text-slate-700 leading-relaxed mb-4">{questions[qIndex].refAnswer}</p>
-                                                                    {selfMark === null ? (
-                                                                        <div className="flex gap-3">
-                                                                            <button onClick={() => markSelf(true)} className="px-4 py-2 rounded-lg bg-success text-white text-xs font-bold">ตอบถูก (+100 XP)</button>
-                                                                            <button onClick={() => markSelf(false)} className="px-4 py-2 rounded-lg bg-slate-200 text-slate-600 text-xs font-bold">ยังไม่ถูก</button>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <p className={`text-sm font-semibold ${selfMark === 'correct' ? 'text-success' : 'text-slate-500'}`}>
-                                                                            {selfMark === 'correct' ? 'บันทึกว่าตอบถูกแล้ว' : 'บันทึกว่ายังไม่ถูก'}
-                                                                        </p>
-                                                                    )}
+                                                                <div className="callout info mb-4">
+                                                                    <h4 className="font-bold mb-1">{T('refAnswer')}</h4>
+                                                                    <p className="text-base leading-relaxed mb-4" data-i18n-skip>{questions[qIndex].refAnswer}</p>
                                                                 </div>
                                                             ) : (
-                                                                <div className="p-4 rounded-xl mb-4 border bg-emerald-50 border-emerald-200">
-                                                                    <h4 className="font-bold text-emerald-700">บันทึกคำตอบแล้ว (+50 XP)</h4>
+                                                                <div className="callout ok mb-4">
+                                                                    <h4 className="font-bold">{T('savedAns')}</h4>
                                                                 </div>
                                                             )}
+                                                            {questions[qIndex].hasKey && (selfMark === null ? (
+                                                                <div className="flex flex-wrap gap-3 mb-4">
+                                                                    <button data-k="qcorrect" onClick={() => markSelf(true)} className="btn primary">{T('correctXp')}</button>
+                                                                    <button data-k="qwrong" onClick={() => markSelf(false)} className="btn">{T('wrong')}</button>
+                                                                </div>
+                                                            ) : (
+                                                                <p className="text-sm font-semibold mb-4">
+                                                                    {selfMark === 'correct' ? T('markedCorrect') : T('markedWrong')}
+                                                                </p>
+                                                            ))}
                                                             {(questions[qIndex].hasKey ? selfMark !== null : true) && (
-                                                                <button
-                                                                    onClick={nextQuestion}
-                                                                    className="w-full py-3 bg-secondary text-white rounded-xl font-bold text-sm hover:bg-blue-600 shadow-md transition-all"
-                                                                >
-                                                                    {qIndex < questions.length - 1 ? 'ข้อต่อไป' : 'ดูสรุปผล'}
+                                                                <button data-k="qnext" onClick={nextQuestion} className="btn primary lg w-full">
+                                                                    {qIndex < questions.length - 1 ? T('next') : T('seeSummary')}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -959,21 +1075,16 @@
                                                 </div>
                                             </>
                                         ) : (
-                                            <div className="text-center py-12">
-                                                <div className="w-24 h-24 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                                            <div className="text-center py-8">
+                                                <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                                     <Trophy className="w-12 h-12 text-accent" />
                                                 </div>
-                                                <h2 className="text-2xl font-bold text-slate-800 mb-2">เขียนตอบครบทุกข้อแล้ว!</h2>
-                                                <p className="text-slate-500 mb-8">หัวข้อ "{topic.title}" — {questions.length} ข้อ</p>
-                                                <button
-                                                    onClick={restartTopic}
-                                                    className="px-6 py-3 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-colors"
-                                                >
-                                                    ทำแบบฝึกอีกครั้ง
-                                                </button>
+                                                <h2 className="text-xl font-bold mb-2">{T('allWritten')}</h2>
+                                                <p className="text-slate-500 mb-6">{T('topicLabel')} "<span data-i18n-skip>{topic.title}</span>" — {T('nQuestions', { n: questions.length })}</p>
+                                                <button data-k="retry" onClick={restartTopic} className="btn lg">{T('retry')}</button>
                                             </div>
                                         )}
-                                    </div>
+                                    </section>
                                 )}
                             </div>
                         </main>

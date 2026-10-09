@@ -26,8 +26,11 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 
     <style>
+        .lbe-headicon { display: grid; place-items: center; width: 36px; height: 36px; flex-shrink: 0; border-radius: var(--ome-radius-md); background: var(--ome-accent-soft); color: var(--ome-accent-strong); }
+        /* แถบแท็บเต็มความกว้างของแอป — ไม่ใช้พื้นรองเยื้องออกของภาพพื้นหลัง (ทำให้หน้าเลื่อนแนวนอน) */
+        html[data-bg] body[data-layout] .lbe-app .tabs { margin-left: 0; margin-right: 0; padding: 0 var(--ome-sp-2); background: var(--ome-card); border-radius: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
         /* พรีวิวโน้ต Markdown */
-        .md-preview { line-height: 1.75; font-size: 14px; }
+        .md-preview { line-height: 1.8; font-size: 16px; }
         .md-preview h2 { font-size: 1.25rem; font-weight: 700; margin: .8em 0 .35em; }
         .md-preview h3 { font-size: 1.1rem; font-weight: 700; margin: .7em 0 .3em; }
         .md-preview h4 { font-size: 1rem; font-weight: 600; margin: .6em 0 .25em; }

@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+
+/* คอมโพเนนต์กลางของ theme.css อยู่ใน @layer components ส่วน preflight ของ Tailwind ไม่อยู่ใน layer ใด — จึงทับ .btn/.tab/.card ฯลฯ
+   (พื้นปุ่มโปร่ง ขอบ 0 padding 0) ; revert-layer ให้องค์ประกอบที่ใส่คลาสกลางกลับไปใช้ค่าจาก layer ของ theme.css
+   ส่วนยูทิลิตี้ของ Tailwind (w-full, flex-1, mt-3 …) มาทีหลังในไฟล์และยังชนะตามเดิม */
+@layer components {
+  :is(.btn, .tab, .tabs, .chip, .card, .badge, .pill, .callout, .list-row, .stat-card, .input, .select, .textarea, .segmented, .meter, .empty, .field, .kpi, .kpi-grid, .dialog) { all: revert-layer; }
+  .segmented > button { all: revert-layer; }
+  .field :is(input, select, textarea) { all: revert-layer; }
+}
+
 /* เฉพาะที่ Tailwind ไม่มีให้ — สีทุกค่ามาจากโทเคน --ome-* */
 @layer base {
   :root { --rp-fill-1: var(--ome-brand-dk); --rp-fill-2: var(--ome-brand); }

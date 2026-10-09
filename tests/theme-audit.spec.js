@@ -36,7 +36,8 @@ if (!PAGES.includes('doc-check-file.html')) PAGES.push('doc-check-file.html'); /
 // หน้าที่ตรวจที่ 360px เพิ่มจาก 390 (หน้าที่แก้ในรอบนั้น — เพิ่มชื่อหน้าที่นี่ทุกรอบ) · index.html ตรวจรวม shell (nav/ฟุตเตอร์) ด้วย
 const NARROW_360 = (p) => p === 'index.html' || /^area\.html/.test(p) || /^invest(-[a-z-]+)?\.html/.test(p) // รอบ 4: ตระกูลลงทุน
   || /^(word|excel|slides|extract-text|doc-check|doc-check-file|compare|text-to-speech)\.html$/.test(p) // รอบ 5: กลุ่มเอกสาร
-  || /^(cad|electrical|maintenance|run|report-dashboard|tax)\.html(\?.*)?$/.test(p); // รอบ 6: วิศวกรรม/รายงาน/ภาษี (cad3d = redirect ไปแท็บ 3D ของ cad)
+  || /^(cad|electrical|maintenance|run|report-dashboard|tax)\.html(\?.*)?$/.test(p) // รอบ 6: วิศวกรรม/รายงาน/ภาษี (cad3d = redirect ไปแท็บ 3D ของ cad)
+  || /^(review|books|classroom-law|classroom-business|classroom-engineering)\.html$/.test(p); // รอบ 7A: การศึกษา
 const WITH_SHELL = (p) => p === 'index.html';
 const AUDIT_JS = path.join(__dirname, 'theme-audit-page.js');
 const AXE_JS = require.resolve('axe-core/axe.min.js');
