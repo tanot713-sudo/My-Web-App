@@ -18,7 +18,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <style>
-/* กรอบหน้า (layout=app): แถบเครื่องมือ + วิวพอร์ต 3D ยืดเต็มพื้นที่ซ้าย, คลังของ/วัตถุที่เลือกเลื่อนแยกทางขวา — ตัวฉาก 3D (สีพื้น/วัตถุ) ไม่ผูกกับธีม */
+/* กรอบหน้า (layout=app): แถบเครื่องมือ + วิวพอร์ต 3D ยืดเต็มพื้นที่ซ้าย, คลังของ/วัตถุที่เลือกเลื่อนแยกทางขวา (≤ 1000px = ลิ้นชักล่าง) — ตัวฉาก 3D (สีพื้น/วัตถุ) ไม่ผูกกับธีม: สีพื้นฉากเป็นของ sim-objects.js (SCENE_BG) ส่งมาที่ --s3-scene-bg */
 .s3-top{flex:0 0 auto;padding:var(--ome-sp-3) var(--ome-sp-4) 0}
 .s3-top .page-head{margin-bottom:0}
 .s3-head-ic{width:22px;height:22px;color:var(--ome-accent-strong)}
@@ -26,78 +26,78 @@
 .s3-stage{min-height:0;min-width:0;display:flex;flex-direction:column;margin:0;--ome-card-pad:12px}
 .s3-aside{min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:var(--ome-sp-3)}
 .s3-aside > .card{flex-shrink:0;margin:0}
+.s3-aside-head,.s3-backdrop,.s3-drawer-tools,.s3-panel-open{display:none}
 .card h2{display:flex;align-items:center;gap:8px;margin:0 0 var(--ome-sp-3);font-size:var(--ome-fs-base)}
 
 .s3-toolbar{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);justify-content:space-between;align-items:center;margin-bottom:var(--ome-sp-2);flex-shrink:0}
-.s3-tb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.s3-tb-group .btn .ome-icon{width:15px;height:15px}
-.s3-check{display:flex;align-items:center;gap:5px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;cursor:pointer;user-select:none}
+.s3-tb-group{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center}
+.s3-tb-group button .ome-icon{width:15px;height:15px}
+.s3-check{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-xs);color:var(--ome-text-2);font-weight:600;cursor:pointer;user-select:none}
 .s3-check input{cursor:pointer;accent-color:var(--ome-accent)}
 .s3-viewport{position:relative;width:100%;flex:1 1 0;min-height:320px;border-radius:var(--ome-radius-md);overflow:hidden;
-  background:#E7ECF4;border:1px solid var(--ome-border);touch-action:none}
+  background:var(--s3-scene-bg,Canvas);border:1px solid var(--ome-border);touch-action:none}
 .s3-viewport canvas{display:block;width:100%;height:100%}
 .s3-loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-  color:#6B7690;font-size:var(--ome-fs-sm);font-weight:600;text-align:center;padding:20px;pointer-events:none}
-.s3-savebar{margin-top:var(--ome-sp-2);min-height:1.3em;font-size:12px;color:var(--ome-accent-strong);font-weight:700;text-align:right;flex-shrink:0}
+  color:color-mix(in srgb,var(--s3-scene-bg,CanvasText) 22%,black);font-size:var(--ome-fs-sm);font-weight:600;text-align:center;padding:20px;pointer-events:none}
+.s3-savebar{margin-top:var(--ome-sp-2);min-height:1.3em;font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);font-weight:700;text-align:right;flex-shrink:0}
 .s3-csg-hint{display:none;background:var(--ome-accent-soft);color:var(--ome-accent-strong);border-radius:var(--ome-radius-md);padding:8px 12px;
   font-size:var(--ome-fs-xs);font-weight:600;margin-bottom:var(--ome-sp-2);text-align:center;flex-shrink:0}
 
-.s3-cat-group-h{font-size:11.5px;font-weight:700;color:var(--ome-text-2);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 6px}
+.s3-cat-group-h{font-size:var(--ome-fs-xs);font-weight:700;color:var(--ome-text-2);text-transform:uppercase;letter-spacing:.03em;margin:12px 0 var(--ome-sp-2)}
 .s3-cat-group-h:first-child{margin-top:0}
-.s3-catalog-row{display:flex;flex-wrap:wrap;gap:7px}
-.s3-cat-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:64px;padding:8px 4px;
-  border-radius:var(--ome-radius-md);border:1px solid var(--ome-border);background:var(--ome-surface-2);cursor:pointer;
-  font:inherit;color:var(--ome-text-1);transition:border-color var(--ome-dur-1),color var(--ome-dur-1)}
-.s3-cat-btn:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
-.s3-cat-btn .ic{display:grid;place-items:center;height:22px}
-.s3-cat-btn .ic .ome-icon{width:22px;height:22px}
-.s3-cat-btn .lb{font-size:10.5px;font-weight:600;text-align:center;line-height:1.2}
+.s3-catalog-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(78px,1fr));gap:var(--ome-sp-2)}
+.s3-catalog-row > .s3-cat{flex-direction:column;justify-content:center;gap:4px;height:auto;min-height:62px;padding:8px 4px;white-space:normal;text-align:center;line-height:1.25}
+.s3-cat .ic{display:grid;place-items:center;height:22px}
+.s3-cat .ic .ome-icon{width:22px;height:22px}
+.s3-cat .lb{font-size:var(--ome-fs-xs);font-weight:600}
 
 .s3-insp-row{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2);padding:8px 0;border-bottom:1px solid var(--ome-border);font-size:var(--ome-fs-sm)}
 .s3-insp-row:last-child{border-bottom:none}
 .s3-insp-row .lbl{color:var(--ome-text-2);font-weight:700;flex-shrink:0}
-.s3-nudge{display:flex;gap:4px;flex-wrap:wrap}
-.s3-nudge button{width:32px;height:32px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);background:var(--ome-surface-1);
-  cursor:pointer;color:var(--ome-text-1);font:inherit;display:inline-grid;place-items:center;padding:0}
-.s3-nudge button:hover{border-color:var(--ome-accent);color:var(--ome-accent-strong)}
-.s3-nudge button .ome-icon{width:15px;height:15px}
-.s3-nudge button[data-scale]{width:auto;padding:0 8px;font-size:11.5px;font-weight:700}
-.s3-nudge .btn.sm{width:auto;padding:0 10px}
-.s3-color-row{display:flex;gap:7px;flex-wrap:wrap;padding:9px 0 2px}
-.s3-swatch{width:24px;height:24px;border-radius:50%;border:2px solid var(--ome-border);cursor:pointer;padding:0}
-.s3-swatch.active{border-color:var(--ome-text-1);box-shadow:0 0 0 2px var(--ome-surface-1),0 0 0 3.5px var(--ome-text-1)}
+.s3-nudge{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap}
+.s3-nudge .ome-icon{width:15px;height:15px}
+.s3-color-row{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap;padding:9px 0 2px}
+.s3-swatch > span{display:block;width:16px;height:16px;border-radius:50%;background:var(--sw);box-shadow:0 0 0 1px var(--ome-border-strong)}
 .s3-insp-empty{font-size:var(--ome-fs-sm);color:var(--ome-text-2);padding:4px 0}
 .s3-insp-row .lbl.mini-note{font-weight:500;line-height:1.6}
 .s3-size-val{font-size:var(--ome-fs-xs);font-weight:700}
-.s3-size-row{display:flex;gap:6px;align-items:center;padding:6px 0}
-.s3-size-row select{font:inherit;font-size:var(--ome-fs-xs);height:32px;padding:0 8px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);background:var(--ome-surface-1);color:var(--ome-text-1)}
-.s3-size-row input[type=number]{font:inherit;font-size:var(--ome-fs-sm);height:32px;padding:0 8px;border-radius:var(--ome-radius-sm);border:1px solid var(--ome-border);
-  background:var(--ome-surface-1);color:var(--ome-text-1);width:80px;-webkit-appearance:none}
-.s3-size-row :is(select,input[type=number]):focus{outline:none;border-color:var(--ome-accent);box-shadow:0 0 0 3px color-mix(in srgb, var(--ome-accent) 22%, transparent)}
+.s3-size-row{display:flex;gap:var(--ome-sp-2);align-items:center;padding:6px 0}
+.s3-size-row .select{width:auto;flex:0 0 auto}
+.s3-size-row .input{width:90px;flex:0 0 auto}
 .s3-size-row input[type=range]{accent-color:var(--ome-accent)}
 
-.s3-mymodel-grid{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
-.s3-mymodel-row{position:relative}
-.s3-mymodel-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:1px solid var(--ome-border);
-  background:var(--ome-surface-1);color:var(--ome-err);cursor:pointer;display:grid;place-items:center;padding:0}
-.s3-mymodel-del .ome-icon{width:11px;height:11px}
-.s3-upload-btn{width:100%;border-style:dashed}
+.s3-model-list{display:flex;flex-direction:column;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-3)}
+.s3-model-row{display:flex;gap:var(--ome-sp-2);align-items:center}
+.s3-model-row > .s3-model-use{flex:1;min-width:0;justify-content:flex-start;text-align:left}
+.s3-model-use .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s3-upload{width:100%;border-style:dashed}
 .s3-upload-status{display:flex;align-items:center;justify-content:center;gap:8px;font-size:var(--ome-fs-xs);color:var(--ome-accent-strong);font-weight:600;
   padding:8px 4px 2px;line-height:1.5;text-align:center}
 .dialog-body{white-space:pre-line;color:var(--ome-text-2);font-size:var(--ome-fs-sm);line-height:1.6}
 
-/* จอแคบ (≤1000px): ทั้งหน้าเลื่อนเป็นหน้าเดียว คลังของ/วัตถุที่เลือกเรียงใต้วิวพอร์ต */
+/* จอแคบ (≤ 1000px): วิวพอร์ตเต็มหน้า, เครื่องมือ + คลังของ + วัตถุที่เลือกอยู่ในลิ้นชักล่าง (ปุ่ม "แผงควบคุม" เปิด) */
 @media(max-width:1000px){
   .s3-app{overflow-y:auto;overflow-x:hidden}
   .s3-work{display:block;flex:none}
   .s3-stage{display:block}
-  .s3-viewport{flex:none;height:min(62vh,520px)}
-  .s3-aside{overflow:visible;margin-top:var(--ome-sp-3)}
+  .s3-viewport{flex:none;height:min(66vh,560px)}
+  .s3-panel-open{display:inline-flex}
+  .s3-aside{position:fixed;left:0;right:0;bottom:0;z-index:var(--ome-z-drawer);max-height:min(78dvh,640px);overflow-y:auto;overflow-x:hidden;
+    background:var(--ome-surface-0);border-top:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-lg) var(--ome-radius-lg) 0 0;
+    padding:var(--ome-sp-3) var(--ome-sp-3) calc(var(--ome-sp-4) + env(safe-area-inset-bottom,0px));box-shadow:var(--ome-shadow-3);
+    visibility:hidden;transform:translateY(100%);transition:transform var(--ome-dur-2,.2s),visibility 0s linear var(--ome-dur-2,.2s)}
+  .s3-aside.open{visibility:visible;transform:none;transition:transform var(--ome-dur-2,.2s),visibility 0s}
+  .s3-aside-head{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2);position:sticky;top:calc(-1 * var(--ome-sp-3));z-index:1;background:var(--ome-surface-0);margin:calc(-1 * var(--ome-sp-3)) calc(-1 * var(--ome-sp-3)) 0;padding:var(--ome-sp-3)}
+  .s3-aside-head h2{margin:0}
+  .s3-drawer-tools{display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+  .s3-drawer-tools .s3-toolbar{margin-bottom:0}
+  .s3-backdrop{position:fixed;inset:0;z-index:calc(var(--ome-z-drawer) - 1);background:color-mix(in srgb,var(--ome-text-1) 40%,transparent)}
+  .s3-backdrop.open{display:block}
 }
 @media(max-width:600px){
   .s3-top{padding:var(--ome-sp-2) 10px 0}
   .s3-work{padding:var(--ome-sp-2) 10px var(--ome-sp-3)}
-  .s3-viewport{height:min(58vh,420px)}
+  .s3-viewport{height:min(62vh,460px)}
 }
 </style>
 </head>
@@ -106,59 +106,67 @@
 <div class="s3-top">
   <div class="page-head">
     <svg class="ome-icon s3-head-ic" aria-hidden="true"><use href="icons.svg#i-cuboid"/></svg>
-    <h1>จำลองสิ่งของ 3D</h1>
+    <h1 data-i18n="sim.title">จำลองสิ่งของ 3D</h1>
   </div>
 </div>
 
 <div class="s3-work">
   <div class="card s3-stage">
-    <div class="toolbar s3-toolbar">
+    <div class="toolbar s3-toolbar" id="s3Row1">
       <div class="s3-tb-group">
-        <button class="btn sm" data-view="persp" type="button">มุม 3D</button>
-        <button class="btn sm" data-view="top" type="button">บนลงล่าง</button>
-        <button class="btn sm" data-view="front" type="button">ด้านหน้า</button>
-        <button class="btn sm" data-view="side" type="button">ด้านข้าง</button>
+        <button class="btn sm" data-view="persp" type="button" data-i18n="sim.vPersp">มุม 3D</button>
+        <button class="btn sm" data-view="top" type="button" data-i18n="sim.vTop">บนลงล่าง</button>
+        <button class="btn sm" data-view="front" type="button" data-i18n="sim.vFront">ด้านหน้า</button>
+        <button class="btn sm" data-view="side" type="button" data-i18n="sim.vSide">ด้านข้าง</button>
       </div>
-      <div class="s3-tb-group">
-        <label class="s3-check"><input type="checkbox" id="s3Snap" checked> Snap 0.5 ม.</label>
-        <button class="btn sm" id="s3Shot" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg>บันทึกภาพ</button>
-        <button class="btn sm" id="s3Clear" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg>ล้างทั้งหมด</button>
+      <button class="btn sm primary s3-panel-open" id="s3PanelOpen" type="button" aria-controls="s3Aside" aria-expanded="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-panel-bottom"/></svg><span data-i18n="sim.panel">แผงควบคุม</span></button>
+      <div class="s3-tb-group" id="s3Group2">
+        <label class="s3-check"><input type="checkbox" id="s3Snap" checked> <span data-i18n="sim.snap">Snap 0.5 ม.</span></label>
+        <button class="btn sm" id="s3Shot" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-camera"/></svg><span data-i18n="sim.shot">บันทึกภาพ</span></button>
+        <button class="btn sm" id="s3Clear" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="sim.clear">ล้างทั้งหมด</span></button>
       </div>
     </div>
-    <div class="toolbar s3-toolbar">
+    <div class="toolbar s3-toolbar" id="s3Row2">
       <div class="s3-tb-group">
-        <button class="btn sm" id="s3XformToggle" type="button">ลากปรับ</button>
-        <button class="btn sm active" type="button" data-xmode="translate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-move"/></svg>ย้าย</button>
-        <button class="btn sm" type="button" data-xmode="rotate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-cw"/></svg>หมุน</button>
-        <button class="btn sm" type="button" data-xmode="scale"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scaling"/></svg>สเกล</button>
+        <button class="btn sm" id="s3XformToggle" type="button" data-i18n="sim.xform">ลากปรับ</button>
+        <button class="btn sm active" type="button" data-xmode="translate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-move"/></svg><span data-i18n="sim.mMove">ย้าย</span></button>
+        <button class="btn sm" type="button" data-xmode="rotate"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-cw"/></svg><span data-i18n="sim.mRotate">หมุน</span></button>
+        <button class="btn sm" type="button" data-xmode="scale"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scaling"/></svg><span data-i18n="sim.mScale">สเกล</span></button>
       </div>
       <div class="s3-tb-group">
-        <button class="btn sm" id="s3CsgStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-combine"/></svg>ตัด/รวม 2 ชิ้น</button>
-        <button class="btn sm" id="s3CsgCancel" type="button">ยกเลิกโหมด</button>
-        <button class="btn sm" id="s3ExportAll" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg>รวม .stl ทั้งผัง</button>
+        <button class="btn sm" id="s3CsgStart" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-combine"/></svg><span data-i18n="sim.csg">ตัด/รวม 2 ชิ้น</span></button>
+        <button class="btn sm" id="s3CsgCancel" type="button" data-i18n="sim.csgCancel">ยกเลิกโหมด</button>
+        <button class="btn sm" id="s3ExportAll" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="sim.exportAll">รวม .stl ทั้งผัง</span></button>
         <span id="s3ArSlot"></span>
       </div>
     </div>
     <div class="s3-csg-hint" id="s3CsgHint"></div>
-    <div id="s3Viewport" class="s3-viewport">
-      <div class="s3-loading" id="s3Loading">กำลังโหลด 3D…</div>
+    <div id="s3Viewport" class="s3-viewport" data-doc-area>
+      <div class="s3-loading" id="s3Loading" data-i18n="sim.loading">กำลังโหลด 3D…</div>
     </div>
     <div class="s3-savebar" id="s3SaveBar" role="status"></div>
   </div>
 
-  <div class="s3-aside">
+  <div class="s3-backdrop" id="s3Backdrop"></div>
+  <div class="s3-aside" id="s3Aside">
+    <div class="s3-aside-head">
+      <h2 data-i18n="sim.panel">แผงควบคุม</h2>
+      <button class="btn ghost icon" id="s3PanelClose" type="button" data-i18n-attr="aria-label:sim.close" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
+    </div>
+    <div class="s3-drawer-tools" id="s3DrawerTools"></div>
+
     <div class="card" id="s3InspectorCard" style="display:none">
-      <h2>วัตถุที่เลือก</h2>
+      <h2 data-i18n="sim.selected">วัตถุที่เลือก</h2>
       <div id="s3InspectorBody"></div>
     </div>
 
     <div class="card">
-      <h2>คลังของสำเร็จรูป</h2>
+      <h2 data-i18n="sim.library">คลังของสำเร็จรูป</h2>
       <div id="s3CatalogProc"></div>
     </div>
 
     <div class="card">
-      <h2>โมเดลของฉัน</h2>
+      <h2 data-i18n="sim.myModels">โมเดลของฉัน</h2>
       <div id="s3CatalogModels"></div>
     </div>
   </div>

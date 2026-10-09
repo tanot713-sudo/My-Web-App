@@ -30,6 +30,223 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
 (function () {
   'use strict';
 
+
+  /* ══════════════════ ภาษา UI (ไทย/อังกฤษ) — เฉพาะกรอบ UI; ฉาก 3D/เรขาคณิต/ชื่อโมเดลที่ผู้ใช้อัปโหลดไม่แปล ══════════════════ */
+  var T = OME_I18N.scope('sim', {
+    th: {
+      title: "จำลองสิ่งของ 3D",
+      pageTitle: "จำลองสิ่งของ 3D — จัดผัง/วางอุปกรณ์ | Tanot",
+      vPersp: "มุม 3D",
+      vTop: "บนลงล่าง",
+      vFront: "ด้านหน้า",
+      vSide: "ด้านข้าง",
+      snap: "Snap 0.5 ม.",
+      shot: "บันทึกภาพ",
+      clear: "ล้างทั้งหมด",
+      panel: "แผงควบคุม",
+      close: "ปิด",
+      xform: "ลากปรับ",
+      mMove: "ย้าย",
+      mRotate: "หมุน",
+      mScale: "สเกล",
+      csg: "ตัด/รวม 2 ชิ้น",
+      csgCancel: "ยกเลิกโหมด",
+      exportAll: "รวม .stl ทั้งผัง",
+      loading: "กำลังโหลด 3D…",
+      selected: "วัตถุที่เลือก",
+      library: "คลังของสำเร็จรูป",
+      myModels: "โมเดลของฉัน",
+      confirm: "ยืนยัน",
+      alert: "แจ้งเตือน",
+      cancel: "ยกเลิก",
+      ok: "ตกลง",
+      g_structure: "โครงสร้าง",
+      g_furniture: "เฟอร์นิเจอร์",
+      g_site: "ไซต์งาน",
+      o_wall: "ผนัง",
+      o_door: "ประตู",
+      o_window: "หน้าต่าง",
+      o_column: "เสา",
+      o_table: "โต๊ะ",
+      o_chair: "เก้าอี้",
+      o_sofa: "โซฟา",
+      o_cabinet: "ตู้",
+      o_bed: "เตียง",
+      o_cone: "กรวยจราจร",
+      o_barrel: "ถังเก็บของ",
+      o_crate: "ลัง/พาเลท",
+      o_ladder: "บันได",
+      o_sign: "ป้ายเตือน",
+      o_scaffold: "นั่งร้าน",
+      imported: "โมเดลที่นำเข้า",
+      csgUnion: "รวมชิ้น",
+      csgCut: "ตัดชิ้น",
+      del: "ลบ",
+      position: "ตำแหน่ง",
+      nLeft: "ขยับซ้าย",
+      nRight: "ขยับขวา",
+      nIn: "ขยับเข้า",
+      nOut: "ขยับออก",
+      rot90: "หมุน 90°",
+      rLeft: "หมุนซ้าย",
+      rRight: "หมุนขวา",
+      color: "สี",
+      colorOf: "สี {c}",
+      curSize: "ขนาดปัจจุบัน",
+      sizeFmt: "{x} × {z} × {y} ซม. (ก×ล×ส)",
+      resize: "ปรับขนาด",
+      axisY: "สูง",
+      axisX: "กว้าง",
+      axisZ: "ลึก",
+      cm: "ซม.",
+      apply: "ปรับ",
+      resetSize: "รีเซ็ตขนาดเดิม",
+      simplify: "ลดความละเอียด",
+      tris: "{n} เหลี่ยม",
+      multiPart: "โมเดลนี้มีหลายชิ้นส่วนภายใน — ลดความละเอียด/ตัด-รวมใช้ไม่ได้กับไฟล์นี้ (ขยับ/หมุน/ปรับขนาด/ดาวน์โหลดยังใช้ได้)",
+      download: "ดาวน์โหลด",
+      eSize: "กรอกตัวเลขขนาดเป็นเซนติเมตรที่มากกว่า 0",
+      eSimplify: "ลดความละเอียดไม่สำเร็จสำหรับโมเดลนี้: {m}",
+      eGlb: "ส่งออก .glb ไม่สำเร็จ: {m}",
+      eEmpty: "ยังไม่มีวัตถุในผัง",
+      eMerge: "รวมไฟล์ไม่สำเร็จ: {m}",
+      noModels: "ยังไม่มีโมเดลที่อัปโหลด",
+      upload: "อัปโหลดโมเดล",
+      delModelLabel: "ลบโมเดล {n}",
+      delModelConfirm: "ลบโมเดลนี้ออกจากคลัง? (วัตถุที่วางในผังจากโมเดลนี้ไปแล้วจะไม่หายไป)",
+      loadingModel: "กำลังโหลดโมเดล… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาสักครู่",
+      noModel: "ไม่พบโมเดลนี้แล้ว",
+      eLoadModel: "โหลดโมเดลไม่สำเร็จ: {m}",
+      eExt: "รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl .fbx",
+      reading: "กำลังอ่านไฟล์ {f} …",
+      converting: "กำลังแปลงโมเดล 3D… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาหลายวินาที หน้าจออาจไม่ตอบสนองชั่วขณะ (ไม่ได้ค้าง รอสักครู่)",
+      eRead: "อ่านไฟล์โมเดลไม่สำเร็จ (ไฟล์อาจเสียหรือฟอร์แมตไม่ตรง): {m}",
+      csgNeed2: "ต้องมีวัตถุอย่างน้อย 2 ชิ้นในผังก่อน",
+      csgPickBase: "คลิกวัตถุ \"ฐาน\" ในภาพ (จะถูกแทนที่ด้วยผลลัพธ์)",
+      csgPickTool: "คลิกวัตถุที่ 2 ที่จะใช้ตัด/รวม (จะถูกใช้แล้วลบทิ้ง)",
+      csgTitle: "เลือกวิธีรวมวัตถุ",
+      csgMsg: "จะลบส่วนที่ทับซ้อนออกจากฐาน (ตัด/เจาะรู) หรือรวมสองชิ้นเป็นก้อนเดียว (union)?",
+      csgUnionBtn: "รวมเป็นก้อนเดียว",
+      csgSubBtn: "ลบส่วนที่ทับซ้อน (ตัด)",
+      csgMulti: "วัตถุที่เลือกมีหลายชิ้นส่วนภายใน ไม่รองรับการตัด/รวม",
+      eCsg: "ตัด/รวมไม่สำเร็จ: {m}",
+      clearConfirm: "ล้างวัตถุทั้งหมดในผังนี้?",
+      saved: "บันทึกแล้ว",
+      noIdb: "เบราว์เซอร์นี้ไม่รองรับ IndexedDB",
+      noWebgl: "เบราว์เซอร์นี้ไม่รองรับ WebGL — ลองเปิดด้วยเบราว์เซอร์อื่นหรืออัปเดตเบราว์เซอร์",
+      eFormat: "รูปแบบไฟล์ไม่รองรับ"
+    },
+    en: {
+      title: "3D object simulator",
+      pageTitle: "3D object simulator — layout & equipment | Tanot",
+      vPersp: "3D view",
+      vTop: "Top",
+      vFront: "Front",
+      vSide: "Side",
+      snap: "Snap 0.5 m",
+      shot: "Save image",
+      clear: "Clear all",
+      panel: "Controls",
+      close: "Close",
+      xform: "Drag to edit",
+      mMove: "Move",
+      mRotate: "Rotate",
+      mScale: "Scale",
+      csg: "Cut / merge 2 objects",
+      csgCancel: "Cancel mode",
+      exportAll: "Export all as .stl",
+      loading: "Loading 3D…",
+      selected: "Selected object",
+      library: "Ready-made library",
+      myModels: "My models",
+      confirm: "Confirm",
+      alert: "Notice",
+      cancel: "Cancel",
+      ok: "OK",
+      g_structure: "Structure",
+      g_furniture: "Furniture",
+      g_site: "Site",
+      o_wall: "Wall",
+      o_door: "Door",
+      o_window: "Window",
+      o_column: "Column",
+      o_table: "Table",
+      o_chair: "Chair",
+      o_sofa: "Sofa",
+      o_cabinet: "Cabinet",
+      o_bed: "Bed",
+      o_cone: "Traffic cone",
+      o_barrel: "Storage bin",
+      o_crate: "Crate / pallet",
+      o_ladder: "Ladder",
+      o_sign: "Warning sign",
+      o_scaffold: "Scaffolding",
+      imported: "Imported model",
+      csgUnion: "Merged piece",
+      csgCut: "Cut piece",
+      del: "Delete",
+      position: "Position",
+      nLeft: "Move left",
+      nRight: "Move right",
+      nIn: "Move back",
+      nOut: "Move forward",
+      rot90: "Rotate 90°",
+      rLeft: "Rotate left",
+      rRight: "Rotate right",
+      color: "Colour",
+      colorOf: "Colour {c}",
+      curSize: "Current size",
+      sizeFmt: "{x} × {z} × {y} cm (W×D×H)",
+      resize: "Resize",
+      axisY: "Height",
+      axisX: "Width",
+      axisZ: "Depth",
+      cm: "cm",
+      apply: "Apply",
+      resetSize: "Reset to original size",
+      simplify: "Reduce detail",
+      tris: "{n} triangles",
+      multiPart: "This model has several inner parts — reduce detail and cut/merge are not available for it (move, rotate, resize and download still work)",
+      download: "Download",
+      eSize: "Enter a size in centimetres greater than 0",
+      eSimplify: "Could not reduce the detail of this model: {m}",
+      eGlb: "Could not export .glb: {m}",
+      eEmpty: "There are no objects in the layout yet",
+      eMerge: "Could not merge the files: {m}",
+      noModels: "No uploaded models yet",
+      upload: "Upload model",
+      delModelLabel: "Delete model {n}",
+      delModelConfirm: "Remove this model from the library? (Objects already placed from it stay in the layout)",
+      loadingModel: "Loading the model… large files or .fbx may take a moment",
+      noModel: "This model no longer exists",
+      eLoadModel: "Could not load the model: {m}",
+      eExt: "Only .glb .gltf .obj .ply .stl .fbx files are supported",
+      reading: "Reading file {f} …",
+      converting: "Converting the 3D model… large files or .fbx can take several seconds and the page may pause briefly (it has not frozen, please wait)",
+      eRead: "Could not read the model file (it may be damaged or in the wrong format): {m}",
+      csgNeed2: "Place at least 2 objects in the layout first",
+      csgPickBase: "Click the \"base\" object in the view (it will be replaced by the result)",
+      csgPickTool: "Click the 2nd object to cut/merge with (it will be used up and removed)",
+      csgTitle: "Choose how to combine",
+      csgMsg: "Remove the overlapping part from the base (cut / hole) or merge the two pieces into one (union)?",
+      csgUnionBtn: "Merge into one",
+      csgSubBtn: "Remove overlap (cut)",
+      csgMulti: "The selected object has several inner parts, so cut/merge is not supported",
+      eCsg: "Cut/merge failed: {m}",
+      clearConfirm: "Clear every object in this layout?",
+      saved: "Saved",
+      noIdb: "This browser does not support IndexedDB",
+      noWebgl: "This browser does not support WebGL — try another browser or update this one",
+      eFormat: "Unsupported file format"
+    }
+  });
+  window.OME_PAGE_LIVE_LANG = true;
+  var GROUP_KEY = { 'โครงสร้าง': 'g_structure', 'เฟอร์นิเจอร์': 'g_furniture', 'ไซต์งาน': 'g_site' };
+  var DEF_KEY = { wall: 'o_wall', door: 'o_door', window: 'o_window', column: 'o_column', table: 'o_table', chair: 'o_chair', sofa: 'o_sofa', cabinet: 'o_cabinet', bed: 'o_bed',
+    cone: 'o_cone', barrel: 'o_barrel', crate: 'o_crate', ladder: 'o_ladder', sign: 'o_sign', scaffold: 'o_scaffold' };
+  function defLabel(d) { return T(DEF_KEY[d.key] || ('o_' + d.key)) || d.label; }
+  function groupLabel(g) { return T(GROUP_KEY[g]) || g; }
+  var SCENE_BG = 0xE7ECF4; /* พื้นฉาก 3D — ไม่ผูกกับธีม (ส่งไปที่ CSS ผ่าน --s3-scene-bg) */
   var STORAGE_KEY = 'tanot:sim3d:objects';
   var SNAP = 0.5;
   var UPLOAD_EXTS = ['glb', 'gltf', 'obj', 'ply', 'stl', 'fbx'];
@@ -38,7 +255,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   var DB_NAME = 'tanot-sim3d', DB_STORE = 'models', DB_VERSION = 1;
   function dbOpen() {
     return new Promise(function (resolve, reject) {
-      if (!window.indexedDB) { reject(new Error('เบราว์เซอร์นี้ไม่รองรับ IndexedDB')); return; }
+      if (!window.indexedDB) { reject(new Error(T('noIdb'))); return; }
       var req = indexedDB.open(DB_NAME, DB_VERSION);
       req.onupgradeneeded = function () {
         var db = req.result;
@@ -273,21 +490,21 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
   function s3Confirm(message, title) {
     return showModal({
-      title: title || 'ยืนยัน',
+      title: title || T('confirm'),
       message: message,
       cancelValue: false,
       buttons: [
-        { label: 'ยกเลิก', value: false },
-        { label: 'ตกลง', value: true, primary: true }
+        { label: T('cancel'), value: false },
+        { label: T('ok'), value: true, primary: true }
       ]
     }).then(function (v) { return v === true; });
   }
   function s3Alert(message, title) {
     return showModal({
-      title: title || 'แจ้งเตือน',
+      title: title || T('alert'),
       message: message,
       cancelValue: true,
-      buttons: [{ label: 'ตกลง', value: true, primary: true }]
+      buttons: [{ label: T('ok'), value: true, primary: true }]
     }).then(function () {});
   }
 
@@ -296,7 +513,8 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     viewportEl = $('s3Viewport');
     try {
       scene = new THREE.Scene();
-      scene.background = new THREE.Color(0xE7ECF4);
+      scene.background = new THREE.Color(SCENE_BG);
+      viewportEl.style.setProperty('--s3-scene-bg', hexStr(SCENE_BG));
       scene.environment = new RoomEnvironment().texture || null;
 
       camera = new THREE.PerspectiveCamera(50, 1, 0.1, 100);
@@ -307,6 +525,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.0;
       viewportEl.appendChild(renderer.domElement);
+      renderer.domElement.setAttribute('data-doc-area', '');
 
       controls = new OrbitControls(camera, renderer.domElement);
       controls.target.set(PRESETS.persp.target[0], PRESETS.persp.target[1], PRESETS.persp.target[2]);
@@ -345,6 +564,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       if (loadingEl) loadingEl.remove();
 
       bindToolbar();
+      bindDrawer();
       refreshMyModelsCatalog();
       loadFromStorage().then(function () {
         buildProcCatalog();
@@ -352,7 +572,9 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       animate();
       setupAR();
     } catch (e) {
-      viewportEl.innerHTML = '<div class="s3-loading">เบราว์เซอร์นี้ไม่รองรับ WebGL — ลองเปิดด้วยเบราว์เซอร์อื่นหรืออัปเดตเบราว์เซอร์</div>';
+      viewportEl.innerHTML = '<div class="s3-loading"></div>';
+      viewportEl.firstChild.textContent = T('noWebgl');
+      OME_I18N.live(viewportEl.firstChild, function () { return T('noWebgl'); });
     }
   }
 
@@ -434,7 +656,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       // ให้ถือว่า 1 หน่วย = 1 เมตรเหมือนฟอร์แมตอื่น แล้วใช้ช่อง "ปรับขนาด" ตั้งขนาดจริงเอาเองแทน
       return Promise.resolve(new FBXLoader().parse(arrayBuffer, ''));
     }
-    return Promise.reject(new Error('รูปแบบไฟล์ไม่รองรับ'));
+    return Promise.reject(new Error(T('eFormat')));
   }
 
   /* รวมทุก mesh ในไฟล์ที่โหลดมาเป็นชิ้นเดียว (ทำให้ปรับขนาด/ลดโพลีกอน/ตัด-รวม
@@ -517,7 +739,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     var rec = {
       id: id, group: group, x: x, z: z, rotY: rotY || 0, scale: s, baseSize: baseSize,
       type: meta.type, key: meta.key, color: meta.color,
-      modelId: meta.modelId, name: meta.name, format: meta.format, mergedOk: meta.mergedOk
+      modelId: meta.modelId, name: meta.name, nameKey: meta.nameKey, format: meta.format, mergedOk: meta.mergedOk
     };
     placed.push(rec);
     select(id);
@@ -567,61 +789,63 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   function hexStr(n) { return '#' + ('000000' + n.toString(16)).slice(-6); }
 
   /* ══════════════════ แผงควบคุมวัตถุที่เลือก ══════════════════ */
+  function sizeText(s) { return T('sizeFmt', { x: fmtCm(s.x), z: fmtCm(s.z), y: fmtCm(s.y) }); }
+  function recLabel(rec) {
+    if (rec.type === 'proc') return defLabel(defByKey(rec.key));
+    return rec.nameKey ? T(rec.nameKey) : ('' + (rec.name || T('imported')));
+  }
   function renderInspector() {
     var card = $('s3InspectorCard'), body = $('s3InspectorBody');
     var rec = selectedId ? findRec(selectedId) : null;
     if (!rec) { card.style.display = 'none'; return; }
     card.style.display = '';
     var isProc = rec.type === 'proc';
-    var def = isProc ? defByKey(rec.key) : null;
-    var label = isProc ? def.label : ('' + (rec.name || 'โมเดลที่นำเข้า'));
+    var label = recLabel(rec);
+    var ic = function (n) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + n + '"/></svg>'; };
+    var nb = function (code, key, icon) { return '<button class="btn sm icon" type="button" data-nudge="' + code + '" aria-label="' + T(key) + '">' + ic(icon) + '</button>'; };
 
-    var html = '<div class="s3-insp-row"><span class="lbl">' + label + '</span>' +
-      '<button class="btn sm" id="s3Del" type="button">ลบ</button></div>';
+    var html = '<div class="s3-insp-row"><span class="lbl"' + (isProc ? '' : ' data-i18n-skip') + '>' + escHtml(label) + '</span>' +
+      '<button class="btn sm" id="s3Del" type="button">' + T('del') + '</button></div>';
 
-    html += '<div class="s3-insp-row"><span class="lbl">ตำแหน่ง</span><div class="s3-nudge">' +
-      '<button type="button" data-nudge="x-1" aria-label="ขยับซ้าย"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-left"/></svg></button>' +
-      '<button type="button" data-nudge="x1" aria-label="ขยับขวา"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-right"/></svg></button>' +
-      '<button type="button" data-nudge="z-1" aria-label="ขยับเข้า"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-up"/></svg></button>' +
-      '<button type="button" data-nudge="z1" aria-label="ขยับออก"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-arrow-down"/></svg></button></div></div>' +
-      '<div class="s3-insp-row"><span class="lbl">หมุน 90°</span><div class="s3-nudge">' +
-      '<button type="button" data-nudge="ry-1" aria-label="หมุนซ้าย"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg></button>' +
-      '<button type="button" data-nudge="ry1" aria-label="หมุนขวา"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-cw"/></svg></button></div></div>';
+    html += '<div class="s3-insp-row"><span class="lbl">' + T('position') + '</span><div class="s3-nudge">' +
+      nb('x-1', 'nLeft', 'arrow-left') + nb('x1', 'nRight', 'arrow-right') + nb('z-1', 'nIn', 'arrow-up') + nb('z1', 'nOut', 'arrow-down') + '</div></div>' +
+      '<div class="s3-insp-row"><span class="lbl">' + T('rot90') + '</span><div class="s3-nudge">' +
+      nb('ry-1', 'rLeft', 'rotate-ccw') + nb('ry1', 'rRight', 'rotate-cw') + '</div></div>';
 
     if (isProc) {
       var curHex = hexStr(rec.color).toLowerCase();
       var swatches = COLOR_CHOICES.map(function (c) {
         var on = c.toLowerCase() === curHex;
-        return '<button class="s3-swatch' + (on ? ' active' : '') + '" type="button" style="background:' + c + '" data-color="' + c + '" aria-label="สี ' + c + '"></button>';
+        return '<button class="btn sm icon s3-swatch" type="button" style="--sw:' + c + '" data-color="' + c + '" aria-pressed="' + (on ? 'true' : 'false') + '" aria-label="' + T('colorOf', { c: c }) + '"><span></span></button>';
       }).join('');
-      html += '<div class="s3-insp-row"><span class="lbl">สี</span></div><div class="s3-color-row">' + swatches + '</div>';
+      html += '<div class="s3-insp-row"><span class="lbl">' + T('color') + '</span></div><div class="s3-color-row">' + swatches + '</div>';
     }
 
     var curSize = { x: rec.baseSize.x * rec.scale, y: rec.baseSize.y * rec.scale, z: rec.baseSize.z * rec.scale };
-    html += '<div class="s3-insp-row" id="s3SizeInfo"><span class="lbl">ขนาดปัจจุบัน</span>' +
-      '<span class="s3-size-val">' + fmtCm(curSize.x) + ' × ' + fmtCm(curSize.z) + ' × ' + fmtCm(curSize.y) + ' ซม. (ก×ล×ส)</span></div>' +
-      '<div class="s3-insp-row"><span class="lbl">ปรับขนาด</span></div>' +
+    html += '<div class="s3-insp-row" id="s3SizeInfo"><span class="lbl">' + T('curSize') + '</span>' +
+      '<span class="s3-size-val">' + sizeText(curSize) + '</span></div>' +
+      '<div class="s3-insp-row"><span class="lbl">' + T('resize') + '</span></div>' +
       '<div class="s3-size-row">' +
-        '<select id="s3SizeAxis"><option value="y">สูง</option><option value="x">กว้าง</option><option value="z">ลึก</option></select>' +
-        '<input type="number" id="s3SizeInput" min="0.1" step="0.5" placeholder="ซม." value="' + fmtCm(curSize.y, true) + '">' +
-        '<button class="btn sm" id="s3SizeApply" type="button">ปรับ</button>' +
+        '<select class="select" id="s3SizeAxis" aria-label="' + T('resize') + '"><option value="y">' + T('axisY') + '</option><option value="x">' + T('axisX') + '</option><option value="z">' + T('axisZ') + '</option></select>' +
+        '<input class="input" type="number" id="s3SizeInput" min="0.1" step="0.5" placeholder="' + T('cm') + '" aria-label="' + T('cm') + '" value="' + fmtCm(curSize.y, true) + '">' +
+        '<button class="btn sm" id="s3SizeApply" type="button">' + T('apply') + '</button>' +
       '</div>' +
-      '<div class="s3-nudge" style="margin-top:6px">' +
-        '<button type="button" data-scale="0.9">－10%</button>' +
-        '<button type="button" data-scale="1.1">＋10%</button>' +
-        '<button class="btn sm" type="button" id="s3SizeReset">รีเซ็ตขนาดเดิม</button>' +
+      '<div class="s3-nudge" style="margin-top:8px">' +
+        '<button class="btn sm" type="button" data-scale="0.9">－10%</button>' +
+        '<button class="btn sm" type="button" data-scale="1.1">＋10%</button>' +
+        '<button class="btn sm" type="button" id="s3SizeReset">' + T('resetSize') + '</button>' +
       '</div>';
 
     var mesh = getSingleMesh(rec);
     if (!isProc && mesh) {
       var triCount = mesh.geometry.index ? mesh.geometry.index.count / 3 : mesh.geometry.attributes.position.count / 3;
-      html += '<div class="s3-insp-row"><span class="lbl">ลดความละเอียด</span><span class="s3-size-val" id="s3TriCount">' + Math.round(triCount).toLocaleString('th-TH') + ' เหลี่ยม</span></div>' +
-        '<div class="s3-size-row"><input type="range" id="s3SimplifyRange" min="10" max="100" value="100" style="flex:1"><span id="s3SimplifyPct" class="s3-size-val" style="min-width:40px">100%</span></div>';
+      html += '<div class="s3-insp-row"><span class="lbl">' + T('simplify') + '</span><span class="s3-size-val" id="s3TriCount">' + T('tris', { n: OME_I18N.number(Math.round(triCount)) }) + '</span></div>' +
+        '<div class="s3-size-row"><input type="range" id="s3SimplifyRange" min="10" max="100" value="100" aria-label="' + T('simplify') + '" style="flex:1"><span id="s3SimplifyPct" class="s3-size-val" style="min-width:40px">100%</span></div>';
     } else if (!isProc && !mesh) {
-      html += '<div class="s3-insp-row"><span class="lbl mini-note">โมเดลนี้มีหลายชิ้นส่วนภายใน — ลดความละเอียด/ตัด-รวมใช้ไม่ได้กับไฟล์นี้ (ขยับ/หมุน/ปรับขนาด/ดาวน์โหลดยังใช้ได้ปกติ)</span></div>';
+      html += '<div class="s3-insp-row"><span class="lbl mini-note">' + T('multiPart') + '</span></div>';
     }
 
-    html += '<div class="s3-insp-row"><span class="lbl">ดาวน์โหลด</span><div class="s3-nudge">' +
+    html += '<div class="s3-insp-row"><span class="lbl">' + T('download') + '</span><div class="s3-nudge">' +
       '<button class="btn sm" id="s3ExpGlb" type="button">.glb</button>' +
       (mesh ? '<button class="btn sm" id="s3ExpStl" type="button">.stl</button>' : '') +
       '</div></div>';
@@ -657,12 +881,12 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     var el = $('s3SizeInfo');
     if (!rec || !el) return;
     var s = { x: rec.baseSize.x * rec.scale, y: rec.baseSize.y * rec.scale, z: rec.baseSize.z * rec.scale };
-    el.querySelector('.s3-size-val').textContent = fmtCm(s.x) + ' × ' + fmtCm(s.z) + ' × ' + fmtCm(s.y) + ' ซม. (ก×ล×ส)';
+    el.querySelector('.s3-size-val').textContent = sizeText(s);
   }
 
   function fmtCm(m, raw) {
     var cm = m * 100;
-    return raw ? (Math.round(cm * 10) / 10) : (Math.round(cm * 10) / 10).toLocaleString('th-TH');
+    return raw ? (Math.round(cm * 10) / 10) : OME_I18N.number(Math.round(cm * 10) / 10);
   }
 
   function setScale(s) {
@@ -682,7 +906,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     if (!rec) return;
     var axis = $('s3SizeAxis').value;
     var targetCm = parseFloat($('s3SizeInput').value);
-    if (!isFinite(targetCm) || targetCm <= 0) { s3Alert('กรอกตัวเลขขนาดเป็นเซนติเมตรที่มากกว่า 0'); return; }
+    if (!isFinite(targetCm) || targetCm <= 0) { s3Alert(T('eSize')); return; }
     var targetM = targetCm / 100;
     var base = rec.baseSize[axis];
     if (!base || base <= 0) return;
@@ -743,14 +967,14 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         mesh.geometry.dispose();
         mesh.geometry = simplified;
       } catch (e) {
-        s3Alert('ลดความละเอียดไม่สำเร็จสำหรับโมเดลนี้: ' + (e && e.message ? e.message : e));
+        s3Alert(T('eSimplify', { m: e && e.message ? e.message : e }));
       }
     }
     if (selHelper) selHelper.update();
     var triCountEl = $('s3TriCount');
     if (triCountEl) {
       var t = mesh.geometry.index ? mesh.geometry.index.count / 3 : mesh.geometry.attributes.position.count / 3;
-      triCountEl.textContent = Math.round(t).toLocaleString('th-TH') + ' เหลี่ยม';
+      triCountEl.textContent = T('tris', { n: OME_I18N.number(Math.round(t)) });
     }
   }
 
@@ -773,7 +997,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
           ? new Blob([result], { type: 'model/gltf-binary' })
           : new Blob([JSON.stringify(result)], { type: 'application/json' });
         downloadBlob(blob, name + '.glb');
-      }, function (err) { s3Alert('ส่งออก .glb ไม่สำเร็จ: ' + err); }, { binary: true });
+      }, function (err) { s3Alert(T('eGlb', { m: err })); }, { binary: true });
     } else if (format === 'stl') {
       var mesh = getSingleMesh(rec);
       if (!mesh) return;
@@ -783,7 +1007,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function exportAllAsStl() {
-    if (!placed.length) { s3Alert('ยังไม่มีวัตถุในผัง'); return; }
+    if (!placed.length) { s3Alert(T('eEmpty')); return; }
     var geometries = [];
     placed.forEach(function (r) {
       r.group.updateWorldMatrix(true, true);
@@ -803,11 +1027,12 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       var data = new STLExporter().parse(mesh, { binary: true });
       downloadBlob(new Blob([data], { type: 'model/stl' }), 'tanot-sim3d-all.stl');
     } catch (e) {
-      s3Alert('รวมไฟล์ไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+      s3Alert(T('eMerge', { m: e && e.message ? e.message : e }));
     }
   }
 
   /* ══════════════════ คลังของ (procedural + โมเดลของฉัน) ══════════════════ */
+  var procCatalogBound = false;
   function buildProcCatalog() {
     var groups = {}, order = [];
     OBJECT_DEFS.forEach(function (d) {
@@ -816,18 +1041,21 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     });
     var html = '';
     order.forEach(function (g) {
-      html += '<div class="s3-cat-group-h">' + g + '</div><div class="s3-catalog-row">';
+      html += '<div class="s3-cat-group-h">' + groupLabel(g) + '</div><div class="s3-catalog-row">';
       groups[g].forEach(function (d) {
-        html += '<button class="s3-cat-btn" type="button" data-key="' + d.key + '">' +
-          '<span class="ic">' + d.icon + '</span><span class="lb">' + d.label + '</span></button>';
+        html += '<button class="btn s3-cat" type="button" data-key="' + d.key + '">' +
+          '<span class="ic">' + d.icon + '</span><span class="lb">' + defLabel(d) + '</span></button>';
       });
       html += '</div>';
     });
     $('s3CatalogProc').innerHTML = html;
+    if (procCatalogBound) return;
+    procCatalogBound = true;
     $('s3CatalogProc').addEventListener('click', function (e) {
-      var btn = e.target.closest('.s3-cat-btn');
+      var btn = e.target.closest('.s3-cat');
       if (!btn) return;
       addProcObject(btn.dataset.key, stagingX(), -3, 0, null, 1);
+      closeDrawer();
     });
   }
 
@@ -836,15 +1064,15 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       myModels = list;
       var wrap = $('s3CatalogModels');
       var rows = list.map(function (m) {
-        return '<div class="s3-mymodel-row" data-id="' + m.id + '">' +
-          '<button class="s3-cat-btn" type="button" data-model-id="' + m.id + '">' +
-            '<span class="ic"></span><span class="lb">' + escHtml(m.name) + '</span></button>' +
-          '<button class="s3-mymodel-del" type="button" data-del-id="' + m.id + '" aria-label="ลบโมเดล ' + escHtml(m.name) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></button>' +
+        return '<div class="s3-model-row" data-id="' + m.id + '">' +
+          '<button class="btn s3-model-use" type="button" data-model-id="' + m.id + '" data-i18n-skip>' +
+            '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-cuboid"/></svg><span class="nm">' + escHtml(m.name) + '</span></button>' +
+          '<button class="btn ghost icon sm" type="button" data-del-id="' + m.id + '" aria-label="' + escHtml(T('delModelLabel', { n: m.name })) + '"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg></button>' +
         '</div>';
       }).join('');
       wrap.innerHTML =
-        (list.length ? '<div class="s3-mymodel-grid">' + rows + '</div>' : '<p class="s3-insp-empty">ยังไม่มีโมเดลที่อัปโหลด</p>') +
-        '<button class="btn sm s3-upload-btn" type="button" id="s3UploadBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>อัปโหลดโมเดล</button>' +
+        (list.length ? '<div class="s3-model-list">' + rows + '</div>' : '<p class="s3-insp-empty">' + T('noModels') + '</p>') +
+        '<button class="btn sm s3-upload" type="button" id="s3UploadBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-upload"/></svg>' + T('upload') + '</button>' +
         '<input type="file" id="s3FileInput" accept=".glb,.gltf,.obj,.ply,.stl,.fbx" style="display:none">' +
         '<p class="s3-upload-status" id="s3UploadStatus" style="display:none"></p>';
       $('s3UploadBtn').addEventListener('click', function () { $('s3FileInput').click(); });
@@ -854,13 +1082,13 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
         e.target.value = '';
       });
       Array.prototype.forEach.call(wrap.querySelectorAll('[data-model-id]'), function (b) {
-        b.addEventListener('click', function () { placeModelById(parseInt(b.dataset.modelId, 10)); });
+        b.addEventListener('click', function () { placeModelById(parseInt(b.dataset.modelId, 10)); closeDrawer(); });
       });
       Array.prototype.forEach.call(wrap.querySelectorAll('[data-del-id]'), function (b) {
         b.addEventListener('click', function (ev) {
           ev.stopPropagation();
           var id = parseInt(b.dataset.delId, 10);
-          s3Confirm('ลบโมเดลนี้ออกจากคลัง? (วัตถุที่วางในผังจากโมเดลนี้ไปแล้วจะไม่หายไป)').then(function (ok) {
+          s3Confirm(T('delModelConfirm')).then(function (ok) {
             if (!ok) return;
             dbDeleteModel(id).then(refreshMyModelsCatalog);
           });
@@ -876,11 +1104,18 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       requestAnimationFrame(function () { setTimeout(resolve, 0); });
     });
   }
+  var uploadMsg = null; /* { k, v } — เก็บเป็นคีย์ข้อความ แปลสดตอนสลับภาษา */
+  function uploadMsgText() { return uploadMsg ? T(uploadMsg.k, uploadMsg.v) : ''; }
   function setUploadBusy(busy, msg) {
     var btn = $('s3UploadBtn'), input = $('s3FileInput'), status = $('s3UploadStatus');
     if (btn) btn.disabled = busy;
     if (input) input.disabled = busy;
-    if (status) { status.style.display = busy ? '' : 'none'; status.innerHTML = busy ? '<span class="spinner"></span><span></span>' : ''; if (busy) status.lastChild.textContent = msg || ''; }
+    uploadMsg = busy ? msg : null;
+    if (status) {
+      status.style.display = busy ? '' : 'none';
+      status.innerHTML = busy ? '<span class="spinner"></span><span></span>' : '';
+      if (busy) status.lastChild.textContent = uploadMsgText();
+    }
   }
 
   function escHtml(s) {
@@ -890,22 +1125,22 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function placeModelById(id) {
-    setUploadBusy(true, 'กำลังโหลดโมเดล… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาสักครู่');
+    setUploadBusy(true, { k: 'loadingModel' });
     dbGetModel(id).then(function (rec) {
-      if (!rec) { s3Alert('ไม่พบโมเดลนี้แล้ว'); return; }
+      if (!rec) { s3Alert(T('noModel')); return; }
       return nextPaint().then(function () { return addModelObject(rec, stagingX(), -3, 0, 1, false); });
-    }).catch(function (e) { s3Alert('โหลดโมเดลไม่สำเร็จ: ' + (e && e.message ? e.message : e)); })
+    }).catch(function (e) { s3Alert(T('eLoadModel', { m: e && e.message ? e.message : e })); })
       .then(function () { setUploadBusy(false); });
   }
 
   function handleFileUpload(file) {
     var ext = (file.name.split('.').pop() || '').toLowerCase();
-    if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert('รองรับเฉพาะไฟล์ .glb .gltf .obj .ply .stl .fbx'); return; }
-    setUploadBusy(true, 'กำลังอ่านไฟล์ ' + file.name + ' …');
+    if (UPLOAD_EXTS.indexOf(ext) === -1) { s3Alert(T('eExt')); return; }
+    setUploadBusy(true, { k: 'reading', v: { f: file.name } });
     var bufHolder;
     file.arrayBuffer().then(function (buf) {
       bufHolder = buf;
-      setUploadBusy(true, 'กำลังแปลงโมเดล 3D… ไฟล์ใหญ่หรือ .fbx อาจใช้เวลาหลายวินาที หน้าจออาจไม่ตอบสนองชั่วขณะ (ไม่ได้ค้าง รอสักครู่)');
+      setUploadBusy(true, { k: 'converting' });
       return nextPaint();
     }).then(function () {
       return parseModelFile(ext, bufHolder); // parse ครั้งเดียว แล้วส่งต่อให้วางในผังเลย ไม่ parse ซ้ำสองรอบ
@@ -919,7 +1154,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       setUploadBusy(false);
     }).catch(function (err) {
       setUploadBusy(false);
-      s3Alert('อ่านไฟล์โมเดลไม่สำเร็จ (ไฟล์อาจเสียหรือฟอร์แมตไม่ตรง): ' + (err && err.message ? err.message : err));
+      s3Alert(T('eRead', { m: err && err.message ? err.message : err }));
     });
   }
 
@@ -946,28 +1181,31 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
   }
 
   function startCsgMode() {
-    if (placed.length < 2) { s3Alert('ต้องมีวัตถุอย่างน้อย 2 ชิ้นในผังก่อน'); return; }
+    if (placed.length < 2) { s3Alert(T('csgNeed2')); return; }
     csgMode = 'pick-base';
     csgBaseId = null;
     select(null);
-    setCsgHint('คลิกวัตถุ "ฐาน" ในภาพ (จะถูกแทนที่ด้วยผลลัพธ์)');
+    setCsgHint('csgPickBase');
+    closeDrawer();
   }
   function cancelCsgMode() {
     csgMode = null; csgBaseId = null;
     setCsgHint('');
   }
-  function setCsgHint(text) {
+  var csgHintKey = '';
+  function setCsgHint(key) {
+    csgHintKey = key;
     var el = $('s3CsgHint');
     if (!el) return;
-    el.textContent = text;
-    el.style.display = text ? '' : 'none';
+    el.textContent = key ? T(key) : '';
+    el.style.display = key ? '' : 'none';
   }
   function handleCsgPick(hitId) {
     if (!hitId) return;
     if (csgMode === 'pick-base') {
       csgBaseId = hitId;
       csgMode = 'pick-tool';
-      setCsgHint('คลิกวัตถุที่ 2 ที่จะใช้ตัด/รวม (จะถูกใช้แล้วลบทิ้ง)');
+      setCsgHint('csgPickTool');
       return;
     }
     if (csgMode === 'pick-tool') {
@@ -976,13 +1214,13 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       csgMode = null; csgBaseId = null;
       setCsgHint('');
       showModal({
-        title: 'เลือกวิธีรวมวัตถุ',
-        message: 'จะลบส่วนที่ทับซ้อนออกจากฐาน (ตัด/เจาะรู) หรือรวมสองชิ้นเป็นก้อนเดียว (union)?',
+        title: T('csgTitle'),
+        message: T('csgMsg'),
         cancelValue: null,
         buttons: [
-          { label: 'ยกเลิก', value: null },
-          { label: 'รวมเป็นก้อนเดียว', value: 'union' },
-          { label: 'ลบส่วนที่ทับซ้อน (ตัด)', value: 'subtract', primary: true }
+          { label: T('cancel'), value: null },
+          { label: T('csgUnionBtn'), value: 'union' },
+          { label: T('csgSubBtn'), value: 'subtract', primary: true }
         ]
       }).then(function (op) {
         if (!op) return;
@@ -995,7 +1233,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     var baseRec = findRec(baseId), toolRec = findRec(toolId);
     if (!baseRec || !toolRec) return;
     var baseMesh = getSingleMesh(baseRec), toolMesh = getSingleMesh(toolRec);
-    if (!baseMesh || !toolMesh) { s3Alert('วัตถุที่เลือกมีหลายชิ้นส่วนภายใน ไม่รองรับการตัด/รวม'); return; }
+    if (!baseMesh || !toolMesh) { s3Alert(T('csgMulti')); return; }
     ensureCsgLoaded().then(function () {
       var CSG = window.ThreBvhCsg;
       var Brush = CSG.Brush, Evaluator = CSG.Evaluator;
@@ -1017,9 +1255,9 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
       scene.remove(baseRec.group);
       scene.remove(toolRec.group);
       placed = placed.filter(function (r) { return r.id !== baseId && r.id !== toolId; });
-      finalizePlace({ type: 'csg', name: op === 'union' ? 'รวมชิ้น' : 'ตัดชิ้น', color: baseRec.color }, resultMesh, 0, 0, 0, 1, false);
+      finalizePlace({ type: 'csg', name: op === 'union' ? 'รวมชิ้น' : 'ตัดชิ้น', nameKey: op === 'union' ? 'csgUnion' : 'csgCut', color: baseRec.color }, resultMesh, 0, 0, 0, 1, false);
     }).catch(function (e) {
-      s3Alert('ตัด/รวมไม่สำเร็จ: ' + (e && e.message ? e.message : e));
+      s3Alert(T('eCsg', { m: e && e.message ? e.message : e }));
     });
   }
 
@@ -1037,6 +1275,58 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     }).catch(function () { slot.style.display = 'none'; });
   }
 
+  /* ══════════════════ ลิ้นชักแผงควบคุม (จอ ≤ 1000px) + เปลี่ยนภาษาสด ══════════════════ */
+  var drawerMq = window.matchMedia ? window.matchMedia('(max-width:1000px)') : null;
+  function drawerOpen() { var a = $('s3Aside'); return !!(a && a.classList.contains('open')); }
+  function openDrawer() {
+    if (!drawerMq || !drawerMq.matches) return;
+    $('s3Aside').classList.add('open');
+    $('s3Backdrop').classList.add('open');
+    $('s3PanelOpen').setAttribute('aria-expanded', 'true');
+    var c = $('s3PanelClose'); if (c) c.focus();
+  }
+  function closeDrawer() {
+    if (!drawerOpen()) return;
+    $('s3Aside').classList.remove('open');
+    $('s3Backdrop').classList.remove('open');
+    var o = $('s3PanelOpen');
+    o.setAttribute('aria-expanded', 'false');
+    if (document.activeElement && $('s3Aside').contains(document.activeElement)) o.focus();
+  }
+  /* จอแคบ: เครื่องมือแถว 2 + กลุ่มบันทึกภาพ/ล้างทั้งหมดย้ายเข้าลิ้นชัก (ย้าย DOM เดิม ตัวฟังเหตุการณ์ยังอยู่) · จอกว้าง: คืนที่เดิม */
+  function placeTools() {
+    var g2 = $('s3Group2'), r2 = $('s3Row2'), dt = $('s3DrawerTools'), r1 = $('s3Row1'), hint = $('s3CsgHint');
+    if (!g2 || !r2 || !dt || !r1 || !hint) return;
+    if (drawerMq && drawerMq.matches) {
+      if (g2.parentNode !== dt) dt.appendChild(g2);
+      if (r2.parentNode !== dt) dt.appendChild(r2);
+    } else {
+      if (g2.parentNode !== r1) r1.appendChild(g2);
+      if (r2.parentNode !== hint.parentNode) hint.parentNode.insertBefore(r2, hint);
+      $('s3Aside').classList.remove('open');
+      $('s3Backdrop').classList.remove('open');
+    }
+  }
+  function bindDrawer() {
+    $('s3PanelOpen').addEventListener('click', openDrawer);
+    $('s3PanelClose').addEventListener('click', closeDrawer);
+    $('s3Backdrop').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && drawerOpen() && !$('s3Modal').open) closeDrawer(); });
+    if (drawerMq) {
+      if (drawerMq.addEventListener) drawerMq.addEventListener('change', placeTools); else drawerMq.addListener(placeTools);
+    }
+    placeTools();
+    document.title = T('pageTitle');
+    OME_I18N.apply(document);
+    OME_LANG.onChange(function () {
+      document.title = T('pageTitle');
+      buildProcCatalog();
+      refreshMyModelsCatalog().then(function () { if (uploadMsg) setUploadBusy(true, uploadMsg); });
+      renderInspector();
+      setCsgHint(csgHintKey);
+    });
+  }
+
   /* ══════════════════ แถบเครื่องมือ ══════════════════ */
   function bindToolbar() {
     Array.prototype.forEach.call(document.querySelectorAll('[data-view]'), function (b) {
@@ -1046,7 +1336,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     $('s3Shot').addEventListener('click', exportShot);
     $('s3Clear').addEventListener('click', function () {
       if (!placed.length) return;
-      s3Confirm('ล้างวัตถุทั้งหมดในผังนี้?').then(function (ok) {
+      s3Confirm(T('clearConfirm')).then(function (ok) {
         if (!ok) return;
         placed.slice().forEach(function (r) { scene.remove(r.group); });
         placed = [];
@@ -1107,7 +1397,7 @@ import { ARButton } from 'three/addons/webxr/ARButton.js';
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
     var bar = $('s3SaveBar');
     if (bar) {
-      bar.textContent = 'บันทึกแล้ว';
+      bar.textContent = T('saved');
       clearTimeout(saveBarTimer);
       saveBarTimer = setTimeout(function () { bar.textContent = ''; }, 1500);
     }
