@@ -37,9 +37,11 @@
      (โหลดเฉพาะตอนผู้ใช้กดส่งข้อความ/ใช้ไมค์ครั้งแรกจริงๆ) */
   (function injectAiChatWidget() {
     if (isEmbedded()) return; /* ในป๊อปอัพ หน้าที่เปิดป๊อปอัพมีวิดเจ็ตแชทของตัวเองอยู่แล้ว ไม่ต้องซ้ำ */
-    /* ai-client.js ต้องมาก่อนวิดเจ็ต (วิดเจ็ตเรียกคลาวด์ก่อนโมเดลในเครื่อง) — async=false ให้สคริปต์ที่ฉีดรันเรียงตามลำดับที่ใส่ */
-    ['ai-client.js', 'ai-chat-widget.js'].forEach(function (f) {
+    /* ai-client.js ต้องมาก่อนวิดเจ็ต (วิดเจ็ตเรียกคลาวด์ก่อนโมเดลในเครื่อง) · media-core.js = งบหน่วยความจำโมเดล/ถอดรหัสเสียง/บันทึกปัญหา
+       ที่วิดเจ็ตใช้ร่วมกับหน้า text-to-speech — async=false ให้สคริปต์ที่ฉีดรันเรียงตามลำดับที่ใส่ */
+    ['ai-client.js', 'media-core.js', 'ai-chat-widget.js'].forEach(function (f) {
       if (f === 'ai-client.js' && window.AiClient) return;
+      if (f === 'media-core.js' && window.TanotMedia) return;
       var s = document.createElement('script');
       s.src = BASE + f; s.async = false;
       document.head.appendChild(s);

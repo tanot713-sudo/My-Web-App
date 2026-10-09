@@ -319,8 +319,17 @@ function data(h) {
   };
   return {
     page: 'data.html', route, init: 'window.TANOT_SYNC = { enabled: true };',
-    seed: { 'tanot:notes:one': 'Local value', 'tanot:audit:keep': '{"k":1}' },
-    skipSel: '#dtPlan .imp-key, #dtHistory .dt-key, .dt-key',
+    seed: {
+      'tanot:notes:one': 'Local value', 'tanot:audit:keep': '{"k":1}',
+      // บันทึกปัญหาเสียง/OCR (media-core.js) — 2 แถว ให้ตัวตรวจวัดรายการตอนมีข้อมูล
+      'tanot:media:log': JSON.stringify([
+        { at: NOW - DAY, kind: 'asr', stage: 'transcribe', engine: 'local', model: 'Xenova/whisper-base', lang: 'auto', code: 'oom', name: 'RangeError', msg: 'Out of memory', page: 'text-to-speech.html',
+          ua: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36', mem: 4, cores: 8, online: true, file: { type: 'audio/mp4', ext: 'm4a', size: 48211234, dur: 3125 } },
+        { at: NOW - 600e3, kind: 'ocr', stage: 'tesseract', engine: 'local', model: 'tesseract eng+tha', lang: '', code: 'other', name: 'Error', msg: 'Failed to fetch', page: 'receipts.html',
+          ua: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X)', mem: null, cores: null, online: false, file: { type: 'image/jpeg', ext: '', size: 812345, dur: null } }
+      ])
+    },
+    skipSel: '#dtPlan .imp-key, #dtHistory .dt-key, .dt-key, .dt-log .meta span, .dt-err-msg',
     wait: async (p) => {
       await p.evaluate((rows) => new Promise((res) => {
         const r = indexedDB.open('tanot-data', 1);
@@ -338,6 +347,7 @@ function data(h) {
       ['status-offline', status({ state: 'offline', lastSyncAt: NOW - DAY, pending: 1, lastError: '', skipped: [] })],
       ['status-auth', status({ state: 'auth', lastSyncAt: NOW - DAY, pending: 1, lastError: '', skipped: [] })],
       ['sync-now', async (p) => { await h.dom(p, '#dtSyncNow'); await h.settle(p, 500); }],
+      ['log-copy', async (p) => { await h.dom(p, '#dtLogCopy'); await h.settle(p, 300); }],
       ['drive-list-empty', async (p) => { await p.evaluate(() => { window.DriveBackup = Object.assign(window.DriveBackup || {}, { lastBackupAt: () => 0, list: () => Promise.resolve([]) }); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],
       ['drive-list', async (p) => { await p.evaluate(() => { DriveBackup.list = () => Promise.resolve([{ id: 'f1', name: 'tanot-backup-2026-10-02-dev1.json' }, { id: 'f2', name: 'tanot-backup-2026-10-01-dev1.json' }]); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],
       ['drive-list-fail', async (p) => { await p.evaluate(() => { DriveBackup.list = () => Promise.reject(new Error('โหลด Google Identity Services ไม่ได้')); }); await h.dom(p, '#dtDriveList'); await h.settle(p, 400); }],

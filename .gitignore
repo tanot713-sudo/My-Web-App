@@ -1,2 +1,4 @@
 # ผลรันของ Playwright เมื่อรันจาก root (tests/ มี .gitignore ของตัวเอง)
 test-results/
+# ไฟล์เสียง/ภาพตัวอย่างจริงของเจ้าของ + ผลวัด (tools/media-eval) — ข้อมูลส่วนตัว ห้าม commit
+tools/media-eval/local/

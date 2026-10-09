@@ -336,7 +336,14 @@ async function readImageFileVision(file) {
 }
 
 async function readImageFile(file) {
-  return getOcrEngine() === 'vision' ? readImageFileVision(file) : readImageFileTesseract(file);
+  var engine = getOcrEngine();
+  try {
+    return await (engine === 'vision' ? readImageFileVision(file) : readImageFileTesseract(file));
+  } catch (e) {
+    /* บันทึกปัญหา (data.html) — file-reader.js บันทึกฝั่ง Tesseract เองแล้ว ที่นี่บันทึกเฉพาะ Claude Vision / Tesseract แบบไม่มี file-reader */
+    if (window.TanotMedia && (engine === 'vision' || !window.TanotFileReader)) TanotMedia.logError('ocr', e, { stage: engine, engine: engine === 'vision' ? 'cloud' : 'local', file: file });
+    throw e;
+  }
 }
 
 async function readAnyFile(file) {

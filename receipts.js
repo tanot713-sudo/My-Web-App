@@ -384,7 +384,11 @@
     return loadTesseract().then(function (T) {
       if (!T) throw new Error('ไม่มี Tesseract');
       return T.recognize(blob, 'tha+eng');
-    }).then(function (r) { return String((r && r.data && r.data.text) || ''); });
+    }).then(function (r) { return String((r && r.data && r.data.text) || ''); }, function (e) {
+      /* บันทึกปัญหา (data.html) — เฉพาะข้อมูลเครื่อง/ขนาดภาพ ไม่เก็บภาพหรือข้อความในใบเสร็จ */
+      if (window.TanotMedia) TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: 'tesseract tha+eng', file: { type: blob && blob.type, size: blob && blob.size } });
+      throw e;
+    });
   }
   function pdfRead(file) { // ข้อความจากเลเยอร์ข้อความของหน้าแรก (ถ้ามี) + ภาพหน้าแรก (ให้ OCR/Claude ใช้)
     return import(PDFJS_URL).then(function (m) {
@@ -477,6 +481,7 @@
       showSource('claude');
       setReadMsg('');
     }).catch(function (e) {
+      if (window.TanotMedia) TanotMedia.logError('ocr', e, { stage: 'claude', engine: 'cloud', file: { type: 'image/jpeg', size: st.imgBlob && st.imgBlob.size } });
       if (S !== st || token !== st.token) return;
       setReadMsg(window.AiClient.friendlyMessage(e));
     }).then(function () { if (S === st) { st.reading = false; updateClaudeBtn(); } });

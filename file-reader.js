@@ -196,13 +196,20 @@ var PSM_AUTO = '3', PSM_SINGLE_LINE = '7';
 /* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE, onProgress: function(number 0-100) } — คืนข้อความล้วน (trim แล้ว) */
 async function recognizeText(image, opts) {
   opts = opts || {};
-  var worker = await getOcrWorker();
-  await worker.setParameters({
-    tessedit_pageseg_mode: opts.psm || PSM_AUTO,
-    user_defined_dpi: '300'
-  });
-  var result = await worker.recognize(image);
-  return (result.data.text || '').trim();
+  try {
+    var worker = await getOcrWorker();
+    await worker.setParameters({
+      tessedit_pageseg_mode: opts.psm || PSM_AUTO,
+      user_defined_dpi: '300'
+    });
+    var result = await worker.recognize(image);
+    return (result.data.text || '').trim();
+  } catch (e) {
+    /* Worker ของ Tesseract พัง/โหลดภาษาไม่ได้ → ทิ้งตัวเดิม ครั้งหน้าสร้างใหม่ + บันทึกปัญหา (data.html: เฉพาะขนาดภาพ ไม่เก็บภาพ/ข้อความ) */
+    ocrWorkerPromise = null;
+    if (window.TanotMedia) window.TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: 'tesseract eng+tha', file: { type: image && image.width ? 'canvas ' + image.width + 'x' + image.height : 'image', size: 0 } });
+    throw e;
+  }
 }
 
 async function readTxtFile(file) {

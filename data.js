@@ -14,7 +14,13 @@
       readFail: 'อ่านไฟล์ไม่ได้: {err}', lastDrive: 'สำรองขึ้น Drive ล่าสุด {when}', backing: 'กำลังสำรอง…', backed: 'สำรองแล้ว: {name} ({keys} คีย์)',
       backFail: 'สำรองไม่สำเร็จ: {err}', loadingList: 'กำลังโหลดรายการ…', noFiles: 'ยังไม่มีไฟล์สำรองบน Drive', inspect: 'ตรวจก่อนกู้คืน',
       dlFail: 'ดาวน์โหลดไม่สำเร็จ: {err}', connFail: 'เชื่อมต่อ Drive ไม่สำเร็จ: {err}', restore: 'กู้คืน', restored: 'กู้คืนแล้ว',
-      gis: 'โหลด Google Identity Services ไม่ได้'
+      gis: 'โหลด Google Identity Services ไม่ได้',
+      models: 'โมเดล AI ในเครื่อง', modelClear: 'ล้างแคชโมเดล', modelSize: 'แคชโมเดล', storageUse: 'พื้นที่ที่เว็บนี้ใช้', persist: 'เก็บถาวร',
+      yes: 'ใช่', no: 'ไม่', files: '{n} ไฟล์', modelCleared: 'ล้างแคชโมเดลแล้ว — ครั้งหน้าที่ใช้จะดาวน์โหลดใหม่', modelClearWhat: 'แคชโมเดล AI ในเครื่องนี้',
+      log: 'บันทึกปัญหา', logCopy: 'คัดลอก', logClear: 'ล้าง', logEmpty: 'ยังไม่มีปัญหาที่บันทึกไว้', logCopied: 'คัดลอกแล้ว', logClearWhat: 'บันทึกปัญหาทั้งหมด',
+      k_asr: 'ถอดเสียง', k_tts: 'เสียงพูด', k_ocr: 'OCR', k_chat: 'แชท AI', k_media: 'เสียง/สื่อ',
+      c_oom: 'หน่วยความจำไม่พอ', c_crash: 'ตัวประมวลผลหยุดทำงาน', c_decode: 'ถอดรหัสไฟล์ไม่ได้', c_network: 'เครือข่าย', c_evicted: 'ถูกปิดเพื่อคืนหน่วยความจำ', c_other: 'อื่นๆ',
+      e_local: 'ในเบราว์เซอร์', e_cloud: 'คลาวด์', offline: 'ออฟไลน์'
     },
     en: {
       title: 'Data & sync', sync: 'Sync', syncNow: 'Sync now', state: 'Status', lastSync: 'Last synced', pending: 'Waiting to send', backup: 'Backup',
@@ -25,7 +31,13 @@
       readFail: 'Could not read the file: {err}', lastDrive: 'Last Drive backup {when}', backing: 'Backing up…', backed: 'Backed up: {name} ({keys} keys)',
       backFail: 'Backup failed: {err}', loadingList: 'Loading the list…', noFiles: 'No backup files on Drive yet', inspect: 'Review before restoring',
       dlFail: 'Download failed: {err}', connFail: 'Could not connect to Drive: {err}', restore: 'Restore', restored: 'Restored',
-      gis: 'Could not load Google Identity Services'
+      gis: 'Could not load Google Identity Services',
+      models: 'AI models on this device', modelClear: 'Clear model cache', modelSize: 'Model cache', storageUse: 'Storage used by this site', persist: 'Persistent',
+      yes: 'Yes', no: 'No', files: '{n} files', modelCleared: 'Model cache cleared — models will download again next time', modelClearWhat: 'the AI model cache on this device',
+      log: 'Problem log', logCopy: 'Copy', logClear: 'Clear', logEmpty: 'No problems recorded yet', logCopied: 'Copied', logClearWhat: 'the whole problem log',
+      k_asr: 'Transcription', k_tts: 'Speech', k_ocr: 'OCR', k_chat: 'AI chat', k_media: 'Audio/media',
+      c_oom: 'Out of memory', c_crash: 'Processor stopped', c_decode: 'Could not decode file', c_network: 'Network', c_evicted: 'Closed to free memory', c_other: 'Other',
+      e_local: 'in browser', e_cloud: 'cloud', offline: 'offline'
     }
   });
   var STATE = { idle: 'stIdle', syncing: 'stSyncing', ok: 'stOk', offline: 'stOffline', auth: 'stAuth', error: 'stError' };
@@ -127,6 +139,73 @@
     }).catch(function () {});
   }
   loadHistory();
+
+  /* ── โมเดล AI ในเครื่อง + บันทึกปัญหา (media-core.js) ── */
+  var TM = window.TanotMedia;
+  function bytes(n) {
+    if (n == null) return '—';
+    var u = ['B', 'KB', 'MB', 'GB'], i = 0;
+    while (n >= 1024 && i < u.length - 1) { n /= 1024; i++; }
+    return OME_I18N.number(Math.round(n * (i > 1 ? 10 : 1)) / (i > 1 ? 10 : 1)) + ' ' + u[i];
+  }
+  var modelInfo = null;
+  function renderModels() {
+    var m = modelInfo || {};
+    $('dtModelSize').textContent = bytes(m.modelBytes) + (m.modelFiles ? ' · ' + T('files', { n: m.modelFiles }) : '');
+    $('dtStorageUse').textContent = bytes(m.usage);
+    $('dtPersist').textContent = m.persisted == null ? '—' : m.persisted ? T('yes') : T('no');
+    $('dtModelClear').disabled = !m.modelBytes;
+  }
+  function loadModels() {
+    if (!TM) return;
+    TM.modelCacheInfo().then(function (info) { modelInfo = info; renderModels(); });
+  }
+  $('dtModelClear').addEventListener('click', function () {
+    window.tanotConfirmDelete(T('modelClearWhat')).then(function (ok) {
+      if (!ok) return;
+      TM.clearModelCache().then(function () { msg($('dtModelMsg'), function () { return T('modelCleared'); }, true); loadModels(); });
+    });
+  });
+  function renderLog() {
+    var rows = TM ? TM.readLog().slice().reverse() : [];
+    $('dtLogCopy').disabled = $('dtLogClear').disabled = !rows.length;
+    if (!rows.length) { $('dtLog').innerHTML = '<div class="empty compact">' + esc(T('logEmpty')) + '</div>'; return; }
+    $('dtLog').innerHTML = rows.map(function (r) {
+      var kind = T('k_' + r.kind) || r.kind, code = T('c_' + r.code) || r.code;
+      var head = kind + ' · ' + code + (r.engine ? ' · ' + (T('e_' + r.engine) || r.engine) : '');
+      var f = r.file ? [r.file.ext || r.file.type, r.file.size ? bytes(r.file.size) : '', r.file.dur != null ? r.file.dur + ' s' : ''].filter(Boolean).join(' · ') : '';
+      var dev = [r.mem ? r.mem + ' GB' : '', r.cores ? r.cores + ' cores' : '', r.online === false ? T('offline') : ''].filter(Boolean).join(' · ');
+      return '<div class="list-row"><div class="grow">' +
+        '<div class="title" title="' + esc(head) + '">' + esc(head) + '</div>' +
+        '<div class="meta">' + esc(when(r.at)) + ' · <span data-i18n-skip>' + esc([r.page, r.stage, r.model, f, dev].filter(Boolean).join(' · ')) + '</span></div>' +
+        (r.msg ? '<div class="dt-err-msg" data-i18n-skip>' + esc((r.name ? r.name + ': ' : '') + r.msg) + '</div>' : '') +
+        '<div class="meta" data-i18n-skip>' + esc(r.ua || '') + '</div>' +
+        '</div></div>';
+    }).join('');
+  }
+  $('dtLogCopy').addEventListener('click', function () {
+    var text = JSON.stringify(TM ? TM.readLog() : [], null, 2);
+    var done = function () { msg($('dtLogMsg'), function () { return T('logCopied'); }, true); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallbackCopy);
+    else fallbackCopy();
+    function fallbackCopy() {
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.setAttribute('readonly', ''); ta.style.position = 'fixed'; ta.style.opacity = '0';
+      document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) {}
+      ta.remove();
+    }
+  });
+  $('dtLogClear').addEventListener('click', function () {
+    window.tanotConfirmDelete(T('logClearWhat')).then(function (ok) {
+      if (!ok) return;
+      TM.clearLog(); msg($('dtLogMsg'), '', null); renderLog();
+    });
+  });
+  window.addEventListener('tanot:medialog', renderLog);
+  window.addEventListener('storage', function (e) { if (TM && e.key === TM.LOG_KEY) renderLog(); });
+  if (TM) { loadModels(); renderLog(); } else { $('dtModels').hidden = true; $('dtLogCard').hidden = true; }
+
   window.OME_PAGE_LIVE_LANG = true;
-  OME_LANG.onChange(function () { loadHistory(); });
+  OME_LANG.onChange(function () { loadHistory(); if (TM) { renderModels(); renderLog(); } });
 })();
