@@ -288,6 +288,17 @@ test('dialog: แตะนอกกล่องปิด (กลาง)', async 
   await page.mouse.up();
   await page.waitForTimeout(100);
   expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(1);
+  // พิมพ์ในกล่องแล้ว = แตะนอกกล่องไม่ปิด (กันข้อมูลที่กรอกหาย) · ต้อง Esc/ปุ่มปิดเอง
+  await page.fill('#tn', 'ข้อมูลที่กรอกค้าง');
+  await page.mouse.click(2, 2);
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(1);
+  expect(await page.inputValue('#tn')).toBe('ข้อมูลที่กรอกค้าง');
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(100);
+  expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(0);
+  // เปิดใหม่ = สถานะ "พิมพ์แล้ว" ถูกล้าง แตะนอกกล่องปิดได้ตามปกติ
+  await page.evaluate(() => document.querySelector('#tn').closest('dialog').showModal());
   await page.mouse.click(2, 2);
   await page.waitForTimeout(100);
   expect(await page.evaluate(() => document.querySelectorAll('dialog[open]').length)).toBe(0);
