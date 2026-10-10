@@ -3,7 +3,10 @@
 //
 // เอนจิน (--engines a,b,…; ค่าเริ่มต้น = ทุกตัวที่ใช้ได้):
 //   asr:tiny asr:base asr:small asr:medium  — Whisper ในเบราว์เซอร์ ผ่านหน้า text-to-speech.html จริง (เซิร์ฟเวอร์ static ในเครื่อง)
-//   asr:cloud                               — ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (ต้องตั้ง MEDIA_EVAL_URL + MEDIA_EVAL_COOKIE)
+//   asr:gpu-tiny asr:gpu-base asr:gpu-small asr:gpu-large — Whisper รุ่นใหม่ onnx-community บน WebGPU (Section 3) · ต้องมี WebGPU จริงบนเครื่องนี้ (ใช้ --headed
+//                                             และเปิดแฟล็ก WebGPU ของ Chromium ให้ — สคริปต์ใส่ให้) · หน้าไม่ได้ใช้ WebGPU จริง (ถอย WASM) = แถวนั้นขึ้น ERROR ไม่นับเป็นผล WebGPU
+//   asr:cloud                               — ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (ต้องตั้ง MEDIA_EVAL_URL + MEDIA_EVAL_COOKIE) = โหมดใหม่: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + vad_filter
+//   asr:cloud-seq                           — เหมือน asr:cloud แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) ใช้เทียบเวลา/Neurons/CER กับ asr:cloud (--cloud-domain ใส่ชุดคำศัพท์ได้ทั้งคู่)
 //   ocr:tesseract                           — แนบไฟล์ (เปิด OCR) ในหน้า text-to-speech.html → file-reader.js เส้นทางเดียวกับผู้ใช้
 //   ocr:claude                              — POST /api/ocr (prompt เริ่มต้นของเซิร์ฟเวอร์, โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์) บน pages.dev (ต้องตั้ง env เหมือน asr:cloud + MEDIA_EVAL_OCR_PIN)
 //   ocr:claude-sonnet-5 ocr:claude-sonnet-5-5 ocr:claude-haiku-5-5 — เหมือน ocr:claude แต่ระบุโมเดลตัวเลขชัดเจน (allowlist ใน functions/api/ocr.js) ให้วัด CER/เวลาก่อนเลือกค่าเริ่มต้น
@@ -34,7 +37,7 @@ const ALLOW_PAID = process.env.MEDIA_EVAL_ALLOW_PAID === '1';
 const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิมพ์/บันทึกลงผลลัพธ์
 const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
 let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
-const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:cloud', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
+const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
 const ENGINES = (opt('engines', '') || ALL_ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const ONLY = opt('only', '') ? new RegExp(opt('only')) : null;
 const LANG = opt('lang', 'auto'); // auto | thai | english — ตัวเลือก "ภาษา" ของหน้า text-to-speech
@@ -43,6 +46,8 @@ const TIMEOUT = +(opt('timeout-min', '60')) * 60000;
 const ASR_EXT = /\.(wav|mp3|m4a|aac|ogg|oga|opus|flac|webm|mp4|mov|m4v)$/i;
 const OCR_EXT = /\.(png|jpe?g|webp|bmp|pdf)$/i;
 const MODEL_OF = { 'asr:tiny': 'Xenova/whisper-tiny', 'asr:base': 'Xenova/whisper-base', 'asr:small': 'Xenova/whisper-small', 'asr:medium': 'Xenova/whisper-medium' };
+const GPU_MODEL_OF = { 'asr:gpu-tiny': 'onnx-community/whisper-tiny', 'asr:gpu-base': 'onnx-community/whisper-base', 'asr:gpu-small': 'onnx-community/whisper-small', 'asr:gpu-large': 'onnx-community/whisper-large-v3-turbo' };
+const CLOUD_DOMAIN = opt('cloud-domain', 'general'); // general | law | engineering | invest — ช่อง "ประเภทเนื้อหา" ของหน้า (โหมดคลาวด์)
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.wasm': 'application/wasm', '.woff2': 'font/woff2' };
 
 async function pairs(dir, re) {
@@ -82,23 +87,41 @@ function cookiesFor(url) {
   });
 }
 
-/* ถอดเสียง 1 ไฟล์ผ่าน UI จริงของหน้า → { text, ms, dur, err } */
-async function asrViaPage(page, file, modelId) {
+/* ถอดเสียง 1 ไฟล์ผ่าน UI จริงของหน้า → { text, ms, dur, err, webgpu, neurons } · opts: { cloud, expectGpu } */
+async function asrViaPage(page, file, modelId, opts = {}) {
   await page.setInputFiles('#asrFile', file);
   await page.selectOption('#asrLang', LANG);
-  if (modelId) await page.selectOption('#asrModel', modelId);
+  if (opts.cloud) await page.selectOption('#asrDomain', CLOUD_DOMAIN);
+  if (modelId) {
+    // ตัวเลือกรุ่นใหม่ปรากฏเมื่อหน้าตรวจ WebGPU เสร็จและใช้ได้จริงเท่านั้น
+    await page.waitForFunction((m) => [...document.querySelectorAll('#asrModel option')].some((o) => o.value === m), modelId, { timeout: 15000 }).catch(() => {});
+    await page.selectOption('#asrModel', modelId);
+  }
+  const usedBefore = opts.cloud ? await neuronsUsed(page) : null;
   const t0 = Date.now();
   await page.click('#asrGoBtn');
   await page.waitForFunction(() => /\b(ok|err)\b/.test(document.getElementById('asrStatus').className) && !document.getElementById('asrGoBtn').disabled, null, { timeout: TIMEOUT });
   const ms = Date.now() - t0;
   const ok = await page.evaluate(() => /\bok\b/.test(document.getElementById('asrStatus').className));
   const dur = await page.evaluate(() => window.__tts.getMediaDuration(document.getElementById('asrFile').files[0]));
-  return ok ? { text: await page.inputValue('#asrResult'), ms, dur } : { text: '', ms, dur, err: await page.textContent('#asrStatus') };
+  if (!ok) return { text: '', ms, dur, err: await page.textContent('#asrStatus') };
+  const webgpu = /WebGPU/.test(await page.textContent('#asrStatus')) && !/ใช้ไม่ได้|unavailable/.test(await page.textContent('#asrStatus'));
+  if (opts.expectGpu && !webgpu) return { text: '', ms, dur, err: 'ไม่ได้ใช้ WebGPU จริง (ถอย WASM หรือไม่มี WebGPU) — ' + (await page.textContent('#asrStatus')) };
+  const usedAfter = opts.cloud ? await neuronsUsed(page) : null;
+  return { text: await page.inputValue('#asrResult'), ms, dur, webgpu, neurons: usedBefore != null && usedAfter != null ? usedAfter - usedBefore : null };
+}
+/* Neurons ที่ใช้ไปวันนี้ จากบรรทัดสถานะของหน้า ("… {used} / {limit} …") — ใช้หาผลต่างต่อไฟล์ */
+async function neuronsUsed(page) {
+  await page.waitForTimeout(800); // ให้ refreshServerNeuronUsage() ตอบก่อน
+  const t = (await page.textContent('#asrNeuronStatus')) || '';
+  const m = /([\d,]+)\s*\/\s*([\d,]+)/.exec(t);
+  return m ? +m[1].replace(/,/g, '') : null;
 }
 
-async function openTts(ctx, base, engine) {
+async function openTts(ctx, base, engine, cloudCfg) {
   const page = await ctx.newPage();
   await page.addInitScript((e) => { try { localStorage.setItem('tanot:asr:engine', e); } catch (x) {} }, engine);
+  if (cloudCfg) await page.addInitScript((c) => { window.TANOT_ASR_CLOUD = c; }, cloudCfg); // asr-cloud.js: { parallel, overlapSec } (asr:cloud-seq = ทีละท่อนไม่เหลื่อม)
   page.on('dialog', (d) => (ALLOW_PAID ? d.accept() : d.dismiss())); // ยืนยันค่าใช้จ่ายเกินโควตาฟรี — ปฏิเสธเว้นแต่ตั้ง MEDIA_EVAL_ALLOW_PAID=1
   await page.goto(base + '/text-to-speech.html');
   return page;
@@ -144,6 +167,13 @@ async function ocrClaude(file, model) {
 
 const pct = (x) => (x == null ? '—' : (x * 100).toFixed(1) + '%');
 
+/* WebGPU ต้องเปิดตั้งแต่ตอนเปิดเบราว์เซอร์ (แฟล็กระดับโพรเซส) — เปิดอีกตัวแยกเฉพาะเอนจิน asr:gpu-* · ไม่มี GPU จริง = หน้าจะถอย WASM แล้วแถวขึ้น ERROR */
+let gpuBrowser = null;
+async function gpuContext() {
+  if (!gpuBrowser) gpuBrowser = await chromium.launch({ channel: 'chromium', headless: !HEADED, args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan,WebGPU', '--ignore-gpu-blocklist'] });
+  return gpuBrowser.newContext();
+}
+
 async function main() {
   const asrFiles = ENGINES.some((e) => e.startsWith('asr:')) ? await pairs(join(LOCAL, 'asr'), ASR_EXT) : [];
   const ocrFiles = ENGINES.some((e) => e.startsWith('ocr:')) ? await pairs(join(LOCAL, 'ocr'), OCR_EXT) : [];
@@ -156,20 +186,27 @@ async function main() {
   const browser = await chromium.launch({ channel: 'chromium', headless: !HEADED });
   const results = [];
   const record = (kind, engine, f, r) => {
-    const row = { kind, engine, file: f.name, cer: r.err ? null : cer(f.ref, r.text), wer: r.err ? null : wer(f.ref, r.text), sec: +(r.ms / 1000).toFixed(1), audioSec: r.dur != null ? Math.round(r.dur) : null, err: r.err || null };
+    const row = { kind, engine, file: f.name, cer: r.err ? null : cer(f.ref, r.text), wer: r.err ? null : wer(f.ref, r.text), sec: +(r.ms / 1000).toFixed(1), audioSec: r.dur != null ? Math.round(r.dur) : null, neurons: r.neurons != null ? Math.round(r.neurons) : null, webgpu: r.webgpu || false, err: r.err || null };
     row.rtf = row.audioSec ? +(row.sec / row.audioSec).toFixed(3) : null;
     results.push(row);
-    console.log([kind, engine, f.name, 'CER ' + pct(row.cer), 'WER ' + pct(row.wer), row.sec + ' วิ', row.err ? 'ERROR: ' + row.err : ''].join('  '));
+    console.log([kind, engine, f.name, 'CER ' + pct(row.cer), 'WER ' + pct(row.wer), row.sec + ' วิ', row.neurons != null ? row.neurons + ' Neurons' : '', row.err ? 'ERROR: ' + row.err : ''].join('  '));
   };
   try {
     for (const engine of ENGINES) {
       if (engine.startsWith('asr:') && asrFiles.length) {
-        if (engine === 'asr:cloud') {
-          if (!CLOUD_OK) { console.log('ข้าม asr:cloud — ไม่ได้ตั้ง MEDIA_EVAL_URL / MEDIA_EVAL_COOKIE'); continue; }
+        if (engine === 'asr:cloud' || engine === 'asr:cloud-seq') {
+          if (!CLOUD_OK) { console.log('ข้าม ' + engine + ' — ไม่ได้ตั้ง MEDIA_EVAL_URL / MEDIA_EVAL_COOKIE'); continue; }
           const ctx = await browser.newContext();
           await ctx.addCookies(cookiesFor(CLOUD_URL));
-          const page = await openTts(ctx, CLOUD_URL, 'cloud');
-          for (const f of asrFiles) record('asr', engine, f, await asrViaPage(page, f.path, null));
+          const page = await openTts(ctx, CLOUD_URL, 'cloud', engine === 'asr:cloud-seq' ? { parallel: 1, overlapSec: 0 } : null);
+          for (const f of asrFiles) record('asr', engine, f, await asrViaPage(page, f.path, null, { cloud: true }));
+          await ctx.close();
+        } else if (GPU_MODEL_OF[engine]) {
+          const ctx = await gpuContext();
+          const page = await openTts(ctx, base, 'local');
+          console.log(engine + ': อุ่นเครื่อง (ครั้งแรกดาวน์โหลดโมเดลจาก Hugging Face) …');
+          await asrViaPage(page, silentWav(), GPU_MODEL_OF[engine], { expectGpu: true });
+          for (const f of asrFiles) record('asr', engine, f, await asrViaPage(page, f.path, GPU_MODEL_OF[engine], { expectGpu: true }));
           await ctx.close();
         } else if (MODEL_OF[engine]) {
           const ctx = await browser.newContext();
@@ -198,20 +235,22 @@ async function main() {
     }
   } finally {
     await browser.close();
+    if (gpuBrowser) await gpuBrowser.close();
     srv.close();
   }
 
   const summary = {};
   for (const r of results) {
-    const k = r.kind + ' ' + r.engine, s = summary[k] || (summary[k] = { n: 0, err: 0, cer: 0, wer: 0, sec: 0, audio: 0 });
+    const k = r.kind + ' ' + r.engine, s = summary[k] || (summary[k] = { n: 0, err: 0, cer: 0, wer: 0, sec: 0, audio: 0, neu: 0, neuN: 0 });
     s.n++; s.sec += r.sec;
     if (r.err) { s.err++; continue; }
     s.cer += r.cer; s.wer += r.wer; s.audio += r.audioSec || 0;
+    if (r.neurons != null) { s.neu += r.neurons; s.neuN++; }
   }
-  const lines = ['| เอนจิน | ไฟล์ | ล้มเหลว | CER เฉลี่ย | WER เฉลี่ย | เวลารวม (วิ) | เวลา/ความยาวเสียง |', '|---|---|---|---|---|---|---|'];
+  const lines = ['| เอนจิน | ไฟล์ | ล้มเหลว | CER เฉลี่ย | WER เฉลี่ย | เวลารวม (วิ) | เวลา/ความยาวเสียง | Neurons รวม (คลาวด์) |', '|---|---|---|---|---|---|---|---|'];
   for (const [k, s] of Object.entries(summary)) {
     const ok = s.n - s.err;
-    lines.push(`| ${k} | ${s.n} | ${s.err} | ${ok ? pct(s.cer / ok) : '—'} | ${ok ? pct(s.wer / ok) : '—'} | ${s.sec.toFixed(1)} | ${s.audio ? (s.sec / s.audio).toFixed(3) : '—'} |`);
+    lines.push(`| ${k} | ${s.n} | ${s.err} | ${ok ? pct(s.cer / ok) : '—'} | ${ok ? pct(s.wer / ok) : '—'} | ${s.sec.toFixed(1)} | ${s.audio ? (s.sec / s.audio).toFixed(3) : '—'} | ${s.neuN ? s.neu : '—'} |`);
   }
   console.log('\n' + lines.join('\n'));
   await mkdir(LOCAL, { recursive: true });

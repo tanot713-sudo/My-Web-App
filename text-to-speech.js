@@ -35,6 +35,9 @@
       noAudioCtx: 'เบราว์เซอร์นี้ไม่รองรับ Web Audio API สำหรับแปลงเป็น mp3', wavFail: 'ถอดรหัสไฟล์ .wav ไม่สำเร็จ', noAudioData: 'ไม่ได้ข้อมูลเสียงกลับมา', noWorker: 'สร้าง Web Worker ไม่ได้',
       neuronUse: 'ใช้ไปแล้ววันนี้ {used} / {limit} Neurons (เหลือฟรี ~{hours} ชม.เสียง)',
       costConfirm: 'เสียงไฟล์นี้ยาว ~{min} นาที ต้องใช้ ~{need} Neurons แต่วันนี้เหลือโควตาฟรีแค่ {left} Neurons (ใช้ไปแล้ว {used}/{limit}) — ส่วนที่เกิน ~{over} Neurons จะมีค่าใช้จ่ายจริง (~${cost}) กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด',
+      mcTiny: 'เล็ก · รุ่นใหม่ (รองรับ WebGPU)', mcBase: 'กลาง · รุ่นใหม่ (รองรับ WebGPU)', mcSmall: 'ใหญ่ · รุ่นใหม่ (รองรับ WebGPU, แม่นขึ้นมาก)', mcLarge: 'ใหญ่มาก · large-v3-turbo (เฉพาะ WebGPU, ดาวน์โหลดใหญ่)',
+      domainLabel: 'ประเภทเนื้อหา (คำศัพท์เฉพาะ)', domGeneral: 'ทั่วไป', domLaw: 'กฎหมาย', domEng: 'ไฟฟ้า / วิศวกรรม', domInvest: 'การลงทุน',
+      showTime: 'แสดงเวลา [hh:mm:ss]', gpuFallback: 'WebGPU ใช้ไม่ได้ ใช้ WASM แทน', modelFallback: 'โหลดโมเดลรุ่นใหม่ไม่ได้ ใช้รุ่นเดิมแทน',
       cancelledQuota: 'ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)', cloudChunk: 'กำลังถอดเสียงผ่านคลาวด์… ท่อน {i}/{n}', pickAudio: 'เลือกไฟล์เสียง/วิดีโอก่อน',
       longConfirm: 'ไฟล์นี้ยาว ~{min} นาที การถอดเสียงไฟล์ยาวขนาดนี้บนมือถืออาจทำให้เบราว์เซอร์ค้างหรือแครชกลางทาง (หน่วยความจำจำกัดกว่าคอม) แนะนำให้ใช้คอมพิวเตอร์แทน หรือตัดไฟล์ให้สั้นลงก่อน — กดตกลงถ้าต้องการลองต่อบนมือถือนี้เลย',
       cancelled: 'ยกเลิกแล้ว', decoding: 'กำลังถอดรหัสไฟล์เสียง…', doneCloud: 'ถอดเสียงเสร็จแล้ว (คลาวด์)', doneEmpty: 'ถอดเสียงเสร็จแต่ไม่พบคำพูดในไฟล์นี้', asrFail: 'ถอดเสียงไม่สำเร็จ: {msg}',
@@ -70,6 +73,9 @@
       noAudioCtx: 'This browser does not support the Web Audio API needed to convert to mp3', wavFail: 'Could not decode the .wav file', noAudioData: 'No audio data came back', noWorker: 'Could not create a Web Worker',
       neuronUse: 'Used today {used} / {limit} Neurons (~{hours} h of audio left free)',
       costConfirm: 'This audio is ~{min} min long and needs ~{need} Neurons, but only {left} Neurons of the free quota are left today ({used}/{limit} used) — the extra ~{over} Neurons will cost real money (~${cost}). Press OK to continue or Cancel to stop',
+      mcTiny: 'Small · newer build (WebGPU-ready)', mcBase: 'Medium · newer build (WebGPU-ready)', mcSmall: 'Large · newer build (WebGPU-ready, much more accurate)', mcLarge: 'Extra large · large-v3-turbo (WebGPU only, big download)',
+      domainLabel: 'Content type (domain terms)', domGeneral: 'General', domLaw: 'Law', domEng: 'Electrical / engineering', domInvest: 'Investing',
+      showTime: 'Show timestamps [hh:mm:ss]', gpuFallback: 'WebGPU unavailable, using WASM', modelFallback: 'Could not load the newer model, using the previous one',
       cancelledQuota: 'Cancelled (over today\'s free quota)', cloudChunk: 'Transcribing in the cloud… segment {i}/{n}', pickAudio: 'Choose an audio/video file first',
       longConfirm: 'This file is ~{min} min long. Transcribing something this long on a phone may freeze or crash the browser (less memory than a computer). We recommend a computer, or trimming the file first — press OK to try anyway on this phone',
       cancelled: 'Cancelled', decoding: 'Decoding the audio file…', doneCloud: 'Transcription finished (cloud)', doneEmpty: 'Transcription finished but no speech was found in this file', asrFail: 'Transcription failed: {msg}',
@@ -88,7 +94,10 @@
     OME_I18N.live(el, typeof fn === 'function' ? fn : null);
     if (typeof fn !== 'function') el.textContent = fn || '';
   }
-  function mediaErrText(e) { return window.TanotMedia && e && e.code ? TanotMedia.errorText(e) : errText(e); }
+  function mediaErrText(e) {
+    if (e && e.name === 'AiError' && window.AiClient) return AiClient.friendlyMessage(e); // โควตาเต็ม/ล็อกอินหมดอายุ/ออฟไลน์ ฯลฯ — ข้อความกลางเดียวกับทุกหน้า
+    return window.TanotMedia && e && e.code ? TanotMedia.errorText(e) : errText(e);
+  }
   function errText(e) { return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(e) : (e && e.message ? e.message : String(e)); }
 
   /* ══════════════════ ตั้งค่า path ไฟล์ WASM ของ onnxruntime-web (ใช้ร่วมกันทั้ง TTS/ASR) ══════════════════
@@ -710,62 +719,14 @@
     });
   }
 
-  /* แปลง PCM Float32 (16kHz mono) เป็น base64 ของไฟล์ .wav — ใช้ float32ToWavBlob() ที่มีอยู่แล้วในไฟล์นี้
-     Workers AI ต้องการไฟล์เสียงจริงเป็น base64 ไม่ใช่ raw sample ลอยๆ */
-  function pcmToWavBase64(pcm, sampleRate) {
-    return float32ToWavBlob(pcm, sampleRate).arrayBuffer().then(function (buf) {
-      var bytes = new Uint8Array(buf), binary = '', chunkSize = 0x8000;
-      for (var i = 0; i < bytes.length; i += chunkSize) binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-      return btoa(binary);
-    });
-  }
-
-  /* ตัด PCM เป็นท่อนละประมาณ chunkSec วินาที — เดิมตัดตรงจุดตายตัวเป๊ะๆ ทุก chunkSec วินาที ซึ่งเจอ
-     ปัญหาจริงว่าตัดกลางคำ/กลางประโยคบ่อย (โดยเฉพาะเสียงประชุมยาวๆ) ทำให้ Whisper "หลอน" ออกมาเป็นคำ
-     แปลกๆ/ภาษาอื่นปนที่รอยต่อแต่ละท่อน แก้โดยขยับจุดตัดไปหาช่วงที่เงียบที่สุดในรัศมี ±3 วินาทีรอบเป้าหมาย
-     แทน (TanotMedia.quietCut) ให้ท่อนที่ตัดจบพอดีตรงช่วงเงียบ/หยุดพูดแทนกลางคำ */
-  function findQuietCutPoint(pcm, targetIdx, searchSamples, frameLen) { return TanotMedia.quietCut(pcm, targetIdx, searchSamples, frameLen); }
-  function chunkPcm(pcm, sampleRate, chunkSec) {
-    var chunkLen = sampleRate * chunkSec, searchSamples = sampleRate * 3, frameLen = Math.round(sampleRate * 0.02);
-    var chunks = [], start = 0;
-    while (start < pcm.length) {
-      var target = start + chunkLen;
-      if (target >= pcm.length) { chunks.push(pcm.subarray(start, pcm.length)); break; }
-      var cut = findQuietCutPoint(pcm, target, searchSamples, frameLen);
-      if (cut <= start) cut = target; // กันท่อนว่างเปล่า/จุดตัดถอยหลังไปทับท่อนก่อนหน้า
-      chunks.push(pcm.subarray(start, cut));
-      start = cut;
-    }
-    return chunks;
-  }
-
-  function transcribeChunkCloud(pcm, sampleRate, language, signal) {
-    return pcmToWavBase64(pcm, sampleRate).then(function (base64) {
-      return fetch(ASR_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio: base64, language: language }),
-        signal: signal
-      });
-    }).then(function (res) {
-      return res.json().then(function (data) {
-        if (!res.ok) throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
-        return data;
-      });
-    }, function (err) {
-      if (signal && signal.aborted) throw TanotMedia.error('abort');
-      var e = TanotMedia.error('network', err && err.message, err);
-      throw e;
-    });
-  }
-
-  /* dec = ผลของ TanotMedia.decode16k — ส่งทีละช่วง ~5 นาที (planSegments) แต่ละช่วงตัดเป็นท่อน 30 วินาทีตรงจุดเงียบ */
-  async function runAsrCloud(dec, langOpt, signal) {
+  /* ถอดเสียงไฟล์ผ่านคลาวด์ (asr-cloud.js): ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 ท่อน ลองใหม่ 1 ครั้ง หยุดทั้งชุดเมื่อโควตาเต็ม/ยกเลิก
+     ตัดคำซ้ำที่รอยต่อ ประกอบตามลำดับเดิม → { text, segments } · ค่าใช้จ่ายส่งเสียงเกินจริงแค่ส่วนเหลื่อม (~+5%, AsrCalc.sentSeconds)
+     langOpt: auto|thai|english · domain: ชุดคำศัพท์เฉพาะที่เซิร์ฟเวอร์ใส่เป็น initial_prompt (/api/asr) */
+  async function runAsrCloud(dec, langOpt, signal, domain) {
     var langMap = { thai: 'th', english: 'en' };
     var language = langOpt !== 'auto' ? langMap[langOpt] : undefined;
-    var sampleRate = TanotMedia.RATE;
-    var totalMinutes = dec.duration / 60;
-    var estimatedNeurons = totalMinutes * NEURONS_PER_AUDIO_MINUTE;
+    var plan = TanotAsrCloud.plan(dec);
+    var estimatedNeurons = AsrCalc.neuronsFor(AsrCalc.sentSeconds(plan)), totalMinutes = dec.duration / 60;
 
     if (estimatedNeurons > remainingNeurons()) {
       /* คิดค่าใช้จ่ายจากเฉพาะส่วนที่เกินโควตาฟรี ไม่ใช่ยอดรวมทั้งไฟล์ (โควตาฟรี 10,000 Neurons/วัน
@@ -776,35 +737,59 @@
         used: Math.round(getNeuronUsage()), limit: DAILY_NEURON_LIMIT, over: Math.round(overageNeurons), cost: estCost }));
       if (!proceed) { var q = TanotMedia.error('abort'); q.quota = true; throw q; }
     }
-
-    var segs = TanotMedia.planSegments(dec), texts = [], k = 0, n = Math.max(1, Math.ceil(dec.duration / 30));
-    for (var s = 0; s < segs.length; s++) {
-      var chunks = chunkPcm(dec.segment(segs[s][0], segs[s][1]), sampleRate, 30);
-      for (var i = 0; i < chunks.length; i++) {
-        if (signal && signal.aborted) throw TanotMedia.error('abort');
-        k++;
-        (function (idx) { st('asrStatus', function () { return T('cloudChunk', { i: idx, n: Math.max(idx, n) }); }); })(k);
-        var data = await transcribeChunkCloud(chunks[i], sampleRate, language, signal);
-        texts.push((data.text || '').trim());
-        /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
-           ของท่อนนี้แทน (ความยาวท่อนเป็นวินาทีคูณอัตรา Neurons/นาที) */
-        var chunkMinutes = chunks[i].length / sampleRate / 60;
-        addNeuronUsage(data.neurons != null ? data.neurons : chunkMinutes * NEURONS_PER_AUDIO_MINUTE);
-        updateNeuronStatusUI();
-        refreshServerNeuronUsage();
-      }
-    }
-    return texts.join(' ').replace(/\s+/g, ' ').trim();
+    st('asrStatus', function () { return T('cloudChunk', { i: 0, n: plan.length }); });
+    return TanotAsrCloud.transcribe({
+      dec: dec, chunks: plan, language: language, domain: domain, signal: signal,
+      onProgress: function (p) { st('asrStatus', function () { return T('cloudChunk', { i: p.done, n: p.total }); }); },
+      /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณของท่อนนี้แทน */
+      onChunk: function (c) { addNeuronUsage(c.neurons); updateNeuronStatusUI(); refreshServerNeuronUsage(); }
+    });
   }
 
-  /* โมเดลที่ใช้ได้บนเครื่องนี้ — มือถือตัด small/medium ออกจากตัวเลือก */
+  /* โมเดลที่ใช้ได้บนเครื่องนี้ — มือถือตัด small/medium ออกจากตัวเลือก · ตัวใหญ่ที่รันได้เฉพาะ WebGPU (gpuOnly) โชว์เมื่อ WebGPU ใช้ได้จริง
+     · เครื่องที่ WebGPU ใช้ได้และผู้ใช้ยังไม่เลือกเอง ตั้งโมเดลเริ่มต้นตามเครื่อง (TanotMedia.asrDefaultModel) */
   var ASR_SAFE_MODEL = 'Xenova/whisper-base';
-  function asrModelAllowed(modelId) { return !(TanotMedia.isMobile() && window.TanotMediaModels && TanotMediaModels.asrHeavy(modelId)); }
+  var gpuPlan = { ok: false, f16: false };
+  function asrModelAllowed(modelId) {
+    var M = window.TanotMediaModels;
+    if (TanotMedia.isMobile() && M && M.asrHeavy(modelId)) return false;
+    if (M && M.asrGpuOnly(modelId)) { var info = M.asrInfo(modelId); return !!(gpuPlan.ok && (!info.f16 || gpuPlan.f16)); }
+    return true;
+  }
+  var asrModelPicked = false;
+  /* มือถือ: เอาตัวหนักออกจากรายการ */
   function applyAsrModelGate() {
     var sel = $('asrModel');
-    if (!sel || !TanotMedia.isMobile()) return;
-    Array.prototype.slice.call(sel.options).forEach(function (o) { if (!asrModelAllowed(o.value)) o.remove(); });
+    if (!sel) return;
+    var M = window.TanotMediaModels;
+    Array.prototype.slice.call(sel.options).forEach(function (o) { if (TanotMedia.isMobile() && M && M.asrHeavy(o.value)) o.remove(); });
     if (!asrModelAllowed(sel.value) || !sel.value) sel.value = ASR_SAFE_MODEL;
+  }
+  /* รุ่นใหม่ (onnx-community) เพิ่มเข้ารายการเฉพาะเครื่องที่ WebGPU ใช้ได้จริง (มี adapter จริงบนคอม) — เครื่องที่ใช้ WASM เห็นรายการเดิม 4 ตัวเหมือนเดิม
+     (ชื่อ repo/ไฟล์ dtype ของรุ่นใหม่ยังตรวจกับ Hugging Face จากที่นี่ไม่ได้ — ดู media-models.js) */
+  var COMMUNITY_OPTS = [['onnx-community/whisper-tiny', 'mcTiny'], ['onnx-community/whisper-base', 'mcBase'], ['onnx-community/whisper-small', 'mcSmall'], ['onnx-community/whisper-large-v3-turbo', 'mcLarge']];
+  function addCommunityOptions(sel) {
+    COMMUNITY_OPTS.forEach(function (c) {
+      if (!asrModelAllowed(c[0]) || Array.prototype.some.call(sel.options, function (o) { return o.value === c[0]; })) return;
+      var o = document.createElement('option');
+      o.value = c[0]; o.setAttribute('data-i18n', 'tts.' + c[1]); o.textContent = T(c[1]);
+      sel.appendChild(o);
+    });
+  }
+  function initAsrModels() {
+    var sel = $('asrModel');
+    if (!sel) return;
+    sel.addEventListener('change', function () { asrModelPicked = true; });
+    applyAsrModelGate();
+    TanotMedia.webgpuPlan().then(function (p) {
+      gpuPlan = p;
+      if (!p.ok) return;
+      addCommunityOptions(sel);
+      if (!asrModelPicked) {
+        var d = TanotMedia.asrDefaultModel(p);
+        if (asrModelAllowed(d) && Array.prototype.some.call(sel.options, function (o) { return o.value === d; })) sel.value = d;
+      }
+    });
   }
   var asrAbort = null;
   function asrRunning(on) {
@@ -818,6 +803,27 @@
     var mobileNote = ASR_CLOUD_AVAILABLE && local && TanotMedia.isMobile();
     $('asrMobileNote').hidden = !mobileNote;
     $('asrUseCloudBtn').hidden = !(ASR_CLOUD_AVAILABLE && local && (afterDeviceLimit || mobileNote));
+  }
+
+  /* ── ผลลัพธ์: ช่วงคำพูด (เวลา+ข้อความ) → ย่อหน้าตามช่วงเงียบ → ข้อความ (สวิตช์ "แสดงเวลา" วาดใหม่ทันที ไม่ถอดซ้ำ) ── */
+  var TIME_KEY = 'tanot:asr:timestamps', DOMAIN_KEY = 'tanot:asr:domain';
+  var asrParas = null; // [{start,end,text}] ของผลล่าสุด
+  function getTimeSwitch() { try { return localStorage.getItem(TIME_KEY) === '1'; } catch (e) { return false; } }
+  function setTimeSwitch(on) { try { localStorage.setItem(TIME_KEY, on ? '1' : '0'); } catch (e) {} }
+  function getAsrDomain() {
+    try { var v = localStorage.getItem(DOMAIN_KEY); if (v && /^(general|law|engineering|invest)$/.test(v)) return v; } catch (e) {}
+    return 'general';
+  }
+  function renderAsrResult() {
+    if (!asrParas) return;
+    $('asrResult').value = AsrCalc.render(asrParas, { timestamps: getTimeSwitch() });
+  }
+  /* ข้อความล้วน (ไม่มีเวลา) — ใช้กับสรุปประชุม/ไฟล์ Word */
+  function asrPlainText() { return asrParas ? AsrCalc.render(asrParas, { timestamps: false }) : ($('asrResult').value || ''); }
+  function setAsrResult(segments, text) {
+    asrParas = AsrCalc.paragraphs(segments && segments.length ? segments : (text ? [{ start: 0, end: 0, text: text }] : []));
+    renderAsrResult();
+    return $('asrResult').value;
   }
 
   function runAsr() {
@@ -848,37 +854,44 @@
     if (offlineFallback) engine = 'local';
     var modelId = $('asrModel').value;
     if (!asrModelAllowed(modelId)) modelId = ASR_SAFE_MODEL;
+    var domain = $('asrDomain') ? $('asrDomain').value : 'general';
     var ctrl = new AbortController();
     asrAbort = ctrl;
     var meta = { type: file.type, name: file.name, size: file.size, dur: null }, stage = 'decode';
-    var segStatus = function () { return T('transcribing'); };
+    var devTag = '', fallbackNote = null;
+    var segStatus = function () { return T('transcribing') + devTag; };
     st('asrStatus', function () { return offlineFallback ? T('offlineLocal') + ' ' + T('decoding') : T('decoding'); });
     file.arrayBuffer().then(TanotMedia.decode16k).then(function (dec) {
       meta.dur = dec.duration;
       if (ctrl.signal.aborted) throw TanotMedia.error('abort');
-      if (engine === 'cloud') { stage = 'cloud'; return runAsrCloud(dec, langOpt, ctrl.signal); }
+      if (engine === 'cloud') { stage = 'cloud'; return runAsrCloud(dec, langOpt, ctrl.signal, domain); }
       stage = 'transcribe';
       st('asrStatus', function () { return T('prepAsr'); });
-      return TanotMedia.transcribeLocal({
-        dec: dec, modelId: modelId, lang: langOpt, signal: ctrl.signal,
+      return TanotMedia.transcribeLocalDetailed({
+        dec: dec, modelId: modelId, lang: langOpt, signal: ctrl.signal, device: 'auto', timestamps: true,
         onProgress: function (p) {
           if (p.stage === 'model' && p.file) {
             var pct = p.progress != null ? Math.round(p.progress) : null;
             st('asrStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
           } else if (p.stage === 'segment') {
-            segStatus = p.n > 1 ? function () { return T('asrSegment', { i: p.i, n: p.n }); } : function () { return T('transcribing'); };
+            segStatus = p.n > 1 ? function () { return T('asrSegment', { i: p.i, n: p.n }) + devTag; } : function () { return T('transcribing') + devTag; };
             st('asrStatus', segStatus);
           } else if (p.stage === 'ready') {
+            devTag = p.device === 'webgpu' ? ' · WebGPU' : '';
             st('asrStatus', segStatus);
+          } else if (p.stage === 'fallback') {
+            fallbackNote = p.what === 'device' ? 'gpuFallback' : 'modelFallback';
+            devTag = '';
+            st('asrStatus', function () { return T(fallbackNote) + ' ' + segStatus(); });
           }
         }
       });
-    }).then(function (text) {
-      text = (text || '').trim();
-      $('asrResult').value = text;
+    }).then(function (res) {
+      var text = setAsrResult(res.segments, res.text).trim();
       $('asrResultWrap').style.display = 'block';
       $('asrStatus').className = 'status ok';
-      st('asrStatus', function () { return !text ? T('doneEmpty') : engine === 'cloud' ? T('doneCloud') : T('asrDone'); });
+      var gpu = engine === 'local' && res.device === 'webgpu' ? ' · WebGPU' : '';
+      st('asrStatus', function () { return (!text ? T('doneEmpty') : engine === 'cloud' ? T('doneCloud') : T('asrDone')) + gpu + (fallbackNote ? ' · ' + T(fallbackNote) : ''); });
       if (engine === 'cloud') updateNeuronStatusUI();
       updateCloudOffer(false);
     }, function (e) {
@@ -1034,7 +1047,7 @@
   var meetingSumBusy = false;
   function doMeetingSummary() {
     if (meetingSumBusy) return;
-    var transcript = ($('asrResult').value || '').trim();
+    var transcript = asrPlainText().trim();
     if (!transcript) { setMeetingSumStatus(function () { return T('noTranscript'); }, 'err'); return; }
     var cloudOk = !!(window.AiClient && AiClient.available());
     if (!cloudOk && isIOS()) { setMeetingSumStatus(function () { return T('noIos'); }, 'err'); return; }
@@ -1199,13 +1212,25 @@
     $('asrGoBtn').addEventListener('click', runAsr);
     $('asrCancelBtn').addEventListener('click', cancelAsr);
     $('asrUseCloudBtn').addEventListener('click', function () { setAsrEngine('cloud'); applyAsrEngineUI(); });
-    applyAsrModelGate();
+    initAsrModels();
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
+
+    /* ประเภทเนื้อหา (ชุดคำศัพท์เฉพาะของคลาวด์) + สวิตช์แสดงเวลา — จำค่าไว้ในเครื่อง */
+    var asrDomainSel = $('asrDomain');
+    if (asrDomainSel) {
+      asrDomainSel.value = getAsrDomain();
+      asrDomainSel.addEventListener('change', function () { try { localStorage.setItem(DOMAIN_KEY, asrDomainSel.value); } catch (e) {} });
+    }
+    var asrTimeChk = $('asrTimeChk');
+    if (asrTimeChk) {
+      asrTimeChk.checked = getTimeSwitch();
+      asrTimeChk.addEventListener('change', function () { setTimeSwitch(asrTimeChk.checked); renderAsrResult(); });
+    }
     $('meetingSumBtn').addEventListener('click', doMeetingSummary);
 
     /* ══ เลือกโหมดถอดเสียง (ในเบราว์เซอร์ฟรี / คลาวด์แม่นกว่า) ══ */
     var asrEngineToggle = $('asrEngineToggle'), asrEngineNote = $('asrEngineNote'),
-      asrModelField = $('asrModelField');
+      asrModelField = $('asrModelField'), asrDomainField = $('asrDomainField');
 
     function applyAsrEngineUI() {
       if (!asrEngineToggle) return;
@@ -1215,6 +1240,7 @@
       });
       if (asrEngineNote) asrEngineNote.style.display = engine === 'cloud' ? 'block' : 'none';
       if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
+      if (asrDomainField) asrDomainField.style.display = engine === 'cloud' ? '' : 'none';
       if (engine === 'cloud') { updateNeuronStatusUI(); refreshServerNeuronUsage(); }
       updateCloudOffer(false);
     }
@@ -1242,7 +1268,6 @@
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
-    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS,
-    chunkPcm: chunkPcm, findQuietCutPoint: findQuietCutPoint
+    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS
   };
 })();

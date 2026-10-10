@@ -724,7 +724,7 @@
     /* คลาวด์ (Whisper large-v3-turbo ผ่าน /api/asr) ก่อน — ใช้ได้บน iPhone; ถอยมา Whisper ในเครื่องเมื่อคลาวด์ใช้ไม่ได้ (ไม่รวม iOS) */
     function transcribe(pcm) {
       if (!cloudOn()) return transcribeLocal(pcm);
-      return AiClient.asr({ pcm: pcm, sampleRate: 16000, language: 'th' }).then(function (r) { return r.text; }, function (err) {
+      return AiClient.asr({ pcm: pcm, sampleRate: 16000, language: 'th', domain: AiClient.asrDomain() === 'general' ? undefined : AiClient.asrDomain() }).then(function (r) { return r.text; }, function (err) {
         if (AiClient.canFallback(err) && !isIOS()) return transcribeLocal(pcm);
         logMedia('asr', err, { stage: 'cloud', engine: 'cloud' });
         throw new Error(AiClient.friendlyMessage(err));

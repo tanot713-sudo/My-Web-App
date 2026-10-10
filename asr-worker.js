@@ -6,6 +6,11 @@
    หลายเบราว์เซอร์) ทีละช่วง (≤ 5 นาที, transfer ArrayBuffer) แล้วส่งผลข้อความกลับ
    2026-10: เดิมหน้า text-to-speech รัน Whisper บนเธรดหลัก (loadAsrPipeline ในหน้า) — WASM เธรดเดียวรันแบบ
    synchronous บล็อกหน้าทั้งหน้าระหว่างถอด แล้วค้าง/แครชหลังโหลดโมเดลเสร็จ ย้ายมาใช้ Worker นี้ร่วมกันแล้ว
+
+   2026-10 (Section 3): รับ msg.device ('webgpu'|'wasm'; ไม่ส่ง = 'wasm' เหมือนเดิม — วิดเจ็ตแชท/languages.jsx ไม่เปลี่ยน) และ msg.timestamps (ขอเวลาของแต่ละช่วงคำพูด)
+   • WebGPU ใช้ได้เฉพาะโมเดลตระกูล onnx-community (media-models.js) · โหลด/รันบน WebGPU ล้ม → ถอยกลับ WASM อัตโนมัติ "1 ครั้ง" (จำไว้ใน Worker นี้ว่าล้มแล้ว
+     ไม่ลองซ้ำ) แล้วส่ง { type:'fallback', what:'device', from:'webgpu', to:'wasm', stage:'load'|'run', message } ให้ฝั่งหน้าเว็บบันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้)
+   • โหลดโมเดล onnx-community ไม่ได้บน WASM (เช่น 404 ไม่มีไฟล์ dtype) และไม่ใช่เรื่องหน่วยความจำ → ถอยไป Xenova/whisper-* ตัวเทียบเท่า (what:'model')
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -29,23 +34,37 @@ function configureOnnxWasmPaths(env) {
    media-core.js ซ่อน small/medium บนมือถือ) — Worker ตัวหนึ่งถือได้ทีละโมเดล เปลี่ยนโมเดลแล้วฝั่งหน้าเว็บ terminate
    Worker นี้ทิ้งแล้วสร้างใหม่ (หน่วยความจำ WASM หดไม่ได้) จึงแคช pipeline ไว้ตัวเดียวพอ */
 var DEFAULT_MODEL_ID = 'Xenova/whisper-tiny';
-var loadedModelId = null;
+var loadedKey = null;
+var gpuFailed = false;   // WebGPU ล้มแล้วใน Worker นี้ → ครั้งต่อไปไม่ลองอีก
+var modelsPromise = null;
+function getModels() {
+  if (!modelsPromise) modelsPromise = import('./media-models.js').then(function () { return self.TanotMediaModels; }, function () { return null; });
+  return modelsPromise;
+}
 
-function loadPipeline(modelId, onProgress, jobId) {
-  if (pipelinePromise && loadedModelId !== modelId) {
-    var old = pipelinePromise;
-    pipelinePromise = null;
-    old.then(function (p) { if (p && p.dispose) return p.dispose(); }).catch(function () {});
-  }
+function disposePipeline() {
+  var old = pipelinePromise;
+  pipelinePromise = null; loadedKey = null;
+  if (old) old.then(function (p) { if (p && p.dispose) return p.dispose(); }).catch(function () {});
+}
+
+/* plan = { modelId, device:'webgpu'|'wasm', dtype? } — pipeline ตัวเดียวต่อ Worker (เปลี่ยนโมเดล/อุปกรณ์ = ทิ้งตัวเก่า) */
+function loadPipeline(plan, onProgress, jobId) {
+  var key = plan.modelId + '|' + plan.device;
+  if (pipelinePromise && loadedKey !== key) disposePipeline();
   if (!pipelinePromise) {
-    loadedModelId = modelId;
+    loadedKey = key;
     pipelinePromise = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
       configureOnnxWasmPaths(mod.env);
-      return mod.pipeline('automatic-speech-recognition', modelId, { progress_callback: onProgress });
+      var o = { progress_callback: onProgress };
+      if (plan.device === 'webgpu') o.device = 'webgpu';
+      if (plan.dtype) o.dtype = plan.dtype;
+      return mod.pipeline('automatic-speech-recognition', plan.modelId, o);
     });
-    pipelinePromise.then(function () {
-      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId });
-    }, function () { pipelinePromise = null; loadedModelId = null; /* โหลดพัง — ครั้งหน้าลองใหม่ (error จริงรายงานผ่าน transcribe) */ });
+    var mine = pipelinePromise;
+    mine.then(function () {
+      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: plan.modelId, device: plan.device });
+    }, function () { if (pipelinePromise === mine) { pipelinePromise = null; loadedKey = null; } /* โหลดพัง — ครั้งหน้าลองใหม่ (error จริงรายงานผ่าน transcribe) */ });
   }
   return pipelinePromise;
 }
@@ -66,6 +85,8 @@ self.addEventListener('unhandledrejection', function (e) {
   isBusy = false; currentJob = null;
 });
 
+function errMsg(e) { return e && e.message ? String(e.message).slice(0, 240) : String(e).slice(0, 240); }
+
 self.onmessage = function (e) {
   var msg = e.data;
   if (!msg || msg.type !== 'transcribe') return;
@@ -83,15 +104,56 @@ self.onmessage = function (e) {
     }
   }
 
-  loadPipeline(modelId, onModelProgress, jobId).then(function (transcriber) {
+  function transcribeWith(transcriber) {
     /* chunk_length_s/stride_length_s: Whisper รับเสียงทีละ ≤30 วินาที — ไม่ตัดจะ "หลอน" วนคำซ้ำทั้งไฟล์ ·
-       no_repeat_ngram_size: กันแต่ละท่อนวนคำซ้ำ (โมเดลเล็ก/ภาษาไทย) — ห้ามเอาออก (ดูประวัติใน text-to-speech.js) */
+       no_repeat_ngram_size: กันแต่ละท่อนวนคำซ้ำ (โมเดลเล็ก/ภาษาไทย) — ห้ามเอาออก (ดูประวัติใน text-to-speech.js) ·
+       return_timestamps: ขอเวลาของแต่ละช่วงคำพูด (แบ่งย่อหน้า/[hh:mm:ss]) เฉพาะเมื่อหน้าขอ */
     var opts = { task: 'transcribe', chunk_length_s: 30, stride_length_s: 5, no_repeat_ngram_size: 3 };
     if (lang && lang !== 'auto') opts.language = lang;
+    if (msg.timestamps) opts.return_timestamps = true;
     return transcriber(pcm, opts);
-  }).then(function (result) {
+  }
+
+  /* models = ตารางจาก media-models.js (null ถ้าโหลดไม่ได้ → ทำงานแบบเดิมทุกอย่าง) */
+  function attempt(models, plan) {
+    return loadPipeline(plan, onModelProgress, jobId).then(function (tr) {
+      return transcribeWith(tr).then(function (r) { return { r: r, plan: plan }; }, function (err) { err.asrStage = 'run'; throw err; });
+    }, function (err) { err.asrStage = 'load'; throw err; }).catch(function (err) {
+      if (currentJob !== jobId) throw err;
+      /* WebGPU ล้ม → WASM 1 ครั้ง (ตัวที่ใหญ่เกินรัน WASM ได้ไม่ถอย) */
+      if (plan.device === 'webgpu' && !(models && models.asrGpuOnly(plan.modelId))) {
+        gpuFailed = true; disposePipeline();
+        self.postMessage({ type: 'fallback', jobId: jobId, what: 'device', from: 'webgpu', to: 'wasm', stage: err.asrStage || 'load', modelId: plan.modelId, name: (err && err.name) || 'Error', message: errMsg(err) });
+        return attempt(models, wasmPlan(models, plan.modelId));
+      }
+      /* โมเดลตระกูลใหม่โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ตัวเทียบเท่าเดิม */
+      var legacy = models && models.asrLegacy(plan.modelId);
+      if (legacy && err.asrStage === 'load' && !MEM_RE.test(errMsg(err)) && plan.device === 'wasm') {
+        disposePipeline();
+        self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: plan.modelId, to: legacy, stage: 'load', modelId: plan.modelId, name: (err && err.name) || 'Error', message: errMsg(err) });
+        return attempt(models, { modelId: legacy, device: 'wasm', dtype: null });
+      }
+      throw err;
+    });
+  }
+  function wasmPlan(models, id) { return { modelId: id, device: 'wasm', dtype: models ? models.asrDtype(id, 'wasm') : null }; }
+
+  getModels().then(function (models) {
+    var want = msg.device === 'webgpu' && !gpuFailed && models && models.asrWebgpuCapable(modelId);
+    var plan = want ? { modelId: modelId, device: 'webgpu', dtype: models.asrDtype(modelId, 'webgpu') } : wasmPlan(models, modelId);
+    return attempt(models, plan);
+  }).then(function (out) {
     if (currentJob !== jobId) return;
-    self.postMessage({ type: 'result', jobId: jobId, text: (result && result.text) || '' });
+    var result = out.r, chunks;
+    if (result && Array.isArray(result.chunks)) {
+      chunks = result.chunks.map(function (c) {
+        var t = c.timestamp || [];
+        return { start: +t[0] || 0, end: t[1] != null ? +t[1] : null, text: c.text || '' };
+      });
+    }
+    var res = { type: 'result', jobId: jobId, text: (result && result.text) || '', device: out.plan.device, modelId: out.plan.modelId };
+    if (chunks) res.chunks = chunks;
+    self.postMessage(res);
   }).catch(function (err) {
     if (currentJob !== jobId) return;
     self.postMessage(errPayload(jobId, err));

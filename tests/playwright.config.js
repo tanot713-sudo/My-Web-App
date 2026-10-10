@@ -153,5 +153,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8140/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // asr.spec.js: /api/asr ตัวจริง (allowlist โมเดล, initial_prompt ตามโดเมน + จำกัดความยาว, quota → 429) กับ Workers AI ตัวหลอก — แยกพอร์ตเพราะนับโควตาในฐานข้อมูลเดียวกัน
+      command: 'node --no-warnings sync-server.mjs 8141',
+      cwd: __dirname,
+      url: 'http://localhost:8141/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

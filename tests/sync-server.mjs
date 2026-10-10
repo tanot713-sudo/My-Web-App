@@ -45,6 +45,13 @@ const PNG_1X1 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8B
 const sse = (obj) => 'data: ' + JSON.stringify(obj) + '\n\n';
 const AI = {
   async run(model, input) {
+    if (model.includes('whisper')) {
+      // Whisper ตัวหลอก: ไม่เก็บเสียงลง log (ใหญ่) เก็บแค่ความยาว + พารามิเตอร์ที่ได้รับ (language, vad_filter, initial_prompt, task)
+      aiLog.push({ model, input: { ...input, audio: undefined, audioLen: typeof input.audio === 'string' ? input.audio.length : 0 } });
+      if (aiMode === 'down') throw new Error('upstream unavailable');
+      if (aiMode === 'quota') throw new Error('4006: you have used up your daily free allocation of 10,000 neurons');
+      return { text: 'ข้อความทดสอบ', segments: [{ start: 0, end: 1.5, text: ' ข้อความทดสอบ', avg_logprob: -0.2, words: [] }, { start: 'x', end: 2, text: 'ทิ้ง' }], word_count: 1 };
+    }
     aiLog.push({ model, input });
     if (aiMode === 'down') throw new Error('upstream unavailable');
     if (aiMode === 'quota') throw new Error('4006: you have used up your daily free allocation of 10,000 neurons');

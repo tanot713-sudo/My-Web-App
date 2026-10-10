@@ -36,6 +36,9 @@
     { suffix: ':driveConnected', kind: 'local' },
     { key: 'tanot:aiChat:noBigModel', kind: 'local' },
     { key: 'tanot:asr:engine', kind: 'local' },
+    { key: 'tanot:asr:timestamps', kind: 'local' }, // สวิตช์ "แสดงเวลา [hh:mm:ss]" ของผลถอดเสียง (text-to-speech.js)
+    { key: 'tanot:asr:domain', kind: 'local' }, // ประเภทเนื้อหาของคำศัพท์เฉพาะ (general|law|engineering|invest)
+    { key: 'tanot:asr:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ล้มล่าสุดบนเครื่องนี้ (media-core.js) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:asrcloud:neuronUsage', kind: 'local' },
     { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:ocrengine', kind: 'local' },

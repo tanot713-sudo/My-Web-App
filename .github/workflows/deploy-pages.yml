@@ -78,6 +78,8 @@ jobs:
         run: npx playwright test media.spec.js
       - name: ocr (รหัส OCR_PIN ก่อนใช้ Claude Vision + กันเดา 5 ครั้ง/10 นาที ใน D1, ย่อรูป/PDF สแกน/แบ่งช่วงหน้า, allowlist โมเดล, Sauvola + แก้ภาพเอียง + โหมดแม่นยำของ Tesseract — Anthropic ตัวหลอก)
         run: npx playwright test ocr.spec.js
+      - name: asr (ถอดเสียงแม่นและเร็วขึ้น — รอยต่อท่อนเหลื่อมตัดคำซ้ำ, ส่งขนาน ≤ 3 + ลำดับ/ลองใหม่/ยกเลิก/quota หยุดทั้งชุด, /api/asr allowlist + initial_prompt ตามโดเมน + จำกัดความยาว, WebGPU ล้ม → WASM, ย่อหน้า + สวิตช์เวลา — Workers AI/transformers ตัวหลอก)
+        run: npx playwright test asr.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)
