@@ -1,5 +1,5 @@
 // งานปรับปรุงเสียง/OCR Section 4 — ข้อความก่อนพูด (tts-normalize.js, window.TanotTtsNorm) + วิดเจ็ตแชทพูดไม่พัง + ภาษาถอดเสียงเริ่มต้นไทย
-// A) known-answer ของทุกกฎ (Node require) · B) fuzz 2,000 ข้อความ (ทุกตัวอักษรอยู่ใน vocab, ทุกท่อน ≤ 60) · C) หน้า/วิดเจ็ตจริงใน Chromium
+// A) known-answer ของทุกกฎ (Node require) · B) fuzz 2,000 ข้อความ (ทุกตัวอักษรอยู่ใน vocab, ทุกท่อน ≤ MAX_CHUNK) · C) หน้า/วิดเจ็ตจริงใน Chromium
 // CI ห้ามโหลดโมเดลจริง: vendor/transformers/transformers.web.min.js ถูก route เป็นโมดูลหลอกที่ "โยน error เมื่อเจอตัวอักษรนอก vocab" (เหมือน Gather out of bounds ของจริง)
 const { test, expect } = require('@playwright/test');
 const N = require('../tts-normalize.js');
@@ -127,15 +127,18 @@ test.describe('A) forNative / forMmsEn / plan', () => {
     for (const [input, want] of cases) expect(N.forMmsEn(input), JSON.stringify(input)).toBe(want);
   });
 
-  test('plan: ช่วงเงียบประโยค 0.12 วิ / ย่อหน้า 0.4 วิ / ท่อนสุดท้าย 0', () => {
-    expect(N.GAP_SENT_SEC).toBe(0.12); expect(N.GAP_PARA_SEC).toBe(0.4);
+  test('plan: ช่วงเงียบประโยค 0.12 วิ / ขึ้นบรรทัดในย่อหน้า 0.25 วิ / ย่อหน้า 0.4 วิ / ท่อนสุดท้าย 0', () => {
+    expect(N.GAP_SENT_SEC).toBe(0.12); expect(N.GAP_LINE_SEC).toBe(0.25); expect(N.GAP_PARA_SEC).toBe(0.4);
     let p = N.plan('ประโยคหนึ่ง. ประโยคสอง');
     expect(p.chunks).toEqual(['ประโยคหนึ่ง', 'ประโยคสอง']); expect(p.gaps).toEqual([0.12, 0]); expect(p.paras).toEqual([0, 0]);
     p = N.plan('ก\n\nข');
     expect(p.chunks).toEqual(['ก', 'ข']); expect(p.gaps).toEqual([0.4, 0]); expect(p.paras).toEqual([0, 1]);
     p = N.plan('ประโยคหนึ่ง! ประโยคสอง?\nย่อหน้าสอง ประโยคเดียว. จบ');
     expect(p.chunks).toEqual(['ประโยคหนึ่ง', 'ประโยคสอง', 'ย่อหน้าสอง ประโยคเดียว', 'จบ']);
-    expect(p.gaps).toEqual([0.12, 0.4, 0.12, 0]);
+    expect(p.gaps).toEqual([0.12, 0.25, 0.12, 0]); // บรรทัดใหม่ในย่อหน้าเดียวกัน (ไม่มีบรรทัดว่างคั่น) = 0.25 วิ · paras ยังเป็นย่อหน้าเดียว
+    expect(p.paras).toEqual([0, 0, 0, 0]);
+    p = N.plan('ประโยคหนึ่ง! ประโยคสอง?\n\nย่อหน้าสอง ประโยคเดียว. จบ');
+    expect(p.gaps).toEqual([0.12, 0.4, 0.12, 0]); expect(p.paras).toEqual([0, 0, 1, 1]);
     p = N.plan('ก ข ค'); expect(p.chunks).toEqual(['ก ข ค']); expect(p.gaps).toEqual([0]);
     p = N.plan(''); expect(p).toEqual({ chunks: [], gaps: [], paras: [] });
     p = N.plan('😊\n\n**'); expect(p.chunks).toEqual([]);
@@ -143,28 +146,28 @@ test.describe('A) forNative / forMmsEn / plan', () => {
     expect(p.chunks).toEqual(['this is the first sentence', 'this is another one']); expect(p.gaps).toEqual([0.12, 0]);
   });
 
-  test('chunks: แปลงก่อนตัด — เลขที่ขยายเป็นคำแล้วยาวเกิน 60 ไม่หลุดเพดาน · ไม่ฉีกคำ · max ปรับได้', () => {
-    const nums = 'ราคา ' + Array.from({ length: 20 }, () => '1,250').join(' ');
+  test('chunks: แปลงก่อนตัด — เลขที่ขยายเป็นคำแล้วยาวเกินเพดานไม่หลุดเพดาน · ไม่ฉีกคำ · max ปรับได้', () => {
+    const nums = 'ราคา ' + Array.from({ length: 40 }, () => '1,250').join(' ');
     const cs = N.chunks(nums);
     expect(cs.length).toBeGreaterThan(5);
-    cs.forEach((c) => { expect(c.length).toBeLessThanOrEqual(60); expect(bad(c)).toEqual([]); });
+    cs.forEach((c) => { expect(c.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(bad(c)).toEqual([]); });
     expect(cs.join(' ')).toBe(N.forMms(nums)); // ตัดแล้วต่อกันได้ข้อความเดิมพอดี (ไม่มีอะไรหาย/เบิ้ล)
     // เดิม (ตัด 60 ก่อนแปลง): "999,999 บาท" ซ้ำ ๆ → ท่อนหลังแปลงยาวหลายเท่า
-    const big = Array.from({ length: 10 }, () => '999,999').join(' ');
-    N.chunks(big).forEach((c) => expect(c.length).toBeLessThanOrEqual(60));
+    const big = Array.from({ length: 20 }, () => '999,999').join(' ');
+    N.chunks(big).forEach((c) => expect(c.length).toBeLessThanOrEqual(N.MAX_CHUNK));
     N.chunks('สวัสดีครับ ' + 'ทดสอบ '.repeat(30), 20).forEach((c) => expect(c.length).toBeLessThanOrEqual(20));
-    expect(N.chunks('เลข ' + '7'.repeat(70)).every((c) => c.length <= 60)).toBe(true);
+    expect(N.chunks('เลข ' + '7'.repeat(N.MAX_CHUNK + 10)).every((c) => c.length <= N.MAX_CHUNK)).toBe(true);
   });
 
   for (const seg of [true, false]) {
-    test(`ข้อความไทยยาวไม่เว้นวรรค (${seg ? 'Intl.Segmenter' : 'ไม่มีตัวตัดคำ'}): ทุกท่อน ≤ 60 · ไม่ตัดกลางพยางค์ (ไม่ขึ้นต้นด้วยสระตาม/วรรณยุกต์ ไม่ลงท้ายด้วยสระนำ) · ข้อความครบ`, () => {
+    test(`ข้อความไทยยาวไม่เว้นวรรค (${seg ? 'Intl.Segmenter' : 'ไม่มีตัวตัดคำ'}): ทุกท่อน ≤ MAX_CHUNK · ไม่ตัดกลางพยางค์ (ไม่ขึ้นต้นด้วยสระตาม/วรรณยุกต์ ไม่ลงท้ายด้วยสระนำ) · ข้อความครบ`, () => {
       N.useSegmenter(seg);
       try {
-        const long = 'เกมเด็กเล่นแม่น้ำใหญ่ไหลผ่านเมืองเก่า'.repeat(8);
+        const long = 'เกมเด็กเล่นแม่น้ำใหญ่ไหลผ่านเมืองเก่า'.repeat(14);
         const cs = N.chunks(long);
         expect(cs.length).toBeGreaterThan(3);
         cs.forEach((c) => {
-          expect(c.length).toBeLessThanOrEqual(60);
+          expect(c.length).toBeLessThanOrEqual(N.MAX_CHUNK);
           expect(/^[ะ-ฺๅ็-๎]/.test(c), 'ขึ้นต้น: ' + c).toBe(false);
           expect(/[เ-ไ]$/.test(c), 'ลงท้าย: ' + c).toBe(false);
         });
@@ -200,7 +203,7 @@ const POOL = {
   md: ['**', '__', '#', '##', '`', '```', '>', '- ', '* ', '•', '[ลิงก์](https://a.b/c)', 'https://example.com/path?q=1', 'a@b.com', '|', '---', '~~', '<br>', '<b>x</b>', '\\', '_'],
   punct: ['.', ',', '!', '?', ';', ':', '…', '(', ')', '"', '“', '”', '/', '-', '–', '\n', '\n\n', '\t', '  ', '​']
 };
-test('B) fuzz 2,000 ข้อความสุ่ม (ไทย/อังกฤษ/ตัวเลข/อีโมจิ/markdown): ทุกตัวอักษรของ forMms อยู่ใน vocab · ไม่มีเลขเหลือ · ทุกท่อน ≤ 60 · ท่อนต่อกัน = forMms · ไม่มี exception', () => {
+test('B) fuzz 2,000 ข้อความสุ่ม (ไทย/อังกฤษ/ตัวเลข/อีโมจิ/markdown): ทุกตัวอักษรของ forMms อยู่ใน vocab · ไม่มีเลขเหลือ · ทุกท่อน ≤ MAX_CHUNK · ท่อนต่อกัน = forMms · ไม่มี exception', () => {
   const r = rng(20261010);
   const pick = (a) => a[Math.floor(r() * a.length)];
   const kinds = Object.keys(POOL);
@@ -222,7 +225,7 @@ test('B) fuzz 2,000 ข้อความสุ่ม (ไทย/อังกฤ
     const b = bad(out);
     if (b.length || /\d/.test(out.replace(/[0124]/g, (m) => (VALID.has(m) ? '' : m))) || /[0-9]/.test(out)) problems.push({ s, out, why: 'นอก vocab/มีเลขเหลือ', b });
     for (const c of cs) {
-      if (c.length > 60 || c.length === 0 || c !== c.trim() || bad(c).length) problems.push({ s, c, why: 'ท่อนผิด' });
+      if (c.length > N.MAX_CHUNK || c.length === 0 || c !== c.trim() || bad(c).length) problems.push({ s, c, why: 'ท่อนผิด' });
     }
     if (cs.join(' ').replace(/ /g, '') !== out.replace(/ /g, '')) problems.push({ s, out, cs, why: 'ท่อนต่อกันไม่เท่า forMms' });
     if (pl.gaps.length !== cs.length || pl.paras.length !== cs.length || (cs.length && pl.gaps[cs.length - 1] !== 0)) problems.push({ s, why: 'gaps' });
@@ -240,7 +243,7 @@ test('B) fuzz ซ้ำแบบไม่มีตัวตัดคำ (500 ข
       for (let k = 0; k < 25; k++) s += pick(POOL.th) + pick(['', ' ', '.', '\n']) + (r() < 0.2 ? pick(POOL.num) : '');
       s += 'กรุงเทพมหานครอมรรัตนโกสินทร์'.repeat(1 + (i % 6));
       const cs = N.chunks(s);
-      cs.forEach((c) => { expect(c.length).toBeLessThanOrEqual(60); expect(bad(c)).toEqual([]); });
+      cs.forEach((c) => { expect(c.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(bad(c)).toEqual([]); });
     }
   } finally { N.useSegmenter(true); }
 });
@@ -269,7 +272,7 @@ export async function pipeline(task, model, opts) {
     return async (text) => {
       const out = [...text].filter((c) => !VOCAB.has(c));
       if (out.length) throw new Error('Gather node index out of bounds: ' + JSON.stringify(out.join('')));
-      if (!text.trim() || text.length > 60) throw new Error('bad chunk length ' + text.length);
+      if (!text.trim() || text.length > ${N.MAX_CHUNK}) throw new Error('bad chunk length ' + text.length);
       const a = new Float32Array(1600);
       for (let i = 0; i < a.length; i++) a[i] = Math.sin(i / 5) * 0.3;
       return { audio: a, sampling_rate: 16000 };
@@ -319,7 +322,7 @@ async function ask(page, text) {
 }
 
 test.describe('C) วิดเจ็ตแชท — พูดคำตอบไม่พังและพูดข้อความที่ normalize แล้วเท่านั้น', () => {
-  test('"ราคา 3,599 บาท **ลด 15%** 😊" → Worker ได้รับเฉพาะตัวอักษรใน vocab (ท่อน ≤ 60) · ไม่ error · ไม่มี log ปัญหา · เล่นเสียงครบทุกท่อน', async ({ browser }) => {
+  test('"ราคา 3,599 บาท **ลด 15%** 😊" → Worker ได้รับเฉพาะตัวอักษรใน vocab (ท่อน ≤ MAX_CHUNK) · ไม่ error · ไม่มี log ปัญหา · เล่นเสียงครบทุกท่อน', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 1100, height: 800 } });
     const page = await ctx.newPage();
     const errors = await setup(ctx, page, { chat: ['ราคา 3,599 บาท ', '**ลด 15%** ', '😊\n\nขอบคุณมากๆ ครับ เปิดดูที่ https://example.com/a วันที่ 12/10/2569 เวลา 14.30 น.'] });
@@ -331,7 +334,7 @@ test.describe('C) วิดเจ็ตแชท — พูดคำตอบไ
     const b = (await page.evaluate(() => window.__batches))[0];
     expect(b.model).toBe('Tanotfin/mms-tts-2081-FM-onnx');
     expect(b.items.length).toBeGreaterThanOrEqual(2);
-    for (const t of b.items) { expect(bad(t), t).toEqual([]); expect(t.length).toBeLessThanOrEqual(60); expect(t).not.toMatch(/\d/); }
+    for (const t of b.items) { expect(bad(t), t).toEqual([]); expect(t.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(t).not.toMatch(/\d/); }
     expect(b.items[0]).toBe('ราคา สามพันห้าร้อยเก้าสิบเก้า บาท ลด สิบห้าเปอร์เซ็นต์');
     expect(b.items.join(' ')).toContain('สิบสอง ตุลาคม สองพันห้าร้อยหกสิบเก้า');
     expect(b.items.join(' ')).toContain('สิบสี่นาฬิกาสามสิบนาที');

@@ -15,21 +15,29 @@
    WASM ล้วนๆ ที่รันขนานหลาย Worker ควรจะเป็น) น่าจะเพราะ backend WebGPU ของ onnxruntime-web ยังไม่มี
    kernel ที่ optimize ดีสำหรับ op แบบ quantized int8 (โมเดลนี้ต้องบีบอัด int8 เพื่อความเร็ว ขนาดไฟล์
    จึงจำเป็นต้องใช้ q8 เสมอ) เลยตัดออก ใช้ WASM ล้วนๆ พึ่ง worker pool ขนานอย่างเดียวแทน ซึ่งวัดผลจริง
-   แล้วให้ผลเร็วกว่าและคาดเดาได้มากกว่า */
+   แล้วให้ผลเร็วกว่าและคาดเดาได้มากกว่า
+
+   2026-10 (Section 5): ลอง WebGPU อีกครั้งแบบมีทางถอย — หน้า text-to-speech ส่ง msg.device:'webgpu' มาเฉพาะคอมที่ TanotMedia.webgpuPlan() ได้ adapter จริง (ไม่ใช่ซอฟต์แวร์) และผู้ใช้ไม่ปิด
+   • WebGPU ใช้ dtype จาก TanotMediaModels.ttsGpuDtype (fp32 — ตัว q8 ของโมเดลนี้เป็นสาเหตุที่รอบก่อนช้า: op แบบ quantized ยังไม่มี kernel ดีบน WebGPU)
+   • โหลด/รันล้ม หรือเสียงออกมาผิดปกติ (มี NaN/Infinity หรือเงียบทั้งท่อน) → ทิ้ง pipeline WebGPU แล้วทำท่อนเดิมซ้ำบน WASM "1 ครั้ง" (จำไว้ใน Worker นี้ว่าล้มแล้ว ไม่ลองซ้ำ)
+     ส่ง { type:'fallback', what:'device', from:'webgpu', to:'wasm', stage:'load'|'run'|'output', modelId, name, message } ให้หน้าบันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้)
+   • ไม่ส่ง device = WASM เหมือนเดิมทุกอย่าง (วิดเจ็ตแชทไม่เปลี่ยน) */
 'use strict';
 
-var pipelinePromiseByModel = {};
+var pipelinePromiseByModel = {}; // key = modelId + '|' + device
+var gpuFailed = false;          // WebGPU ล้มแล้วใน Worker นี้ → ท่อนที่เหลือใช้ WASM เลย
 
 /* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" ต้อง fp32 เพราะไม่มีไฟล์ quantized) อ่านจาก media-models.js — ตารางกลางที่
    text-to-speech.js ใช้ด้วย (2026-10: เดิมมีตารางซ้ำ 2 ชุดในไฟล์นี้กับ text-to-speech.js แล้วเคยลืมแก้คู่กันจน Worker
    บังคับ fp32 เกินจำเป็น → แรมพุ่ง แท็บแครช — ดูประวัติเต็มในหัวไฟล์ media-models.js) */
 var modelsPromise = null;
-function ttsPipelineOpts(modelId, onProgress) {
+function ttsPipelineOpts(modelId, device, onProgress) {
   if (!modelsPromise) modelsPromise = import('./media-models.js').then(function () { return self.TanotMediaModels; });
   return modelsPromise.then(function (M) {
     var opts = { progress_callback: onProgress };
-    var dtype = M && M.ttsDtype(modelId);
+    var dtype = M && (device === 'webgpu' ? M.ttsGpuDtype(modelId) : M.ttsDtype(modelId));
     if (dtype) opts.dtype = dtype;
+    if (device === 'webgpu') opts.device = 'webgpu';
     return opts;
   });
 }
@@ -59,22 +67,58 @@ function configureOnnxWasmPaths(env) {
 /* jobId ส่งมาแค่เพื่อแปะกำกับสัญญาณ 'pipeline-ready' ที่ยิงกลับไปครั้งเดียวตอนโหลด pipeline
    เสร็จครั้งแรกของ worker ตัวนี้ (ดูเหตุผลที่ text-to-speech.js ใช้สัญญาณนี้ทำอะไร) — ไม่ได้ใช้
    แยกแคช pipeline ตาม jobId แต่อย่างใด (ยังแคชตาม modelId เดิม ใช้ข้ามหลายงานได้เหมือนเดิม) */
-function loadPipeline(modelId, onProgress, jobId) {
-  if (!pipelinePromiseByModel[modelId]) {
-    pipelinePromiseByModel[modelId] = Promise.all([import('./vendor/transformers/transformers.web.min.js'), ttsPipelineOpts(modelId, onProgress)]).then(function (r) {
+function loadPipeline(modelId, device, onProgress, jobId) {
+  var key = modelId + '|' + device;
+  if (!pipelinePromiseByModel[key]) {
+    pipelinePromiseByModel[key] = Promise.all([import('./vendor/transformers/transformers.web.min.js'), ttsPipelineOpts(modelId, device, onProgress)]).then(function (r) {
       configureOnnxWasmPaths(r[0].env);
       return r[0].pipeline('text-to-speech', modelId, r[1]);
     });
-    pipelinePromiseByModel[modelId].then(function () {
-      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId });
-    }, function () { delete pipelinePromiseByModel[modelId]; /* โหลดพัง — error จริงโผล่ตอนเรียก synth ท่อนแรก · ล้างแคชให้ลองใหม่ได้ */ });
+    pipelinePromiseByModel[key].then(function () {
+      self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId, device: device });
+    }, function () { delete pipelinePromiseByModel[key]; /* โหลดพัง — error จริงโผล่ตอนเรียก synth ท่อนแรก · ล้างแคชให้ลองใหม่ได้ */ });
   }
-  return pipelinePromiseByModel[modelId];
+  return pipelinePromiseByModel[key];
 }
 
-function synthesizeOneItem(text, modelId, onProgress, jobId) {
-  return loadPipeline(modelId, onProgress, jobId).then(function (synth) {
-    return synth(text);
+/* เสียงจาก WebGPU ผิดปกติไหม: มี NaN/Infinity หรือเงียบสนิททั้งท่อน (ข้อความจริงไม่มีทางเงียบทั้งท่อน) */
+function audioProblem(audio) {
+  var peak = 0;
+  for (var i = 0; i < audio.length; i++) {
+    var v = audio[i];
+    if (v !== v || v === Infinity || v === -Infinity) return 'NaN/Infinity ในเสียง';
+    var a = v < 0 ? -v : v;
+    if (a > peak) peak = a;
+  }
+  return peak < 1e-4 ? 'เสียงเงียบทั้งท่อน' : null;
+}
+function disposeGpuPipelines() {
+  Object.keys(pipelinePromiseByModel).forEach(function (k) {
+    if (!/\|webgpu$/.test(k)) return;
+    var old = pipelinePromiseByModel[k]; delete pipelinePromiseByModel[k];
+    old.then(function (p) { if (p && p.dispose) return p.dispose(); }).catch(function () {});
+  });
+}
+
+function synthesizeOnDevice(text, modelId, device, onProgress, jobId) {
+  return loadPipeline(modelId, device, onProgress, jobId).then(function (synth) {
+    return synth(text).then(function (output) {
+      if (device === 'webgpu' && output && output.audio) {
+        var bad = audioProblem(output.audio);
+        if (bad) { var e = new Error(bad); e.name = 'GpuOutputError'; e.ttsStage = 'output'; throw e; }
+      }
+      return output;
+    }, function (err) { if (err && !err.ttsStage) err.ttsStage = 'run'; throw err; });
+  }, function (err) { if (err && !err.ttsStage) err.ttsStage = 'load'; throw err; });
+}
+/* ทำ 1 ท่อน: WebGPU (ถ้าขอและยังไม่เคยล้ม) → ล้มแล้วถอย WASM ท่อนเดิมทันที 1 ครั้ง */
+function synthesizeOneItem(text, modelId, wantGpu, onProgress, jobId) {
+  if (!wantGpu || gpuFailed) return synthesizeOnDevice(text, modelId, 'wasm', onProgress, jobId);
+  return synthesizeOnDevice(text, modelId, 'webgpu', onProgress, jobId).catch(function (err) {
+    gpuFailed = true; disposeGpuPipelines();
+    self.postMessage({ type: 'fallback', jobId: jobId, what: 'device', from: 'webgpu', to: 'wasm', stage: (err && err.ttsStage) || 'run', modelId: modelId,
+      name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });
+    return synthesizeOnDevice(text, modelId, 'wasm', onProgress, jobId);
   });
 }
 
@@ -87,7 +131,7 @@ var isBusy = false;
 self.onmessage = function (e) {
   var msg = e.data;
   if (!msg || msg.type !== 'synthesize-batch') return;
-  var items = msg.items, modelId = msg.modelId, jobId = msg.jobId;
+  var items = msg.items, modelId = msg.modelId, jobId = msg.jobId, wantGpu = msg.device === 'webgpu';
 
   if (isBusy) {
     items.forEach(function (item) {
@@ -106,7 +150,7 @@ self.onmessage = function (e) {
   items.reduce(function (p, item) {
     return p.then(function () {
       self.postMessage({ type: 'item-start', jobId: jobId, i: item.i });
-      return synthesizeOneItem(item.text, modelId, onModelProgress, jobId);
+      return synthesizeOneItem(item.text, modelId, wantGpu, onModelProgress, jobId);
     }).then(function (output) {
       if (!output || !output.audio || !output.audio.length) throw new Error('ไม่ได้ข้อมูลเสียงกลับมา');
       self.postMessage(

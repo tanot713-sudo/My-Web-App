@@ -126,6 +126,18 @@
     var rows = readLog(); rows.push(row); writeLog(rows);
     return row;
   }
+  /* บันทึกสถิติ/เหตุการณ์ที่ไม่ใช่ error (เช่น สรุปความเร็วหลังสร้างไฟล์เสียงเสร็จ) — แถวชนิดเดียวกับ logError แต่ code:'info' · info = ตัวเลข/รหัสสั้นๆ เท่านั้น ห้ามมีข้อความ/ชื่อไฟล์ของผู้ใช้ */
+  function logNote(kind, ctx, info) {
+    ctx = ctx || {};
+    var d = device();
+    var row = {
+      at: Date.now(), kind: String(kind || 'other'), stage: ctx.stage || 'stats', engine: ctx.engine || '', model: ctx.model || '',
+      lang: ctx.lang || '', device: ctx.device || '', code: 'info', name: '', msg: scrub(info), page: (location.pathname.split('/').pop() || 'index.html'),
+      ua: d.ua, mem: d.mem, cores: d.cores, online: navigator.onLine !== false, file: null
+    };
+    var rows = readLog(); rows.push(row); writeLog(rows);
+    return row;
+  }
   function clearLog() { try { localStorage.removeItem(LOG_KEY); } catch (e) {} try { window.dispatchEvent(new CustomEvent('tanot:medialog')); } catch (e) {} }
   /* error ที่หลุดมาถึง window (ไม่มีใคร catch) — บันทึกเฉพาะที่มาจากงานเสียง/OCR */
   var GLOBAL_RE = /onnx|ort-wasm|transformers|tesseract|whisper|mms-tts|asr-worker|tts-worker|audio-encode|lamejs|decodeAudioData|bad_alloc|out of memory/i;
@@ -272,6 +284,13 @@
   }
   function markGpuBad() { try { localStorage.setItem(GPU_BAD_KEY, String(Date.now())); } catch (e) {} }
   var gpuPlanP = null;
+  /* WebGPU สำหรับเสียงพูด (MMS-TTS, text-to-speech.js → tts-worker.js): แผนเดียวกับ webgpuPlan แต่ธงล้มแยกของเสียงพูด (คนละโมเดล/คนละ op กับ Whisper — ล้มฝั่งหนึ่งไม่ควรปิดอีกฝั่ง) · 3 วัน */
+  var TTS_GPU_BAD_KEY = 'tanot:tts:gpubad';
+  function ttsGpuBad() { try { var t = +localStorage.getItem(TTS_GPU_BAD_KEY); return t > 0 && Date.now() - t < GPU_BAD_MS; } catch (e) { return false; } }
+  function markTtsGpuBad() { try { localStorage.setItem(TTS_GPU_BAD_KEY, String(Date.now())); } catch (e) {} }
+  function ttsGpuPlan() {
+    return webgpuPlan().then(function (p) { return p.ok && ttsGpuBad() ? { ok: false, f16: p.f16, reason: 'failed-before' } : p; });
+  }
   /* → Promise<{ ok, f16, reason }> — ok เฉพาะเมื่อ adapter ได้จริง (navigator.gpu มีเฉยๆ ไม่พอ) และไม่ใช่ซอฟต์แวร์เรนเดอร์ */
   function webgpuPlan(force) {
     if (gpuPlanP && !force) return gpuPlanP;
@@ -450,10 +469,10 @@
     BASE: BASE, RATE: RATE, SEGMENT_SEC: SEGMENT_SEC,
     isIOS: isIOS, isAndroid: isAndroid, isMobile: isMobile, device: device,
     error: mediaError, isMemoryError: isMemoryError, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
-    LOG_KEY: LOG_KEY, logError: logError, readLog: readLog, clearLog: clearLog,
+    LOG_KEY: LOG_KEY, logError: logError, logNote: logNote, readLog: readLog, clearLog: clearLog,
     budget: budget,
     decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, quietCut: quietCut,
-    transcribeLocal: transcribeLocal, transcribeLocalDetailed: transcribeLocalDetailed, webgpuPlan: webgpuPlan, asrDefaultModel: asrDefaultModel, cancelLocalAsr: function () { asrKill('abort'); },
+    transcribeLocal: transcribeLocal, transcribeLocalDetailed: transcribeLocalDetailed, webgpuPlan: webgpuPlan, ttsGpuPlan: ttsGpuPlan, markTtsGpuBad: markTtsGpuBad, asrDefaultModel: asrDefaultModel, cancelLocalAsr: function () { asrKill('abort'); },
     persistOnce: persistOnce, modelCacheInfo: modelCacheInfo, clearModelCache: clearModelCache
   };
 })();

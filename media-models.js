@@ -20,6 +20,11 @@
   var TTS_DTYPE_OVERRIDES = {
     'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
   };
+  /* MMS-TTS บน WebGPU (Section 5, ทดลอง): ใช้ fp32 เสมอ — ตัว q8 (ค่าเริ่มต้นของ WASM) ต้องใช้ op แบบ quantized ที่ backend WebGPU ของ onnxruntime-web ยังไม่มี kernel ที่ดี
+     (นี่คือเหตุผลที่รอบก่อนวัดแล้วช้ากว่า WASM) · ชื่อไฟล์ onnx/model.onnx (fp32) ของแต่ละ repo ยังไม่ได้ตรวจกับ Hugging Face จริง — ไม่มี/โหลดไม่ได้ = tts-worker.js ถอย WASM อัตโนมัติ + problem log
+     เพิ่ม override รายโมเดลที่นี่ถ้าวัดแล้วพบว่า dtype อื่นดีกว่า */
+  var TTS_GPU_DTYPE = 'fp32';
+  var TTS_GPU_DTYPE_OVERRIDES = {};
   /* Whisper ที่เลือกได้ในหน้า text-to-speech — heavy = ซ่อนบนมือถือ (iOS/Android) เพราะแรมต่อแท็บไม่พอ
      (small ~250MB, medium ~750MB-1GB ไฟล์โมเดล + หน่วยความจำ WASM ตอนรันอีกหลายเท่า)
      2 ตระกูล:
@@ -59,6 +64,7 @@
     TTS_DTYPE_OVERRIDES: TTS_DTYPE_OVERRIDES,
     ASR_MODELS: ASR_MODELS,
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
+    ttsGpuDtype: function (modelId) { return TTS_GPU_DTYPE_OVERRIDES[modelId] || TTS_GPU_DTYPE; },
     asrHeavy: function (modelId) { var m = asrInfo(modelId); return !!(m && m.heavy); },
     asrInfo: asrInfo,
     /* รันบน WebGPU ได้ไหม (ทุกรายการที่มี gpu dtype: onnx-community + Thonburian — Xenova เดิมคง WASM เหมือนก่อนหน้า; ไม่ผูกกับชื่อ repo) */
