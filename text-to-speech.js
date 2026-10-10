@@ -48,7 +48,17 @@
       sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…',
       asrSegment: 'กำลังถอดเสียงช่วงที่ {i}/{n}…', offlineLocal: 'ออฟไลน์ — ถอดเสียงในเบราว์เซอร์แทน', asrCancel: 'ยกเลิก', useCloud: 'ใช้โหมดคลาวด์แทน',
       mobileNote: 'บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง',
-      previewTitle: 'ดูข้อความที่จะอ่านจริง', previewLabel: 'ข้อความที่จะอ่านจริง'
+      previewTitle: 'ดูข้อความที่จะอ่านจริง', previewLabel: 'ข้อความที่จะอ่านจริง',
+      lexTitle: 'คำอ่านของฉัน', lexPh: 'คำ = คำอ่าน', lexSaved: 'บันทึกแล้ว {n} คำ',
+      lexRejFormat: 'บรรทัด {line}: ต้องเขียนเป็น "คำ = คำอ่าน" — ไม่บันทึกแถวนี้', lexRejVocab: 'บรรทัด {line}: คำอ่านมีตัวอักษรที่เสียงไทยอ่านไม่ได้ ({chars}) — ไม่บันทึกแถวนี้',
+      lexRejLong: 'บรรทัด {line}: ยาวเกินไป — ไม่บันทึกแถวนี้', lexRejLimit: 'บรรทัด {line}: เกิน {max} คำ — ไม่บันทึกแถวนี้', lexRejMore: '…และอีก {n} แถว',
+      optParen: 'ข้ามอังกฤษในวงเล็บหลังคำไทย', optSplit: 'แบ่งไฟล์ตามตอน', optGpu: 'ใช้การ์ดจอ (WebGPU)',
+      skipTimes: '{n} ครั้ง', addReading: 'เพิ่มคำอ่าน',
+      keepNote: 'ระหว่างสร้างไฟล์เสียง อย่าสลับแท็บหรือปิดหน้าจอ — จะช้าลงมาก', keepNoteHidden: 'เคยสลับแท็บระหว่างสร้าง — ช่วงนั้นช้าลง เปิดหน้านี้ค้างไว้จะเร็วกว่า',
+      workersInfo: 'Worker {n} ตัว · ~{s} วิ/ท่อน', gpuInfo: 'WebGPU · ~{s} วิ/ท่อน', gpuWasm: 'WebGPU ใช้ไม่ได้กับเสียงนี้ — สลับไปใช้ WASM แล้ว',
+      etaHr: 'อีกประมาณ {h} ชั่วโมง', etaHrMin: 'อีกประมาณ {h} ชั่วโมง {m} นาที',
+      madeParts: 'สร้างเสร็จ {n} ไฟล์ — ดาวน์โหลดแต่ละไฟล์ด้านล่าง', cancelPartial: 'ยกเลิกแล้ว — ได้ไฟล์เสร็จแล้ว {n} ไฟล์ (ดาวน์โหลดด้านล่าง)', partsKept: 'ได้ไฟล์เสร็จแล้ว {n} ไฟล์ — ดาวน์โหลดด้านล่าง',
+      partMeta: '{dur} · ท่อน {from}–{to}'
     },
     en: {
       title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
@@ -88,7 +98,17 @@
       sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…',
       asrSegment: 'Transcribing part {i}/{n}…', offlineLocal: 'Offline — transcribing in the browser instead', asrCancel: 'Cancel', useCloud: 'Use cloud mode instead',
       mobileNote: 'Phones can only use the small/medium models — cloud mode is more accurate and does not use this device\'s memory',
-      previewTitle: 'See the text that will be read', previewLabel: 'Text that will be read aloud'
+      previewTitle: 'See the text that will be read', previewLabel: 'Text that will be read aloud',
+      lexTitle: 'My pronunciations', lexPh: 'word = reading', lexSaved: 'Saved {n} entries',
+      lexRejFormat: 'Line {line}: write it as "word = reading" — this row is not saved', lexRejVocab: 'Line {line}: the reading has characters the Thai voice cannot say ({chars}) — this row is not saved',
+      lexRejLong: 'Line {line}: too long — this row is not saved', lexRejLimit: 'Line {line}: more than {max} entries — this row is not saved', lexRejMore: '…and {n} more rows',
+      optParen: 'Skip English in brackets after Thai words', optSplit: 'Split into files by chapter', optGpu: 'Use the graphics card (WebGPU)',
+      skipTimes: '{n} times', addReading: 'Add reading',
+      keepNote: 'While the audio is being made, do not switch tabs or turn the screen off — it gets much slower', keepNoteHidden: 'You switched tabs while it was running — it was slower then. Keep this page open for the fastest result',
+      workersInfo: '{n} workers · ~{s} s/segment', gpuInfo: 'WebGPU · ~{s} s/segment', gpuWasm: 'WebGPU does not work with this voice — switched to WASM',
+      etaHr: 'about {h} h left', etaHrMin: 'about {h} h {m} min left',
+      madeParts: '{n} files ready — download each file below', cancelPartial: 'Cancelled — {n} files were already finished (download below)', partsKept: '{n} files were already finished — download below',
+      partMeta: '{dur} · segments {from}–{to}'
     }
   });
   /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
@@ -294,14 +314,16 @@
      ไม่ได้เลย (บล็อกหน้าระหว่างคำนวณ) · ไม่ใช้เป็นทางถอยเมื่อ Worker หน่วยความจำไม่พอ (ย้ายงานหนักเดิมมาเธรดหลักมีแต่จะแครชทั้งแท็บ)
      pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) · onProgress(done, total) เรียกหลังแต่ละท่อนเสร็จ (ความหมายเดียวกับพูล)
      คืน { parts: Float32Array[], sampling_rate } — ต่อรวมทีหลังใน encodeAudio() */
-  function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress) {
+  function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress, extra) {
+    extra = extra || {};
     var audioParts = [], samplingRate = null, done = 0;
-    return chunks.reduce(function (p, chunk) {
+    return chunks.reduce(function (p, chunk, i) {
       return p.then(function () {
+        if (extra.isCancelled && extra.isCancelled()) throw TanotMedia.error('abort');
         return synthesizeMmsTts(chunk, modelId, onModelProgress);
       }).then(function (output) {
         samplingRate = output.sampling_rate;
-        audioParts.push(output.audio);
+        if (extra.onItem) extra.onItem(i, output.audio, samplingRate); else audioParts.push(output.audio);
         done++;
         if (onProgress) onProgress(done, chunks.length);
       });
@@ -320,7 +342,7 @@
      4) ว่างเกิน 2 นาที → ปิดทั้งพูลคืนแรม (ครั้งหน้าสร้างใหม่ โหลดโมเดลจากแคช) · เปลี่ยนโมเดล/ผิดพลาด → ปิดทั้งพูล
      5) ลงทะเบียนกับงบหน่วยความจำกลาง (TanotMedia.budget) — บนมือถือโหลดโมเดลอื่นจะปิดพูลนี้ก่อน */
   var TTS_IDLE_MS = 120000;
-  var ttsPool = { workers: [], model: null, idleTimer: null, job: null };
+  var ttsPool = { workers: [], model: null, device: null, idleTimer: null, job: null, cur: null };
   var ttsJobSeq = 0;
   function ttsPoolSize(modelId) {
     if (window.TanotMedia && TanotMedia.isIOS()) return 1; // iPhone/iPad: เพดานแรมต่อแท็บของ WebKit ต่ำ — เคยเจอ RangeError: Out of memory ตอน 4 Worker
@@ -341,7 +363,7 @@
   function ttsPoolKill(code) {
     clearTimeout(ttsPool.idleTimer); ttsPool.idleTimer = null;
     ttsPool.workers.forEach(function (w) { try { w.terminate(); } catch (e) {} });
-    ttsPool.workers = []; ttsPool.model = null;
+    ttsPool.workers = []; ttsPool.model = null; ttsPool.device = null; ttsPool.cur = null;
     if (window.TanotMedia) TanotMedia.budget.release('tts');
     var job = ttsPool.job; ttsPool.job = null;
     if (job) job.fail(TanotMedia.error(code || 'evicted'));
@@ -350,24 +372,45 @@
     clearTimeout(ttsPool.idleTimer);
     ttsPool.idleTimer = setTimeout(function () { if (!ttsPool.job) ttsPoolKill(); }, TTS_IDLE_MS);
   }
-  function synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress) {
+  /* extra (ไม่บังคับ): { onItem(i, audio, sampleRate) — ส่งเสียงรายท่อนให้ผู้เรียกทันทีที่เสร็จ (หน้าไม่เก็บไว้เอง → งานยาวปล่อยหน่วยความจำได้เป็นส่วนๆ),
+                          device:'webgpu' — ขอ WebGPU (Worker ถอย WASM เองถ้าล้ม), onDevice({to:'wasm', stage}) — แจ้งเมื่อถอย }
+     Worker ผูก listener ถาวรครั้งเดียวตอนสร้าง แล้วส่งต่อให้งานปัจจุบัน (ttsPool.cur) — งานถัดไปที่เริ่มก่อนพูลว่างครบ 2 นาทีใช้ Worker เดิมที่อุ่นแล้วได้เลย
+     (เดิม listener ผูกกับงานที่สร้างมัน + งานใหม่ไม่ป้อนท่อนให้ Worker เดิม → สร้างไฟล์ครั้งที่ 2 ติดๆ กันค้างที่ "กำลังเตรียมโมเดล…") */
+  function attachPoolWorker(w) {
+    w.addEventListener('message', function (e) {
+      w._heard = true;
+      var cur = ttsPool.cur;
+      if (cur && e.data && e.data.jobId === cur.jobId) cur.onMessage(w, e.data);
+    });
+    w.addEventListener('error', function (e) {
+      if (e && e.preventDefault) e.preventDefault();
+      if (ttsPool.cur) ttsPool.cur.onError(w, e);
+    });
+  }
+  function synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress, extra) {
+    extra = extra || {};
     return new Promise(function (resolve, reject) {
       clearTimeout(ttsPool.idleTimer);
-      if (ttsPool.job || (ttsPool.workers.length && ttsPool.model !== modelId)) ttsPoolKill('abort');
+      var wantDevice = extra.device === 'webgpu' ? 'webgpu' : 'wasm';
+      if (ttsPool.job || (ttsPool.workers.length && (ttsPool.model !== modelId || ttsPool.device !== wantDevice))) ttsPoolKill('abort');
       TanotMedia.budget.acquire('tts', function () { ttsPoolKill('evicted'); });
       TanotMedia.persistOnce();
-      ttsPool.model = modelId;
+      ttsPool.model = modelId; ttsPool.device = wantDevice;
       var jobId = ++ttsJobSeq, total = chunks.length, size = Math.max(1, Math.min(ttsPoolSize(modelId), total));
       var queue = chunks.map(function (c, i) { return i; }), results = new Array(total), samplingRate = null, doneCount = 0, settled = false;
+      var gpuActive = wantDevice === 'webgpu'; // WebGPU ใช้ Worker เดียว (GPU เครื่องเดียวอิ่มอยู่แล้ว + แต่ละ Worker แยกสำเนาโมเดลใน VRAM) — ถอย WASM แล้วค่อยขยายเท่า ttsPoolSize
+      function effSize() { return gpuActive ? 1 : size; }
       var job = { fail: fail };
       ttsPool.job = job;
+      ttsPool.state = function () { return { workers: ttsPool.workers.length, warm: ttsPool.workers.filter(function (w) { return w._warm; }).length, want: effSize(), gpu: gpuActive }; };
       function fail(err) {
         if (settled) return; settled = true;
         if (ttsPool.job === job) ttsPool.job = null;
+        if (ttsPool.cur === ctx) ttsPool.cur = null;
         reject(err);
       }
       function finish() {
-        settled = true; ttsPool.job = null;
+        settled = true; ttsPool.job = null; if (ttsPool.cur === ctx) ttsPool.cur = null;
         ttsPoolIdle();
         resolve({ parts: results, sampling_rate: samplingRate });
       }
@@ -375,22 +418,35 @@
         if (settled || !queue.length) { w._busy = false; return; }
         var i = queue.shift();
         w._busy = true;
-        w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: i, text: chunks[i] }], modelId: modelId });
+        w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: i, text: chunks[i] }], modelId: modelId, device: gpuActive ? 'webgpu' : 'wasm' });
       }
       function spawnNext() {
-        if (settled || ttsPool.workers.length >= size || !queue.length) return;
+        if (settled || ttsPool.workers.length >= effSize() || !queue.length) return;
         var w;
         try { w = new Worker('./tts-worker.js', { type: 'module' }); }
         catch (e) { if (!ttsPool.workers.length) { var ne = TanotMedia.error('noWorker'); ne.workerLoad = true; fail(ne); } return; }
         w._heard = false; w._warm = false; w._busy = false;
         ttsPool.workers.push(w);
-        w.addEventListener('message', function (e) {
-          var msg = e.data;
-          w._heard = true;
-          if (!msg || msg.jobId !== jobId || settled) return;
+        attachPoolWorker(w);
+        feed(w);
+      }
+      var ctx = {
+        jobId: jobId,
+        onMessage: function (w, msg) {
+          if (settled) return;
           if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+          else if (msg.type === 'fallback') {
+            /* WebGPU ล้ม/เสียงผิดปกติ → Worker ทำท่อนเดิมซ้ำบน WASM แล้ว · บันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้) + จำว่าล้ม 3 วัน + ขยายพูลเป็นขนาดปกติ */
+            var fe = TanotMedia.error('webgpu', null, { name: msg.name || 'Error', message: msg.message || '' });
+            TanotMedia.logError('tts', fe, { stage: 'webgpu-' + (msg.stage || 'run'), engine: 'local', model: modelId, device: 'webgpu' });
+            fe.mediaLogged = true;
+            TanotMedia.markTtsGpuBad();
+            gpuActive = false; ttsPool.device = 'wasm';
+            if (extra.onDevice) extra.onDevice({ to: 'wasm', stage: msg.stage || 'run' });
+            if (w._warm) spawnNext();
+          }
           else if (msg.type === 'item-done') {
-            results[msg.i] = msg.audio;
+            if (extra.onItem) extra.onItem(msg.i, msg.audio, msg.samplingRate); else results[msg.i] = msg.audio;
             samplingRate = msg.samplingRate;
             doneCount++;
             if (onProgress) onProgress(doneCount, total);
@@ -403,27 +459,30 @@
             ttsPool.job = null; ttsPoolKill(); // หน่วยความจำของพูลอาจเสียแล้ว — ทิ้งทั้งชุด
             fail(TanotMedia.error(oom ? 'oom' : 'tts', oom ? null : msg.message, cause));
           }
-        });
-        w.addEventListener('error', function (e) {
-          if (e && e.preventDefault) e.preventDefault();
+        },
+        onError: function (w, e) {
           if (settled) return;
           var heard = w._heard;
           ttsPool.job = null; ttsPoolKill();
           var err = TanotMedia.error('crash', null, { name: 'WorkerError', message: (e && e.message) || 'worker crashed' });
           err.workerLoad = !heard && doneCount === 0; // Worker ไม่เคยตอบอะไรเลย = โหลดสคริปต์ไม่ได้ (เบราว์เซอร์ไม่รองรับ module worker)
           fail(err);
-        });
-        feed(w);
-      }
+        }
+      };
+      ttsPool.cur = ctx;
+      /* ใช้ Worker เดิมที่อุ่นแล้วก่อน (เกินขนาดที่ต้องการ = ปิดทิ้ง) แล้วค่อยขยายทีละตัวตามกลไกทยอยเปิด */
+      ttsPool.workers.slice(effSize()).forEach(function (w) { try { w.terminate(); } catch (e2) {} });
+      ttsPool.workers = ttsPool.workers.slice(0, effSize());
+      ttsPool.workers.forEach(function (w) { w._busy = false; feed(w); });
       spawnNext();
     });
   }
-  function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onProgress) {
-    if (typeof Worker === 'undefined' || !window.TanotMedia) return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
-    return synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress).catch(function (err) {
+  function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onProgress, extra) {
+    if (typeof Worker === 'undefined' || !window.TanotMedia) return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress, extra);
+    return synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress, extra).catch(function (err) {
       if (!err || !err.workerLoad) throw err; // หน่วยความจำไม่พอ/โมเดลผิดพลาด — ไม่ย้ายงานหนักมาเธรดหลัก (จะแครชทั้งแท็บ)
       console.warn('สร้าง Web Worker ไม่ได้ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
-      return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
+      return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress, extra);
     });
   }
   /* ต่อเสียง + ทำ .wav/.mp3 ใน audio-encode-worker.js (เดิมทำบนเธรดหลัก — หน้าค้างตอนท้าย) → { wav: Blob, mp3: Blob }
@@ -546,57 +605,298 @@
     sec = Math.max(0, Math.round(sec));
     if (sec < 5) return T('etaFew');
     if (sec < 60) return T('etaSec', { s: sec });
+    if (sec >= 3600) { // นิยายยาว: เป็นชั่วโมง (ปัดนาทีที่ 5 ใกล้สุด — ไม่โชว์เลขนาทีที่กระโดดทุกวินาที)
+      var h = Math.floor(sec / 3600), mm = Math.round((sec % 3600) / 300) * 5;
+      if (mm >= 60) { h++; mm = 0; }
+      return mm ? T('etaHrMin', { h: h, m: mm }) : T('etaHr', { h: h });
+    }
     var m = Math.floor(sec / 60), s = sec % 60;
     return s > 0 ? T('etaMinSec', { m: m, s: s }) : T('etaMin', { m: m });
   }
+
+  /* ══════════════════ ตัวเลือกการสร้างไฟล์เสียง (จำในเครื่อง tanot:tts:opts) ══════════════════ */
+  var Long = window.TanotTtsLong;
+  var OPTS_KEY = 'tanot:tts:opts';
+  function readOpts() {
+    var o = {};
+    try { o = JSON.parse(localStorage.getItem(OPTS_KEY) || '{}') || {}; } catch (e) { o = {}; }
+    /* gpu ค่าเริ่มต้นปิด: WebGPU ใช้ Worker เดียว ส่วน WASM รันหลาย Worker ขนาน — ยังไม่ได้วัดว่าเร็วกว่าจริง (tools/media-eval tts:webgpu-100) และรอบก่อนเคยช้ากว่า
+       เปิดเป็นค่าเริ่มต้นได้หลังผลวัดยืนยัน */
+    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu === true };
+  }
+  function saveOpts() {
+    var o = { skipParen: $('optParen').checked, split: $('optSplit').checked, gpu: $('optGpu').checked };
+    try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)); } catch (e) {}
+  }
+
+  /* ══════════════════ คำอ่านของฉัน (lexicon) ══════════════════
+     เก็บเป็น blob {v:1, text:"คำ = คำอ่าน\n…"} ใน tanot:tts:lexicon (sync — data-registry.js) เฉพาะแถวที่ผ่านตรวจ vocab · ใช้ใน forMms/plan ผ่าน opts.lexicon (tts-normalize.js)
+     อ่านด้วย TanotData.read / เขียนด้วย TanotData.update (ไม่นับว่าหน้านี้ "ถือคีย์" → ไม่เด้งแถบรีโหลดเมื่อเครื่องอื่นแก้) แล้ววาดช่องใหม่เองตอน TanotData.onChange */
+  var LEX_KEY = 'tanot:tts:lexicon';
+  var lexTimer = null, lexParse = { rows: [], rejected: [] }, lexMemo = { text: null, lex: null };
+  function lexStored() {
+    var v = null;
+    try { v = window.TanotData ? TanotData.read(LEX_KEY, null) : JSON.parse(localStorage.getItem(LEX_KEY) || 'null'); } catch (e) { v = null; }
+    return v && typeof v.text === 'string' ? v.text : '';
+  }
+  function lexStore(text) {
+    if (lexStored() === text) return;
+    var val = { v: 1, text: text };
+    try {
+      if (window.TanotData && TanotData.update) TanotData.update(LEX_KEY, function () { return val; });
+      else localStorage.setItem(LEX_KEY, JSON.stringify(val));
+    } catch (e) {}
+  }
+  function lexMessages() {
+    var rej = lexParse.rejected.filter(function (r) { return r.why !== 'empty'; });
+    if (!rej.length) return '';
+    var key = { format: 'lexRejFormat', vocab: 'lexRejVocab', long: 'lexRejLong', limit: 'lexRejLimit' };
+    var lines = rej.slice(0, 5).map(function (r) {
+      return T(key[r.why] || 'lexRejFormat', { line: r.line, chars: (r.bad || []).join(' '), max: Norm.LEX_MAX_ROWS });
+    });
+    if (rej.length > 5) lines.push(T('lexRejMore', { n: rej.length - 5 }));
+    return lines.join('\n');
+  }
+  function renderLexStatus() {
+    var msg = $('lexMsg');
+    if (lexParse.rejected.some(function (r) { return r.why !== 'empty'; })) OME_I18N.live(msg, lexMessages);
+    else { OME_I18N.live(msg, null); msg.textContent = ''; }
+    if (lexParse.rows.length) st('lexStatus', function () { return T('lexSaved', { n: lexParse.rows.length }); }, 'ok');
+    else st('lexStatus', null, '');
+  }
+  /* ตรวจ + บันทึกเฉพาะแถวที่ผ่าน (แถวที่ไม่ผ่านค้างอยู่ในช่องให้แก้ แต่ไม่ถูกเก็บ/ไม่ถูกใช้) */
+  function lexCommit() {
+    clearTimeout(lexTimer); lexTimer = null;
+    var res = Norm.parseLexicon($('lexText').value);
+    lexParse = res;
+    lexStore(res.rows.map(function (r) { return r.from + ' = ' + r.to; }).join('\n'));
+    renderLexStatus();
+    schedulePreviews();
+  }
+  function lexSchedule() { clearTimeout(lexTimer); lexTimer = setTimeout(lexCommit, 500); }
+  function lexFlush() { if (lexTimer) lexCommit(); }
+  function currentLexicon() { // compile ซ้ำเฉพาะเมื่อข้อความเปลี่ยน
+    var text = $('lexText') ? $('lexText').value : '';
+    if (lexMemo.text !== text) { lexMemo.text = text; lexMemo.lex = Norm.compileLexicon(Norm.parseLexicon(text).rows); }
+    return lexMemo.lex;
+  }
+  function normOpts(lang) {
+    var o = { lang: lang === 'en' ? 'en' : 'th', lexicon: currentLexicon(), skipParen: $('optParen') ? $('optParen').checked : true };
+    if (window.TANOT_TTS && window.TANOT_TTS.maxChunk > 0) o.max = window.TANOT_TTS.maxChunk; // เฉพาะวัดผล (tools/media-eval tts:wasm-60) — ใช้งานจริงใช้ Norm.MAX_CHUNK ค่าเดียว
+    return o;
+  }
+  function lexAddWord(word) { // ปุ่ม "เพิ่มคำอ่าน" ในรายการคำที่ถูกข้าม → ใส่ "คำ = " ให้ในช่อง
+    var ta = $('lexText'), box = $('lexBox');
+    box.open = true;
+    var have = ta.value.split('\n').some(function (l) { var i = l.search(/[=＝]/); return i > 0 && l.slice(0, i).replace(/\s+/g, ' ').trim().toLowerCase() === word.toLowerCase(); });
+    if (!have) ta.value = ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + word + ' = ';
+    ta.focus();
+    ta.setSelectionRange(ta.value.length, ta.value.length);
+    lexSchedule();
+  }
+
+  /* ══════════════════ Screen Wake Lock + เตือนอย่าสลับแท็บ (งานยาวหลายชั่วโมง) ══════════════════
+     ขอจอค้างตอนเริ่มสร้าง · ปล่อยตอนจบ/ยกเลิก/ล้ม · เบราว์เซอร์ปล่อยเองเมื่อแท็บถูกซ่อน → ขอใหม่ตอนกลับมา · ไม่รองรับ = ข้ามเงียบๆ (แต่ยังเตือน) */
+  var wake = { want: false, sentinel: null, requests: 0, releases: 0 };
+  function wakeAcquire() {
+    wake.want = true;
+    if (!navigator.wakeLock || !navigator.wakeLock.request || wake.sentinel) return;
+    var pending;
+    try { pending = navigator.wakeLock.request('screen'); } catch (e) { return; }
+    wake.requests++;
+    Promise.resolve(pending).then(function (sent) {
+      if (!sent) return;
+      if (!wake.want) { try { sent.release(); wake.releases++; } catch (e) {} return; }
+      wake.sentinel = sent;
+      if (sent.addEventListener) sent.addEventListener('release', function () { if (wake.sentinel === sent) wake.sentinel = null; });
+    }).catch(function () {});
+  }
+  function wakeRelease() {
+    wake.want = false;
+    var sent = wake.sentinel; wake.sentinel = null;
+    if (sent) { try { sent.release(); wake.releases++; } catch (e) {} }
+  }
+  var genRun = null; // งานสร้างเสียงที่กำลังทำ (มีได้ทีละงาน)
+  var gpuPlan = null; // ผล TanotMedia.ttsGpuPlan() — ok เมื่อคอม + adapter จริง + ไม่เคยล้มใน 3 วัน
+  function updateKeepNote() {
+    var note = $('dlKeepNote');
+    if (!note) return;
+    note.hidden = !genRun;
+    if (genRun) OME_I18N.live($('dlKeepText'), function () { return T(genRun && genRun.wasHidden ? 'keepNoteHidden' : 'keepNote'); });
+  }
+  document.addEventListener('visibilitychange', function () {
+    if (!genRun) return;
+    if (document.hidden) genRun.wasHidden = true;
+    else if (wake.want) wakeAcquire();
+    updateKeepNote();
+  });
+
+  /* ══════════════════ สร้างไฟล์เสียง ══════════════════
+     ท่อน (≤ MAX_CHUNK) → พูล Worker → onItem รายท่อน → collector (tts-long.js) ส่งออกเป็น "ส่วน" ทันทีที่ส่วนนั้นครบ → เข้ารหัสทีละส่วนใน audio-encode-worker.js
+     3 โหมด: single (ทั้งเรื่องไฟล์เดียว เหมือนเดิม) · chapters (ตัวเลือก "แบ่งไฟล์ตามตอน" + พบหัวตอน) · time (ตัวเลือกเดียวกันแต่ไม่พบหัวตอน → ทุก ~30 นาทีเสียง)
+     ส่วนที่เสร็จแล้วดาวน์โหลดได้เลย (หน่วยความจำของส่วนนั้นถูกปล่อย) แม้งานทั้งหมดยังไม่จบ/ถูกยกเลิก/ล้ม */
+  var partUrls = [];
+  function clearParts() {
+    partUrls.forEach(function (u) { URL.revokeObjectURL(u); });
+    partUrls = [];
+    var box = $('dlParts'); box.textContent = ''; box.hidden = true;
+  }
+  function addPartRow(name, files, metaFn) { // metaFn() → ข้อความรองตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา)
+    var box = $('dlParts'), row = document.createElement('div'), grow = document.createElement('div'), end = document.createElement('div');
+    row.className = 'list-row'; grow.className = 'grow'; end.className = 'end';
+    var title = document.createElement('div'); title.className = 'title'; title.setAttribute('data-i18n-skip', ''); title.textContent = name; title.title = name;
+    var sub = document.createElement('div'); sub.className = 'meta'; OME_I18N.live(sub, metaFn);
+    grow.appendChild(title); grow.appendChild(sub);
+    [['mp3', files.mp3], ['wav', files.wav]].forEach(function (f) {
+      var url = URL.createObjectURL(f[1]); partUrls.push(url);
+      var a = document.createElement('a'); a.className = 'btn sm'; a.href = url; a.download = name + '.' + f[0]; a.setAttribute('data-ext', f[0]);
+      a.innerHTML = '<svg class="ome-icon"><use href="icons.svg#i-download"/></svg>';
+      var sp = document.createElement('span'); sp.setAttribute('data-i18n-skip', ''); sp.textContent = '.' + f[0]; a.appendChild(sp);
+      end.appendChild(a);
+    });
+    row.appendChild(grow); row.appendChild(end); box.appendChild(row); box.hidden = false;
+  }
+
   function generateDownloadable() {
+    if (genRun) return;
     var rawText = $('ttsText').value;
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('typeFirst'); }); return; }
-    var lang = $('dlLang').value;
+    lexFlush();
+    var lang = $('dlLang').value, th = lang === 'th';
     var modelId = $('dlVoice').value;
-    var plan = Norm.plan(rawText, { lang: lang === 'th' ? 'th' : 'en' }); // แปลงก่อน แล้วค่อยตัดท่อน ≤ 60 ตัวอักษร
-    var chunks = plan.chunks;
-    if (!chunks.length) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T(lang === 'th' ? 'emptyAfterFilter' : 'typeFirst'); }); return; }
-    $('dlGenerateBtn').disabled = true;
+    var nopts = normOpts(lang);
+    var wantSplit = $('optSplit').checked;
+    var chapters = wantSplit && Long ? Long.splitChapters(rawText) : null;
+    /* แปลงก่อน แล้วค่อยตัดท่อน ≤ MAX_CHUNK (+ รวมบรรทัดในย่อหน้าเดียวกัน) · โหมดตามตอน: วางแผนทีละตอนแล้วต่อกัน */
+    var chunks = [], gaps = [], paras = [], ends = null, partNames = [], usedNames = {}, mode = 'single';
+    if (chapters) {
+      mode = 'chapters'; ends = [];
+      chapters.forEach(function (c) {
+        var pl = Norm.plan(c.text, nopts);
+        if (!pl.chunks.length) return;
+        var pOff = paras.length ? paras[paras.length - 1] + 1 : 0;
+        pl.chunks.forEach(function (t, i) { chunks.push(t); gaps.push(pl.gaps[i]); paras.push(pl.paras[i] + pOff); });
+        ends.push(chunks.length - 1);
+        partNames.push(Long.chapterFileName(c, usedNames));
+      });
+    } else {
+      var pl = Norm.plan(rawText, nopts);
+      chunks = pl.chunks; gaps = pl.gaps; paras = pl.paras;
+      if (wantSplit && chunks.length) mode = 'time';
+    }
+    if (!chunks.length) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T(th ? 'emptyAfterFilter' : 'typeFirst'); }); return; }
+
+    var total = chunks.length, chars = chunks.reduce(function (n, c) { return n + c.length; }, 0);
+    var run = genRun = { cancelled: false, wasHidden: false, parts: 0, device: 'wasm', startedAt: Date.now(), eta: Long.createEta(), lastRate: null, doneCount: 0 };
+    clearParts();
+    $('dlPlayerWrap').style.display = 'none';
+    $('dlGenerateBtn').disabled = true; $('dlCancelBtn').hidden = false;
     $('dlStatus').className = 'status';
-    st('dlStatus', function () { return T(lang === 'th' ? 'prepTh' : 'prepEn'); });
-    var startedAt = Date.now(), stage = 'synth';
-    synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
+    st('dlStatus', function () { return T(th ? 'prepTh' : 'prepEn'); });
+    wakeAcquire(); updateKeepNote();
+
+    var encodeChain = Promise.resolve(), encodeError = null, stage = 'synth', gpuNote = false;
+    var collector = Long.createCollector({
+      total: total, gaps: gaps, paras: paras,
+      ends: mode === 'single' ? [total - 1] : (mode === 'chapters' ? ends : null),
+      targetSec: window.TANOT_TTS && window.TANOT_TTS.timeSplitSec, hardCapSec: window.TANOT_TTS && window.TANOT_TTS.timeSplitSec ? window.TANOT_TTS.timeSplitSec * 1.2 : undefined, // TANOT_TTS = ตัวปรับสำหรับเทสต์เท่านั้น
+      onPart: function (info) {
+        encodeChain = encodeChain.then(function () {
+          return encodeAudio(info.parts, info.rate, info.gaps).then(function (files) {
+            run.parts++;
+            if (mode === 'single') {
+              showResult(URL.createObjectURL(files.wav), URL.createObjectURL(files.mp3));
+            } else {
+              var name = mode === 'chapters' ? partNames[info.index] : Long.timeFileName(info.index, usedNames);
+              addPartRow(name, files, function () { return T('partMeta', { dur: Long.formatDur(info.seconds), from: info.from + 1, to: info.to + 1 }); });
+            }
+          });
+        }).catch(function (e) { encodeError = encodeError || e; });
+      }
+    });
+    var device = $('optGpu').checked && gpuPlan && gpuPlan.ok ? 'webgpu' : 'wasm';
+    run.device = device;
+
+    /* คำนวณครั้งเดียวต่อ 1 ท่อนที่เสร็จ (ไม่คำนวณในฟังก์ชันที่วาดซ้ำตอนสลับภาษา — กันเพิ่มจุดวัดซ้ำใน ETA) แล้วคืนฟังก์ชันสร้างข้อความ */
+    function progressText(done) {
+      var stt = ttsPool.state ? ttsPool.state() : null;
+      var tr = run.eta.mark(done, total, Date.now(), !!(stt && stt.warm < stt.want));
+      if (tr.rate != null) run.lastRate = tr.rate;
+      var noteGpu = gpuNote;
+      return function () {
+        var s = T('chunksDone', { done: done, total: total });
+        if (tr.rate != null) {
+          var rate = tr.rate < 10 ? tr.rate.toFixed(1) : String(Math.round(tr.rate));
+          s += ' · ' + (stt && stt.gpu ? T('gpuInfo', { s: rate }) : T('workersInfo', { n: stt ? stt.workers : 1, s: rate }));
+        }
+        if (noteGpu) s += ' · ' + T('gpuWasm');
+        if (tr.eta != null) s += ' — ' + formatEta(tr.eta);
+        return s;
+      };
+    }
+    var job = synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
         st('dlStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
       }
-    }, function (done, total) {
-      /* นับความคืบหน้าหลังท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) — ใช้ตัวเลขเดียวกันคำนวณ ETA ได้ทั้งตอนรันขนาน
-         หลาย Worker พร้อมกันและตอน fallback รันทีละท่อนในหน้าเว็บตรงๆ เพราะเป็นอัตราความเร็วรวมจริง
-         ไม่ผูกกับว่ามีกี่ Worker ทำงานอยู่ */
-      var elapsed = (Date.now() - startedAt) / 1000;
-      var eta = (done > 0 && done < total) ? (elapsed / done) * (total - done) : null;
-      st('dlStatus', function () {
-        return total > 1
-          ? T('chunksDone', { done: done, total: total }) + (eta != null ? ' — ' + formatEta(eta) : '')
-          : T('creating');
-      });
-    })
-      .then(function (output) {
-        stage = 'encode';
-        st('dlStatus', function () { return T('assembling'); });
-        return encodeAudio(output.parts, output.sampling_rate, plan.gaps).then(function (files) {
-          showResult(URL.createObjectURL(files.wav), URL.createObjectURL(files.mp3));
-          $('dlStatus').className = 'status ok';
-          st('dlStatus', function () { return T('made'); });
-        });
-      })
-      .catch(function (e) {
+    }, function (done) {
+      run.doneCount = done;
+      st('dlStatus', total > 1 ? progressText(done) : function () { return T('creating'); });
+    }, {
+      device: device,
+      onItem: function (i, audio, sr) { collector.add(i, audio, sr); },
+      onDevice: function () { gpuNote = true; run.device = 'wasm'; },
+      isCancelled: function () { return run.cancelled; }
+    });
+
+    function logStats(cancelled) {
+      if (!window.TanotMedia || !TanotMedia.logNote) return;
+      var sec = (Date.now() - run.startedAt) / 1000, st2 = ttsPool.state ? ttsPool.state() : null;
+      TanotMedia.logNote('tts', { stage: 'stats', engine: 'local', model: modelId, lang: lang, device: run.device }, Long.statsInfo({
+        chars: chars, chunks: run.doneCount, max: Norm.MAX_CHUNK, workers: st2 ? st2.workers : 1, device: run.device, sec: sec,
+        secPerChunk: run.lastRate != null ? run.lastRate : (run.doneCount ? sec / run.doneCount : null), secPer1000: chars && run.doneCount ? sec / (chars * run.doneCount / total / 1000) : null,
+        parts: run.parts, mode: mode, cancelled: cancelled
+      }));
+    }
+    function release() {
+      genRun = null; ttsPool.state = null;
+      wakeRelease(); updateKeepNote();
+      $('dlGenerateBtn').disabled = false; $('dlCancelBtn').hidden = true;
+    }
+    job.then(function () {
+      stage = 'encode';
+      st('dlStatus', function () { return T('assembling'); });
+      return encodeChain;
+    }).then(function () {
+      if (encodeError) throw encodeError;
+      logStats(false);
+      $('dlStatus').className = 'status ok';
+      st('dlStatus', function () { return mode === 'single' ? T('made') : T('madeParts', { n: run.parts }); });
+    }).catch(function (e) {
+      return encodeChain.then(function () {
+        var aborted = run.cancelled || (e && (e.code === 'abort' || e.name === 'AbortError'));
+        if (aborted) {
+          logStats(true);
+          $('dlStatus').className = 'status';
+          st('dlStatus', function () { return run.parts ? T('cancelPartial', { n: run.parts }) : T('cancelled'); });
+          return;
+        }
         $('dlStatus').className = 'status err';
-        if (window.TanotMedia) TanotMedia.logError('tts', e, { stage: stage, engine: 'local', model: modelId, lang: lang });
+        if (window.TanotMedia) TanotMedia.logError('tts', e, { stage: stage, engine: 'local', model: modelId, lang: lang, device: run.device });
         /* ใส่ modelId + dtype ที่ใช้จริงต่อท้าย error เสมอ (เพิ่มเข้ามาเพื่อวินิจฉัยปัญหา cache เก่า
            ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
            browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
         var usedDtype = ttsDtype(modelId);
-        st('dlStatus', function () { return T('makeFail', { msg: mediaErrText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }); });
-      })
-      .finally(function () { $('dlGenerateBtn').disabled = false; });
+        st('dlStatus', function () {
+          return T('makeFail', { msg: mediaErrText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }) + (run.parts && mode !== 'single' ? ' · ' + T('partsKept', { n: run.parts }) : '');
+        });
+      });
+    }).then(release, release);
+  }
+  function cancelGenerate() {
+    if (!genRun) return;
+    genRun.cancelled = true;
+    ttsPoolKill('abort'); // ปิดพูล → งานที่ค้างล้มด้วย code 'abort' · ส่วนที่เสร็จแล้วยังเข้ารหัส/ดาวน์โหลดได้
   }
 
   /* ══════════════════ เสียง/วิดีโอ → ข้อความ ══════════════════
@@ -1168,10 +1468,30 @@
   function previewText(kind) {
     var text = $('ttsText').value;
     if (kind === 'native') return Norm.forNative(text);
-    var plan = Norm.plan(text, { lang: $('dlLang').value === 'th' ? 'th' : 'en' });
+    var plan = Norm.plan(text, normOpts($('dlLang').value));
     var out = [];
     plan.chunks.forEach(function (c, i) { if (i && plan.paras[i] !== plan.paras[i - 1]) out.push(''); out.push(c); });
     return out.join('\n');
+  }
+  /* คำอังกฤษที่ถูกข้ามตอนอ่านจริง (ไม่นับ "คำไทย (English)" ที่ตั้งใจข้าม และคำที่ทับศัพท์/คำอ่านของฉันอ่านให้แล้ว) + ปุ่ม "เพิ่มคำอ่าน" */
+  var SKIPPED_SHOW = 30;
+  function renderSkipped() {
+    var box = $('pvSkipped');
+    if (!box) return;
+    box.textContent = '';
+    if ($('dlLang').value !== 'th' || !$('pvMmsBox').open) { box.hidden = true; return; }
+    var list = Norm.skippedWords($('ttsText').value, normOpts('th')).slice(0, SKIPPED_SHOW);
+    box.hidden = !list.length;
+    list.forEach(function (w) {
+      var row = document.createElement('div'), grow = document.createElement('div'), end = document.createElement('div'), btn = document.createElement('button');
+      row.className = 'list-row'; grow.className = 'grow'; end.className = 'end';
+      var title = document.createElement('div'); title.className = 'title'; title.setAttribute('data-i18n-skip', ''); title.textContent = w.word; title.title = w.word;
+      var meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = T('skipTimes', { n: OME_I18N.number(w.count) });
+      btn.type = 'button'; btn.className = 'btn sm'; btn.setAttribute('data-w', w.word); btn.textContent = T('addReading');
+      btn.addEventListener('click', function () { lexAddWord(w.word); });
+      grow.appendChild(title); grow.appendChild(meta); end.appendChild(btn);
+      row.appendChild(grow); row.appendChild(end); box.appendChild(row);
+    });
   }
   var previewTimer = null;
   function updatePreviews() {
@@ -1179,6 +1499,7 @@
       var box = $(e[0]), area = $(e[1]);
       if (box && area && box.open) area.value = previewText(e[2]); // ทำเฉพาะตอนกางอยู่ — ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์
     });
+    renderSkipped();
   }
   function schedulePreviews() { clearTimeout(previewTimer); previewTimer = setTimeout(updatePreviews, 200); }
 
@@ -1198,7 +1519,7 @@
   function init() {
     window.OME_PAGE_LIVE_LANG = true;
     /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
-    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); });
+    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); });
     $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); });
     updateCharCount();
     ['pvNativeBox', 'pvMmsBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
@@ -1219,6 +1540,28 @@
     renderVoiceOptions();
     $('dlLang').addEventListener('change', function () { renderVoiceOptions(); updatePreviews(); });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
+    $('dlCancelBtn').addEventListener('click', cancelGenerate);
+
+    /* คำอ่านของฉัน + ตัวเลือกสร้างไฟล์ + WebGPU */
+    var o = readOpts();
+    $('optParen').checked = o.skipParen; $('optSplit').checked = o.split; $('optGpu').checked = o.gpu;
+    ['optParen', 'optSplit', 'optGpu'].forEach(function (id) { $(id).addEventListener('change', function () { saveOpts(); schedulePreviews(); }); });
+    $('lexText').value = lexStored();
+    lexParse = Norm.parseLexicon($('lexText').value);
+    renderLexStatus();
+    $('lexText').addEventListener('input', lexSchedule);
+    $('lexText').addEventListener('change', lexCommit);
+    if (window.TanotData && TanotData.onChange) {
+      TanotData.onChange(function (keys) { // เครื่องอื่นแก้คำอ่าน → ช่องรับค่าใหม่ (ไม่ทับถ้ากำลังพิมพ์อยู่)
+        if (keys.indexOf(LEX_KEY) < 0 || document.activeElement === $('lexText') || lexTimer) return;
+        $('lexText').value = lexStored();
+        lexParse = Norm.parseLexicon($('lexText').value);
+        renderLexStatus(); schedulePreviews();
+      });
+    }
+    if (window.TanotMedia && TanotMedia.ttsGpuPlan) {
+      TanotMedia.ttsGpuPlan().then(function (p) { gpuPlan = p; $('optGpuWrap').hidden = !p.ok; }, function () {});
+    }
 
     $('asrGoBtn').addEventListener('click', runAsr);
     $('asrCancelBtn').addEventListener('click', cancelAsr);
@@ -1281,6 +1624,16 @@
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
-    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS
+    chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS,
+    wake: wake, genRun: function () { return genRun; }, lexCommit: lexCommit,
+    /* ตัวช่วยตรวจ UI (docs-audit.spec.js): วาดรายการไฟล์ตัวอย่าง / กล่องเตือนระหว่างสร้างโดยไม่ต้องรันโมเดล */
+    demoParts: function () {
+      clearParts();
+      [['001-ต้นเรื่อง', 754, 1, 40], ['002-Chapter two', 1810, 41, 120]].forEach(function (p) {
+        var f = { mp3: new Blob(['x'], { type: 'audio/mpeg' }), wav: new Blob(['x'], { type: 'audio/wav' }) };
+        addPartRow(p[0], f, function () { return T('partMeta', { dur: Long.formatDur(p[1]), from: p[2], to: p[3] }); });
+      });
+    },
+    demoRun: function (on, hidden) { genRun = on ? { wasHidden: !!hidden, parts: 0 } : null; updateKeepNote(); }
   };
 })();

@@ -92,6 +92,32 @@ test('เครื่อง A แก้ → เครื่อง B เห็น
   await A.ctx.close(); await B.ctx.close();
 });
 
+test('คำอ่านของฉัน (tanot:tts:lexicon) ซิงก์ข้ามเครื่อง · เครื่อง B เปิดหน้า text-to-speech เห็นช่องคำอ่าน · ตัวเลือก/ธงล้ม WebGPU ของเสียงพูดอยู่เฉพาะเครื่อง', async ({ browser, request }) => {
+  const text = 'Origin Blood = ออริจิน บลัด\nอสุรา = อะสุรา';
+  const A = await device(browser, { seed: { 'tanot:tts:lexicon': JSON.stringify({ v: 1, text }), 'tanot:tts:opts': JSON.stringify({ skipParen: false, split: true, gpu: false }), 'tanot:tts:gpubad': '1700000000000' } });
+  expect((await sync(A.page)).state).toBe('ok');
+  const dump = await (await request.get(SYNC + '/__dump')).json();
+  expect(dump.some((d) => /tanot:tts:lexicon/.test(d.ns + '|' + d.id))).toBe(true);
+  expect(dump.some((d) => /tanot:tts:(opts|gpubad)/.test(d.ns + '|' + d.id))).toBe(false); // opts = local, gpubad = cache → ไม่ขึ้นเซิร์ฟเวอร์
+  const B = await device(browser);
+  expect((await sync(B.page)).state).toBe('ok');
+  expect(JSON.parse(await get(B.page, 'tanot:tts:lexicon'))).toEqual({ v: 1, text });
+  expect(await get(B.page, 'tanot:tts:opts')).toBeNull();
+  expect(await get(B.page, 'tanot:tts:gpubad')).toBeNull();
+  await B.page.goto('/text-to-speech.html');
+  await B.page.click('#lexBox > summary');
+  await expect(B.page.locator('#lexText')).toHaveValue(text);
+  await expect(B.page.locator('#lexStatus')).toContainText('2');
+  // แก้ที่เครื่อง B → เครื่อง A รับ (blob แก้ทีหลังชนะ)
+  await B.page.fill('#lexText', text + '\nGOD = ก็อดเจ้า');
+  await B.page.locator('#lexText').blur();
+  await expect.poll(async () => JSON.parse(await get(B.page, 'tanot:tts:lexicon')).text).toContain('GOD = ก็อดเจ้า');
+  expect((await sync(B.page)).state).toBe('ok');
+  expect((await sync(A.page)).state).toBe('ok');
+  expect(JSON.parse(await get(A.page, 'tanot:tts:lexicon')).text).toBe(text + '\nGOD = ก็อดเจ้า');
+  await A.ctx.close(); await B.ctx.close();
+});
+
 test('เพิ่มรายการพร้อมกัน 2 เครื่องไม่ทับกัน + ลบแล้วลบตาม + blob แก้ทีหลังชนะ', async ({ browser }) => {
   const A = await device(browser, { seed: { 'budget:records': JSON.stringify([{ id: 'r0', amt: 1 }]) } });
   await sync(A.page);

@@ -33,6 +33,9 @@
 .tts-page .char-count{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:right;margin-top:4px}
 .tts-page .range-val{margin-left:6px;color:var(--ome-accent-strong);font-weight:700}
 .tts-page .textarea[readonly]{background:var(--ome-surface-2)}
+.tts-page .form-msg{white-space:pre-line}
+.tts-page #dlParts{margin-top:var(--ome-sp-3)}
+.tts-page details.disclosure > .disclosure-body{padding-top:var(--ome-sp-3)}
 
 .tts-player{display:none;padding:14px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg)}
 .tts-player audio{width:100%;margin-bottom:10px}
@@ -102,14 +105,33 @@
       <select id="dlVoice"></select>
     </div>
   </div>
+  <details class="disclosure" id="lexBox">
+    <summary data-i18n="tts.lexTitle">คำอ่านของฉัน</summary>
+    <div class="disclosure-body stack">
+      <textarea class="textarea" id="lexText" rows="5" spellcheck="false" autocomplete="off" autocapitalize="off" data-i18n-attr="placeholder:tts.lexPh,aria-label:tts.lexTitle" aria-label="คำอ่านของฉัน" placeholder="คำ = คำอ่าน"></textarea>
+      <div class="form-msg" id="lexMsg" role="alert"></div>
+      <div class="status" id="lexStatus"></div>
+    </div>
+  </details>
+  <div class="frow">
+    <label class="check"><input type="checkbox" id="optParen" checked><span data-i18n="tts.optParen">ข้ามอังกฤษในวงเล็บหลังคำไทย</span></label>
+    <label class="check"><input type="checkbox" id="optSplit"><span data-i18n="tts.optSplit">แบ่งไฟล์ตามตอน</span></label>
+    <label class="check" id="optGpuWrap" hidden><input type="checkbox" id="optGpu"><span data-i18n="tts.optGpu">ใช้การ์ดจอ (WebGPU)</span></label>
+  </div>
   <div class="frow">
     <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.make">สร้างไฟล์เสียง</span></button>
+    <button class="btn sm" id="dlCancelBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.asrCancel">ยกเลิก</span></button>
   </div>
   <details class="disclosure" id="pvMmsBox">
     <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
-    <div class="disclosure-body"><textarea class="textarea" id="pvMms" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea></div>
+    <div class="disclosure-body stack">
+      <textarea class="textarea" id="pvMms" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea>
+      <div class="list plain" id="pvSkipped" hidden></div>
+    </div>
   </details>
+  <div class="callout warn" id="dlKeepNote" hidden role="status"><span id="dlKeepText"></span></div>
   <div class="status" id="dlStatus"></div>
+  <div class="list plain" id="dlParts" hidden></div>
   <div class="tts-player" id="dlPlayerWrap">
     <audio id="dlAudio" controls></audio>
     <div class="dl-row">
@@ -221,6 +243,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="media-core.js"></script>
 <script src="asr-cloud.js"></script>
 <script src="tts-normalize.js"></script>
+<script src="tts-long.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
 </html>

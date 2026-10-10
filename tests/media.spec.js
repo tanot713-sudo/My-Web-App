@@ -250,8 +250,9 @@ test.describe('ถอดเสียงในเบราว์เซอร์ (
 
 test.describe('สร้างไฟล์เสียง (พูล tts-worker.js + audio-encode-worker.js)', () => {
   const N_CHUNKS = 24;
-  // Section 4: เลขถูกแปลงเป็นคำ "ก่อน" ตัดท่อน (≤ 60 ตัวอักษรหลังแปลง) — ประโยคต้องสั้นพอที่ 1 บรรทัด = 1 ท่อนแม้เลขเป็น "ยี่สิบสี่"
-  const LONG = Array.from({ length: N_CHUNKS }, (_, i) => 'ประโยคทดสอบที่ ' + (i + 1) + ' สร้างเสียงพูดภาษาไทย').join('\n');
+  // Section 4: เลขถูกแปลงเป็นคำ "ก่อน" ตัดท่อน (≤ MAX_CHUNK ตัวอักษรหลังแปลง) — ประโยคต้องสั้นพอที่ 1 ย่อหน้า = 1 ท่อนแม้เลขเป็น "ยี่สิบสี่"
+  // Section 5: บรรทัดที่ต่อกันโดยไม่มีบรรทัดว่างคั่นถูกรวมเป็นท่อนเดียว → คั่นด้วยบรรทัดว่าง (ย่อหน้าละ 1 ท่อน) ให้ได้ N_CHUNKS ท่อนเหมือนเดิม
+  const LONG = Array.from({ length: N_CHUNKS }, (_, i) => 'ประโยคทดสอบที่ ' + (i + 1) + ' สร้างเสียงพูดภาษาไทย').join('\n\n');
   const BIG_DEVICE = `Object.defineProperty(Navigator.prototype, 'deviceMemory', { get: () => 8 }); Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });`;
 
   async function generate(page, voice) {

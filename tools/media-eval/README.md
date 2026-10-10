@@ -20,6 +20,8 @@ tools/media-eval/local/
   ocr/
     ใบเสร็จ-01.jpg       ← รูป (png jpg webp bmp) หรือ pdf
     ใบเสร็จ-01.txt
+  tts/
+    นิยาย-ตอน1.txt       ← ข้อความสำหรับวัดเสียงพูด (Section 5) — ไม่ต้องมีไฟล์เฉลย · ใช้ข้อความจริงยาวๆ (หลายหมื่นตัวอักษรขึ้นไป) จะได้ตัวเลขที่เชื่อถือได้
 ```
 
 ไฟล์ที่ไม่มี `.txt` คู่กันจะถูกข้าม
@@ -45,6 +47,7 @@ node tools/media-eval/run.mjs --lang thai                       # ตัวเ�
 | `asr:gpu-th-small` `asr:gpu-th-medium` | Thonburian บน **WebGPU** จริง (`--headed` เหมือน `asr:gpu-*`) · medium ใช้ encoder fp16 จึงต้องมี `shader-f16` · ถ้าหน้าถอยเป็น WASM แถวนั้นขึ้น ERROR |
 | `asr:cloud` | ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (Whisper large-v3-turbo) = **โหมดใหม่**: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + `vad_filter` + ชุดคำศัพท์ตาม `--cloud-domain general\|law\|engineering\|invest` |
 | `asr:cloud-seq` | เหมือน `asr:cloud` แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) — เทียบเวลา/Neurons/CER กับ `asr:cloud` ด้วยไฟล์ชุดเดียวกัน |
+| `tts:wasm-60` `tts:wasm-100` `tts:webgpu-100` | **สร้างไฟล์เสียง** ผ่านการ์ด "สร้างไฟล์เสียง" ของหน้า `text-to-speech.html` จริง (Section 5) · วัด **วินาทีต่อ 1,000 ตัวอักษร** ของทุกไฟล์ใน `local/tts/*.txt` (ไม่มีเฉลย/CER) + จำนวนท่อน/Worker จากแถวสถิติที่หน้าบันทึกเอง · `wasm-60` / `wasm-100` = WASM (ปิดตัวเลือก WebGPU) เพดานท่อน 60 / 100 ตัวอักษร (ตัวแปรทดสอบ `window.TANOT_TTS.maxChunk` — ใช้งานจริงใช้ `MAX_CHUNK` ค่าเดียวใน `tts-normalize.js`) · `webgpu-100` = WebGPU (`--headed` เหมือน `asr:gpu-*`; ถ้าหน้าถอย WASM แถวนั้นขึ้น ERROR) · เอาเลขไปเลือก `MAX_CHUNK` + ตัดสินว่าเปิด WebGPU เป็นค่าเริ่มต้นต่อไปไหม · ฟังเสียงเองด้วยว่าท่อนยาวไม่ทำให้เสียงเพี้ยน |
 | `ocr:tesseract` | แนบไฟล์ (เปิด "ใช้ OCR") ในหน้า `text-to-speech.html` → `file-reader.js` |
 | `ocr:claude` | `POST /api/ocr` (prompt เริ่มต้นของเซิร์ฟเวอร์ โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์ = `claude-sonnet-5`) — รูปและ PDF · **เสียเงินค่า Claude API ทุกครั้ง** |
 | `ocr:claude-sonnet-5` `ocr:claude-sonnet-5-5` `ocr:claude-haiku-5-5` | เหมือน `ocr:claude` แต่ระบุโมเดลเอง (allowlist ฝั่งเซิร์ฟเวอร์) — วัด CER/เวลา/ความล้มเหลวของแต่ละรุ่นด้วยไฟล์ชุดเดียวกันก่อนเลือกค่าเริ่มต้น (ยังไม่เปลี่ยนค่าเริ่มต้นในรอบ Section 2) |
@@ -85,6 +88,16 @@ node tools/media-eval/run.mjs --engines asr:gpu-small,asr:gpu-th-small,asr:gpu-t
 ใช้ไฟล์เสียงภาษาไทยชุดเดียวกันทุกเอนจิน — ตารางสรุปให้ CER/เวลาต่อเอนจิน
 
 รายการ `onnx-community/whisper-*` ใน `media-models.js` เขียนตามตัวอย่างทางการของ transformers.js แต่ตรวจกับ Hugging Face ตอนเขียนโค้ดไม่ได้ — รันสคริปต์นี้ก่อนเชื่อ/ก่อนเปลี่ยนค่าเริ่มต้นบน WASM เป็นรุ่นใหม่
+
+### วัดเสียงพูด: เพดานท่อน + WebGPU (Section 5)
+
+```bash
+node tools/media-eval/run.mjs --engines tts:wasm-60,tts:wasm-100                    # รวมบรรทัดในย่อหน้า: 60 เทียบ 100 ตัวอักษรต่อท่อน (WASM)
+node tools/media-eval/run.mjs --engines tts:wasm-100,tts:webgpu-100 --headed        # WASM เทียบ WebGPU จริง (ต้องมี GPU)
+node tools/media-eval/run.mjs --engines tts:wasm-100 --only นิยาย                    # --only = regex ชื่อไฟล์ใน local/tts/
+```
+
+ตารางสรุปมีคอลัมน์ **วิ/1,000 ตัวอักษร** (ต่ำ = เร็ว) · อุ่นเครื่องด้วยข้อความสั้นก่อนจับเวลา (ไม่นับเวลาดาวน์โหลดโมเดล) · งานยาวใช้เวลาหลายนาทีต่อไฟล์ — ปรับ `--timeout-min` · `check-models.mjs` ตรวจไฟล์ fp32 (`onnx/model.onnx`) ของทุกเสียงที่ WebGPU ต้องใช้ด้วย
 
 ### วัดคลาวด์แบบใหม่เทียบแบบเดิม
 

@@ -8,14 +8,18 @@
                         เจอตัวอักษรนอก vocab = Gather index out of bounds) · ย่อหน้าต่อกันด้วยช่องว่าง
    • forNative(text) → สำหรับ Web Speech (speechSynthesis): ล้าง markdown/อีโมจิ/URL + ขยายตัวย่อ/วันที่/เวลา — ไม่กรอง vocab ไม่แปลงตัวเลขเป็นคำ
    • forMmsEn(text)  → สำหรับโมเดลอังกฤษ (Xenova/mms-tts-eng): ล้างเหมือนกัน + ตัวเลขเป็นคำอังกฤษ + เหลือ a-z ' - และช่องว่าง
-   • plan(text, {lang:'th'|'en', max:60}) → { chunks:[…], gaps:[วินาทีหลังท่อน i …], paras:[ย่อหน้าของท่อน i …] }
-   • chunks(text, max=60, opts) → plan(...).chunks  — "ตัดท่อนหลัง normalize" เสมอ (ท่อน ≤ max ตัวอักษรหลังแปลงแล้ว)
-   ช่วงเงียบ: ท่อนในย่อหน้าเดียวกัน GAP_SENT_SEC (0.12) · ขึ้นย่อหน้าใหม่ (ขึ้นบรรทัดใหม่) GAP_PARA_SEC (0.4)
+   • plan(text, {lang:'th'|'en', max:MAX_CHUNK, lexicon, skipParen}) → { chunks:[…], gaps:[วินาทีหลังท่อน i …], paras:[ย่อหน้าของท่อน i …] }
+   • chunks(text, max=MAX_CHUNK, opts) → plan(...).chunks  — "ตัดท่อนหลัง normalize" เสมอ (ท่อน ≤ max ตัวอักษรหลังแปลงแล้ว)
+   • parseLexicon(text) / compileLexicon(textหรือrows) → "คำอ่านของฉัน" (บรรทัดละ "คำ = คำอ่าน") — ใช้กับ forMms/plan ผ่าน opts.lexicon เท่านั้น (forNative ไม่ใช้)
+   • skippedWords(text, opts) → [{word, count}] คำอังกฤษที่ถูกข้าม (ไม่นับแบบ "คำไทย (English)" ที่ตั้งใจข้าม และไม่นับคำที่ lexicon/พจนานุกรมอ่านให้แล้ว)
+   ท่อน: บรรทัดที่ต่อกันโดยไม่มีบรรทัดว่างคั่น = ย่อหน้าเดียว รวมเป็นท่อนเดียว ≤ max แล้วตัดที่จบประโยค/ช่องว่าง/ขอบคำ (Intl.Segmenter)
+   ช่วงเงียบหลังท่อน: ประโยคต่อประโยคในย่อหน้า GAP_SENT_SEC (0.12) · ขึ้นบรรทัดใหม่ในย่อหน้าเดียวกัน GAP_LINE_SEC (0.25) · ย่อหน้าใหม่ (บรรทัดว่างคั่น) GAP_PARA_SEC (0.4)
 
    ลำดับกฎของ forMms (แต่ละขั้นเปลี่ยนเป็นคำไทยที่ไม่มีเลขเหลือ ขั้นถัดไปจึงไม่เห็นซ้ำ):
-   เลขไทย/เต็มความกว้าง → อารบิก → ล้าง markdown/แชท/URL/อีเมล/อีโมจิ → วันที่ตัวเลข → เวลา → ตัวย่อ (มาตรา vs มัธยม)
+   เลขไทย/เต็มความกว้าง → อารบิก → ข้ามอังกฤษในวงเล็บหลังคำไทย → คำอ่านของฉัน (แทนด้วยตัวแทน PUA กันกฎอื่นแตะ) → ล้าง markdown/แชท/URL/อีเมล/อีโมจิ
+   → วันที่ตัวเลข → เวลา → ตัวย่อ (มาตรา vs มัธยม)
    → เบอร์โทร → เลขคั่นขีด (บัตรประชาชน/รหัส) → ช่วงเลข (ถึง) → ติดลบ/บวก → จำนวน (เงิน/ทศนิยม/%/หน่วย/ล้านซ้อน/อ่านทีละตัว)
-   → ๆ ซ้ำคำ / ฯ ตัดทิ้ง → อังกฤษปน (ทับศัพท์/สะกดตัวอักษร/ตัดทิ้ง) → กรอง vocab
+   → คืนคำอ่านของฉันแทนตัวแทน → ๆ ซ้ำคำ / ฯ ตัดทิ้ง → อังกฤษปน (ทับศัพท์/สะกดตัวอักษร/ตัดทิ้ง) → กรอง vocab
    ⚠️ ไม่ใช้ lookbehind ใน regex (Safari < 16.4 พาร์สไม่ได้ → ทั้งไฟล์พัง) · \p{…} ห่อ try/catch */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -29,7 +33,9 @@
   var VALID = {};
   for (var vi = 0; vi < VALID_CHARS.length; vi++) VALID[VALID_CHARS.charAt(vi)] = true;
 
-  var GAP_SENT_SEC = 0.12, GAP_PARA_SEC = 0.4, DEFAULT_MAX = 60;
+  /* MAX_CHUNK = เพดานความยาวท่อน (ตัวอักษรหลังแปลงแล้ว) ค่าเดียวของทั้งเว็บ — เจ้าของวัดจริงแล้วรวมบรรทัดให้ท่อนยาวขึ้นลดจำนวนท่อนได้ ~39% (นิยายแปล 175k ตัวอักษร: 4,482 → 2,722 ท่อนที่ ≤ 100)
+     ยังไม่ได้วัดความเร็วต่อ 1,000 ตัวอักษรของ 60/80/100/120 บนโมเดลจริง (sandbox โหลดโมเดลไม่ได้) → ใช้ 100 · วัดด้วย tools/media-eval `tts:wasm-60|tts:wasm-100|tts:webgpu-100` แล้วแก้ค่านี้ที่เดียว */
+  var GAP_SENT_SEC = 0.12, GAP_LINE_SEC = 0.25, GAP_PARA_SEC = 0.4, DEFAULT_MAX = 100;
 
   /* ══════════════ ตัวเลข ══════════════ */
   var DIGIT = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
@@ -116,7 +122,8 @@
     'mac': 'แมค', 'macos': 'แมคโอเอส', 'ios': 'ไอโอเอส', 'linux': 'ลินุกซ์', 'vat': 'แวต', 'scada': 'สคาดา', 'excel365': 'เอ็กเซล',
     'kw': 'กิโลวัตต์', 'kwh': 'กิโลวัตต์ชั่วโมง', 'kva': 'กิโลโวลต์แอมป์', 'hz': 'เฮิรตซ์', 'mhz': 'เมกะเฮิรตซ์', 'ghz': 'จิกะเฮิรตซ์',
     'mb': 'เมกะไบต์', 'gb': 'จิกะไบต์', 'tb': 'เทราไบต์', 'kb': 'กิโลไบต์', 'hp': 'แรงม้า', 'rpm': 'รอบต่อนาที', 'km': 'กิโลเมตร', 'cm': 'เซนติเมตร',
-    'mm': 'มิลลิเมตร', 'kg': 'กิโลกรัม'
+    'mm': 'มิลลิเมตร', 'kg': 'กิโลกรัม',
+    'vs': 'ปะทะ', 'god': 'ก็อด', 'ep': 'อีพี', 'part': 'พาร์ท' // vs ติดกับอักษรไทยได้ ("ริมุรุvsเวลดานาวา") · EP3 → อีพี + สาม (ตัวเลขถูกแปลงก่อนขั้นอังกฤษ)
   };
   var LETTER = { A: 'เอ', B: 'บี', C: 'ซี', D: 'ดี', E: 'อี', F: 'เอฟ', G: 'จี', H: 'เอช', I: 'ไอ', J: 'เจ', K: 'เค', L: 'แอล', M: 'เอ็ม', N: 'เอ็น', O: 'โอ', P: 'พี', Q: 'คิว', R: 'อาร์', S: 'เอส', T: 'ที', U: 'ยู', V: 'วี', W: 'ดับเบิลยู', X: 'เอ็กซ์', Y: 'วาย', Z: 'แซด' };
 
@@ -331,20 +338,118 @@
     if (tok.indexOf('-') > 0) return tok.split('-').map(transliterate).join(' ');
     return ' ';
   }
-  function english(s) {
-    return s.replace(/[A-Za-z][A-Za-z']*(?:-[A-Za-z]+)*/g, function (tok) { return ' ' + transliterate(tok.replace(/’/g, "'")) + ' '; });
+  /* คำอังกฤษที่ติดกันเป็นวลี ("Origin Blood") ประมวลผลทีละคำ แต่คำที่ถูกข้ามติดกันรายงานเป็นวลีเดียว (ให้เพิ่มเป็นคำอ่านของฉันได้ทั้งวลี) */
+  var EN_RUN_RE = /[A-Za-z][A-Za-z']*(?:-[A-Za-z]+)*(?:[ \t]+[A-Za-z][A-Za-z']*(?:-[A-Za-z]+)*)*/g;
+  function noteSkipped(stats, phrase) {
+    var key = phrase.toLowerCase();
+    if (!stats.map[key]) { stats.map[key] = { word: phrase, n: 0 }; stats.order.push(key); }
+    stats.map[key].n++;
+  }
+  function english(s, stats) {
+    return s.replace(EN_RUN_RE, function (run) {
+      var out = [], phrase = [];
+      function endPhrase() { if (phrase.length && stats) noteSkipped(stats, phrase.join(' ')); phrase = []; }
+      run.split(/[ \t]+/).forEach(function (tok) {
+        var t = transliterate(tok.replace(/\u2019/g, "'"));
+        if (!t.trim()) phrase.push(tok); else endPhrase();
+        out.push(t);
+      });
+      endPhrase();
+      return ' ' + out.join(' ') + ' ';
+    });
+  }
+
+  /* ══════════════ คำอ่านของฉัน (lexicon) + ข้ามอังกฤษในวงเล็บ ══════════════ */
+  var LEX_MAX_ROWS = 500, LEX_MAX_FROM = 80, LEX_MAX_TO = 200;
+  var LEX_BASE = 0xE100; // ตัวแทนใน Private Use Area — ไม่ใช่เลข/ตัวอักษร/ช่องว่าง กฎอื่นจึงไม่แตะ (LEX_BASE + ลำดับแถว)
+  function lexKey(from) { return from.toLowerCase().replace(/\s+/g, ' '); }
+  /* "คำ = คำอ่าน" บรรทัดละคู่ (ขึ้นต้น # = หมายเหตุ) → { rows:[{from,to}], rejected:[{line, text, why:'format'|'empty'|'long'|'vocab'|'limit', bad:[ตัวอักษรนอก vocab]}] }
+     คำอ่านต้องอยู่ใน vocab ของโมเดลทุกตัว (ำ ใช้ได้ — กรองแตกเป็น ํา ให้) ไม่งั้นปฏิเสธทั้งแถว · คำซ้ำ (ไม่สนตัวพิมพ์/ช่องว่าง) แถวหลังชนะ */
+  function parseLexicon(text) {
+    var rows = [], rejected = [], index = {};
+    String(text == null ? '' : text).replace(/\r\n?/g, '\n').split('\n').forEach(function (raw, i) {
+      var line = raw.trim();
+      if (!line || line.charAt(0) === '#') return;
+      function reject(why, bad) { rejected.push({ line: i + 1, text: line.slice(0, 120), why: why, bad: bad || [] }); }
+      var eq = line.search(/[=\uFF1D]/);
+      var from = eq > 0 ? line.slice(0, eq).replace(/\s+/g, ' ').trim() : '';
+      var to = eq > 0 ? line.slice(eq + 1).replace(/\s+/g, ' ').trim() : '';
+      if (!from || !to) return reject(from && eq > 0 ? 'empty' : 'format'); // empty = เพิ่งกด "เพิ่มคำอ่าน" ยังไม่ได้พิมพ์คำอ่าน (ไม่ใช่ข้อผิดพลาด หน้าไม่เตือน แต่ไม่บันทึก)
+      if (from.length > LEX_MAX_FROM || to.length > LEX_MAX_TO) return reject('long');
+      var bad = [], seen = {};
+      to.replace(/\u0E33/g, '\u0E4D\u0E32').split('').forEach(function (c) { if (!VALID[c] && !seen[c]) { seen[c] = 1; bad.push(c); } });
+      if (bad.length) return reject('vocab', bad);
+      var key = lexKey(from);
+      if (index[key] !== undefined) { rows[index[key]] = { from: from, to: to }; return; }
+      if (rows.length >= LEX_MAX_ROWS) return reject('limit');
+      index[key] = rows.length; rows.push({ from: from, to: to });
+    });
+    return { rows: rows, rejected: rejected };
+  }
+  /* → { rows, re, map } | null — คำยาวสุดก่อน (ลำดับใน alternation) · อังกฤษไม่สนตัวพิมพ์ (flag i) · ช่องว่างในวลี = ช่องว่างกี่ตัวก็ได้ */
+  function compileLexicon(src) {
+    if (!src) return null;
+    if (src.re && src.rows) return src;
+    var rows = Array.isArray(src) ? src : parseLexicon(src).rows;
+    rows = rows.filter(function (r) { return r && r.from && r.to; }).slice(0, LEX_MAX_ROWS);
+    if (!rows.length) return null;
+    var order = rows.map(function (r, i) { return i; }).sort(function (a, b) { return rows[b].from.length - rows[a].from.length; });
+    var map = {};
+    rows.forEach(function (r, i) { map[lexKey(r.from)] = i; });
+    var alt = order.map(function (i) { return esc(rows[i].from.replace(/\s+/g, ' ')).replace(/ /g, '\\s+'); }).join('|');
+    var rx = re(alt, 'gi');
+    return rx ? { rows: rows, re: rx, map: map } : null;
+  }
+  var LATIN = /[A-Za-z]/;
+  function lexProtect(s, lex) {
+    var rx = lex.re, out = '', pos = 0, m;
+    rx.lastIndex = 0;
+    while ((m = rx.exec(s))) {
+      var word = m[0], start = m.index, end = start + word.length;
+      if (!word) { rx.lastIndex++; continue; }
+      /* ขอบเขตเฉพาะตัวอักษรละติน: "god" ไม่แทนใน "godzilla" แต่ติดกับอักษรไทย/เลข/เครื่องหมายได้ ("EP3", "ริมุรุvsเวลดานาวา") */
+      if ((LATIN.test(word.charAt(0)) && LATIN.test(s.charAt(start - 1))) || (LATIN.test(word.charAt(word.length - 1)) && LATIN.test(s.charAt(end)))) {
+        rx.lastIndex = start + 1; continue;
+      }
+      var idx = lex.map[lexKey(word)];
+      if (idx === undefined) { rx.lastIndex = start + 1; continue; }
+      out += s.slice(pos, start) + String.fromCharCode(LEX_BASE + idx);
+      pos = end;
+    }
+    return out + s.slice(pos);
+  }
+  var LEX_SENTINEL = /[\uE100-\uE5FF]/g;
+  function lexExpand(s, lex) {
+    return s.replace(LEX_SENTINEL, function (c) {
+      var r = lex.rows[c.charCodeAt(0) - LEX_BASE];
+      if (!r) return ' ';
+      return LATIN.test(r.from) ? ' ' + r.to + ' ' : r.to; // ต้นทางเป็นอังกฤษ → เว้นรอบคำอ่าน · ต้นทางเป็นไทย → แทนตรงๆ ไม่แทรกช่องว่างกลางประโยคไทย
+    });
+  }
+  /* "คำไทย (English)" → ตัดวงเล็บอังกฤษทิ้ง (คำไทยอ่านไปแล้ว ไม่อ่านซ้ำ) · เฉพาะวงเล็บที่มีอังกฤษล้วน (ไม่มีอักษรไทย) และไม่ใช่ลิงก์/อีเมล */
+  var PAREN_EN_RE = /([\u0E01-\u0E4E][ \t]?)[(\uFF08]([^()\uFF08\uFF09\n]{1,100})[)\uFF09]/g;
+  function skipParenEnglish(s) {
+    return s.replace(PAREN_EN_RE, function (m, pre, inner) {
+      if (!LATIN.test(inner) || /[\u0E00-\u0E7F]/.test(inner) || /:\/\/|@|www\./i.test(inner)) return m;
+      return pre;
+    });
   }
 
   /* ══════════════ pipeline ══════════════ */
-  function prepare(text, mode) {
+  function lexOf(opts) { return opts && opts.lexicon ? compileLexicon(opts.lexicon) : null; }
+  function prepare(text, mode, opts, stats) {
+    var mms = mode === 'mms', lex = mms ? lexOf(opts) : null;
     var s = arabicDigits(String(text == null ? '' : text));
+    if (mms && !(opts && opts.skipParen === false)) s = skipParenEnglish(s);
+    if (lex) s = lexProtect(s, lex);
     s = cleanMarkup(s, mode === 'native' && !hasThai(s) ? 'en' : 'th');
     s = dates(s);
     s = times(s);
     s = abbreviations(s);
-    if (mode === 'mms') s = numbers(s);
+    if (mms) s = numbers(s);
+    if (lex) s = lexExpand(s, lex);
     s = repeatMarks(s);
-    if (mode === 'mms') s = english(s).replace(/[-\u2013\u2014]/g, ' ');
+    if (mms) s = english(s, stats).replace(/[-\u2013\u2014]/g, ' ');
     return s;
   }
   function filterVocab(s) {
@@ -355,8 +460,16 @@
   }
   function lines(s) { return s.split('\n'); }
 
-  function forMms(text) {
-    return lines(prepare(text, 'mms')).map(filterVocab).filter(Boolean).join(' ');
+  function forMms(text, opts) {
+    return lines(prepare(text, 'mms', opts)).map(filterVocab).filter(Boolean).join(' ');
+  }
+  /* คำอังกฤษที่ถูกข้าม (ไม่มีทับศัพท์/คำอ่านของฉัน) พร้อมจำนวนครั้ง — มากไปน้อย ลำดับที่เจอก่อนชนะเมื่อเท่ากัน */
+  function skippedWords(text, opts) {
+    var stats = { map: {}, order: [] };
+    prepare(text, 'mms', opts, stats);
+    return stats.order.map(function (k, i) { return { word: stats.map[k].word, count: stats.map[k].n, i: i }; })
+      .sort(function (a, b) { return b.count - a.count || a.i - b.i; })
+      .map(function (e) { return { word: e.word, count: e.count }; });
   }
   function forNative(text) {
     return lines(prepare(text, 'native')).map(function (l) { return l.replace(/[ \t]+/g, ' ').trim(); }).filter(Boolean).join('\n');
@@ -433,9 +546,11 @@
     if (cur) pieces.push(cur);
     return pieces;
   }
-  function paragraphChunks(p, max) { // p = ข้อความหนึ่งย่อหน้า (ก่อนกรอง vocab — ยังมีเครื่องหมายวรรคตอนบอกจุดจบประโยค)
-    var out = [], cur = '';
-    function flush() { if (cur) { out.push(cur); cur = ''; } }
+  /* p = ข้อความหนึ่งย่อหน้า (บรรทัดต่อกันด้วย \n, ก่อนกรอง vocab — ยังมีเครื่องหมายวรรคตอนบอกจุดจบประโยค) → [{text, nl}]
+     บรรทัดในย่อหน้าเดียวกันรวมเป็นท่อนเดียว ≤ max · nl = ระหว่างท่อนก่อนหน้ากับท่อนนี้มีการขึ้นบรรทัดใหม่ (ใช้เลือกช่วงเงียบ 0.25 วิ แทน 0.12 วิ) */
+  function paragraphChunks(p, max) {
+    var out = [], cur = '', curNL = false, pendingNL = false;
+    function flush() { if (cur) { out.push({ text: cur, nl: curNL }); cur = ''; curNL = false; } }
     var parts = p.split(/([\s.,!?;:…()\[\]{}"“”‘’«»<>|\/\\—–]+)/);
     for (var i = 0; i < parts.length; i += 2) {
       var seg = filterVocab(parts[i] || ''), delim = parts[i + 1] || '';
@@ -447,12 +562,13 @@
         if (t.length > max) {
           flush();
           var pcs = splitLong(t, max);
-          for (var q = 0; q < pcs.length - 1; q++) out.push(pcs[q]);
-          cur = pcs[pcs.length - 1];
-        } else if (!cur) cur = t;
-        else if (cur.length + 1 + t.length <= max) cur += ' ' + t;
-        else { flush(); cur = t; }
+          for (var q = 0; q < pcs.length - 1; q++) { out.push({ text: pcs[q], nl: q === 0 && pendingNL }); }
+          cur = pcs[pcs.length - 1]; curNL = pcs.length === 1 && pendingNL; pendingNL = false;
+        } else if (!cur) { cur = t; curNL = pendingNL; pendingNL = false; }
+        else if (cur.length + 1 + t.length <= max) { cur += ' ' + t; pendingNL = false; }
+        else { flush(); cur = t; curNL = pendingNL; pendingNL = false; }
       }
+      if (delim.indexOf('\n') >= 0) pendingNL = true;
       if (strong) flush();
     }
     flush();
@@ -461,28 +577,42 @@
   function plan(text, opts) {
     opts = opts || {};
     var max = opts.max > 0 ? opts.max : DEFAULT_MAX, en = opts.lang === 'en';
-    var norm = en ? prepareEn(text) : prepare(text, 'mms');
-    var chunks = [], paras = [], pi = 0;
-    lines(norm).forEach(function (line) {
-      var cs = en ? englishChunks(line, max) : paragraphChunks(line, max);
+    var norm = en ? prepareEn(text) : prepare(text, 'mms', opts);
+    var chunks = [], paras = [], nls = [], pi = 0, group = [];
+    function endParagraph() {
+      if (!group.length) return;
+      var cs = en ? englishChunks(group.join('\n'), max) : paragraphChunks(group.join('\n'), max);
+      group = [];
       if (!cs.length) return;
-      cs.forEach(function (c) { chunks.push(c); paras.push(pi); });
+      cs.forEach(function (c) { chunks.push(c.text); nls.push(c.nl); paras.push(pi); });
       pi++;
+    }
+    /* ย่อหน้า = บรรทัดที่ต่อกันโดยไม่มีบรรทัดว่างคั่น (บรรทัดที่เหลือแต่ช่องว่างหลัง normalize เช่น --- หรืออีโมจิล้วน นับเป็นบรรทัดว่าง) */
+    lines(norm).forEach(function (line) { if (/\S/.test(line)) group.push(line); else endParagraph(); });
+    endParagraph();
+    var gaps = chunks.map(function (c, i) {
+      if (i === chunks.length - 1) return 0;
+      return paras[i + 1] !== paras[i] ? GAP_PARA_SEC : (nls[i + 1] ? GAP_LINE_SEC : GAP_SENT_SEC);
     });
-    var gaps = chunks.map(function (c, i) { return i === chunks.length - 1 ? 0 : (paras[i + 1] === paras[i] ? GAP_SENT_SEC : GAP_PARA_SEC); });
     return { chunks: chunks, gaps: gaps, paras: paras };
   }
-  function englishChunks(line, max) { // บรรทัดอังกฤษ → ตัดที่จบประโยค แล้วจัดเป็นท่อน ≤ max ที่ช่องว่าง
-    var out = [], cur = '';
-    function flush() { if (cur) { out.push(cur); cur = ''; } }
-    line.split(/[.!?;]+/).forEach(function (sent) {
-      enClean(sent).split(' ').forEach(function (w) {
-        if (!w) return;
-        while (w.length > max) { flush(); out.push(w.slice(0, max)); w = w.slice(max); }
-        if (!cur) cur = w; else if (cur.length + 1 + w.length <= max) cur += ' ' + w; else { flush(); cur = w; }
+  function englishChunks(par, max) { // ย่อหน้าอังกฤษ → ตัดที่จบประโยค แล้วจัดเป็นท่อน ≤ max ที่ช่องว่าง (บรรทัดต่อกันรวมกัน เหมือนฝั่งไทย)
+    var out = [], cur = '', curNL = false, pendingNL = false;
+    function flush() { if (cur) { out.push({ text: cur, nl: curNL }); cur = ''; curNL = false; } }
+    function addWord(w) {
+      while (w.length > max) { flush(); out.push({ text: w.slice(0, max), nl: pendingNL }); pendingNL = false; w = w.slice(max); }
+      if (!cur) { cur = w; curNL = pendingNL; pendingNL = false; }
+      else if (cur.length + 1 + w.length <= max) { cur += ' ' + w; pendingNL = false; }
+      else { flush(); cur = w; curNL = pendingNL; pendingNL = false; }
+    }
+    par.split('\n').forEach(function (line, li) {
+      if (li > 0) pendingNL = true;
+      line.split(/([.!?;]+)/).forEach(function (seg, si) {
+        if (si % 2) { flush(); return; } // เครื่องหมายจบประโยค
+        enClean(seg).split(' ').forEach(function (w) { if (w) addWord(w); });
       });
-      flush();
     });
+    flush();
     return out;
   }
   function chunks(text, max, opts) {
@@ -492,9 +622,10 @@
   }
 
   return {
-    VALID_CHARS: VALID_CHARS, GAP_SENT_SEC: GAP_SENT_SEC, GAP_PARA_SEC: GAP_PARA_SEC, MAX_CHUNK: DEFAULT_MAX,
+    VALID_CHARS: VALID_CHARS, GAP_SENT_SEC: GAP_SENT_SEC, GAP_LINE_SEC: GAP_LINE_SEC, GAP_PARA_SEC: GAP_PARA_SEC, MAX_CHUNK: DEFAULT_MAX,
     numberToWords: numberToWords, thaiNumberToWords: numberToWords, forMms: forMms, forNative: forNative, forMmsEn: forMmsEn,
     plan: plan, chunks: chunks, filterVocab: filterVocab,
+    parseLexicon: parseLexicon, compileLexicon: compileLexicon, skippedWords: skippedWords, LEX_MAX_ROWS: LEX_MAX_ROWS,
     /* ตารางคำอ่านทั้งหมด — test ตรวจว่า "ทุกตัวอักษรของคำอ่านอยู่ใน vocab" (กรองแล้วไม่หายไปไหน) */
     TABLES: { DIGIT: DIGIT, MONTHS: MONTHS, ABBR: ABBR_ANY.concat(ABBR_WORD), UNITS: UNITS, EN_DICT: EN_DICT, LETTER: LETTER,
       FIXED: ['จุด', 'ลบ', 'บวก', 'ถึง', 'บาท', 'สตางค์', 'ดอลลาร์', 'เซนต์', 'เปอร์เซ็นต์', 'นาฬิกา', 'นาที', 'วินาที', 'มาตรา', 'มอ', 'ลิงก์', 'อีเมล', 'ล้าน', 'เอ็ด', 'ยี่สิบ'].concat(PLACE) },

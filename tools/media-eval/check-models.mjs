@@ -1,4 +1,4 @@
-// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js (Xenova, onnx-community และ Thonburian ของ Tanotfin) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
+// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js (Xenova, onnx-community และ Thonburian ของ Tanotfin) และของเสียงพูด MMS-TTS ทุกเสียงใน text-to-speech.js (Section 5: ไฟล์ fp32 สำหรับ WebGPU + ไฟล์ของ WASM) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
 // (sandbox ที่เขียนโค้ดรอบ Section 3 เข้า huggingface.co ไม่ได้ จึงตรวจเองไม่ได้ → ต้องรันสคริปต์นี้ก่อนเชื่อว่ารายการใช้ได้จริง)
 //   node tools/media-eval/check-models.mjs            → ตาราง repo × (ไฟล์ที่ต้องใช้) · exit 1 ถ้ามีอะไรขาด
 //   HF_TOKEN=hf_xxx node …                           → (ไม่จำเป็น) กัน rate limit · ห้ามเขียนโทเคนลงไฟล์
@@ -43,6 +43,20 @@ for (const m of models) {
   const missing = [...new Set(need)].filter((f) => !have.has(f));
   if (missing.length) { console.log('✗  ' + m.id + ' — ขาด: ' + missing.join(', ')); bad++; }
   else console.log('✓  ' + m.id + ' (' + [...new Set(need)].length + ' ไฟล์ครบ' + (m.legacy ? ', ถอยไป ' + m.legacy : '') + ')');
+}
+/* เสียงพูด MMS-TTS (Section 5): WASM ใช้ dtype ตาม TTS_DTYPE_OVERRIDES (ไม่มี = q8 → model_quantized.onnx) · WebGPU ใช้ ttsGpuDtype (fp32 → model.onnx) — ไฟล์ fp32 ของแต่ละ repo ยังไม่เคยตรวจจริง */
+const tts = await readFile(join(ROOT, 'text-to-speech.js'), 'utf8');
+const voices = [...new Set([...tts.matchAll(/id: '([\w.-]+\/[\w.-]*mms[\w.-]*)'/g)].map((m) => m[1]))];
+const M = sandbox.self.TanotMediaModels;
+for (const id of voices) {
+  const need = ['config.json'];
+  for (const d of [M.ttsDtype(id) || 'q8', M.ttsGpuDtype(id)]) need.push('onnx/model' + SUFFIX[d] + '.onnx');
+  let have;
+  try { have = await files(id); } catch (e) { console.log('?? ' + id + ' — ตรวจไม่ได้: ' + e.message); bad++; continue; }
+  if (!have) { console.log('✗  ' + id + ' — ไม่พบ repo นี้บน Hugging Face'); bad++; continue; }
+  const missing = [...new Set(need)].filter((f) => !have.has(f));
+  if (missing.length) { console.log('✗  ' + id + ' (เสียงพูด) — ขาด: ' + missing.join(', ') + (missing.some((f) => f === 'onnx/model.onnx') ? ' · ไม่มี fp32 = WebGPU ถอย WASM เสมอสำหรับเสียงนี้ (ไม่ใช่ข้อผิดพลาดร้ายแรง — ตั้ง TTS_GPU_DTYPE_OVERRIDES หรือยอมรับ)' : '')); bad++; }
+  else console.log('✓  ' + id + ' (เสียงพูด ' + [...new Set(need)].length + ' ไฟล์ครบ)');
 }
 console.log(bad ? '\nมี ' + bad + ' รายการไม่ผ่าน — แก้ตารางใน media-models.js (หรือถอดตัวนั้นออกจากรายการ) ก่อนปล่อย' : '\nผ่านทั้งหมด');
 process.exit(bad ? 1 : 0);

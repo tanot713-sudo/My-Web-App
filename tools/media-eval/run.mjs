@@ -9,6 +9,9 @@
 //   asr:gpu-th-small asr:gpu-th-medium      — Thonburian บน WebGPU จริง (ใช้ --headed เหมือน asr:gpu-*) · medium ต้องมี shader-f16 · เทียบ CER กับ asr:small/asr:medium (Xenova), asr:gpu-small (onnx-community) และ asr:cloud
 //   asr:cloud                               — ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (ต้องตั้ง MEDIA_EVAL_URL + MEDIA_EVAL_COOKIE) = โหมดใหม่: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + vad_filter
 //   asr:cloud-seq                           — เหมือน asr:cloud แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) ใช้เทียบเวลา/Neurons/CER กับ asr:cloud (--cloud-domain ใส่ชุดคำศัพท์ได้ทั้งคู่)
+//   tts:wasm-60 tts:wasm-100 tts:webgpu-100 — สร้างไฟล์เสียงในเบราว์เซอร์ผ่านการ์ด "สร้างไฟล์เสียง" ของหน้า text-to-speech.html จริง (Section 5) · วัด "วินาทีต่อ 1,000 ตัวอักษร" ของข้อความใน
+//                                             local/tts/*.txt (ไม่ต้องมีไฟล์เฉลย) · wasm-60 / wasm-100 = WASM ปิดตัวเลือก WebGPU, เพดานท่อน 60 / 100 ตัวอักษร (เทียบการรวมบรรทัดกับค่าเดิม) · webgpu-100 = WebGPU จริง (ใช้ --headed
+//                                             เหมือน asr:gpu-*) ถอย WASM = แถวนั้นขึ้น ERROR · ใช้เลือกค่า MAX_CHUNK (tts-normalize.js) ที่เร็วสุดโดยเสียงยังดี
 //   ocr:tesseract                           — แนบไฟล์ (เปิด OCR) ในหน้า text-to-speech.html → file-reader.js เส้นทางเดียวกับผู้ใช้
 //   ocr:claude                              — POST /api/ocr (prompt เริ่มต้นของเซิร์ฟเวอร์, โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์) บน pages.dev (ต้องตั้ง env เหมือน asr:cloud + MEDIA_EVAL_OCR_PIN)
 //   ocr:claude-sonnet-5 ocr:claude-sonnet-5-5 ocr:claude-haiku-5-5 — เหมือน ocr:claude แต่ระบุโมเดลตัวเลขชัดเจน (allowlist ใน functions/api/ocr.js) ให้วัด CER/เวลาก่อนเลือกค่าเริ่มต้น
@@ -39,7 +42,8 @@ const ALLOW_PAID = process.env.MEDIA_EVAL_ALLOW_PAID === '1';
 const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิมพ์/บันทึกลงผลลัพธ์
 const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
 let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
-const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:th-small', 'asr:th-medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:gpu-th-small', 'asr:gpu-th-medium', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
+const TTS_ENGINES = { 'tts:wasm-60': { max: 60, gpu: false }, 'tts:wasm-100': { max: 100, gpu: false }, 'tts:webgpu-100': { max: 100, gpu: true } };
+const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:th-small', 'asr:th-medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:gpu-th-small', 'asr:gpu-th-medium', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF), ...Object.keys(TTS_ENGINES)];
 const ENGINES = (opt('engines', '') || ALL_ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const ONLY = opt('only', '') ? new RegExp(opt('only')) : null;
 const LANG = opt('lang', 'auto'); // auto | thai | english — ตัวเลือก "ภาษา" ของหน้า text-to-speech
@@ -142,6 +146,34 @@ function silentWav() {
   return { name: 'warmup.wav', mimeType: 'audio/wav', buffer: b };
 }
 
+/* ไฟล์ข้อความสำหรับวัดเสียงพูด (ไม่มีไฟล์เฉลย) — ห้าม commit (local/ ถูก gitignore) */
+async function texts(dir) {
+  let names = [];
+  try { names = await readdir(dir); } catch (e) { return []; }
+  const out = [];
+  for (const n of names.sort()) {
+    if (!/\.txt$/i.test(n) || (ONLY && !ONLY.test(n))) continue;
+    out.push({ name: n, text: (await readFile(join(dir, n), 'utf8')).trim() });
+  }
+  return out.filter((f) => f.text);
+}
+/* สร้างไฟล์เสียง 1 ไฟล์ผ่าน UI จริง → { ms, chars, chunks, workers, device, err } · opts: { expectGpu } */
+async function ttsViaPage(page, text, opts = {}) {
+  await page.fill('#ttsText', text);
+  const t0 = Date.now();
+  await page.click('#dlGenerateBtn');
+  await page.waitForFunction(() => /\b(ok|err)\b/.test(document.getElementById('dlStatus').className) && !document.getElementById('dlGenerateBtn').disabled, null, { timeout: TIMEOUT });
+  const ms = Date.now() - t0;
+  const ok = await page.evaluate(() => /\bok\b/.test(document.getElementById('dlStatus').className));
+  if (!ok) return { ms, chars: text.length, err: await page.textContent('#dlStatus') };
+  // สถิติที่หน้าบันทึกลง problem log หลังงานเสร็จ (ตัวเลขล้วน: chunks=… workers=… device=…)
+  const row = await page.evaluate(() => { const r = JSON.parse(localStorage.getItem('tanot:media:log') || '[]').filter((x) => x.kind === 'tts' && x.stage === 'stats'); return r.length ? r[r.length - 1].msg : ''; });
+  const g = (k) => { const m = new RegExp('\\b' + k + '=([\\w.]+)').exec(row); return m ? m[1] : null; };
+  const device = g('device');
+  if (opts.expectGpu && device !== 'webgpu') return { ms, chars: text.length, err: 'ไม่ได้ใช้ WebGPU จริง (ถอย WASM หรือไม่มี WebGPU) — device=' + device };
+  return { ms, chars: text.length, chunks: +g('chunks') || null, workers: +g('workers') || null, device };
+}
+
 async function ocrTesseract(page, file) {
   await page.setInputFiles('#importFileInput', file);
   const t0 = Date.now();
@@ -183,14 +215,16 @@ async function gpuContext() {
 async function main() {
   const asrFiles = ENGINES.some((e) => e.startsWith('asr:')) ? await pairs(join(LOCAL, 'asr'), ASR_EXT) : [];
   const ocrFiles = ENGINES.some((e) => e.startsWith('ocr:')) ? await pairs(join(LOCAL, 'ocr'), OCR_EXT) : [];
-  if (!asrFiles.length && !ocrFiles.length) {
-    console.log('ไม่มีไฟล์ตัวอย่าง — วางไฟล์ใน tools/media-eval/local/asr/ และ local/ocr/ พร้อมไฟล์เฉลย .txt ชื่อเดียวกัน (ดู README.md)');
+  const ttsEngines = ENGINES.filter((e) => e in TTS_ENGINES);
+  const ttsFiles = ttsEngines.length ? await texts(join(LOCAL, 'tts')) : [];
+  if (!asrFiles.length && !ocrFiles.length && !ttsFiles.length) {
+    console.log('ไม่มีไฟล์ตัวอย่าง — วางไฟล์ใน tools/media-eval/local/asr/ และ local/ocr/ พร้อมไฟล์เฉลย .txt ชื่อเดียวกัน · local/tts/*.txt = ข้อความวัดเสียงพูด (ดู README.md)');
     return;
   }
   const srv = await staticServer();
   const base = 'http://127.0.0.1:' + srv.address().port;
   const browser = await chromium.launch({ channel: 'chromium', headless: !HEADED });
-  const results = [];
+  const results = [], ttsRows = [];
   const record = (kind, engine, f, r) => {
     const row = { kind, engine, file: f.name, cer: r.err ? null : cer(f.ref, r.text), wer: r.err ? null : wer(f.ref, r.text), sec: +(r.ms / 1000).toFixed(1), audioSec: r.dur != null ? Math.round(r.dur) : null, neurons: r.neurons != null ? Math.round(r.neurons) : null, webgpu: r.webgpu || false, err: r.err || null };
     row.rtf = row.audioSec ? +(row.sec / row.audioSec).toFixed(3) : null;
@@ -223,6 +257,25 @@ async function main() {
           await ctx.close();
         }
       }
+      if (engine in TTS_ENGINES && ttsFiles.length) {
+        const cfg = TTS_ENGINES[engine];
+        const ctx = cfg.gpu ? await gpuContext() : await browser.newContext();
+        const page = await ctx.newPage();
+        await page.addInitScript((c) => {
+          try { localStorage.setItem('tanot:tts:opts', JSON.stringify({ skipParen: true, split: false, gpu: c.gpu })); localStorage.setItem('tanot:asr:lang', 'auto'); } catch (x) {}
+          window.TANOT_TTS = { maxChunk: c.max };
+        }, cfg);
+        await page.goto(base + '/text-to-speech.html');
+        console.log(engine + ': อุ่นเครื่อง (ครั้งแรกดาวน์โหลดโมเดลจาก Hugging Face)…');
+        await ttsViaPage(page, 'ทดสอบเสียงพูดสั้นๆ สำหรับอุ่นเครื่องก่อนจับเวลา', { expectGpu: cfg.gpu });
+        for (const f of ttsFiles) {
+          const r = await ttsViaPage(page, f.text, { expectGpu: cfg.gpu });
+          const row = { kind: 'tts', engine, file: f.name, chars: r.chars, chunks: r.chunks || null, workers: r.workers || null, device: r.device || null, sec: +(r.ms / 1000).toFixed(1), secPer1000: r.err ? null : +((r.ms / 1000) / (r.chars / 1000)).toFixed(1), err: r.err || null };
+          ttsRows.push(row);
+          console.log(['tts', engine, f.name, row.chars + ' ตัวอักษร', row.chunks != null ? row.chunks + ' ท่อน' : '', row.sec + ' วิ', row.secPer1000 != null ? row.secPer1000 + ' วิ/1,000 ตัวอักษร' : '', row.err ? 'ERROR: ' + row.err : ''].filter(Boolean).join('  '));
+        }
+        await ctx.close();
+      }
       if (engine === 'ocr:tesseract' && ocrFiles.length) {
         const ctx = await browser.newContext();
         const page = await openTts(ctx, base, 'local');
@@ -253,15 +306,22 @@ async function main() {
     s.cer += r.cer; s.wer += r.wer; s.audio += r.audioSec || 0;
     if (r.neurons != null) { s.neu += r.neurons; s.neuN++; }
   }
-  const lines = ['| เอนจิน | ไฟล์ | ล้มเหลว | CER เฉลี่ย | WER เฉลี่ย | เวลารวม (วิ) | เวลา/ความยาวเสียง | Neurons รวม (คลาวด์) |', '|---|---|---|---|---|---|---|---|'];
+  const lines = Object.keys(summary).length ? ['| เอนจิน | ไฟล์ | ล้มเหลว | CER เฉลี่ย | WER เฉลี่ย | เวลารวม (วิ) | เวลา/ความยาวเสียง | Neurons รวม (คลาวด์) |', '|---|---|---|---|---|---|---|---|'] : [];
   for (const [k, s] of Object.entries(summary)) {
     const ok = s.n - s.err;
     lines.push(`| ${k} | ${s.n} | ${s.err} | ${ok ? pct(s.cer / ok) : '—'} | ${ok ? pct(s.wer / ok) : '—'} | ${s.sec.toFixed(1)} | ${s.audio ? (s.sec / s.audio).toFixed(3) : '—'} | ${s.neuN ? s.neu : '—'} |`);
   }
+  if (ttsRows.length) {
+    const by = {};
+    for (const r of ttsRows) { const s2 = by[r.engine] || (by[r.engine] = { n: 0, err: 0, sec: 0, chars: 0, chunks: 0, per: 0 }); s2.n++; if (r.err) { s2.err++; continue; } s2.sec += r.sec; s2.chars += r.chars; s2.chunks += r.chunks || 0; s2.per += r.secPer1000; }
+    if (lines.length) lines.push('');
+    lines.push('| เอนจินเสียงพูด | ไฟล์ | ล้มเหลว | เวลารวม (วิ) | ตัวอักษรรวม | ท่อนรวม | วิ/1,000 ตัวอักษร (เฉลี่ยต่อไฟล์) |', '|---|---|---|---|---|---|---|');
+    for (const [k, s2] of Object.entries(by)) { const ok2 = s2.n - s2.err; lines.push(`| ${k} | ${s2.n} | ${s2.err} | ${s2.sec.toFixed(1)} | ${s2.chars} | ${s2.chunks || '—'} | ${ok2 ? (s2.per / ok2).toFixed(1) : '—'} |`); }
+  }
   console.log('\n' + lines.join('\n'));
   await mkdir(LOCAL, { recursive: true });
   const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 16);
-  await writeFile(join(LOCAL, `results-${stamp}.json`), JSON.stringify({ at: new Date().toISOString(), lang: LANG, engines: ENGINES, results }, null, 2));
+  await writeFile(join(LOCAL, `results-${stamp}.json`), JSON.stringify({ at: new Date().toISOString(), lang: LANG, engines: ENGINES, results, tts: ttsRows }, null, 2));
   await writeFile(join(LOCAL, `results-${stamp}.md`), lines.join('\n') + '\n');
   console.log('\nบันทึกผลที่ tools/media-eval/local/results-' + stamp + '.json|md');
 }

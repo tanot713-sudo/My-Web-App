@@ -19,7 +19,7 @@
       yes: 'ใช่', no: 'ไม่', files: '{n} ไฟล์', modelCleared: 'ล้างแคชโมเดลแล้ว — ครั้งหน้าที่ใช้จะดาวน์โหลดใหม่', modelClearWhat: 'แคชโมเดล AI ในเครื่องนี้',
       log: 'บันทึกปัญหา', logCopy: 'คัดลอก', logClear: 'ล้าง', logEmpty: 'ยังไม่มีปัญหาที่บันทึกไว้', logCopied: 'คัดลอกแล้ว', logClearWhat: 'บันทึกปัญหาทั้งหมด',
       k_asr: 'ถอดเสียง', k_tts: 'เสียงพูด', k_ocr: 'OCR', k_chat: 'แชท AI', k_media: 'เสียง/สื่อ',
-      c_oom: 'หน่วยความจำไม่พอ', c_crash: 'ตัวประมวลผลหยุดทำงาน', c_decode: 'ถอดรหัสไฟล์ไม่ได้', c_network: 'เครือข่าย', c_evicted: 'ถูกปิดเพื่อคืนหน่วยความจำ', c_other: 'อื่นๆ',
+      c_oom: 'หน่วยความจำไม่พอ', c_crash: 'ตัวประมวลผลหยุดทำงาน', c_decode: 'ถอดรหัสไฟล์ไม่ได้', c_network: 'เครือข่าย', c_evicted: 'ถูกปิดเพื่อคืนหน่วยความจำ', c_other: 'อื่นๆ', c_info: 'สถิติ',
       e_local: 'ในเบราว์เซอร์', e_cloud: 'คลาวด์', offline: 'ออฟไลน์'
     },
     en: {
@@ -36,7 +36,7 @@
       yes: 'Yes', no: 'No', files: '{n} files', modelCleared: 'Model cache cleared — models will download again next time', modelClearWhat: 'the AI model cache on this device',
       log: 'Problem log', logCopy: 'Copy', logClear: 'Clear', logEmpty: 'No problems recorded yet', logCopied: 'Copied', logClearWhat: 'the whole problem log',
       k_asr: 'Transcription', k_tts: 'Speech', k_ocr: 'OCR', k_chat: 'AI chat', k_media: 'Audio/media',
-      c_oom: 'Out of memory', c_crash: 'Processor stopped', c_decode: 'Could not decode file', c_network: 'Network', c_evicted: 'Closed to free memory', c_other: 'Other',
+      c_oom: 'Out of memory', c_crash: 'Processor stopped', c_decode: 'Could not decode file', c_network: 'Network', c_evicted: 'Closed to free memory', c_other: 'Other', c_info: 'Stats',
       e_local: 'in browser', e_cloud: 'cloud', offline: 'offline'
     }
   });

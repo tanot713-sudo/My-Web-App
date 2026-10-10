@@ -501,7 +501,15 @@
         return;
       }
       var thai = /[฀-๿]/.test(text), modelId = pickTtsModel(text);
-      var plan = N.plan(text, { lang: thai ? 'th' : 'en' }); // แปลงเป็นข้อความที่อยู่ใน vocab ของโมเดลก่อนแล้วค่อยตัดท่อน ≤ 60 ตัวอักษร
+      /* "คำอ่านของฉัน" (tanot:tts:lexicon — ตั้งที่หน้า text-to-speech) + ตัวเลือกข้ามอังกฤษในวงเล็บ (tanot:tts:opts) ใช้กับเสียงพูดของวิดเจ็ตด้วย · อ่านผิดพลาด = พูดโดยไม่ใช้ */
+      var nopts = { lang: thai ? 'th' : 'en' };
+      try {
+        var lexv = window.TanotData ? window.TanotData.read('tanot:tts:lexicon', null) : null;
+        if (lexv && typeof lexv.text === 'string' && lexv.text) nopts.lexicon = N.compileLexicon(lexv.text);
+        var topts = JSON.parse(localStorage.getItem('tanot:tts:opts') || '{}');
+        if (topts && topts.skipParen === false) nopts.skipParen = false;
+      } catch (e3) { /* ไม่มีคำอ่าน/ตัวเลือกเสียหาย — ใช้ค่าเริ่มต้น */ }
+      var plan = N.plan(text, nopts); // แปลงเป็นข้อความที่อยู่ใน vocab ของโมเดลก่อนแล้วค่อยตัดท่อน ≤ MAX_CHUNK ตัวอักษร
       if (!plan.chunks.length) return; // แปลงแล้วว่าง (เช่นมีแต่อีโมจิ) = ไม่พูด ไม่ใช่ error
       stopSpeaking();
       var w = getTtsWorker();
