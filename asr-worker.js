@@ -15,6 +15,13 @@
    2026-10 (Section 3 ข้อ 3): Thonburian Whisper (Tanotfin/distill-whisper-th-*-onnx — media-models.js `thai:true`)
    • ฝึกไทยเป็นหลัก → ส่ง language:'thai' เสมอเมื่อหน้าเลือก "อัตโนมัติ" (ผู้ใช้เลือกภาษาเอง = ตามที่เลือก) · ตัวเทียบเท่า Xenova ที่ถอยไปใช้แทนก็ยังบังคับไทย (ผู้ใช้ตั้งใจถอดเสียงไทย)
    • รุ่นที่ WASM ใช้ไม่ได้บนเครื่องแรมน้อย (medium: wasmMinMem 8) — WebGPU ล้มแล้ว "ไม่ถอย WASM" เหมือน gpuOnly (กันหน่วยความจำพุ่งจนแท็บแครช) ส่ง error จริงให้หน้าแสดง
+
+   2026-10 (แก้ข้อความซ้ำที่รอยต่อ ~30 วิ): เลิกใช้ chunk_length_s/stride_length_s ของ pipeline — การต่อท่อนภายใน transformers.js ใช้กับ Thonburian/WebGPU ได้ไม่ดี (ข้อความซ้ำ 3 จุดตรงรอยต่อ
+     ไฟล์ 3 นาที) · หน้า (media-core.js transcribeLocal) ตัดเสียงเป็นท่อน ≤ 30 วิด้วย AsrCalc.planChunks (ตัดที่จุดเงียบ + เหลื่อม 1.5 วิ แบบเดียวกับคลาวด์) ส่งมาทีละท่อน แล้วต่อด้วย
+     AsrCalc.mergeChunks (ตัดคำซ้ำที่รอยต่อ + เวลา segments จริง) · Worker นี้จึงถอดแค่ท่อนเดียวต่อครั้ง · ผู้เรียกตรง (languages.jsx ส่งวลีสั้น) ที่ส่งเสียง > 30 วิมาเอง ยังได้การตัดท่อนของ pipeline
+     เป็นตาข่ายนิรภัย (ไม่เคยเกิดจากหน้า text-to-speech/วิดเจ็ตแชท)
+   • ตอนโหลดโมเดลล้มเพราะเครือข่ายสะดุด (TypeError: network error / Failed to fetch ฯลฯ — ไม่ใช่ 404 ไม่ใช่หน่วยความจำ) รอ ~1.5 วิ ลองโหลดแผนเดิมใหม่ 1 ครั้งก่อนเข้าทางถอย
+     (ส่ง { type:'retry', what:'load' } ให้หน้าบันทึก problem log)
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -90,6 +97,9 @@ self.addEventListener('unhandledrejection', function (e) {
 });
 
 function errMsg(e) { return e && e.message ? String(e.message).slice(0, 240) : String(e).slice(0, 240); }
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+/* Whisper รับเสียงได้ ≤ 30 วิต่อหน้าต่าง — ยาวกว่านี้ (+ เผื่อ 0.5 วิ) มาจากผู้เรียกตรงที่ไม่ได้ตัดท่อนเอง */
+var WINDOW_SAMPLES = Math.round(30.5 * 16000);
 
 self.onmessage = function (e) {
   var msg = e.data;
@@ -109,10 +119,11 @@ self.onmessage = function (e) {
   }
 
   function transcribeWith(transcriber, plan, models) {
-    /* chunk_length_s/stride_length_s: Whisper รับเสียงทีละ ≤30 วินาที — ไม่ตัดจะ "หลอน" วนคำซ้ำทั้งไฟล์ ·
+    /* ท่อนที่ส่งมา ≤ 30 วิเสมอ (หน้าตัดเอง — ดูหัวไฟล์) จึงไม่ส่ง chunk_length_s/stride_length_s ·
        no_repeat_ngram_size: กันแต่ละท่อนวนคำซ้ำ (โมเดลเล็ก/ภาษาไทย) — ห้ามเอาออก (ดูประวัติใน text-to-speech.js) ·
        return_timestamps: ขอเวลาของแต่ละช่วงคำพูด (แบ่งย่อหน้า/[hh:mm:ss]) เฉพาะเมื่อหน้าขอ */
-    var opts = { task: 'transcribe', chunk_length_s: 30, stride_length_s: 5, no_repeat_ngram_size: 3 };
+    var opts = { task: 'transcribe', no_repeat_ngram_size: 3 };
+    if (pcm && pcm.length > WINDOW_SAMPLES) { opts.chunk_length_s = 30; opts.stride_length_s = 5; } // ตาข่ายนิรภัยสำหรับผู้เรียกตรงที่ส่งเสียงยาว
     var language = models ? models.asrLanguage(plan.thaiOf || plan.modelId, lang) : (lang && lang !== 'auto' ? lang : undefined);
     if (language) opts.language = language;
     if (msg.timestamps) opts.return_timestamps = true;
@@ -125,6 +136,14 @@ self.onmessage = function (e) {
       return transcribeWith(tr, plan, models).then(function (r) { return { r: r, plan: plan }; }, function (err) { err.asrStage = 'run'; throw err; });
     }, function (err) { err.asrStage = 'load'; throw err; }).catch(function (err) {
       if (currentJob !== jobId) throw err;
+      /* เครือข่ายสะดุดตอนโหลด → รอแล้วลองแผนเดิมซ้ำ 1 ครั้ง ก่อนเข้าทางถอยด้านล่าง */
+      if (err && err.asrStage === 'load' && !plan.netRetried && models && models.isNetworkError && models.isNetworkError(err)) {
+        return wait(models.NET_RETRY_MS || 1500).then(function () {
+          if (currentJob !== jobId) throw err;
+          self.postMessage({ type: 'retry', jobId: jobId, what: 'load', modelId: plan.modelId, device: plan.device, name: (err && err.name) || 'Error', message: errMsg(err) });
+          return attempt(models, { modelId: plan.modelId, device: plan.device, dtype: plan.dtype, thaiOf: plan.thaiOf, netRetried: true });
+        });
+      }
       /* WebGPU ล้ม → WASM 1 ครั้ง (ตัวที่ใหญ่เกินรัน WASM ได้ หรือเครื่องแรมไม่พอสำหรับ WASM ไม่ถอย) */
       if (plan.device === 'webgpu' && !(models && (models.asrGpuOnly(plan.modelId) || !models.asrWasmOk(plan.modelId, self.navigator && self.navigator.deviceMemory)))) {
         gpuFailed = true; disposePipeline();

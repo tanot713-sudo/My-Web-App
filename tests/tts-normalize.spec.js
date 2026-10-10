@@ -332,7 +332,7 @@ test.describe('C) วิดเจ็ตแชท — พูดคำตอบไ
     await expect(page.locator('.ome-ai-row.bot .ome-ai-bubble')).toContainText('ขอบคุณมากๆ', { timeout: 15000 });
     await expect.poll(() => page.evaluate(() => window.__batches.length), { timeout: 10000 }).toBe(1);
     const b = (await page.evaluate(() => window.__batches))[0];
-    expect(b.model).toBe('Tanotfin/mms-tts-2081-FM-stable-onnx');
+    expect(b.model).toBe('Tanotfin/mms-tts-2081-FM-stable2-onnx');
     expect(b.items.length).toBeGreaterThanOrEqual(2);
     for (const t of b.items) { expect(bad(t), t).toEqual([]); expect(t.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(t).not.toMatch(/\d/); }
     expect(b.items[0]).toBe('ราคา สามพันห้าร้อยเก้าสิบเก้า บาท ลด สิบห้าเปอร์เซ็นต์');

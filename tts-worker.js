@@ -100,25 +100,39 @@ function disposeGpuPipelines() {
   });
 }
 
-/* ทางถอยโมเดล: เสียงชุด stable โหลดไม่ได้ (404/เครือข่าย — ไม่ใช่เรื่องหน่วยความจำ) → ใช้ repo เดิมของเสียงนั้น 1 ครั้งต่อ Worker (จำไว้ใน modelRedirect) + แจ้งหน้าลง problem log */
+/* ทางถอยโมเดล (ไล่ทีละขั้น ขั้นละ 1 ครั้ง): stable2 → stable → ต้นฉบับ (media-models.js ttsLegacy = "ขั้นถัดไป" ของ id นั้น)
+   โหลดไม่ได้ (404/เครือข่ายที่ลองซ้ำแล้วยังล้ม — ไม่ใช่เรื่องหน่วยความจำ) บน WASM → ใช้ขั้นถัดไปแทน จำไว้ใน modelRedirect (ต่อ Worker) + แจ้งหน้าลง problem log ทุกขั้น
+   modelRedirect[ที่ขอ] = id ที่ใช้อยู่จริง · เครือข่ายสะดุดตอนโหลด → รอ NET_RETRY_MS แล้วลองโหลด id เดิมซ้ำ 1 ครั้ง (ส่ง {type:'retry'} ให้หน้าบันทึก) ก่อนเข้าทางถอย */
 var modelRedirect = {};
 var MEM_RE = /out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
+function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+function loadPipelineRetry(modelId, device, onProgress, jobId) {
+  return loadPipeline(modelId, device, onProgress, jobId).catch(function (err) {
+    return (modelsPromise || Promise.resolve(null)).then(function (M) {
+      if (!M || !M.isNetworkError || !M.isNetworkError(err)) throw err;
+      return wait(M.NET_RETRY_MS || 1500).then(function () {
+        self.postMessage({ type: 'retry', jobId: jobId, what: 'load', modelId: modelId, device: device, name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });
+        return loadPipeline(modelId, device, onProgress, jobId);
+      }).catch(function (err2) { if (err2 && typeof err2 === 'object') err2.ttsRetried = true; throw err2; });
+    });
+  });
+}
 function synthesizeOnDevice(text, modelId, device, onProgress, jobId) {
   var eff = modelRedirect[modelId] || modelId;
   return synthesizeRaw(text, eff, device, onProgress, jobId).catch(function (err) {
     return (modelsPromise || Promise.resolve(null)).then(function (M) {
-      var legacy = M && M.ttsLegacy ? M.ttsLegacy(modelId) : null;
-      if (!legacy || device !== 'wasm' || eff !== modelId || (err && err.ttsStage) !== 'load' || MEM_RE.test(String(err && err.message ? err.message : err))) throw err;
-      modelRedirect[modelId] = legacy;
-      delete pipelinePromiseByModel[modelId + '|' + device];
-      self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: modelId, to: legacy, stage: 'load', device: device, modelId: modelId,
+      var next = M && M.ttsLegacy ? M.ttsLegacy(eff) : null;
+      if (!next || device !== 'wasm' || (err && err.ttsStage) !== 'load' || MEM_RE.test(String(err && err.message ? err.message : err))) throw err;
+      modelRedirect[modelId] = next;
+      delete pipelinePromiseByModel[eff + '|' + device];
+      self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: eff, to: next, stage: 'load', device: device, modelId: modelId, retried: !!(err && err.ttsRetried),
         name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });
-      return synthesizeRaw(text, legacy, device, onProgress, jobId);
+      return synthesizeOnDevice(text, modelId, device, onProgress, jobId); // ขั้นถัดไป (ล้มอีก = ถอยต่อจนหมดห่วงโซ่)
     });
   });
 }
 function synthesizeRaw(text, modelId, device, onProgress, jobId) {
-  return loadPipeline(modelId, device, onProgress, jobId).then(function (synth) {
+  return loadPipelineRetry(modelId, device, onProgress, jobId).then(function (synth) {
     return synth(text).then(function (output) {
       if (device === 'webgpu' && output && output.audio) {
         var bad = audioProblem(output.audio);

@@ -39,9 +39,12 @@
     if (isEmbedded()) return; /* ในป๊อปอัพ หน้าที่เปิดป๊อปอัพมีวิดเจ็ตแชทของตัวเองอยู่แล้ว ไม่ต้องซ้ำ */
     /* ai-client.js ต้องมาก่อนวิดเจ็ต (วิดเจ็ตเรียกคลาวด์ก่อนโมเดลในเครื่อง) · media-core.js = งบหน่วยความจำโมเดล/ถอดรหัสเสียง/บันทึกปัญหา
        ที่วิดเจ็ตใช้ร่วมกับหน้า text-to-speech · tts-normalize.js = ปรับข้อความก่อนพูด (วิดเจ็ตต้องใช้ก่อนส่งเข้าโมเดลเสียงเสมอ) — async=false ให้สคริปต์ที่ฉีดรันเรียงตามลำดับที่ใส่ */
-    ['ai-client.js', 'media-core.js', 'tts-normalize.js', 'audio-gain.js', 'ai-chat-widget.js'].forEach(function (f) {
+    /* media-models.js = ตารางโมเดลเสียง (เสียงเริ่มต้น/ธงลดเสียงแหลมของวิดเจ็ต + dtype ที่ media-core ใช้) · asr-calc.js = วางแผนท่อน ≤ 30 วิ + ต่อผลถอดเสียงในเบราว์เซอร์ (media-core.js transcribeLocal) */
+    ['ai-client.js', 'media-core.js', 'media-models.js', 'asr-calc.js', 'tts-normalize.js', 'audio-gain.js', 'ai-chat-widget.js'].forEach(function (f) {
       if (f === 'ai-client.js' && window.AiClient) return;
       if (f === 'media-core.js' && window.TanotMedia) return;
+      if (f === 'media-models.js' && window.TanotMediaModels) return;
+      if (f === 'asr-calc.js' && window.AsrCalc) return;
       if (f === 'tts-normalize.js' && window.TanotTtsNorm) return;
       if (f === 'audio-gain.js' && window.TanotAudioGain) return;
       var s = document.createElement('script');

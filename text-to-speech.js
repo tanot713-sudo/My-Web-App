@@ -46,13 +46,13 @@
       noTranscript: 'ยังไม่มีข้อความที่ถอดเสียงไว้', noIos: 'โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', noDocx: 'โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่',
       sumCloud: 'กำลังสรุปด้วย AI บนคลาวด์…', sumLocalPrep: 'กำลังเตรียมโมเดล AI…', sumFallback: '{msg} — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', sumEmpty: 'สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', sumDone: 'สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', sumFail: 'สรุปไม่สำเร็จ: {msg}',
       sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…',
-      asrSegment: 'กำลังถอดเสียงช่วงที่ {i}/{n}…', offlineLocal: 'ออฟไลน์ — ถอดเสียงในเบราว์เซอร์แทน', asrCancel: 'ยกเลิก', useCloud: 'ใช้โหมดคลาวด์แทน',
+      asrSegment: 'กำลังถอดเสียงท่อนที่ {i}/{n}…', offlineLocal: 'ออฟไลน์ — ถอดเสียงในเบราว์เซอร์แทน', asrCancel: 'ยกเลิก', useCloud: 'ใช้โหมดคลาวด์แทน',
       mobileNote: 'บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง',
       previewTitle: 'ดูข้อความที่จะอ่านจริง', previewLabel: 'ข้อความที่จะอ่านจริง',
       lexTitle: 'คำอ่านของฉัน', lexPh: 'คำ = คำอ่าน', lexSaved: 'บันทึกแล้ว {n} คำ',
       lexRejFormat: 'บรรทัด {line}: ต้องเขียนเป็น "คำ = คำอ่าน" — ไม่บันทึกแถวนี้', lexRejVocab: 'บรรทัด {line}: คำอ่านมีตัวอักษรที่เสียงไทยอ่านไม่ได้ ({chars}) — ไม่บันทึกแถวนี้',
       lexRejLong: 'บรรทัด {line}: ยาวเกินไป — ไม่บันทึกแถวนี้', lexRejLimit: 'บรรทัด {line}: เกิน {max} คำ — ไม่บันทึกแถวนี้', lexRejMore: '…และอีก {n} แถว',
-      optParen: 'ข้ามอังกฤษในวงเล็บหลังคำไทย', optSplit: 'แบ่งไฟล์ตามตอน', optGpu: 'ใช้การ์ดจอ (WebGPU)',
+      optParen: 'ข้ามอังกฤษในวงเล็บหลังคำไทย', optSplit: 'แบ่งไฟล์ตามตอน', optGpu: 'ใช้การ์ดจอ (WebGPU)', optLowpass: 'ลดเสียงแหลม',
       skipTimes: '{n} ครั้ง', addReading: 'เพิ่มคำอ่าน',
       keepNote: 'ระหว่างสร้างไฟล์เสียง อย่าสลับแท็บหรือปิดหน้าจอ — จะช้าลงมาก', keepNoteHidden: 'เคยสลับแท็บระหว่างสร้าง — ช่วงนั้นช้าลง เปิดหน้านี้ค้างไว้จะเร็วกว่า',
       workersInfo: 'Worker {n} ตัว · ~{s} วิ/ท่อน', gpuInfo: 'WebGPU · ~{s} วิ/ท่อน', gpuWasm: 'WebGPU ใช้ไม่ได้กับเสียงนี้ — สลับไปใช้ WASM แล้ว',
@@ -96,13 +96,13 @@
       noTranscript: 'There is no transcribed text yet', noIos: 'This mode is not supported on iPhone/iPad (mobile browsers cannot run this AI model reliably) — use a computer instead', noDocx: 'Could not load the Word file library. Try reloading this page',
       sumCloud: 'Summarizing with AI in the cloud…', sumLocalPrep: 'Preparing the AI model…', sumFallback: '{msg} — switching to the in-browser model…', sumEmpty: 'Could not summarize — the model returned no answer', sumDone: 'Summary ready — review it before downloading', sumFail: 'Summary failed: {msg}',
       sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…',
-      asrSegment: 'Transcribing part {i}/{n}…', offlineLocal: 'Offline — transcribing in the browser instead', asrCancel: 'Cancel', useCloud: 'Use cloud mode instead',
+      asrSegment: 'Transcribing chunk {i}/{n}…', offlineLocal: 'Offline — transcribing in the browser instead', asrCancel: 'Cancel', useCloud: 'Use cloud mode instead',
       mobileNote: 'Phones can only use the small/medium models — cloud mode is more accurate and does not use this device\'s memory',
       previewTitle: 'See the text that will be read', previewLabel: 'Text that will be read aloud',
       lexTitle: 'My pronunciations', lexPh: 'word = reading', lexSaved: 'Saved {n} entries',
       lexRejFormat: 'Line {line}: write it as "word = reading" — this row is not saved', lexRejVocab: 'Line {line}: the reading has characters the Thai voice cannot say ({chars}) — this row is not saved',
       lexRejLong: 'Line {line}: too long — this row is not saved', lexRejLimit: 'Line {line}: more than {max} entries — this row is not saved', lexRejMore: '…and {n} more rows',
-      optParen: 'Skip English in brackets after Thai words', optSplit: 'Split into files by chapter', optGpu: 'Use the graphics card (WebGPU)',
+      optParen: 'Skip English in brackets after Thai words', optSplit: 'Split into files by chapter', optGpu: 'Use the graphics card (WebGPU)', optLowpass: 'Reduce shrill treble',
       skipTimes: '{n} times', addReading: 'Add reading',
       keepNote: 'While the audio is being made, do not switch tabs or turn the screen off — it gets much slower', keepNoteHidden: 'You switched tabs while it was running — it was slower then. Keep this page open for the fastest result',
       workersInfo: '{n} workers · ~{s} s/segment', gpuInfo: 'WebGPU · ~{s} s/segment', gpuWasm: 'WebGPU does not work with this voice — switched to WASM',
@@ -285,17 +285,30 @@
     }
     return ttsPipelinePromiseByModel[modelId];
   }
-  /* ทางถอย (เธรดหลัก): โหลด repo stable ไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ใช้ repo เดิมของเสียงนั้น 1 ครั้ง + problem log · Worker ทำแบบเดียวกันใน tts-worker.js */
+  /* ทางถอย (เธรดหลัก): โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ขั้นถัดไปของเสียงนั้น ทีละขั้น ขั้นละ 1 ครั้ง (stable2 → stable → ต้นฉบับ) + problem log ทุกขั้น · Worker ทำแบบเดียวกันใน tts-worker.js
+     เครือข่ายสะดุดตอนโหลด (TypeError: network error ฯลฯ ไม่ใช่ 404) → รอ ~1.5 วิ ลองโหลดซ้ำ 1 ครั้งก่อนเข้าทางถอย + บันทึกว่าลองซ้ำแล้ว */
   var ttsRedirect = {}, modelFallbackLogged = {};
+  function sleepMs(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
+  function loadTtsPipelineRetry(modelId, onProgress) {
+    return loadTtsPipeline(modelId, onProgress).catch(function (err) {
+      var M = window.TanotMediaModels;
+      if (!M || !M.isNetworkError || !M.isNetworkError(err)) throw err;
+      delete ttsPipelinePromiseByModel[modelId];
+      return sleepMs(M.NET_RETRY_MS || 1500).then(function () {
+        if (window.TanotMedia) TanotMedia.logNote('tts', { stage: 'load-retry', engine: 'local', model: modelId, device: 'wasm' }, 'retry=1 network');
+        return loadTtsPipeline(modelId, onProgress);
+      });
+    });
+  }
   function loadTtsPipelineSafe(modelId, onProgress) {
     var eff = ttsRedirect[modelId] || modelId;
-    return loadTtsPipeline(eff, onProgress).catch(function (err) {
-      var lg = ttsLegacy(modelId);
-      if (!lg || eff !== modelId || (window.TanotMedia && TanotMedia.isMemoryError(err))) throw err;
-      delete ttsPipelinePromiseByModel[modelId];
+    return loadTtsPipelineRetry(eff, onProgress).catch(function (err) {
+      var lg = ttsLegacy(eff);
+      if (!lg || (window.TanotMedia && TanotMedia.isMemoryError(err))) throw err;
+      delete ttsPipelinePromiseByModel[eff];
       ttsRedirect[modelId] = lg;
-      if (window.TanotMedia) TanotMedia.logError('tts', TanotMedia.error('model', null, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) }), { stage: 'model-load', engine: 'local', model: modelId, to: lg });
-      return loadTtsPipeline(lg, onProgress);
+      if (window.TanotMedia) TanotMedia.logError('tts', TanotMedia.error('model', null, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) }), { stage: 'model-load', engine: 'local', model: eff, to: lg });
+      return loadTtsPipelineSafe(modelId, onProgress);
     });
   }
   function synthesizeMmsTts(text, modelId, onProgress) {
@@ -452,9 +465,15 @@
         onMessage: function (w, msg) {
           if (settled) return;
           if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+          else if (msg.type === 'retry') {
+            /* เครือข่ายสะดุดตอนโหลดโมเดล → Worker รอแล้วลองโหลดใหม่ 1 ครั้ง · บันทึกครั้งเดียวต่อเสียง (ไม่มีเนื้อหาผู้ใช้) */
+            var rk = 'retry|' + (msg.modelId || modelId);
+            if (!modelFallbackLogged[rk]) { modelFallbackLogged[rk] = true; TanotMedia.logNote('tts', { stage: 'load-retry', engine: 'local', model: msg.modelId || modelId, device: msg.device || 'wasm' }, 'retry=1 network'); }
+          }
           else if (msg.type === 'fallback' && msg.what === 'model') {
-            /* โหลด repo stable ไม่ได้ → Worker ใช้ repo เดิมแทนแล้ว (1 ครั้งต่อ Worker) · ลง problem log ครั้งเดียวต่อเสียง (ไม่มีเนื้อหาผู้ใช้) */
-            if (!modelFallbackLogged[modelId]) { modelFallbackLogged[modelId] = true; TanotMedia.logError('tts', TanotMedia.error('model', null, { name: msg.name || 'Error', message: msg.message || '' }), { stage: 'model-load', engine: 'local', model: modelId, to: msg.to, device: msg.device || 'wasm' }); }
+            /* โหลดไม่ได้ → Worker ถอยไปขั้นถัดไปแล้ว (stable2 → stable → ต้นฉบับ ขั้นละ 1 ครั้งต่อ Worker) · ลง problem log ครั้งเดียวต่อขั้น (ไม่มีเนื้อหาผู้ใช้) */
+            var fk = (msg.from || modelId) + '>' + (msg.to || '');
+            if (!modelFallbackLogged[fk]) { modelFallbackLogged[fk] = true; TanotMedia.logError('tts', TanotMedia.error('model', null, { name: msg.name || 'Error', message: msg.message || '' }), { stage: 'model-load', engine: 'local', model: msg.from || modelId, to: msg.to, device: msg.device || 'wasm' }); }
           }
           else if (msg.type === 'fallback') {
             /* WebGPU ล้ม/เสียงผิดปกติ → Worker ทำท่อนเดิมซ้ำบน WASM แล้ว · บันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้) + จำว่าล้ม 3 วัน + ขยายพูลเป็นขนาดปกติ */
@@ -509,13 +528,14 @@
   /* ต่อเสียง + ทำ .wav/.mp3 ใน audio-encode-worker.js (เดิมทำบนเธรดหลัก — หน้าค้างตอนท้าย) → { wav: Blob, mp3: Blob }
      ส่ง Float32Array แต่ละท่อนแบบ transfer (ไม่ copy) · ไม่มี Worker = ทำบนเธรดหลักแบบเดิม */
   var TTS_GAP_SEC = 0.3; // ใช้เมื่อไม่ส่ง gaps รายท่อนมา
-  function encodeAudio(parts, sampleRate, gaps) {
+  function encodeAudio(parts, sampleRate, gaps, eopts) {
+    var lowpassHz = eopts && eopts.lowpass ? (window.TanotMediaModels ? TanotMediaModels.TTS_LOWPASS_HZ : 7000) : 0; // ลดเสียงแหลม (ทำเฉพาะ sampleRate > 16 kHz — audio-gain.js)
     var gapSamples = gaps ? gaps.map(function (g) { return Math.round(sampleRate * g); }) : Math.round(sampleRate * TTS_GAP_SEC);
     var w = null;
     if (typeof Worker !== 'undefined') { try { w = new Worker('./audio-encode-worker.js'); } catch (e) { w = null; } }
     if (!w) {
       var audio = concatFloat32Arrays(parts, gapSamples);
-      if (window.TanotAudioGain) TanotAudioGain.apply(audio, sampleRate); // ไม่มี Worker = ปรับความดังบนเธรดหลัก (กฎเดียวกับ audio-encode-worker.js)
+      if (window.TanotAudioGain) TanotAudioGain.process(audio, sampleRate, { lowpass: lowpassHz }); // ไม่มี Worker = ลดเสียงแหลม + ปรับความดังบนเธรดหลัก (กฎเดียวกับ audio-encode-worker.js)
       var wavBlob = float32ToWavBlob(audio, sampleRate);
       return wavBlob.arrayBuffer().then(function (buf) {
         return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3) { return { wav: wavBlob, mp3: mp3 }; });
@@ -532,7 +552,7 @@
         w.terminate();
         reject(TanotMedia.error('crash', null, { name: 'WorkerError', message: (e && e.message) || 'encode worker crashed' }));
       };
-      w.postMessage({ type: 'encode', parts: parts, sampleRate: sampleRate, gapSec: TTS_GAP_SEC, gaps: gaps || null, kbps: 128 }, parts.map(function (p) { return p.buffer; }));
+      w.postMessage({ type: 'encode', parts: parts, sampleRate: sampleRate, gapSec: TTS_GAP_SEC, gaps: gaps || null, kbps: 128, lowpass: lowpassHz }, parts.map(function (p) { return p.buffer; }));
     });
   }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
@@ -600,17 +620,17 @@
   }
   var TTS_VOICES = {
     th: [
-      /* ชุด stable (ความสุ่มของ VITS ลดลง) · ตัวแรก = ค่าเริ่มต้น · ทางถอยไปต้นฉบับอยู่ที่ media-models.js (TTS_LEGACY) · เอา "ค่าเริ่มต้น" เดิม (Tanotfin/mms-tts-2081-onnx) ออกแล้ว */
-      { id: 'Tanotfin/mms-tts-2081-FM-stable-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
-      { id: 'Tanotfin/mms-tts-2081-M-stable-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' },
-      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' }
+      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) · เอา "ค่าเริ่มต้น" เดิม (Tanotfin/mms-tts-2081-onnx) ออกแล้ว */
+      { id: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
+      { id: 'Tanotfin/mms-tts-2081-M-stable2-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' },
+      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น', k: 'v_default' }
     ]
   };
   function renderVoiceOptions() {
-    var lang = $('dlLang').value, keep = ttsMigrate($('dlVoice').value); // ค่าที่เคยเลือกไว้ (id เดิม) → ตัว stable คู่กัน
+    var lang = $('dlLang').value, keep = ttsMigrate($('dlVoice').value); // ค่าที่เคยเลือกไว้ (ต้นฉบับ/stable) → ตัว stable2 คู่กัน
     var voices = TTS_VOICES[lang] || TTS_VOICES.th;
     $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + T(v.k) + '</option>'; }).join('');
     if (keep && voices.some(function (v) { return v.id === keep; })) $('dlVoice').value = keep; // ไม่มีในรายการภาษานี้ = ตัวแรก (เดิมตั้งค่าที่ไม่มีอยู่ → select ว่าง → modelId '')
@@ -644,12 +664,23 @@
     try { o = JSON.parse(localStorage.getItem(OPTS_KEY) || '{}') || {}; } catch (e) { o = {}; }
     /* gpu ค่าเริ่มต้นปิด: WebGPU ใช้ Worker เดียว ส่วน WASM รันหลาย Worker ขนาน — ยังไม่ได้วัดว่าเร็วกว่าจริง (tools/media-eval tts:webgpu-100) และรอบก่อนเคยช้ากว่า
        เปิดเป็นค่าเริ่มต้นได้หลังผลวัดยืนยัน */
-    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu === true };
+    /* lowpass: true/false = ผู้ใช้ตั้งเอง · ไม่มี (null) = ตามค่าเริ่มต้นของเสียงที่เลือก (media-models.js TTS_LOWPASS_DEFAULT: หญิง ทั่วไป เปิด) */
+    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu === true, lowpass: typeof o.lowpass === 'boolean' ? o.lowpass : null };
   }
+  var lowpassUser = null; // ผู้ใช้ติ๊กเองแล้วหรือยัง (null = ใช้ค่าเริ่มต้นของเสียง)
   function saveOpts() {
     var o = { skipParen: $('optParen').checked, split: $('optSplit').checked, gpu: $('optGpu').checked };
+    if (lowpassUser !== null) o.lowpass = lowpassUser;
     try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)); } catch (e) {}
   }
+  /* ติ๊ก "ลดเสียงแหลม" ตามเสียงที่เลือก (ถ้าผู้ใช้ยังไม่เคยตั้งเอง) · ซ่อนเมื่อเสียงอังกฤษ (16 kHz ไม่มีย่านให้กรอง) */
+  function lowpassFor(modelId) { return window.TanotMediaModels && TanotMediaModels.ttsLowpassDefault ? TanotMediaModels.ttsLowpassDefault(modelId) : false; }
+  function syncLowpass() {
+    var th = $('dlLang').value === 'th';
+    $('optLowpassWrap').hidden = !th;
+    $('optLowpass').checked = lowpassUser !== null ? lowpassUser : lowpassFor(ttsMigrate($('dlVoice').value));
+  }
+  function wantLowpass() { return $('dlLang').value === 'th' && $('optLowpass').checked; }
 
   /* ══════════════════ คำอ่านของฉัน (lexicon) ══════════════════
      เก็บเป็น blob {v:1, text:"คำ = คำอ่าน\n…"} ใน tanot:tts:lexicon (sync — data-registry.js) เฉพาะแถวที่ผ่านตรวจ vocab · ใช้ใน forMms/plan ผ่าน opts.lexicon (tts-normalize.js)
@@ -787,6 +818,7 @@
     var lang = $('dlLang').value, th = lang === 'th';
     var modelId = ttsMigrate($('dlVoice').value);
     var nopts = normOpts(lang);
+    var lowpass = wantLowpass(); // ลดเสียงแหลมของไฟล์นี้ (อ่านตอนกดสร้าง — ติ๊กระหว่างสร้างไม่มีผลกับงานที่เริ่มแล้ว)
     var wantSplit = $('optSplit').checked;
     var chapters = wantSplit && Long ? Long.splitChapters(rawText) : null;
     /* แปลงก่อน แล้วค่อยตัดท่อน ≤ MAX_CHUNK (+ รวมบรรทัดในย่อหน้าเดียวกัน) · โหมดตามตอน: วางแผนทีละตอนแล้วต่อกัน */
@@ -824,7 +856,7 @@
       targetSec: window.TANOT_TTS && window.TANOT_TTS.timeSplitSec, hardCapSec: window.TANOT_TTS && window.TANOT_TTS.timeSplitSec ? window.TANOT_TTS.timeSplitSec * 1.2 : undefined, // TANOT_TTS = ตัวปรับสำหรับเทสต์เท่านั้น
       onPart: function (info) {
         encodeChain = encodeChain.then(function () {
-          return encodeAudio(info.parts, info.rate, info.gaps).then(function (files) {
+          return encodeAudio(info.parts, info.rate, info.gaps, { lowpass: lowpass }).then(function (files) {
             run.parts++;
             if (mode === 'single') {
               showResult(URL.createObjectURL(files.wav), URL.createObjectURL(files.mp3));
@@ -1560,14 +1592,17 @@
     $('wsRate').addEventListener('input', function () { $('wsRateVal').textContent = parseFloat($('wsRate').value).toFixed(1) + 'x'; });
 
     renderVoiceOptions();
-    $('dlLang').addEventListener('change', function () { renderVoiceOptions(); updatePreviews(); });
+    $('dlLang').addEventListener('change', function () { renderVoiceOptions(); syncLowpass(); updatePreviews(); });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
     $('dlCancelBtn').addEventListener('click', cancelGenerate);
 
     /* คำอ่านของฉัน + ตัวเลือกสร้างไฟล์ + WebGPU */
     var o = readOpts();
     $('optParen').checked = o.skipParen; $('optSplit').checked = o.split; $('optGpu').checked = o.gpu;
+    lowpassUser = o.lowpass; syncLowpass();
     ['optParen', 'optSplit', 'optGpu'].forEach(function (id) { $(id).addEventListener('change', function () { saveOpts(); schedulePreviews(); }); });
+    $('optLowpass').addEventListener('change', function () { lowpassUser = $('optLowpass').checked; saveOpts(); });
+    $('dlVoice').addEventListener('change', syncLowpass);
     $('lexText').value = lexStored();
     lexParse = Norm.parseLexicon($('lexText').value);
     renderLexStatus();

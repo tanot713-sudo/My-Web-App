@@ -47,7 +47,8 @@ for (const m of models) {
 /* เสียงพูด MMS-TTS (Section 5): WASM ใช้ dtype ตาม TTS_DTYPE_OVERRIDES (ไม่มี = q8 → model_quantized.onnx) · WebGPU ใช้ ttsGpuDtype (fp32 → model.onnx) — ไฟล์ fp32 ของแต่ละ repo ยังไม่เคยตรวจจริง */
 const tts = await readFile(join(ROOT, 'text-to-speech.js'), 'utf8');
 const M = sandbox.self.TanotMediaModels;
-/* เสียงไทยชุด stable (2026-10: Tanotfin/mms-tts-2081-FM-stable-onnx · …-M-stable-onnx · mms-thai-female-podcast-spk0-stable-onnx) อยู่ในรายการของหน้า + repo ต้นฉบับที่เป็นทางถอย (TTS_LEGACY) ตรวจด้วย — ไฟล์ onnx/ ต้องชุดเดียวกับต้นฉบับ (พอดแคสต์ fp32 เท่านั้น) */
+/* เสียงไทยชุด stable2 (2026-10: Tanotfin/mms-tts-2081-FM-stable2-onnx · …-M-stable2-onnx · mms-thai-female-podcast-spk0-stable2-onnx — noise_scale 0.1 / noise_scale_duration 0.0) อยู่ในรายการของหน้า
+   + ทุก repo ในห่วงโซ่ทางถอย stable2 → stable → ต้นฉบับ (ค่าทั้งหมดของ TTS_LEGACY) ตรวจด้วย — ไฟล์ onnx/ ต้องชุดเดียวกับต้นฉบับ (พอดแคสต์ fp32 เท่านั้น; FM/M มี model_quantized.onnx + model.onnx) */
 const voices = [...new Set([...tts.matchAll(/id: '([\w.-]+\/[\w.-]*mms[\w.-]*)'/g)].map((m) => m[1]).concat(Object.values(M.TTS_LEGACY)))];
 for (const id of voices) {
   const need = ['config.json'];
