@@ -245,6 +245,8 @@ test.describe('A) tts-long.js', () => {
 /* ═══════════════ B) หน้า text-to-speech ═══════════════ */
 const BIG_DEVICE = `Object.defineProperty(Navigator.prototype, 'deviceMemory', { get: () => 8 }); Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });`;
 const GPU_OK = `Object.defineProperty(Navigator.prototype, 'gpu', { configurable: true, get: () => ({ requestAdapter: async () => ({ isFallbackAdapter: false, features: new Set(['shader-f16']) }) }) });`;
+/* ตัวเลือก "ใช้การ์ดจอ" ค่าเริ่มต้นปิด (ยังไม่ได้วัดว่าเร็วกว่า WASM หลาย Worker) — เทสต์ที่ทดสอบเส้นทาง WebGPU เปิดเองผ่านค่าที่จำไว้ */
+const GPU_ON = `try { if (!localStorage.getItem('tanot:tts:opts')) localStorage.setItem('tanot:tts:opts', JSON.stringify({ gpu: true })); } catch (e) {}`;
 const WAKE = `(() => { window.__wl = []; Object.defineProperty(navigator, 'wakeLock', { configurable: true, value: { request: async (t) => { window.__wl.push('req:' + t); const s = { released: false, release() { if (this.released) return; this.released = true; window.__wl.push('rel'); return Promise.resolve(); }, addEventListener() {} }; return s; } } }); })();`;
 
 /* transformers.js หลอก: TTS ตรวจ vocab + ความยาว ≤ MAX_CHUNK · cfg.gpu = พฤติกรรมเมื่อขอ device:'webgpu' · cfg.busyMs = เวลาต่อท่อน · แจ้ง device/dtype ที่ถูกโหลดกลับหน้า */
@@ -560,7 +562,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
   }
 
   test('เครื่องที่ webgpuPlan ok → ตัวเลือก "ใช้การ์ดจอ" โผล่ · ส่ง device:webgpu + Worker เดียว (fp32) · เสียงปกติไม่ถอย', async ({ context, page }) => {
-    const errors = await setup(context, page, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK });
+    const errors = await setup(context, page, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK + GPU_ON });
     await run(page);
     await expect(page.locator('#optGpuWrap')).toBeVisible();
     const b = await page.evaluate(() => ({ batches: window.__batches, msgs: window.__wmsgs, workers: window.__workers.filter((u) => /tts-worker/.test(u)).length }));
@@ -573,6 +575,19 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     expect(errors).toEqual([]);
   });
 
+  test('ค่าเริ่มต้น (ยังไม่เคยเลือก): ตัวเลือก "ใช้การ์ดจอ" โผล่แต่ไม่ติ๊ก → WASM หลาย Worker เหมือนเดิม · ติ๊กแล้วจำค่า', async ({ context, page }) => {
+    const errors = await setup(context, page, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK });
+    await run(page);
+    await expect(page.locator('#optGpuWrap')).toBeVisible();
+    await expect(page.locator('#optGpu')).not.toBeChecked();
+    expect(await page.evaluate(() => window.__batches.every((x) => x.device === 'wasm'))).toBe(true);
+    await page.check('#optGpu');
+    expect(JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:tts:opts')))).toMatchObject({ gpu: true });
+    await page.reload();
+    await expect(page.locator('#optGpu')).toBeChecked();
+    expect(errors).toEqual([]);
+  });
+
   test('ไม่ติ๊ก "ใช้การ์ดจอ" หรือไม่มี WebGPU → WASM เหมือนเดิม (ไม่ส่ง webgpu, ตัวเลือกซ่อน)', async ({ context, page }) => {
     await setup(context, page, { cfg: { gpu: 'ok' }, init: BIG_DEVICE });
     await run(page);
@@ -580,7 +595,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     expect(await page.evaluate(() => window.__batches.every((x) => x.device === 'wasm'))).toBe(true);
     const ctx2 = await context.browser().newContext();
     const p2 = await ctx2.newPage();
-    await setup(ctx2, p2, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK });
+    await setup(ctx2, p2, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK + GPU_ON });
     await p2.goto('/text-to-speech.html');
     await expect(p2.locator('#optGpuWrap')).toBeVisible();
     await p2.uncheck('#optGpu');
@@ -592,7 +607,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
 
   for (const [mode, stage, why] of [['throw-load', 'load', 'โหลด WebGPU ไม่ได้'], ['throw-run', 'run', 'รันบน WebGPU ล้ม'], ['nan', 'output', 'เสียงมี NaN'], ['silent', 'output', 'เสียงเงียบทั้งท่อน']]) {
     test(`${why} → ถอย WASM 1 ครั้งแล้วสร้างไฟล์ได้ครบ · problem log (webgpu-${stage}) ไม่มีเนื้อหา · จำว่าล้ม (ครั้งหน้าไม่เสนอ WebGPU) · ขยายพูลเป็นหลาย Worker`, async ({ context, page }) => {
-      const errors = await setup(context, page, { cfg: { gpu: mode, busyMs: 40 }, init: BIG_DEVICE + GPU_OK });
+      const errors = await setup(context, page, { cfg: { gpu: mode, busyMs: 40 }, init: BIG_DEVICE + GPU_OK + GPU_ON });
       await run(page, sentences(16, 'ลับ'));
       const b = await page.evaluate(() => ({ msgs: window.__wmsgs, workers: window.__workers.filter((u) => /tts-worker/.test(u)).length }));
       const fb = b.msgs.filter((m) => m.type === 'fallback');

@@ -620,7 +620,9 @@
   function readOpts() {
     var o = {};
     try { o = JSON.parse(localStorage.getItem(OPTS_KEY) || '{}') || {}; } catch (e) { o = {}; }
-    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu !== false };
+    /* gpu ค่าเริ่มต้นปิด: WebGPU ใช้ Worker เดียว ส่วน WASM รันหลาย Worker ขนาน — ยังไม่ได้วัดว่าเร็วกว่าจริง (tools/media-eval tts:webgpu-100) และรอบก่อนเคยช้ากว่า
+       เปิดเป็นค่าเริ่มต้นได้หลังผลวัดยืนยัน */
+    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu === true };
   }
   function saveOpts() {
     var o = { skipParen: $('optParen').checked, split: $('optSplit').checked, gpu: $('optGpu').checked };
