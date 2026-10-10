@@ -625,6 +625,8 @@
     VALID_CHARS: VALID_CHARS, GAP_SENT_SEC: GAP_SENT_SEC, GAP_LINE_SEC: GAP_LINE_SEC, GAP_PARA_SEC: GAP_PARA_SEC, MAX_CHUNK: DEFAULT_MAX,
     numberToWords: numberToWords, thaiNumberToWords: numberToWords, forMms: forMms, forNative: forNative, forMmsEn: forMmsEn,
     plan: plan, chunks: chunks, filterVocab: filterVocab,
+    /* เว้นขอบท่อนที่ส่งเข้าโมเดล MMS ไทย: " " + ท่อน + " " (ทำที่จุดส่งเข้า Worker ไม่ใช่ใน plan() — ความยาวท่อนจึง ≤ MAX_CHUNK + 2 และ "ดูข้อความที่จะอ่านจริง" ไม่เปลี่ยน) */
+    padMms: function (text) { return ' ' + text + ' '; },
     parseLexicon: parseLexicon, compileLexicon: compileLexicon, skippedWords: skippedWords, LEX_MAX_ROWS: LEX_MAX_ROWS,
     /* ตารางคำอ่านทั้งหมด — test ตรวจว่า "ทุกตัวอักษรของคำอ่านอยู่ใน vocab" (กรองแล้วไม่หายไปไหน) */
     TABLES: { DIGIT: DIGIT, MONTHS: MONTHS, ABBR: ABBR_ANY.concat(ABBR_WORD), UNITS: UNITS, EN_DICT: EN_DICT, LETTER: LETTER,

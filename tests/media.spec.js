@@ -295,7 +295,7 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
   test('โมเดล fp32 (หญิง โทนพอดแคสต์) = Worker เดียวแม้เครื่องแรง', async ({ context, page }) => {
     await setup(context, page, { cfg: { tts: { busyMs: 20 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
-    await generate(page, 'phlebotomy1996/mms-thai-female-podcast-spk0');
+    await generate(page, 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx');
     expect((await workers(page, /tts-worker/)).length).toBe(1);
   });
 

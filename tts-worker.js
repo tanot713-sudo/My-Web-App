@@ -100,7 +100,24 @@ function disposeGpuPipelines() {
   });
 }
 
+/* ทางถอยโมเดล: เสียงชุด stable โหลดไม่ได้ (404/เครือข่าย — ไม่ใช่เรื่องหน่วยความจำ) → ใช้ repo เดิมของเสียงนั้น 1 ครั้งต่อ Worker (จำไว้ใน modelRedirect) + แจ้งหน้าลง problem log */
+var modelRedirect = {};
+var MEM_RE = /out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
 function synthesizeOnDevice(text, modelId, device, onProgress, jobId) {
+  var eff = modelRedirect[modelId] || modelId;
+  return synthesizeRaw(text, eff, device, onProgress, jobId).catch(function (err) {
+    return (modelsPromise || Promise.resolve(null)).then(function (M) {
+      var legacy = M && M.ttsLegacy ? M.ttsLegacy(modelId) : null;
+      if (!legacy || device !== 'wasm' || eff !== modelId || (err && err.ttsStage) !== 'load' || MEM_RE.test(String(err && err.message ? err.message : err))) throw err;
+      modelRedirect[modelId] = legacy;
+      delete pipelinePromiseByModel[modelId + '|' + device];
+      self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: modelId, to: legacy, stage: 'load', device: device, modelId: modelId,
+        name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });
+      return synthesizeRaw(text, legacy, device, onProgress, jobId);
+    });
+  });
+}
+function synthesizeRaw(text, modelId, device, onProgress, jobId) {
   return loadPipeline(modelId, device, onProgress, jobId).then(function (synth) {
     return synth(text).then(function (output) {
       if (device === 'webgpu' && output && output.audio) {
