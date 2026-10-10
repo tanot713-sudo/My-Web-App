@@ -16,6 +16,7 @@
 <script src="data-registry.js"></script>
 <script src="tanot-data.js"></script>
 <script src="i18n.js"></script>
+<script src="media-core.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <script src="data-import.js" defer></script>
@@ -28,6 +29,8 @@
 .imp-result.ok,.dt-ok{color:var(--ome-ok-ink)}
 .imp-result.err,.dt-err{color:var(--ome-err-ink)}
 .dt-status:empty,#dtDriveFiles:empty{display:none}
+.dt-log .meta{overflow-wrap:anywhere}
+.dt-log .dt-err-msg{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:var(--ome-fs-sm);color:var(--ome-text-2);overflow-wrap:anywhere;margin-top:2px}
 </style>
 </head>
 <body data-layout="tool">
@@ -59,6 +62,23 @@
   </section>
 
   <section class="card stack" id="dtPlan" hidden></section>
+
+  <section class="card stack" id="dtModels">
+    <div class="card-head"><h2 data-i18n="dt.models">โมเดล AI ในเครื่อง</h2><button type="button" class="btn sm danger" id="dtModelClear" data-i18n="dt.modelClear">ล้างแคชโมเดล</button></div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.modelSize">แคชโมเดล</div><div class="kpi-value" id="dtModelSize">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.storageUse">พื้นที่ที่เว็บนี้ใช้</div><div class="kpi-value" id="dtStorageUse">—</div></div>
+      <div class="kpi"><div class="kpi-label" data-i18n="dt.persist">เก็บถาวร</div><div class="kpi-value" id="dtPersist">—</div></div>
+    </div>
+    <div class="dt-status" id="dtModelMsg" role="status"></div>
+  </section>
+
+  <section class="card stack" id="dtLogCard">
+    <div class="card-head"><h2 data-i18n="dt.log">บันทึกปัญหา</h2>
+      <div class="row"><button type="button" class="btn sm" id="dtLogCopy" data-i18n="dt.logCopy">คัดลอก</button><button type="button" class="btn sm" id="dtLogClear" data-i18n="dt.logClear">ล้าง</button></div></div>
+    <div class="list dt-log" id="dtLog"></div>
+    <div class="dt-status" id="dtLogMsg" role="status"></div>
+  </section>
 
   <section class="card stack" id="dtHistoryCard" hidden>
     <div class="card-head"><h2 data-i18n="dt.replaced">ค่าที่ถูกแทนด้วยข้อมูลจากเครื่องอื่น</h2></div>

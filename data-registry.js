@@ -37,6 +37,7 @@
     { key: 'tanot:aiChat:noBigModel', kind: 'local' },
     { key: 'tanot:asr:engine', kind: 'local' },
     { key: 'tanot:asrcloud:neuronUsage', kind: 'local' },
+    { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:ocrengine', kind: 'local' },
     { key: 'tanot:market:live-config:v1', kind: 'local' }, // มี API key ที่ UI บอกว่าเก็บในเครื่องเท่านั้น — ห้ามส่งขึ้นเซิร์ฟเวอร์
     { key: 'tanot:barprep:ttsvoice', kind: 'local' },

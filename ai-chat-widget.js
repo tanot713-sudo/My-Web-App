@@ -161,9 +161,9 @@
   var I18N = window.OME_I18N || null;
   if (I18N) I18N.add('aichat', {
     th: { title: 'ผู้ช่วย AI ถาม-ตอบ', close: 'ปิด', mic: 'เปิดไมค์คุย', placeholder: 'พิมพ์คำถาม…', send: 'ส่ง',
-      speak: 'พูดคำตอบด้วยเสียง', summarize: 'สรุปหน้านี้', newChat: 'เริ่มแชทใหม่' },
+      speak: 'พูดคำตอบด้วยเสียง', summarize: 'สรุปหน้านี้', newChat: 'เริ่มแชทใหม่', speakFail: 'พูดคำตอบไม่สำเร็จ: ' },
     en: { title: 'AI assistant', close: 'Close', mic: 'Talk with microphone', placeholder: 'Type a question…', send: 'Send',
-      speak: 'Read answers aloud', summarize: 'Summarize this page', newChat: 'New chat' }
+      speak: 'Read answers aloud', summarize: 'Summarize this page', newChat: 'New chat', speakFail: 'Could not read the answer aloud: ' }
   });
   function tx(k, th) { return I18N ? I18N.t('aichat.' + k) : th; }
   var fab = document.createElement('button');
@@ -257,7 +257,7 @@
   }
 
   /* ── ตัวแปรสถานะ + worker (สร้างแบบ lazy ตอนใช้จริงครั้งแรกเท่านั้น) ──────────────── */
-  var chatWorker = null, ttsWorker = null, asrWorker = null;
+  var chatWorker = null, ttsWorker = null;
   var jobSeq = 0;
   var isBusy = false;
   var isRecording = false;
@@ -318,13 +318,21 @@
      ซึ่งทำให้โมเดลเล็ก (ตัวที่ใช้งานได้จริง) โหลดช้าลงไปด้วยเพราะแย่งแบนด์วิดท์กัน — ใช้คีย์เดียวกับ
      invest-*.js ทุกหน้า (ค้นพบว่าพังบนหน้าไหนก็ไม่ต้องลองซ้ำบนหน้าอื่นของเว็บเดียวกันอีก) */
   var AI_BIG_MODEL_BLOCKLIST_KEY = 'tanot:aiChat:noBigModel';
+  /* งบหน่วยความจำ (media-core.js): บนมือถือมีโมเดลในเบราว์เซอร์ได้ครั้งละ 1 ตัว — เดิมวิดเจ็ตนี้มี LLM (แชท) + Whisper (ไมค์) +
+     MMS-TTS (พูดคำตอบ) อยู่ในหน่วยความจำพร้อมกันได้ 3 ตัว แท็บมือถือแครช · acquire() ปิด Worker โมเดลตัวอื่นก่อนโหลดตัวใหม่
+     (ครั้งหน้าที่ใช้ตัวที่ถูกปิดจะโหลดจากแคชใหม่ — ช้าลงแต่ไม่แครช) · มือถือไม่แข่ง 2 โมเดลแชทพร้อมกัน (ใหญ่/เล็ก) */
+  var TM = window.TanotMedia || null;
+  function claim(id, release) { if (TM) { TM.budget.acquire(id, release); TM.persistOnce(); } }
+  function isMobileDevice() { return TM ? TM.isMobile() : /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || ''); }
+  function releaseChatWorker() { if (chatWorker) { try { chatWorker.terminate(); } catch (e) {} } chatWorker = null; }
   function getChatWorkerAsync() {
     if (chatWorker) return Promise.resolve(chatWorker);
     if (chatWorkerRacePromise) return chatWorkerRacePromise;
+    claim('chat', releaseChatWorker);
     var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
     var noBig = false;
     try { noBig = localStorage.getItem(AI_BIG_MODEL_BLOCKLIST_KEY) === '1'; } catch (e) {}
-    var canTryBig = !noBig && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var canTryBig = !noBig && !isMobileDevice() && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
     var candidates;
     if (canTryBig) {
       var bigP = spawnProbedWorker('big').catch(function (err) {
@@ -347,8 +355,14 @@
     });
     return chatWorkerRacePromise;
   }
-  function getTtsWorker() { if (!ttsWorker) ttsWorker = new Worker('./tts-worker.js', { type: 'module' }); return ttsWorker; }
-  function getAsrWorker() { if (!asrWorker) asrWorker = new Worker('./asr-worker.js', { type: 'module' }); return asrWorker; }
+  function getTtsWorker() {
+    if (!ttsWorker) {
+      claim('tts-widget', function () { if (ttsWorker) { try { ttsWorker.terminate(); } catch (e) {} } ttsWorker = null; });
+      ttsWorker = new Worker('./tts-worker.js', { type: 'module' });
+    }
+    return ttsWorker;
+  }
+  function logMedia(kind, err, ctx) { if (TM) TM.logError(kind, err, ctx); }
   /* ต้องสร้าง/ปลดล็อก AudioContext "ในจังหวะคลิกของผู้ใช้โดยตรง" เท่านั้น (synchronous ในตัว event
      handler) ไม่งั้นเบราว์เซอร์ (autoplay policy) จะสั่ง suspended ค้างไว้ — ที่ผ่านมาสร้าง AudioContext
      ใหม่ตอน playPcm() ซึ่งรันหลัง worker ตอบกลับมา (async, ห่างจาก click event ไปหลายวินาที) จึงโดนบล็อก
@@ -473,10 +487,22 @@
         } else if (msg.type === 'item-done') {
           cleanup(); setStatus('', ''); playPcm(msg.audio, msg.samplingRate);
         } else if (msg.type === 'item-error') {
-          cleanup(); setStatus('พูดคำตอบไม่สำเร็จ: ' + msg.message, 'err');
+          cleanup();
+          var cause = { name: msg.name || 'Error', message: msg.message || '' };
+          logMedia('tts', cause, { stage: 'synth', engine: 'local', model: pickTtsModel(text) });
+          if (TM && TM.isMemoryError(cause)) { try { w.terminate(); } catch (e2) {} if (ttsWorker === w) ttsWorker = null; if (TM) TM.budget.release('tts-widget'); }
+          setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM && TM.isMemoryError(cause) ? TM.errorText(TM.error('oom')) : msg.message), 'err');
         }
       }
-      function onErr(e) { cleanup(); setStatus('Web Worker error: ' + (e.message || ''), 'err'); }
+      function onErr(e) {
+        cleanup();
+        if (e && e.preventDefault) e.preventDefault();
+        try { w.terminate(); } catch (e2) {}
+        if (ttsWorker === w) ttsWorker = null;
+        if (TM) TM.budget.release('tts-widget');
+        logMedia('tts', { name: 'WorkerError', message: (e && e.message) || 'worker crashed', code: 'crash' }, { stage: 'worker', engine: 'local', model: pickTtsModel(text) });
+        setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM ? TM.errorText(TM.error('crash')) : (e.message || '')), 'err');
+      }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
@@ -560,6 +586,7 @@
           } else if (msg.type === 'error') {
             cleanup();
             resetWorkerOnError();
+            logMedia('chat', { name: 'Error', message: msg.message || '' }, { stage: 'chat', engine: 'local' });
             if (replyBubble) replyBubble.remove();
             messages.pop();
             setStatus('ตอบไม่สำเร็จ: ' + friendlyChatError(msg.message), 'err');
@@ -575,7 +602,7 @@
           setBusy(false); inputEl.focus();
         }
         function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
+        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; if (TM) TM.budget.release('chat'); }
         w.addEventListener('message', onMsg);
         w.addEventListener('error', onErr);
         w.postMessage({ type: 'chat', jobId: jobId, messages: payloadMessages });
@@ -667,7 +694,7 @@
           setBusy(false); inputEl.focus();
         }
         function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; }
+        function resetWorkerOnError() { try { w.terminate(); } catch (e) {} chatWorker = null; if (TM) TM.budget.release('chat'); }
         w.addEventListener('message', onMsg);
         w.addEventListener('error', onErr);
         w.postMessage({ type: 'chat', jobId: jobId, messages: summaryMessages, maxNewTokens: 400 });
@@ -678,24 +705,20 @@
 
     /* ── โหมดเปิดไมค์คุย: แตะเริ่มอัด แตะอีกทีหยุด → ถอดเสียงเป็นข้อความ → ส่งอัตโนมัติ →
        บังคับพูดคำตอบกลับด้วยเสียงเสมอ (ไม่ต้องพึ่ง checkbox) ให้ความรู้สึกเหมือนคุยด้วยเสียงจริง ── */
-    function resampleTo16kMono(audioBuffer) {
-      var targetRate = 16000;
-      var OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-      var offlineCtx = new OfflineCtx(1, Math.ceil(audioBuffer.duration * targetRate), targetRate);
-      var source = offlineCtx.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(offlineCtx.destination);
-      source.start(0);
-      return offlineCtx.startRendering().then(function (rendered) { return rendered.getChannelData(0); });
-    }
+    /* ถอดรหัสเสียงที่อัดที่ 16kHz ตั้งแต่แรก (TanotMedia.decode16k — ฟังก์ชันเดียวกับหน้า text-to-speech) */
     function decodeBlobToPcm(blob) {
       return blob.arrayBuffer().then(function (buf) {
-        var AudioCtx = window.AudioContext || window.webkitAudioContext;
-        var ctx = new AudioCtx();
-        return ctx.decodeAudioData(buf).then(function (audioBuffer) {
+        if (TM) return TM.decode16k(buf).then(function (dec) { return dec.mono(); });
+        var AudioCtx = window.AudioContext || window.webkitAudioContext, ctx = new AudioCtx();
+        return ctx.decodeAudioData(buf).then(function (ab) {
           ctx.close();
-          return resampleTo16kMono(audioBuffer);
-        }, function () { ctx.close(); throw new Error('ถอดเสียงที่อัดไม่ได้ ลองอัดใหม่อีกครั้ง'); });
+          var off = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, Math.ceil(ab.duration * 16000), 16000);
+          var src = off.createBufferSource(); src.buffer = ab; src.connect(off.destination); src.start(0);
+          return off.startRendering().then(function (r) { return r.getChannelData(0); });
+        });
+      }).catch(function (e) {
+        logMedia('asr', e, { stage: 'decode', engine: 'local', file: { type: blob.type, size: blob.size } });
+        throw new Error('ถอดเสียงที่อัดไม่ได้ ลองอัดใหม่อีกครั้ง');
       });
     }
     /* คลาวด์ (Whisper large-v3-turbo ผ่าน /api/asr) ก่อน — ใช้ได้บน iPhone; ถอยมา Whisper ในเครื่องเมื่อคลาวด์ใช้ไม่ได้ (ไม่รวม iOS) */
@@ -703,31 +726,24 @@
       if (!cloudOn()) return transcribeLocal(pcm);
       return AiClient.asr({ pcm: pcm, sampleRate: 16000, language: 'th' }).then(function (r) { return r.text; }, function (err) {
         if (AiClient.canFallback(err) && !isIOS()) return transcribeLocal(pcm);
+        logMedia('asr', err, { stage: 'cloud', engine: 'cloud' });
         throw new Error(AiClient.friendlyMessage(err));
       });
     }
+    /* Whisper ในเครื่อง — asr-worker.js ผ่าน TanotMedia.transcribeLocal (Worker ตัวเดียวกับหน้า text-to-speech, ลงทะเบียนงบหน่วยความจำ)
+       บังคับ lang: 'thai' ตรงๆ ไม่ปล่อยให้ Whisper เดาภาษาเอง (lang: 'auto') — เจอจริงว่า
+       whisper-tiny (โมเดลเล็กสุด) เดาภาษาผิดง่ายโดยเฉพาะเสียงพูดสั้นๆ พอเดาว่าเป็นอังกฤษ จะถอด
+       เสียงไทยออกมาเป็นข้อความอังกฤษเพี้ยนแทน ทำให้แชทเข้าใจผิดว่าถามเป็นอังกฤษแล้วตอบอังกฤษกลับ
+       ตามไปด้วย — โหมดไมค์ของหน้านี้ตั้งใจไว้สำหรับพูดไทยอยู่แล้ว บังคับเลยตัดปัญหาการเดาผิดทิ้งไปเลย */
     function transcribeLocal(pcm) {
-      return new Promise(function (resolve, reject) {
-        var w = getAsrWorker();
-        var jobId = ++jobSeq;
-        function onMsg(e) {
-          var msg = e.data;
-          if (!msg || msg.jobId !== jobId) return;
-          if (msg.type === 'model-progress') {
-            var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
-            setStatus('⏳ กำลังโหลดโมเดลถอดเสียง (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
-          } else if (msg.type === 'result') { cleanup(); resolve(msg.text); }
-          else if (msg.type === 'error') { cleanup(); reject(new Error(msg.message)); }
+      return TM.transcribeLocal({
+        pcm: pcm, modelId: 'Xenova/whisper-tiny', lang: 'thai',
+        onProgress: function (p) {
+          if (p.stage === 'model' && p.file) setStatus('⏳ กำลังโหลดโมเดลถอดเสียง (ครั้งแรกเท่านั้น) ' + p.file + ' ' + (p.progress != null ? Math.round(p.progress) + '%' : ''), '');
         }
-        function onErr(e) { cleanup(); reject(new Error(e.message || 'Web Worker error')); }
-        function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
-        w.addEventListener('message', onMsg);
-        w.addEventListener('error', onErr);
-        /* บังคับ lang: 'thai' ตรงๆ ไม่ปล่อยให้ Whisper เดาภาษาเอง (lang: 'auto') — เจอจริงว่า
-           whisper-tiny (โมเดลเล็กสุด) เดาภาษาผิดง่ายโดยเฉพาะเสียงพูดสั้นๆ พอเดาว่าเป็นอังกฤษ จะถอด
-           เสียงไทยออกมาเป็นข้อความอังกฤษเพี้ยนแทน ทำให้แชทเข้าใจผิดว่าถามเป็นอังกฤษแล้วตอบอังกฤษกลับ
-           ตามไปด้วย — โหมดไมค์ของหน้านี้ตั้งใจไว้สำหรับพูดไทยอยู่แล้ว บังคับเลยตัดปัญหาการเดาผิดทิ้งไปเลย */
-        w.postMessage({ type: 'transcribe', jobId: jobId, pcm: pcm, lang: 'thai' }, [pcm.buffer]);
+      }).catch(function (err) {
+        logMedia('asr', err, { stage: 'transcribe', engine: 'local', model: 'Xenova/whisper-tiny', lang: 'thai', file: { type: 'audio/pcm', size: pcm.length * 4, dur: pcm.length / 16000 } });
+        throw new Error(TM.errorText(err));
       });
     }
     function startRecording() {

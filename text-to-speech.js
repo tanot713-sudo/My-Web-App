@@ -41,7 +41,9 @@
       prepAsr: 'กำลังเตรียมโมเดล AI (ครั้งแรกอาจต้องดาวน์โหลดจาก Hugging Face หลายสิบ MB — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…', transcribing: 'กำลังถอดเสียงเป็นข้อความ…', asrDone: 'ถอดเสียงเสร็จแล้ว', copied: 'คัดลอกข้อความแล้ว',
       noTranscript: 'ยังไม่มีข้อความที่ถอดเสียงไว้', noIos: 'โหมดนี้ไม่รองรับบน iPhone/iPad (เบราว์เซอร์มือถือรุ่นนี้รันโมเดล AI แบบนี้ไม่เสถียร) — ใช้คอมพิวเตอร์แทน', noDocx: 'โหลดไลบรารีสร้างไฟล์ Word ไม่สำเร็จ ลองรีเฟรชหน้านี้ใหม่',
       sumCloud: 'กำลังสรุปด้วย AI บนคลาวด์…', sumLocalPrep: 'กำลังเตรียมโมเดล AI…', sumFallback: '{msg} — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', sumEmpty: 'สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', sumDone: 'สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', sumFail: 'สรุปไม่สำเร็จ: {msg}',
-      sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…'
+      sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…',
+      asrSegment: 'กำลังถอดเสียงช่วงที่ {i}/{n}…', offlineLocal: 'ออฟไลน์ — ถอดเสียงในเบราว์เซอร์แทน', asrCancel: 'ยกเลิก', useCloud: 'ใช้โหมดคลาวด์แทน',
+      mobileNote: 'บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง'
     },
     en: {
       title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
@@ -74,7 +76,9 @@
       prepAsr: 'Preparing the AI model (the first time it may download tens of MB from Hugging Face — later runs are faster because it is cached)…', transcribing: 'Transcribing to text…', asrDone: 'Transcription finished', copied: 'Text copied',
       noTranscript: 'There is no transcribed text yet', noIos: 'This mode is not supported on iPhone/iPad (mobile browsers cannot run this AI model reliably) — use a computer instead', noDocx: 'Could not load the Word file library. Try reloading this page',
       sumCloud: 'Summarizing with AI in the cloud…', sumLocalPrep: 'Preparing the AI model…', sumFallback: '{msg} — switching to the in-browser model…', sumEmpty: 'Could not summarize — the model returned no answer', sumDone: 'Summary ready — review it before downloading', sumFail: 'Summary failed: {msg}',
-      sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…'
+      sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…',
+      asrSegment: 'Transcribing part {i}/{n}…', offlineLocal: 'Offline — transcribing in the browser instead', asrCancel: 'Cancel', useCloud: 'Use cloud mode instead',
+      mobileNote: 'Phones can only use the small/medium models — cloud mode is more accurate and does not use this device\'s memory'
     }
   });
   /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
@@ -84,6 +88,7 @@
     OME_I18N.live(el, typeof fn === 'function' ? fn : null);
     if (typeof fn !== 'function') el.textContent = fn || '';
   }
+  function mediaErrText(e) { return window.TanotMedia && e && e.code ? TanotMedia.errorText(e) : errText(e); }
   function errText(e) { return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(e) : (e && e.message ? e.message : String(e)); }
 
   /* ══════════════════ ตั้งค่า path ไฟล์ WASM ของ onnxruntime-web (ใช้ร่วมกันทั้ง TTS/ASR) ══════════════════
@@ -226,38 +231,16 @@
      transformers.js แทน — เป็นโมเดลเสียงประสาทเทียมจริง (เสียงเป็นธรรมชาติกว่ามาก) แต่ละภาษาเป็นคนละ
      โมเดล ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเหมือนโหมดถอดเสียงเป็นข้อความ */
   var ttsPipelinePromiseByModel = {};
-  /* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
-     → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยที่แปลงเอง (Tanotfin/mms-tts-2081-onnx) มีไฟล์นี้จริง
-     จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
-     ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
-     จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
-     บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
-  var TTS_DTYPE_OVERRIDES = {
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
-    /* Tanotfin/mms-tts-2081-FM-onnx และ mms-tts-2081-M-onnx (แปลงจาก VIZINTZOR/MMS-TTS-THAI-FEMALEV2/
-       MALEV2) เคยพังทั้ง dtype=fp32 และ q8 ด้วย error เดียวกัน "[ShapeInferenceError] Incompatible
-       dimensions" ที่ node Where ใน duration_predictor/flows.X — ตอนแรกเข้าใจผิดว่าเป็นปัญหา
-       quantization เลยบังคับ fp32 ไว้ (ดูประวัติได้ใน git log) แต่ที่จริงสาเหตุคือโค้ด
-       _unconstrained_rational_quadratic_spline ใน transformers ใช้ boolean-mask fancy indexing
-       (tensor[mask] = ...) ที่ trace-based ONNX export แล้วได้กราฟ shape ไม่คงที่ (data-dependent)
-       สำหรับน้ำหนักของสองโมเดลนี้โดยเฉพาะ แก้ต้นตอแล้วด้วยการแพตช์ฟังก์ชันนั้นให้ใช้ torch.where แบบ
-       shape คงที่ก่อน export ใหม่ (ยืนยันด้วย onnx.checker.check_model(full_check=True) ผ่านทั้ง
-       model.onnx และ model_quantized.onnx ของทั้งสองโมเดลแล้ว) จึงไม่ต้องบังคับ dtype อีกต่อไป
-       ปล่อยดีฟอลต์ (q8) ได้ตามปกติเหมือนเสียงอื่น */
-    /* ‼️ tts-worker.js มีตารางนี้ซ้ำอยู่อีกชุด (คนละ execution context กัน ไม่มี module กลางให้ import
-       ร่วมกันได้ตรงๆ) — 2026-08-10 เจอบั๊กจริงว่าตอนแก้ตารางนี้ (ถอด fp32 ออกจาก 2 โมเดลด้านบน) ลืมแก้
-       ไฟล์ tts-worker.js คู่กันไปด้วย ทำให้ Worker พูล (เส้นทางหลักที่ใช้งานจริงเกือบตลอด) ยังบังคับ fp32
-       (ไฟล์ใหญ่กว่า q8 หลายเท่า) ทิ้งไว้เกินความจำเป็น น่าจะเป็นสาเหตุอาการ "หน้าเว็บรีเฟรชเอง" ที่เคย
-       มีคนรายงาน (แท็บแครชเพราะหน่วยความจำไม่พอตอนรัน Worker หลายตัวขนาน) แก้ไขให้ตรงกันแล้ว — แก้ตารางนี้
-       ครั้งต่อไป ต้องแก้ tts-worker.js คู่กันเสมอ */
-  };
+  /* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" = fp32 เพราะไม่มีไฟล์ quantized) อยู่ใน media-models.js ที่เดียว —
+     tts-worker.js อ่านไฟล์เดียวกัน (เดิมตารางซ้ำ 2 ชุดแล้วเคยลืมแก้คู่กันจนเกิดบั๊กแรมพุ่ง — ประวัติเต็มที่หัวไฟล์ media-models.js) */
+  function ttsDtype(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsDtype(modelId) : null; }
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
         configureOnnxWasmPaths(env);
         var opts = { progress_callback: onProgress };
-        if (TTS_DTYPE_OVERRIDES[modelId]) opts.dtype = TTS_DTYPE_OVERRIDES[modelId];
+        if (ttsDtype(modelId)) opts.dtype = ttsDtype(modelId);
         return mod.pipeline('text-to-speech', modelId, opts);
       });
     }
@@ -306,12 +289,10 @@
     });
     return out;
   }
-  /* สังเคราะห์เสียงทีละท่อนเรียงลำดับ (ไม่ใช่พร้อมกัน) แล้วต่อรวมเป็นเสียงเดียว — ใช้เป็น fallback
-     สุดท้ายเท่านั้น (ไม่มี Worker เลย หรือ Worker pool ทั้งพูลใช้งานไม่ได้จริงๆ) เพราะรันบล็อกเธรดหลัก
-     pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) ท่อนต่อไปจึงไม่ดาวน์โหลดโมเดลซ้ำ
-     onProgress(done, total) เรียกหลังแต่ละท่อนเสร็จ (ไม่ใช่ก่อนเริ่ม) ให้ตรงความหมายเดียวกับ
-     ฝั่ง Worker pool ที่นับความคืบหน้ารวมจากหลาย Worker พร้อมกัน — เรียก generateDownloadable
-     คำนวณเวลาประมาณการที่เหลือ (ETA) จากอัตรานี้ได้ตรงกันไม่ว่าจะวิ่งทางไหน */
+  /* สังเคราะห์เสียงทีละท่อนเรียงลำดับบนเธรดหลัก — ทางสำรองเฉพาะเบราว์เซอร์ที่ไม่มี Web Worker / โหลด Worker แบบ module
+     ไม่ได้เลย (บล็อกหน้าระหว่างคำนวณ) · ไม่ใช้เป็นทางถอยเมื่อ Worker หน่วยความจำไม่พอ (ย้ายงานหนักเดิมมาเธรดหลักมีแต่จะแครชทั้งแท็บ)
+     pipeline ถูกแคชไว้แล้วหลังท่อนแรก (ดู loadTtsPipeline) · onProgress(done, total) เรียกหลังแต่ละท่อนเสร็จ (ความหมายเดียวกับพูล)
+     คืน { parts: Float32Array[], sampling_rate } — ต่อรวมทีหลังใน encodeAudio() */
   function synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress) {
     var audioParts = [], samplingRate = null, done = 0;
     return chunks.reduce(function (p, chunk) {
@@ -324,18 +305,25 @@
         if (onProgress) onProgress(done, chunks.length);
       });
     }, Promise.resolve()).then(function () {
-      return { audio: concatFloat32Arrays(audioParts, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate };
+      return { parts: audioParts, sampling_rate: samplingRate };
     });
   }
-  /* ══════════════════ รันสังเคราะห์เสียงใน Web Worker "พูล" (กันหน้าเว็บค้าง + ใช้หลาย core ขนาน) ══
-     รอบก่อนย้ายไปรันใน Worker ตัวเดียวแก้เรื่องหน้าเว็บค้างได้ (คำนวณไม่บล็อก UI) แต่ยังรันทีละท่อน
-     เรียงคิวอยู่ดี — เวลารวมเท่าเดิม ไม่เร็วขึ้น รอบนี้เปลี่ยนเป็นสร้าง Worker หลายตัว (ตามจำนวน core
-     ของเครื่อง) แบ่งท่อนข้อความไปให้แต่ละ Worker คำนวณขนานกันจริง (ไม่ใช่แค่ย้ายออกจากเธรดหลัก) —
-     ยังคง fallback กลับมารันในหน้าเว็บตรงๆ (ทีละท่อน) ถ้าสร้าง Worker ไม่สำเร็จเลยสักตัว */
-  var ttsWorkerPool = [];
-  var ttsWorkerBusy = []; // ขนานไปกับ ttsWorkerPool — true = worker ตัวนั้นยังทำ batch ก่อนหน้าไม่เสร็จ
+  /* ══════════════════ พูล Web Worker สังเคราะห์เสียง (tts-worker.js) ══════════════════
+     Worker หลายตัวคำนวณท่อนข้อความขนานกัน (หน้าเว็บไม่ค้าง + ใช้หลาย core) — แต่ละ Worker โหลดโมเดลเป็นสำเนาของตัวเอง
+     (WASM linear memory แยกก้อน) เดิมปล่อยงานให้ตัวที่เหลือ "พร้อมกันทั้งหมด" ทันทีที่ตัวแรกโหลดเสร็จ → ทุกตัวโหลด/คำนวณ
+     พร้อมกัน หน่วยความจำพีคตอน "โหลดเสร็จ" (สาเหตุแท็บแครช) · 2026-10 เปลี่ยนเป็น:
+     1) ทยอยสร้าง: ตัวแรกโหลด + อุ่นเครื่อง (ท่อนแรกเสร็จ) ก่อน แล้วค่อยสร้างตัวถัดไปทีละตัว — ตัวที่ k+1 เริ่มหลังตัวที่ k
+        สร้างท่อนแรกเสร็จ (ครั้งแรกสุดไม่มีแคช = ดาวน์โหลดโมเดลครั้งเดียว ตัวหลังๆ อ่านจากแคช)
+     2) คิวกลาง: Worker ที่ว่างดึงท่อนถัดไปเอง (ทีละ 1 ท่อน) — ตัวที่เริ่มช้ากว่าไม่ต้องรอส่วนแบ่งตายตัวแบบ round-robin เดิม
+     3) จำนวน Worker: iOS = 1 เสมอ · โมเดล fp32 (ไฟล์ใหญ่กว่า q8 หลายเท่า) = 1 เสมอทุกเครื่อง · อื่นๆ ตาม ttsPoolSize()
+     4) ว่างเกิน 2 นาที → ปิดทั้งพูลคืนแรม (ครั้งหน้าสร้างใหม่ โหลดโมเดลจากแคช) · เปลี่ยนโมเดล/ผิดพลาด → ปิดทั้งพูล
+     5) ลงทะเบียนกับงบหน่วยความจำกลาง (TanotMedia.budget) — บนมือถือโหลดโมเดลอื่นจะปิดพูลนี้ก่อน */
+  var TTS_IDLE_MS = 120000;
+  var ttsPool = { workers: [], model: null, idleTimer: null, job: null };
   var ttsJobSeq = 0;
-  function ttsPoolSize() {
+  function ttsPoolSize(modelId) {
+    if (window.TanotMedia && TanotMedia.isIOS()) return 1; // iPhone/iPad: เพดานแรมต่อแท็บของ WebKit ต่ำ — เคยเจอ RangeError: Out of memory ตอน 4 Worker
+    if (modelId && ttsDtype(modelId) === 'fp32') return 1;
     var cores = navigator.hardwareConcurrency || 2;
     var mem = navigator.deviceMemory; // GB — มีเฉพาะ Chrome/Edge เท่านั้น เบราว์เซอร์อื่น (รวม Safari/iOS
     // ทั้งหมด ไม่มีข้อยกเว้น) เป็น undefined เสมอ — เจอจริงว่า iPhone ทุกรุ่นจะได้ mem=undefined ไม่ว่า
@@ -349,101 +337,119 @@
     if (mem && mem >= 4) cap = 4;
     return Math.max(1, Math.min(cores, cap));
   }
-  /* ผูก listener ถาวร (ไม่ผูก/ลบตามแต่ละงานเหมือน onMsg ใน synthesizeMmsTtsChunksInWorkerPool) ไว้
-     คอยฟังแค่ 'batch-done' จาก worker ตัวนี้เพื่ออัปเดตสถานะ busy — ต้องแยกจาก listener รายงานเพราะ
-     ถ้างานหนึ่งพังกลางทาง (reject ไปแล้ว) worker ตัวอื่นในพูลที่ยังไม่ error อาจยังคำนวณค้างอยู่
-     ต่อไปอีกพักหนึ่ง ต้องรู้ให้ได้ว่า "ว่างจริงเมื่อไร" ไม่ใช่แค่ตอนงานที่ dispatch ไปถูก reject */
-  function attachBusyTracker(worker, idx) {
-    worker.addEventListener('message', function (e) {
-      if (e.data && e.data.type === 'batch-done') ttsWorkerBusy[idx] = false;
-    });
+  function ttsPoolKill(code) {
+    clearTimeout(ttsPool.idleTimer); ttsPool.idleTimer = null;
+    ttsPool.workers.forEach(function (w) { try { w.terminate(); } catch (e) {} });
+    ttsPool.workers = []; ttsPool.model = null;
+    if (window.TanotMedia) TanotMedia.budget.release('tts');
+    var job = ttsPool.job; ttsPool.job = null;
+    if (job) job.fail(TanotMedia.error(code || 'evicted'));
   }
-  function getTtsWorkerPool() {
-    /* ถ้าพูลเดิมมี worker ตัวไหนยังไม่ว่าง (งานก่อนหน้ายังทำไม่เสร็จ เช่น ผู้ใช้กด "สร้างไฟล์เสียง"
-       ซ้ำทันทีหลังเจอ error ก่อนที่ worker ตัวอื่นในพูลเดิมจะทำงานที่ค้างอยู่เสร็จ) ห้ามส่งงานใหม่ไปแทรก
-       เด็ดขาด (จะไปต่อคิวหลังงานเก่าที่ทิ้งไปแล้ว ทำให้ล่าช้าโดยไม่จำเป็น) — เลิกใช้พูลเก่าทั้งชุด สั่ง
-       terminate() ตัวที่ยังไม่ว่างทิ้งทันที (หยุดคำนวณเปล่าประโยชน์) แล้วสร้างพูลใหม่สะอาดๆ แทน */
-    if (ttsWorkerPool.length && ttsWorkerBusy.indexOf(true) !== -1) {
-      ttsWorkerPool.forEach(function (w) { w.terminate(); });
-      ttsWorkerPool = [];
-      ttsWorkerBusy = [];
-    }
-    if (!ttsWorkerPool.length) {
-      var n = ttsPoolSize();
-      for (var i = 0; i < n; i++) {
-        try {
-          var w = new Worker('./tts-worker.js', { type: 'module' });
-          attachBusyTracker(w, ttsWorkerPool.length);
-          ttsWorkerPool.push(w);
-          ttsWorkerBusy.push(false);
-        } catch (e) { break; } // สร้างไม่ได้ (เบราว์เซอร์เก่ามาก) — ใช้เท่าที่สร้างได้ อาจเหลือ 0 ตัวก็ได้
-      }
-    }
-    return ttsWorkerPool;
+  function ttsPoolIdle() {
+    clearTimeout(ttsPool.idleTimer);
+    ttsPool.idleTimer = setTimeout(function () { if (!ttsPool.job) ttsPoolKill(); }, TTS_IDLE_MS);
   }
-  /* แบ่งท่อนแบบ round-robin ให้ทุก Worker ในพูลได้งานพอๆ กัน แล้วให้ทำงานขนานกัน — เก็บผลลัพธ์แต่ละ
-     ท่อนกลับมาใส่ตำแหน่งเดิม (msg.i) กันลำดับสลับ เพราะ Worker ต่างตัวเสร็จไม่พร้อมกันแน่นอน */
   function synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress) {
     return new Promise(function (resolve, reject) {
-      var pool = getTtsWorkerPool();
-      if (!pool.length) { reject(new Error(T('noWorker'))); return; }
-      var jobId = ++ttsJobSeq;
-      var total = chunks.length;
-      var results = new Array(total);
-      var samplingRate = null;
-      var doneCount = 0;
-      var settled = false;
-      var restDispatched = false;
-
-      function cleanup() { pool.forEach(function (w) { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }); }
-      function finishError(err) { if (settled) return; settled = true; cleanup(); reject(err); }
-      /* ส่งงานให้ worker ตัวแรก (index 0) ไปก่อนตัวเดียว รอสัญญาณ 'pipeline-ready' (โหลด/แคชโมเดล
-         เสร็จแล้ว) แล้วค่อยปล่อยงานให้ worker ที่เหลือทั้งหมดพร้อมกัน — กัน worker ทุกตัวแย่งดาวน์โหลด
-         ไฟล์โมเดลเดียวกันพร้อมกันตอนยังไม่มีแคชเลย (ครั้งแรกสุดที่ใช้เครื่องมือนี้) ซึ่งทำให้ช้ากว่า
-         ดาวน์โหลดครั้งเดียวมากบนเน็ตที่ไม่เร็วนัก — ถ้าเคยใช้มาก่อนแล้ว (มีแคชอยู่แล้ว) 'pipeline-ready'
-         จะมาเร็วมากแทบไม่หน่วงอะไรเลย มี timeout สำรองกันไว้เผื่อสัญญาณไม่มาด้วยเหตุผลใดก็ตาม */
-      function dispatchRest() {
-        if (restDispatched) return;
-        restDispatched = true;
-        pool.forEach(function (w, wi) {
-          if (wi === 0 || !perWorkerItems[wi].length) return; // worker 0 ถูกส่งไปแล้วตั้งแต่แรก
-          ttsWorkerBusy[wi] = true;
-          w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[wi], modelId: modelId });
-        });
+      clearTimeout(ttsPool.idleTimer);
+      if (ttsPool.job || (ttsPool.workers.length && ttsPool.model !== modelId)) ttsPoolKill('abort');
+      TanotMedia.budget.acquire('tts', function () { ttsPoolKill('evicted'); });
+      TanotMedia.persistOnce();
+      ttsPool.model = modelId;
+      var jobId = ++ttsJobSeq, total = chunks.length, size = Math.max(1, Math.min(ttsPoolSize(modelId), total));
+      var queue = chunks.map(function (c, i) { return i; }), results = new Array(total), samplingRate = null, doneCount = 0, settled = false;
+      var job = { fail: fail };
+      ttsPool.job = job;
+      function fail(err) {
+        if (settled) return; settled = true;
+        if (ttsPool.job === job) ttsPool.job = null;
+        reject(err);
       }
-      function onMsg(e) {
-        var msg = e.data;
-        if (!msg || msg.jobId !== jobId || settled) return;
-        if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
-        else if (msg.type === 'pipeline-ready') { dispatchRest(); }
-        else if (msg.type === 'item-done') {
-          results[msg.i] = msg.audio;
-          samplingRate = msg.samplingRate;
-          doneCount++;
-          if (onProgress) onProgress(doneCount, total);
-          if (doneCount === total) {
-            settled = true; cleanup();
-            resolve({ audio: concatFloat32Arrays(results, Math.round(samplingRate * 0.3)), sampling_rate: samplingRate });
+      function finish() {
+        settled = true; ttsPool.job = null;
+        ttsPoolIdle();
+        resolve({ parts: results, sampling_rate: samplingRate });
+      }
+      function feed(w) {
+        if (settled || !queue.length) { w._busy = false; return; }
+        var i = queue.shift();
+        w._busy = true;
+        w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: i, text: chunks[i] }], modelId: modelId });
+      }
+      function spawnNext() {
+        if (settled || ttsPool.workers.length >= size || !queue.length) return;
+        var w;
+        try { w = new Worker('./tts-worker.js', { type: 'module' }); }
+        catch (e) { if (!ttsPool.workers.length) { var ne = TanotMedia.error('noWorker'); ne.workerLoad = true; fail(ne); } return; }
+        w._heard = false; w._warm = false; w._busy = false;
+        ttsPool.workers.push(w);
+        w.addEventListener('message', function (e) {
+          var msg = e.data;
+          w._heard = true;
+          if (!msg || msg.jobId !== jobId || settled) return;
+          if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+          else if (msg.type === 'item-done') {
+            results[msg.i] = msg.audio;
+            samplingRate = msg.samplingRate;
+            doneCount++;
+            if (onProgress) onProgress(doneCount, total);
+            if (!w._warm) { w._warm = true; spawnNext(); } // ตัวนี้โหลด + อุ่นเครื่องเสร็จแล้ว → ค่อยเริ่มตัวถัดไป
+            if (doneCount === total) finish();
+          } else if (msg.type === 'batch-done') { feed(w); }
+          else if (msg.type === 'item-error') {
+            var cause = { name: msg.name || 'Error', message: msg.message || '' };
+            var oom = TanotMedia.isMemoryError(cause);
+            ttsPool.job = null; ttsPoolKill(); // หน่วยความจำของพูลอาจเสียแล้ว — ทิ้งทั้งชุด
+            fail(TanotMedia.error(oom ? 'oom' : 'tts', oom ? null : msg.message, cause));
           }
-        } else if (msg.type === 'item-error') { finishError(new Error(msg.message)); }
+        });
+        w.addEventListener('error', function (e) {
+          if (e && e.preventDefault) e.preventDefault();
+          if (settled) return;
+          var heard = w._heard;
+          ttsPool.job = null; ttsPoolKill();
+          var err = TanotMedia.error('crash', null, { name: 'WorkerError', message: (e && e.message) || 'worker crashed' });
+          err.workerLoad = !heard && doneCount === 0; // Worker ไม่เคยตอบอะไรเลย = โหลดสคริปต์ไม่ได้ (เบราว์เซอร์ไม่รองรับ module worker)
+          fail(err);
+        });
+        feed(w);
       }
-      function onErr(e) { finishError(new Error(e.message || 'Web Worker error')); }
-      pool.forEach(function (w) { w.addEventListener('message', onMsg); w.addEventListener('error', onErr); });
-
-      var perWorkerItems = pool.map(function () { return []; });
-      chunks.forEach(function (text, i) { perWorkerItems[i % pool.length].push({ i: i, text: text }); });
-      if (perWorkerItems[0].length) {
-        ttsWorkerBusy[0] = true;
-        pool[0].postMessage({ type: 'synthesize-batch', jobId: jobId, items: perWorkerItems[0], modelId: modelId });
-      }
-      setTimeout(dispatchRest, 15000);
+      spawnNext();
     });
   }
   function synthesizeMmsTtsChunksResponsive(chunks, modelId, onModelProgress, onProgress) {
-    if (typeof Worker === 'undefined') return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
+    if (typeof Worker === 'undefined' || !window.TanotMedia) return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
     return synthesizeMmsTtsChunksInWorkerPool(chunks, modelId, onModelProgress, onProgress).catch(function (err) {
-      console.warn('สร้างเสียงผ่าน Web Worker (พูล) ไม่สำเร็จ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
+      if (!err || !err.workerLoad) throw err; // หน่วยความจำไม่พอ/โมเดลผิดพลาด — ไม่ย้ายงานหนักมาเธรดหลัก (จะแครชทั้งแท็บ)
+      console.warn('สร้าง Web Worker ไม่ได้ กลับไปรันในหน้าเว็บโดยตรงแทน (หน้าอาจค้างชั่วคราวระหว่างคำนวณ):', err);
       return synthesizeMmsTtsChunks(chunks, modelId, onModelProgress, onProgress);
+    });
+  }
+  /* ต่อเสียง + ทำ .wav/.mp3 ใน audio-encode-worker.js (เดิมทำบนเธรดหลัก — หน้าค้างตอนท้าย) → { wav: Blob, mp3: Blob }
+     ส่ง Float32Array แต่ละท่อนแบบ transfer (ไม่ copy) · ไม่มี Worker = ทำบนเธรดหลักแบบเดิม */
+  var TTS_GAP_SEC = 0.3;
+  function encodeAudio(parts, sampleRate) {
+    var w = null;
+    if (typeof Worker !== 'undefined') { try { w = new Worker('./audio-encode-worker.js'); } catch (e) { w = null; } }
+    if (!w) {
+      var audio = concatFloat32Arrays(parts, Math.round(sampleRate * TTS_GAP_SEC));
+      var wavBlob = float32ToWavBlob(audio, sampleRate);
+      return wavBlob.arrayBuffer().then(function (buf) {
+        return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3) { return { wav: wavBlob, mp3: mp3 }; });
+      });
+    }
+    return new Promise(function (resolve, reject) {
+      w.onmessage = function (e) {
+        var m = e.data; w.terminate();
+        if (m && m.type === 'done') resolve({ wav: new Blob([m.wav], { type: 'audio/wav' }), mp3: new Blob([m.mp3], { type: 'audio/mpeg' }) });
+        else reject(TanotMedia.error('encode', m && m.message, m));
+      };
+      w.onerror = function (e) {
+        if (e && e.preventDefault) e.preventDefault();
+        w.terminate();
+        reject(TanotMedia.error('crash', null, { name: 'WorkerError', message: (e && e.message) || 'encode worker crashed' }));
+      };
+      w.postMessage({ type: 'encode', parts: parts, sampleRate: sampleRate, gapSec: TTS_GAP_SEC, kbps: 128 }, parts.map(function (p) { return p.buffer; }));
     });
   }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
@@ -583,7 +589,7 @@
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     st('dlStatus', function () { return T(lang === 'th' ? 'prepTh' : 'prepEn'); });
-    var startedAt = Date.now();
+    var startedAt = Date.now(), stage = 'synth';
     synthesizeMmsTtsChunksResponsive(chunks, modelId, function (p) {
       if (p && p.status === 'progress' && p.file) {
         var pct = p.progress != null ? Math.round(p.progress) : null;
@@ -602,65 +608,38 @@
       });
     })
       .then(function (output) {
+        stage = 'encode';
         st('dlStatus', function () { return T('assembling'); });
-        var wavBlob = float32ToWavBlob(output.audio, output.sampling_rate);
-        var wavUrl = URL.createObjectURL(wavBlob);
-        return wavBlob.arrayBuffer().then(function (buf) {
-          return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3Blob) {
-            var mp3Url = URL.createObjectURL(mp3Blob);
-            showResult(wavUrl, mp3Url);
-            $('dlStatus').className = 'status ok';
-            st('dlStatus', function () { return T('made'); });
-          });
+        return encodeAudio(output.parts, output.sampling_rate).then(function (files) {
+          showResult(URL.createObjectURL(files.wav), URL.createObjectURL(files.mp3));
+          $('dlStatus').className = 'status ok';
+          st('dlStatus', function () { return T('made'); });
         });
       })
       .catch(function (e) {
         $('dlStatus').className = 'status err';
+        if (window.TanotMedia) TanotMedia.logError('tts', e, { stage: stage, engine: 'local', model: modelId, lang: lang });
         /* ใส่ modelId + dtype ที่ใช้จริงต่อท้าย error เสมอ (เพิ่มเข้ามาเพื่อวินิจฉัยปัญหา cache เก่า
            ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
            browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
-        var usedDtype = TTS_DTYPE_OVERRIDES[modelId] || null;
-        st('dlStatus', function () { return T('makeFail', { msg: errText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }); });
+        var usedDtype = ttsDtype(modelId);
+        st('dlStatus', function () { return T('makeFail', { msg: mediaErrText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }); });
       })
       .finally(function () { $('dlGenerateBtn').disabled = false; });
   }
 
-  /* ══════════════════ เสียง/วิดีโอ → ข้อความ (Whisper ผ่าน transformers.js, WASM ในเบราว์เซอร์) ══════════════════
+  /* ══════════════════ เสียง/วิดีโอ → ข้อความ ══════════════════
+     ในเบราว์เซอร์: Whisper (transformers.js) ใน asr-worker.js ผ่าน TanotMedia.transcribeLocal (media-core.js)
+     2026-10 แก้สาเหตุที่หน้าค้าง/แครช:
+     (1) เดิมรัน pipeline Whisper บนเธรดหลัก (loadAsrPipeline) — WASM เธรดเดียวบล็อกหน้าทั้งหน้า แล้วแครชหลังโหลดโมเดลเสร็จ → ย้ายไป Worker
+     (2) เดิมถอดรหัสทั้งไฟล์ที่ความถี่เดิมแล้ว resample (decodeFileToPcm) — ไฟล์ยาวใช้แรมมหาศาล → TanotMedia.decode16k (16kHz ตั้งแต่แรก)
+         แล้วส่งเข้า Worker ทีละช่วง ~5 นาที (transfer ไม่ copy) · ใช้ฟังก์ชันเดียวกันทั้งโหมดคลาวด์และในเบราว์เซอร์
+     (3) มือถือ (iOS/Android) ไม่มีตัวเลือก small/medium (ดู TanotMediaModels.asrHeavy)
+     หน่วยความจำไม่พอ/Worker พัง → ข้อความอ่านเข้าใจ + ปุ่มสลับไปคลาวด์ (บน pages.dev) · ปุ่มยกเลิก = terminate Worker
      ตัวไลบรารี + ตัวรันไทม์ ONNX ฝังในเว็บเอง (vendor/transformers/) แต่ตัวโมเดล AI เอง (หลายสิบ MB)
      ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเสมอ — ไม่มีทางเลี่ยงได้เพราะโมเดลใหญ่เกินจะฝังในเว็บ */
-  var asrPipelinePromiseByModel = {};
-  function loadAsrPipeline(modelId, onProgress) {
-    if (!asrPipelinePromiseByModel[modelId]) {
-      asrPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-        var env = mod.env;
-        configureOnnxWasmPaths(env);
-        return mod.pipeline('automatic-speech-recognition', modelId, { progress_callback: onProgress });
-      });
-    }
-    return asrPipelinePromiseByModel[modelId];
-  }
-  function resampleTo16kMono(audioBuffer) {
-    var targetRate = 16000;
-    var OfflineCtx = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-    var offlineCtx = new OfflineCtx(1, Math.ceil(audioBuffer.duration * targetRate), targetRate);
-    var source = offlineCtx.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(offlineCtx.destination);
-    source.start(0);
-    return offlineCtx.startRendering().then(function (rendered) { return rendered.getChannelData(0); });
-  }
   function decodeFileToPcm(file) {
-    return file.arrayBuffer().then(function (buf) {
-      var AudioCtx = window.AudioContext || window.webkitAudioContext;
-      var ctx = new AudioCtx();
-      return ctx.decodeAudioData(buf).then(function (audioBuffer) {
-        ctx.close();
-        return resampleTo16kMono(audioBuffer);
-      }, function () {
-        ctx.close();
-        throw new Error(T('cantDecode'));
-      });
-    });
+    return file.arrayBuffer().then(TanotMedia.decode16k).then(function (dec) { return dec.mono(); });
   }
   function isMobileUA() { return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent || ''); }
   /* หาความยาวไฟล์เสียง/วิดีโอแบบเบาๆ ผ่าน metadata ของ <audio>/<video> element (ไม่ต้องถอดเสียงทั้งไฟล์
@@ -683,9 +662,10 @@
      ค่าใช้จ่ายจริงเมื่อเกินโควตาฟรี (10,000 Neurons/วัน ≈ 3.5 ชม.เสียง, whisper-large-v3-turbo กิน
      46.63 Neurons/นาทีเสียง) — เรียก functions/api/asr.js สิทธิ์ตรวจฝั่งเซิร์ฟเวอร์ด้วย Cloudflare Access +
      _middleware.js (เดิมล็อกด้วยรหัสผ่านฝั่งเบราว์เซอร์) — /api/* มีเฉพาะบนโดเมน Pages บน GitHub Pages
-     จึงซ่อนตัวเลือกคลาวด์และถอดเสียงในเบราว์เซอร์อย่างเดียว */
+     จึงซ่อนตัวเลือกคลาวด์และถอดเสียงในเบราว์เซอร์อย่างเดียว · บน pages.dev คลาวด์เป็นค่าเริ่มต้น (ไม่ใช้หน่วยความจำเครื่อง)
+     ถ้าผู้ใช้ไม่เคยเลือกเอง — ในเบราว์เซอร์เป็นทางสำรองตอนออฟไลน์ */
   var ASR_API_URL = '/api/asr';
-  var ASR_CLOUD_AVAILABLE = /\.pages\.dev$/.test(location.hostname);
+  var ASR_CLOUD_AVAILABLE = window.AiClient ? AiClient.available() : /\.pages\.dev$/.test(location.hostname);
   var ASR_ENGINE_KEY = 'tanot:asr:engine';
   var NEURON_USAGE_KEY = 'tanot:asrcloud:neuronUsage'; // { date: 'YYYY-MM-DD' (UTC), used: number }
   var DAILY_NEURON_LIMIT = 10000;
@@ -693,7 +673,7 @@
 
   function getAsrEngine() {
     if (!ASR_CLOUD_AVAILABLE) return 'local';
-    try { return localStorage.getItem(ASR_ENGINE_KEY) === 'cloud' ? 'cloud' : 'local'; } catch (e) { return 'local'; }
+    try { return localStorage.getItem(ASR_ENGINE_KEY) === 'local' ? 'local' : 'cloud'; } catch (e) { return 'cloud'; }
   }
   function setAsrEngine(engine) {
     try { localStorage.setItem(ASR_ENGINE_KEY, engine); } catch (e) {}
@@ -730,9 +710,8 @@
     });
   }
 
-  /* แปลง PCM Float32 (16kHz mono ที่ decodeFileToPcm/resampleTo16kMono ให้มาอยู่แล้ว) เป็น base64
-     ของไฟล์ .wav — ใช้ float32ToWavBlob() ที่มีอยู่แล้วในไฟล์นี้ (เดิมใช้ห่อเสียงจาก MMS-TTS) แทนเขียน
-     WAV header ซ้ำเอง Workers AI ต้องการไฟล์เสียงจริงเป็น base64 ไม่ใช่ raw sample ลอยๆ */
+  /* แปลง PCM Float32 (16kHz mono) เป็น base64 ของไฟล์ .wav — ใช้ float32ToWavBlob() ที่มีอยู่แล้วในไฟล์นี้
+     Workers AI ต้องการไฟล์เสียงจริงเป็น base64 ไม่ใช่ raw sample ลอยๆ */
   function pcmToWavBase64(pcm, sampleRate) {
     return float32ToWavBlob(pcm, sampleRate).arrayBuffer().then(function (buf) {
       var bytes = new Uint8Array(buf), binary = '', chunkSize = 0x8000;
@@ -741,23 +720,11 @@
     });
   }
 
-  /* หาจุดตัดที่ใกล้ตำแหน่งเป้าหมาย (targetIdx) ที่สุด โดยเลือกจุดที่พลังงานเสียงต่ำสุด (เงียบที่สุด) ในช่วง
-     ค้นหา ±searchSamples รอบๆ เป้าหมาย — ใช้แบ่งท่อนเสียงส่งไปถอดทีละท่อน */
-  function findQuietCutPoint(pcm, targetIdx, searchSamples, frameLen) {
-    var lo = Math.max(0, targetIdx - searchSamples), hi = Math.min(pcm.length, targetIdx + searchSamples);
-    var bestIdx = targetIdx, bestEnergy = Infinity;
-    for (var i = lo; i < hi; i += frameLen) {
-      var end = Math.min(i + frameLen, pcm.length), sum = 0;
-      for (var j = i; j < end; j++) sum += pcm[j] * pcm[j];
-      var energy = sum / (end - i);
-      if (energy < bestEnergy) { bestEnergy = energy; bestIdx = i; }
-    }
-    return bestIdx;
-  }
-  /* ตัด PCM ยาวๆ เป็นท่อนละประมาณ chunkSec วินาที — เดิมตัดตรงจุดตายตัวเป๊ะๆ ทุก chunkSec วินาที ซึ่งเจอ
+  /* ตัด PCM เป็นท่อนละประมาณ chunkSec วินาที — เดิมตัดตรงจุดตายตัวเป๊ะๆ ทุก chunkSec วินาที ซึ่งเจอ
      ปัญหาจริงว่าตัดกลางคำ/กลางประโยคบ่อย (โดยเฉพาะเสียงประชุมยาวๆ) ทำให้ Whisper "หลอน" ออกมาเป็นคำ
      แปลกๆ/ภาษาอื่นปนที่รอยต่อแต่ละท่อน แก้โดยขยับจุดตัดไปหาช่วงที่เงียบที่สุดในรัศมี ±3 วินาทีรอบเป้าหมาย
-     แทน (ค้นด้วย findQuietCutPoint ด้านบน) ให้ท่อนที่ตัดจบพอดีตรงช่วงเงียบ/หยุดพูดแทนกลางคำ */
+     แทน (TanotMedia.quietCut) ให้ท่อนที่ตัดจบพอดีตรงช่วงเงียบ/หยุดพูดแทนกลางคำ */
+  function findQuietCutPoint(pcm, targetIdx, searchSamples, frameLen) { return TanotMedia.quietCut(pcm, targetIdx, searchSamples, frameLen); }
   function chunkPcm(pcm, sampleRate, chunkSec) {
     var chunkLen = sampleRate * chunkSec, searchSamples = sampleRate * 3, frameLen = Math.round(sampleRate * 0.02);
     var chunks = [], start = 0;
@@ -772,26 +739,32 @@
     return chunks;
   }
 
-  function transcribeChunkCloud(pcm, sampleRate, language) {
+  function transcribeChunkCloud(pcm, sampleRate, language, signal) {
     return pcmToWavBase64(pcm, sampleRate).then(function (base64) {
       return fetch(ASR_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ audio: base64, language: language })
+        body: JSON.stringify({ audio: base64, language: language }),
+        signal: signal
       });
     }).then(function (res) {
       return res.json().then(function (data) {
         if (!res.ok) throw new Error(data && data.error ? data.error : ('HTTP ' + res.status));
         return data;
       });
+    }, function (err) {
+      if (signal && signal.aborted) throw TanotMedia.error('abort');
+      var e = TanotMedia.error('network', err && err.message, err);
+      throw e;
     });
   }
 
-  async function runAsrCloud(pcm, langOpt) {
+  /* dec = ผลของ TanotMedia.decode16k — ส่งทีละช่วง ~5 นาที (planSegments) แต่ละช่วงตัดเป็นท่อน 30 วินาทีตรงจุดเงียบ */
+  async function runAsrCloud(dec, langOpt, signal) {
     var langMap = { thai: 'th', english: 'en' };
     var language = langOpt !== 'auto' ? langMap[langOpt] : undefined;
-    var sampleRate = 16000;
-    var totalMinutes = pcm.length / sampleRate / 60;
+    var sampleRate = TanotMedia.RATE;
+    var totalMinutes = dec.duration / 60;
     var estimatedNeurons = totalMinutes * NEURONS_PER_AUDIO_MINUTE;
 
     if (estimatedNeurons > remainingNeurons()) {
@@ -801,23 +774,50 @@
       var estCost = (overageNeurons / 1000 * 0.011).toFixed(3);
       var proceed = window.confirm(T('costConfirm', { min: totalMinutes.toFixed(1), need: Math.round(estimatedNeurons), left: Math.round(remainingNeurons()),
         used: Math.round(getNeuronUsage()), limit: DAILY_NEURON_LIMIT, over: Math.round(overageNeurons), cost: estCost }));
-      if (!proceed) throw new Error(T('cancelledQuota'));
+      if (!proceed) { var q = TanotMedia.error('abort'); q.quota = true; throw q; }
     }
 
-    var chunks = chunkPcm(pcm, sampleRate, 30);
-    var texts = [];
-    for (var i = 0; i < chunks.length; i++) {
-      (function (idx) { st('asrStatus', function () { return T('cloudChunk', { i: idx + 1, n: chunks.length }); }); })(i);
-      var data = await transcribeChunkCloud(chunks[i], sampleRate, language);
-      texts.push((data.text || '').trim());
-      /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
-         ของท่อนนี้แทน (ความยาวท่อนเป็นวินาทีคูณอัตรา Neurons/นาที) */
-      var chunkMinutes = chunks[i].length / sampleRate / 60;
-      addNeuronUsage(data.neurons != null ? data.neurons : chunkMinutes * NEURONS_PER_AUDIO_MINUTE);
-      updateNeuronStatusUI();
-      refreshServerNeuronUsage();
+    var segs = TanotMedia.planSegments(dec), texts = [], k = 0, n = Math.max(1, Math.ceil(dec.duration / 30));
+    for (var s = 0; s < segs.length; s++) {
+      var chunks = chunkPcm(dec.segment(segs[s][0], segs[s][1]), sampleRate, 30);
+      for (var i = 0; i < chunks.length; i++) {
+        if (signal && signal.aborted) throw TanotMedia.error('abort');
+        k++;
+        (function (idx) { st('asrStatus', function () { return T('cloudChunk', { i: idx, n: Math.max(idx, n) }); }); })(k);
+        var data = await transcribeChunkCloud(chunks[i], sampleRate, language, signal);
+        texts.push((data.text || '').trim());
+        /* บันทึก Neurons จริงจาก response ถ้ามี (แม่นกว่าประมาณจากความยาวเสียงเอง) ไม่มีก็ใช้ค่าประมาณ
+           ของท่อนนี้แทน (ความยาวท่อนเป็นวินาทีคูณอัตรา Neurons/นาที) */
+        var chunkMinutes = chunks[i].length / sampleRate / 60;
+        addNeuronUsage(data.neurons != null ? data.neurons : chunkMinutes * NEURONS_PER_AUDIO_MINUTE);
+        updateNeuronStatusUI();
+        refreshServerNeuronUsage();
+      }
     }
     return texts.join(' ').replace(/\s+/g, ' ').trim();
+  }
+
+  /* โมเดลที่ใช้ได้บนเครื่องนี้ — มือถือตัด small/medium ออกจากตัวเลือก */
+  var ASR_SAFE_MODEL = 'Xenova/whisper-base';
+  function asrModelAllowed(modelId) { return !(TanotMedia.isMobile() && window.TanotMediaModels && TanotMediaModels.asrHeavy(modelId)); }
+  function applyAsrModelGate() {
+    var sel = $('asrModel');
+    if (!sel || !TanotMedia.isMobile()) return;
+    Array.prototype.slice.call(sel.options).forEach(function (o) { if (!asrModelAllowed(o.value)) o.remove(); });
+    if (!asrModelAllowed(sel.value) || !sel.value) sel.value = ASR_SAFE_MODEL;
+  }
+  var asrAbort = null;
+  function asrRunning(on) {
+    $('asrGoBtn').disabled = on;
+    $('asrCancelBtn').hidden = !on;
+    if (on) $('asrUseCloudBtn').hidden = true;
+  }
+  /* ปุ่ม "ใช้โหมดคลาวด์แทน": หลังเครื่องรับไม่ไหว (หน่วยความจำ/Worker พัง) หรือบนมือถือที่ยังเลือกโหมดในเบราว์เซอร์ */
+  function updateCloudOffer(afterDeviceLimit) {
+    var local = getAsrEngine() === 'local';
+    var mobileNote = ASR_CLOUD_AVAILABLE && local && TanotMedia.isMobile();
+    $('asrMobileNote').hidden = !mobileNote;
+    $('asrUseCloudBtn').hidden = !(ASR_CLOUD_AVAILABLE && local && (afterDeviceLimit || mobileNote));
   }
 
   function runAsr() {
@@ -826,7 +826,7 @@
     if (!file) { $('asrStatus').className = 'status err'; st('asrStatus', function () { return T('pickAudio'); }); return; }
     var langOpt = $('asrLang').value;
     var engine = getAsrEngine();
-    $('asrGoBtn').disabled = true;
+    asrRunning(true);
     $('asrResultWrap').style.display = 'none';
     $('asrStatus').className = 'status';
 
@@ -836,71 +836,68 @@
     if (!isMobileUA()) { proceedRunAsr(file, langOpt, engine); return; }
     getMediaDuration(file).then(function (durSec) {
       var mins = durSec ? Math.round(durSec / 60) : null;
-      if (mins && mins > 45) {
+      if (mins && mins > 45 && engine === 'local') {
         var proceed = window.confirm(T('longConfirm', { min: mins }));
-        if (!proceed) { $('asrGoBtn').disabled = false; st('asrStatus', function () { return T('cancelled'); }); return; }
+        if (!proceed) { asrRunning(false); st('asrStatus', function () { return T('cancelled'); }); return; }
       }
       proceedRunAsr(file, langOpt, engine);
     });
   }
   function proceedRunAsr(file, langOpt, engine) {
-    if (engine === 'cloud') {
-      st('asrStatus', function () { return T('decoding'); });
-      decodeFileToPcm(file)
-        .then(function (pcm) { return runAsrCloud(pcm, langOpt); })
-        .then(function (text) {
-          $('asrResult').value = text;
-          $('asrResultWrap').style.display = 'block';
-          $('asrStatus').className = 'status ok';
-          st('asrStatus', function () { return text ? T('doneCloud') : T('doneEmpty'); });
-          updateNeuronStatusUI();
-        })
-        .catch(function (e) {
-          $('asrStatus').className = 'status err';
-          st('asrStatus', function () { return T('asrFail', { msg: errText(e) }); });
-        })
-        .finally(function () { $('asrGoBtn').disabled = false; });
-      return;
-    }
-
+    var offlineFallback = engine === 'cloud' && navigator.onLine === false;
+    if (offlineFallback) engine = 'local';
     var modelId = $('asrModel').value;
-    st('asrStatus', function () { return T('prepAsr'); });
-    var transcriberPromise = loadAsrPipeline(modelId, function (p) {
-      if (p && p.status === 'progress' && p.file) {
-        var pct = p.progress != null ? Math.round(p.progress) : null;
-        st('asrStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
+    if (!asrModelAllowed(modelId)) modelId = ASR_SAFE_MODEL;
+    var ctrl = new AbortController();
+    asrAbort = ctrl;
+    var meta = { type: file.type, name: file.name, size: file.size, dur: null }, stage = 'decode';
+    var segStatus = function () { return T('transcribing'); };
+    st('asrStatus', function () { return offlineFallback ? T('offlineLocal') + ' ' + T('decoding') : T('decoding'); });
+    file.arrayBuffer().then(TanotMedia.decode16k).then(function (dec) {
+      meta.dur = dec.duration;
+      if (ctrl.signal.aborted) throw TanotMedia.error('abort');
+      if (engine === 'cloud') { stage = 'cloud'; return runAsrCloud(dec, langOpt, ctrl.signal); }
+      stage = 'transcribe';
+      st('asrStatus', function () { return T('prepAsr'); });
+      return TanotMedia.transcribeLocal({
+        dec: dec, modelId: modelId, lang: langOpt, signal: ctrl.signal,
+        onProgress: function (p) {
+          if (p.stage === 'model' && p.file) {
+            var pct = p.progress != null ? Math.round(p.progress) : null;
+            st('asrStatus', function () { return pct != null ? T('dlModelPct', { file: p.file, pct: pct }) : T('dlModel', { file: p.file }); });
+          } else if (p.stage === 'segment') {
+            segStatus = p.n > 1 ? function () { return T('asrSegment', { i: p.i, n: p.n }); } : function () { return T('transcribing'); };
+            st('asrStatus', segStatus);
+          } else if (p.stage === 'ready') {
+            st('asrStatus', segStatus);
+          }
+        }
+      });
+    }).then(function (text) {
+      text = (text || '').trim();
+      $('asrResult').value = text;
+      $('asrResultWrap').style.display = 'block';
+      $('asrStatus').className = 'status ok';
+      st('asrStatus', function () { return !text ? T('doneEmpty') : engine === 'cloud' ? T('doneCloud') : T('asrDone'); });
+      if (engine === 'cloud') updateNeuronStatusUI();
+      updateCloudOffer(false);
+    }, function (e) {
+      if (TanotMedia.classify(e) === 'abort') {
+        $('asrStatus').className = 'status';
+        st('asrStatus', function () { return e.quota ? T('cancelledQuota') : T('cancelled'); });
+        return;
       }
+      TanotMedia.logError('asr', e, { stage: stage, engine: engine, model: engine === 'local' ? modelId : 'whisper-large-v3-turbo', lang: langOpt, file: meta });
+      e.mediaLogged = true;
+      $('asrStatus').className = 'status err';
+      st('asrStatus', function () { return T('asrFail', { msg: mediaErrText(e) }); });
+      updateCloudOffer(engine === 'local' && TanotMedia.isDeviceLimit(e));
+    }).finally(function () {
+      if (asrAbort === ctrl) asrAbort = null;
+      asrRunning(false);
     });
-    Promise.all([transcriberPromise, decodeFileToPcm(file)])
-      .then(function (results) {
-        var transcriber = results[0], pcm = results[1];
-        st('asrStatus', function () { return T('transcribing'); });
-        /* Whisper เทรนมาให้รับเสียงทีละ ≤30 วินาทีเท่านั้น — ถ้าไม่บอก chunk_length_s/stride_length_s
-           ไฟล์เสียงที่ยาวกว่า 30 วินาทีจะถูกยัดเข้าโมเดลเป็นก้อนเดียวทั้งไฟล์ ทำให้โมเดล "หลอน"
-           (hallucinate) ออกมาเป็นคำซ้ำๆ ไม่จบ (เจอจริง เช่น "นำ นำ นำ นำ..." ไม่หยุด) แก้โดยบอกให้ตัด
-           เสียงเป็นท่อนละ 30 วินาที เหลื่อมกันท่อนละ 5 วินาที (กันคำขาดตรงรอยตัด) แล้วรวมผลลัพธ์กลับ
-           มาเป็นข้อความเดียวให้เอง — ค่านี้ใช้ได้ทั้งไฟล์สั้น/ยาว (ไฟล์สั้นกว่า 30 วิ ก็แค่ได้ท่อนเดียว)
-           การตัดเป็นท่อนช่วยกันไม่ให้ทั้งไฟล์วนซ้ำเป็นก้อนเดียว แต่แต่ละท่อนเองก็ยังวนซ้ำได้อยู่ดี
-           (โดยเฉพาะโมเดลขนาดเล็ก/ภาษาที่โมเดลไม่ถนัด เช่นไทย) — กันด้วย no_repeat_ngram_size บังคับ
-           ไม่ให้มี 3 คำ/โทเคนติดกันซ้ำแบบเป๊ะๆ เกิดขึ้นซ้ำสอง ตัดวงจรการวนคำได้โดยไม่กระทบประโยคปกติ
-           (ประโยคจริงแทบไม่มี 3-gram ซ้ำเป๊ะติดกันอยู่แล้ว) */
-        var opts = { task: 'transcribe', chunk_length_s: 30, stride_length_s: 5, no_repeat_ngram_size: 3 };
-        if (langOpt !== 'auto') opts.language = langOpt;
-        return transcriber(pcm, opts);
-      })
-      .then(function (result) {
-        var text = (result && result.text) || '';
-        $('asrResult').value = text.trim();
-        $('asrResultWrap').style.display = 'block';
-        $('asrStatus').className = 'status ok';
-        st('asrStatus', function () { return text.trim() ? T('asrDone') : T('doneEmpty'); });
-      })
-      .catch(function (e) {
-        $('asrStatus').className = 'status err';
-        st('asrStatus', function () { return T('asrFail', { msg: errText(e) }); });
-      })
-      .finally(function () { $('asrGoBtn').disabled = false; });
   }
+  function cancelAsr() { if (asrAbort) asrAbort.abort(); }
   function copyAsrResult() {
     var text = $('asrResult').value;
     if (!text) return;
@@ -969,10 +966,16 @@
   function getMeetingSumWorkerAsync() {
     if (meetingSumWorker) return Promise.resolve(meetingSumWorker);
     if (meetingSumWorkerRacePromise) return meetingSumWorkerRacePromise;
+    /* งบหน่วยความจำกลาง: บนมือถือปิดโมเดลอื่นในหน้านี้ก่อน (ถอดเสียง/เสียงพูด/แชท) และไม่แข่ง 2 โมเดลพร้อมกัน */
+    TanotMedia.budget.acquire('meeting-chat', function () {
+      if (meetingSumWorker) { try { meetingSumWorker.terminate(); } catch (e) {} }
+      meetingSumWorker = null;
+    });
+    TanotMedia.persistOnce();
     var mem = (typeof navigator !== 'undefined') ? navigator.deviceMemory : undefined;
     var noBig = false;
     try { noBig = localStorage.getItem(AI_BIG_MODEL_BLOCKLIST_KEY) === '1'; } catch (e) {}
-    var canTryBig = !noBig && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
+    var canTryBig = !noBig && !TanotMedia.isMobile() && typeof navigator !== 'undefined' && !!navigator.gpu && mem && mem >= 4;
     var candidates = canTryBig
       ? [spawnProbedWorkerForMeeting('big').catch(function (err) {
           try { localStorage.setItem(AI_BIG_MODEL_BLOCKLIST_KEY, '1'); } catch (e2) {}
@@ -1194,6 +1197,9 @@
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
 
     $('asrGoBtn').addEventListener('click', runAsr);
+    $('asrCancelBtn').addEventListener('click', cancelAsr);
+    $('asrUseCloudBtn').addEventListener('click', function () { setAsrEngine('cloud'); applyAsrEngineUI(); });
+    applyAsrModelGate();
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
     $('meetingSumBtn').addEventListener('click', doMeetingSummary);
 
@@ -1210,6 +1216,7 @@
       if (asrEngineNote) asrEngineNote.style.display = engine === 'cloud' ? 'block' : 'none';
       if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
       if (engine === 'cloud') { updateNeuronStatusUI(); refreshServerNeuronUsage(); }
+      updateCloudOffer(false);
     }
     if (asrEngineToggle) {
       if (!ASR_CLOUD_AVAILABLE) asrEngineToggle.parentNode.style.display = 'none';
@@ -1229,7 +1236,7 @@
   window.__tts = {
     synthesizeMmsTts: synthesizeMmsTts, float32ToWavBlob: float32ToWavBlob,
     wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
-    loadAsrPipeline: loadAsrPipeline, decodeFileToPcm: decodeFileToPcm, resampleTo16kMono: resampleTo16kMono,
+    decodeFileToPcm: decodeFileToPcm, encodeAudio: encodeAudio, ttsPool: ttsPool, TTS_IDLE_MS: function (ms) { if (ms != null) TTS_IDLE_MS = ms; return TTS_IDLE_MS; },
     isMobileUA: isMobileUA, getMediaDuration: getMediaDuration,
     splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,

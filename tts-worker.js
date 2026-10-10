@@ -20,32 +20,18 @@
 
 var pipelinePromiseByModel = {};
 
-/* transformers.js เลือกไฟล์ ONNX ให้เองอัตโนมัติตาม dtype เริ่มต้นของแต่ละ backend (บน wasm คือ 'q8'
-   → ไปหา onnx/model_quantized.onnx) โมเดลเสียงไทยของเราเอง (Tanotfin/mms-tts-2081-onnx) มีไฟล์นี้จริง
-   จึงปล่อยดีฟอลต์ได้ปกติ — แต่โมเดล "หญิง (โทนพอดแคสต์)" (phlebotomy1996/mms-thai-female-podcast-spk0)
-   ไม่มีไฟล์ quantized เลย (เช็คจริงในโฟลเดอร์ onnx/ มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์
-   จะ 404 ตอนโหลด ต้องบังคับ dtype ต่อโมเดลเป็นรายตัว — เลือก 'fp32' (ไม่ใช่ 'fp16') เพราะ fp32 รองรับ
-   บน wasm backend ครบทุกเบราว์เซอร์แน่นอนกว่า fp16 ที่บาง engine/เบราว์เซอร์รุ่นเก่ายังไม่รองรับเต็มที่ */
-/* ⚠️ 2026-08-10: เจอบั๊กจริงว่าไฟล์นี้กับ text-to-speech.js มีตารางนี้ "ไม่ตรงกัน" — commit 67e6adb
-   (แก้ต้นตอบั๊ก ONNX export ของ Tanotfin/mms-tts-2081-FM-onnx/M-onnx แล้วอัปโหลดโมเดลที่แก้แล้วทับ
-   ของเดิมบน Hugging Face ยืนยันด้วย onnx.checker.check_model(full_check=True) ผ่านทั้ง model.onnx
-   และ model_quantized.onnx) แก้ไขแค่ text-to-speech.js (ถอด fp32 override ของ 2 โมเดลนี้ออก เพราะ
-   q8 ใช้ได้แล้วจริง) แต่ "ลืม" แก้ไฟล์นี้คู่กันไปด้วย ทำให้ Worker พูล (เส้นทางหลักที่ผู้ใช้เจอจริงเกือบ
-   ตลอด ทั้งจากหน้า text-to-speech.html และวิดเจ็ตแชท AI ลอยที่ใช้เสียง FM-onnx พูดคำตอบ) ยังคงบังคับ
-   fp32 ทิ้งไว้เกินความจำเป็น — ไฟล์ fp32 ใหญ่กว่า q8 หลายเท่า ยิ่งรันขนานหลาย Worker พร้อมกัน
-   (ttsPoolSize อาจให้สูงสุด 4 ตัว) ยิ่งใช้หน่วยความจำพร้อมกันมากเป็นทวีคูณ เป็นสาเหตุที่เป็นไปได้สูง
-   ของอาการ "หน้าเว็บรีเฟรชเอง" ที่ผู้ใช้รายงาน (แท็บแครชเพราะหน่วยความจำ WASM ไม่พอ เบราว์เซอร์กู้คืน
-   ด้วยการโหลดหน้าใหม่ ผู้ใช้เห็นเป็นเหมือนหน้ารีเฟรชเอง) — แก้แล้วให้ตรงกับ text-to-speech.js: เหลือแค่
-   โมเดล "หญิง (โทนพอดแคสต์)" เท่านั้นที่ยังต้องบังคับ fp32 จริง (ไม่มีไฟล์ quantized ให้เลือกเลย)
-   ‼️ ถ้าจะแก้ตารางนี้อีกในอนาคต ต้องแก้ไฟล์ text-to-speech.js คู่กันเสมอ (มีตารางเดียวกันซ้ำอยู่ที่นั่น
-   เพราะเป็นคนละ execution context กัน ไม่มี module กลางให้ import ร่วมกันได้ตรงๆ) */
-var TTS_DTYPE_OVERRIDES = {
-  'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
-};
+/* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" ต้อง fp32 เพราะไม่มีไฟล์ quantized) อ่านจาก media-models.js — ตารางกลางที่
+   text-to-speech.js ใช้ด้วย (2026-10: เดิมมีตารางซ้ำ 2 ชุดในไฟล์นี้กับ text-to-speech.js แล้วเคยลืมแก้คู่กันจน Worker
+   บังคับ fp32 เกินจำเป็น → แรมพุ่ง แท็บแครช — ดูประวัติเต็มในหัวไฟล์ media-models.js) */
+var modelsPromise = null;
 function ttsPipelineOpts(modelId, onProgress) {
-  var opts = { progress_callback: onProgress };
-  if (TTS_DTYPE_OVERRIDES[modelId]) opts.dtype = TTS_DTYPE_OVERRIDES[modelId];
-  return opts;
+  if (!modelsPromise) modelsPromise = import('./media-models.js').then(function () { return self.TanotMediaModels; });
+  return modelsPromise.then(function (M) {
+    var opts = { progress_callback: onProgress };
+    var dtype = M && M.ttsDtype(modelId);
+    if (dtype) opts.dtype = dtype;
+    return opts;
+  });
 }
 
 /* ⚠️ ไฟล์ ort-wasm-simd-threaded*.mjs/.wasm, ort.webgpu.bundle.min.mjs, onnxruntime-common/* ใน
@@ -75,13 +61,13 @@ function configureOnnxWasmPaths(env) {
    แยกแคช pipeline ตาม jobId แต่อย่างใด (ยังแคชตาม modelId เดิม ใช้ข้ามหลายงานได้เหมือนเดิม) */
 function loadPipeline(modelId, onProgress, jobId) {
   if (!pipelinePromiseByModel[modelId]) {
-    pipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
-      configureOnnxWasmPaths(mod.env);
-      return mod.pipeline('text-to-speech', modelId, ttsPipelineOpts(modelId, onProgress));
+    pipelinePromiseByModel[modelId] = Promise.all([import('./vendor/transformers/transformers.web.min.js'), ttsPipelineOpts(modelId, onProgress)]).then(function (r) {
+      configureOnnxWasmPaths(r[0].env);
+      return r[0].pipeline('text-to-speech', modelId, r[1]);
     });
     pipelinePromiseByModel[modelId].then(function () {
       self.postMessage({ type: 'pipeline-ready', jobId: jobId, modelId: modelId });
-    }, function () { /* โหลดพัง — ปล่อยให้ error จริงโผล่ตอนเรียก synth ท่อนแรกแทน ไม่ต้อง handle ซ้ำที่นี่ */ });
+    }, function () { delete pipelinePromiseByModel[modelId]; /* โหลดพัง — error จริงโผล่ตอนเรียก synth ท่อนแรก · ล้างแคชให้ลองใหม่ได้ */ });
   }
   return pipelinePromiseByModel[modelId];
 }
@@ -128,7 +114,7 @@ self.onmessage = function (e) {
         [output.audio.buffer]
       );
     }).catch(function (err) {
-      self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, message: err && err.message ? err.message : String(err) });
+      self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, name: (err && err.name) || 'Error', message: err && err.message ? err.message : String(err) });
       throw err; // หยุดท่อนที่เหลือใน worker ตัวนี้ (งานทั้งก้อนถือว่าล้มเหลวอยู่แล้วฝั่งหน้าเว็บหลัก)
     });
   }, Promise.resolve()).catch(function () { /* error ถูกรายงานผ่าน postMessage ไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }).then(function () {

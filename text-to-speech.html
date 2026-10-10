@@ -143,8 +143,11 @@
   <div class="mini asr-engine-note" id="asrEngineNote">
     <div class="asr-neuron-status" id="asrNeuronStatus"></div>
   </div>
+  <div class="callout info" id="asrMobileNote" hidden><span data-i18n="tts.mobileNote">บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง</span></div>
   <div class="frow">
     <button class="btn primary sm" id="asrGoBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-mic"/></svg><span data-i18n="tts.asrGo">ถอดเสียงเป็นข้อความ</span></button>
+    <button class="btn sm" id="asrCancelBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.asrCancel">ยกเลิก</span></button>
+    <button class="btn sm" id="asrUseCloudBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-cloud"/></svg><span data-i18n="tts.useCloud">ใช้โหมดคลาวด์แทน</span></button>
   </div>
   <div class="status" id="asrStatus"></div>
   <div id="asrResultWrap" style="display:none">
@@ -195,6 +198,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="file-reader.js"></script>
 <script src="vendor/lamejs/lamejs.iife.js"></script>
 <script src="ai-client.js"></script>
+<script src="media-models.js"></script>
+<script src="media-core.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
 </html>
