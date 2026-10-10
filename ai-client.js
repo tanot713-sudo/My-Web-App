@@ -183,7 +183,27 @@
   /* asr({ pcm, sampleRate=16000, language:'th'|'en'|undefined, domain?, initialPrompt?, signal }) หรือ { audioBase64 } → { text, segments:[{start,end,text}], neurons }
      ส่งทั้งก้อนในคำขอเดียว เหมาะกับคลิปสั้น (คำถามจากไมค์) และ 1 ท่อนของไฟล์ยาว (asr-cloud.js ตัดท่อนเหลื่อมแล้วส่งขนาน ≤ 3)
      domain = ชุดคำศัพท์เฉพาะที่เซิร์ฟเวอร์ใส่เป็น initial_prompt (functions/_lib/asr.js DOMAIN_PROMPTS) · ไม่ส่ง = ไม่มี prompt */
+  /* เสียงก้อนเดียวยาวเกิน ASR_PIECE_SEC (เช่น อัดไมค์ในวิดเจ็ตแชทนานๆ) → แบ่งส่งทีละท่อนตามลำดับแล้วต่อผล
+     เพราะ /api/asr รับเสียงได้ ≤ ~93 วินาทีต่อคำขอ (MAX_AUDIO_B64 ใน functions/_lib/asr.js) — ท่อนของ asr-cloud.js สั้นกว่านี้อยู่แล้ว */
+  var ASR_PIECE_SEC = 60;
   function asr(opts) {
+    var rate = opts.sampleRate || 16000, step = rate * ASR_PIECE_SEC, pcm = opts.pcm;
+    if (opts.audioBase64 || !pcm || pcm.length <= step) return asrOne(opts);
+    var out = { text: '', segments: [], neurons: 0 }, chain = Promise.resolve();
+    for (var a = 0; a < pcm.length; a += step) (function (a) {
+      chain = chain.then(function () {
+        var piece = pcm.subarray ? pcm.subarray(a, a + step) : pcm.slice(a, a + step);
+        return asrOne(Object.assign({}, opts, { pcm: piece })).then(function (r) {
+          var off = a / rate;
+          out.text = (out.text + ' ' + ((r && r.text) || '')).trim();
+          ((r && r.segments) || []).forEach(function (s) { out.segments.push({ start: s.start + off, end: s.end + off, text: s.text }); });
+          out.neurons = r && r.neurons != null && out.neurons != null ? out.neurons + r.neurons : null;
+        });
+      });
+    })(a);
+    return chain.then(function () { return out; });
+  }
+  function asrOne(opts) {
     var b64 = opts.audioBase64 || pcmToWavBase64(opts.pcm, opts.sampleRate || 16000);
     var body = { audio: b64, language: opts.language };
     if (opts.domain) body.domain = opts.domain;

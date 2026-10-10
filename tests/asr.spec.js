@@ -390,6 +390,20 @@ test.describe('ถอดเสียงคลาวด์: ชุดคำศั
     expect(src).toContain("AiClient.asrDomain() === 'general' ? undefined : AiClient.asrDomain()");
   });
 
+  test('AiClient.asr เสียงก้อนเดียวยาว 150 วิ (อัดไมค์วิดเจ็ตแชทนานๆ) → แบ่งส่งทีละท่อน ≤ 60 วิ ตามลำดับ ไม่ชนเพดาน 413 · ต่อข้อความ + เลื่อนเวลา segments ตามท่อน', async ({ context, page }) => {
+    const st = await cloudSetup(context, page, (k) => ({ json: { text: 'ท่อน' + k, segments: [{ start: 1, end: 2, text: 'ท่อน' + k }], neurons: 2 } }));
+    await page.goto('/text-to-speech.html');
+    const r = await page.evaluate(() => AiClient.asr({ pcm: new Float32Array(16000 * 150), language: 'th' }));
+    expect(st.calls.map((c) => Math.round(c.sec))).toEqual([60, 60, 30]);
+    expect(st.maxInflight).toBe(1);
+    expect(r.text).toBe('ท่อน0 ท่อน1 ท่อน2');
+    expect(r.segments.map((s) => s.start)).toEqual([1, 61, 121]);
+    expect(r.neurons).toBe(6);
+    // คลิปสั้นยังเป็นคำขอเดียวเหมือนเดิม
+    await page.evaluate(() => AiClient.asr({ pcm: new Float32Array(16000 * 59), language: 'th' }));
+    expect(st.calls.length).toBe(4);
+  });
+
   test('ย่อหน้าตามช่วงเงียบ + สวิตช์ "แสดงเวลา [hh:mm:ss]" (จำค่า, วาดใหม่ทันทีไม่เรียกคลาวด์ซ้ำ) · ข้อความสรุปประชุมไม่มีเวลา', async ({ context, page }) => {
     const st = await cloudSetup(context, page, () => ({
       json: { text: 'x', segments: [{ start: 0, end: 5, text: 'เปิดประชุมและแนะนำวาระแรกของวันนี้' }, { start: 5.5, end: 9, text: 'ต่อเนื่องไม่มีช่วงเงียบ' }, { start: 83, end: 90, text: 'ย่อหน้าหลังเงียบนาน' }] },
