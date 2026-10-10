@@ -6,8 +6,8 @@
       เดิม decodeFileToPcm ถอดรหัสทั้งไฟล์ที่ความถี่เดิม (44.1/48kHz × 2 ช่อง) แล้วค่อย resample — ไฟล์ประชุม 1 ชม.
       ใช้แรม ~1.4GB แค่ขั้นนี้ (แท็บมือถือแครช) · 16kHz ตั้งแต่แรกเหลือ 1/3 และรวมเป็นโมโนทีละช่วงตอนส่ง (segment)
       ไม่สร้างสำเนาโมโนทั้งไฟล์ · ใช้ฟังก์ชันเดียวกันทั้งถอดเสียงคลาวด์/ในเบราว์เซอร์/ไมค์ของวิดเจ็ตแชท
-   2) transcribeLocal() — Whisper ใน asr-worker.js (ไม่ใช่เธรดหลัก) ส่งทีละช่วง (≤ 5 นาที) แบบ transfer
-      ArrayBuffer · ยกเลิกได้ (terminate Worker — WASM ที่กำลังคำนวณหยุดกลางทางได้ทางเดียว) · Worker พัง/
+   2) transcribeLocal() — Whisper ใน asr-worker.js (ไม่ใช่เธรดหลัก) ส่งทีละท่อน (≤ 30 วิ ตัดที่จุดเงียบ + เหลื่อม 1.5 วิ ด้วย AsrCalc.planChunks แบบเดียวกับคลาวด์ →
+      ต่อด้วย AsrCalc.mergeChunks ตัดคำซ้ำที่รอยต่อ + เวลา segments จริงในไฟล์) แบบ transfer ArrayBuffer · เลิกใช้ chunk_length_s/stride_length_s ของ pipeline (เคยทำข้อความซ้ำที่รอยต่อ ~30 วิ) · ยกเลิกได้ (terminate Worker — WASM ที่กำลังคำนวณหยุดกลางทางได้ทางเดียว) · Worker พัง/
       หน่วยความจำไม่พอ → ปิดตัวที่พังทิ้ง ครั้งต่อไปสร้างใหม่ (โหลดโมเดลจากแคช)
       2026-10 Section 3: device:'auto' = ใช้ WebGPU เมื่อมี (webgpuPlan: navigator.gpu + requestAdapter ได้จริง + ไม่ใช่อะแดปเตอร์ซอฟต์แวร์, ไม่ใช่มือถือ/iOS) กับโมเดลตระกูล
       onnx-community · ล้มตอนโหลด/รัน → asr-worker.js ถอยกลับ WASM เอง 1 ครั้ง · เหตุการณ์ถอยลง problem log (ไม่มีเนื้อหา) และจำ 3 วัน (tanot:asr:gpubad, kind cache)
@@ -348,6 +348,11 @@
           fe.mediaLogged = true;
           if (onProgress) onProgress({ stage: 'fallback', what: m.what, from: m.from, to: m.to });
         }
+        else if (m.type === 'retry') {
+          /* เครือข่ายสะดุดตอนโหลดโมเดล → Worker รอแล้วลองใหม่ 1 ครั้ง · บันทึกว่าลองซ้ำแล้ว (ไม่มีเนื้อหาผู้ใช้) */
+          logNote('asr', { stage: 'load-retry', engine: 'local', model: m.modelId || modelId, device: m.device || 'wasm', lang: extra.logLang }, 'retry=1 network');
+          if (onProgress) onProgress({ stage: 'retry', modelId: m.modelId || modelId });
+        }
         else if (m.type === 'result') { done(); resolve({ text: m.text || '', chunks: m.chunks, device: m.device || 'wasm', modelId: m.modelId || modelId }); }
         else if (m.type === 'error') {
           done();
@@ -371,14 +376,34 @@
       w.postMessage(msg, [pcm.buffer]);
     });
   }
-  /* opts: { dec (จาก decode16k) | pcm, modelId, lang:'auto'|'thai'|…, segSec, device:'auto'|'wasm' (ไม่ส่ง = 'wasm' เหมือนเดิม), timestamps,
-             onProgress({stage:'model'|'segment'|'ready'|'fallback', …}), signal }
-     → Promise<{ text, segments:[{start,end,text}], device, modelId }> · ยกเลิก (signal.abort()) = terminate Worker ทันที */
+  /* ท่อนถอดเสียงในเบราว์เซอร์: Whisper รับ ≤ 30 วิต่อหน้าต่าง → step 25 + ค้นจุดเงียบ ±3 + เหลื่อมหลัง 1.5 = ยาวสุด 29.5 วิ (ท่อนสุดท้ายก้อนท้าย ≤ 3 วิ รวมเข้าท่อนก่อนหน้า: 25 + 3 + 1.5 = 29.5)
+     คลาวด์ใช้ค่าเริ่มต้นของ AsrCalc (step 28) ได้เพราะ Whisper large-v3-turbo ที่ Workers AI รับยาวกว่า · ที่นี่ต้องไม่เกิน 30 วิจริง ไม่งั้น feature extractor ของ Whisper ตัดท้ายทิ้ง */
+  var ASR_CHUNK = { stepSec: 25, searchSec: 3, overlapSec: 1.5, tailMinSec: 3 };
+  function ensureAsrCalc() {
+    if (window.AsrCalc) return Promise.resolve(window.AsrCalc);
+    return new Promise(function (resolve, reject) {
+      var sc = document.createElement('script');
+      sc.src = BASE + 'asr-calc.js';
+      sc.onload = function () { window.AsrCalc ? resolve(window.AsrCalc) : reject(mediaError('asr', 'asr-calc.js')); };
+      sc.onerror = function () { reject(mediaError('asr', 'asr-calc.js')); };
+      document.head.appendChild(sc);
+    });
+  }
+  /* → [{ a, b, start, end, ov }] (ดัชนี sample) — ตัดที่จุดเงียบที่สุดในรัศมี ±3 วิรอบเป้า */
+  function planAsrChunks(dec, o) {
+    var A = window.AsrCalc, frame = Math.round(RATE * 0.02), c = o || ASR_CHUNK;
+    return A.planChunks(dec.length, {
+      rate: RATE, stepSec: c.stepSec, searchSec: c.searchSec, overlapSec: c.overlapSec, tailMinSec: c.tailMinSec,
+      cutAt: function (target, lo, hi) { var win = dec.segment(lo, hi); return lo + quietCut(win, 0, win.length, frame); }
+    });
+  }
+  /* opts: { dec (จาก decode16k) | pcm, modelId, lang:'auto'|'thai'|…, device:'auto'|'wasm' (ไม่ส่ง = 'wasm' เหมือนเดิม), timestamps,
+             onProgress({stage:'model'|'segment'|'ready'|'fallback'|'retry', …}) — 'segment' = ท่อนที่ i จาก n, signal }
+     → Promise<{ text, segments:[{start,end,text}], device, modelId, chunks }> · ยกเลิก (signal.abort()) = terminate Worker ทันที */
   function transcribeLocalDetailed(opts) {
     var dec = opts.dec || wrapPcm(opts.pcm);
     var modelId = opts.modelId || 'Xenova/whisper-tiny';
-    var segs = planSegments(dec, opts.segSec);
-    var texts = [], outSegs = [], i = 0, usedDevice = 'wasm', usedModel = modelId;
+    var chunks = [], results = [], i = 0, usedDevice = 'wasm', usedModel = modelId;
     persistOnce();
     return new Promise(function (resolve, reject) {
       var finished = false;
@@ -391,35 +416,35 @@
       var devP = opts.device === 'auto' && M && M.asrWebgpuCapable(modelId)
         ? webgpuPlan().then(function (p) { return p.ok && (!M.asrInfo(modelId).f16 || p.f16) ? 'webgpu' : 'wasm'; })
         : Promise.resolve('wasm');
-      devP.then(function (device) {
+      Promise.all([devP, ensureAsrCalc()]).then(function (r) {
+        var device = r[0];
+        chunks = planAsrChunks(dec);
         function next() {
           if (finished) return;
-          if (i >= segs.length) {
+          if (i >= chunks.length) {
             finished = true;
-            resolve({ text: texts.join(' ').replace(/\s+/g, ' ').trim(), segments: outSegs, device: usedDevice, modelId: usedModel });
+            var merged = window.AsrCalc.mergeChunks(results); // ตัดคำซ้ำที่รอยต่อ + เวลา segments จริงในไฟล์
+            resolve({ text: merged.text, segments: merged.segments, device: usedDevice, modelId: usedModel, chunks: chunks.length });
             return;
           }
-          if (opts.onProgress) opts.onProgress({ stage: 'segment', i: i + 1, n: segs.length });
-          var a = segs[i][0], b = segs[i][1], pcm = dec.segment(a, b), p;
+          if (opts.onProgress) opts.onProgress({ stage: 'segment', i: i + 1, n: chunks.length });
+          var c = chunks[i], pcm = dec.segment(c.a, c.b), p;
           try { p = asrOne(pcm, modelId, opts.lang, opts.onProgress, { device: device, timestamps: opts.timestamps, logLang: opts.lang }); } catch (e) { fail(e); return; }
-          p.then(function (r) {
-            var t = String(r.text).trim();
-            texts.push(t);
-            usedDevice = r.device; usedModel = r.modelId;
-            var off = a / RATE, dur = (b - a) / RATE;
-            var got = 0;
-            (r.chunks || []).forEach(function (c) {
-              var ct = String(c.text || '').trim();
+          p.then(function (res) {
+            usedDevice = res.device; usedModel = res.modelId;
+            var dur = (c.b - c.a) / RATE, segs = [];
+            (res.chunks || []).forEach(function (ck) {
+              var ct = String(ck.text || '').trim();
               if (!ct) return;
-              var st = off + (c.start || 0), en = off + (c.end != null ? c.end : Math.min(dur, (c.start || 0) + 5));
-              outSegs.push({ start: st, end: Math.max(st, en), text: ct }); got++;
+              var st = +ck.start || 0;
+              segs.push({ start: st, end: Math.max(st, ck.end != null ? +ck.end : Math.min(dur, st + 5)), text: ct });
             });
-            if (!got && t) outSegs.push({ start: off, end: off + dur, text: t });
+            results.push({ offset: c.a / RATE, text: String(res.text || '').trim(), segments: segs, duration: dur });
             i++; next();
           }, fail);
         }
         next();
-      });
+      }, fail);
     });
   }
   /* เหมือนเดิม: คืนข้อความล้วน (วิดเจ็ตแชท / languages.jsx ใช้) */
@@ -471,7 +496,7 @@
     error: mediaError, isMemoryError: isMemoryError, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
     LOG_KEY: LOG_KEY, logError: logError, logNote: logNote, readLog: readLog, clearLog: clearLog,
     budget: budget,
-    decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, quietCut: quietCut,
+    decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, planAsrChunks: planAsrChunks, ASR_CHUNK: ASR_CHUNK, quietCut: quietCut,
     transcribeLocal: transcribeLocal, transcribeLocalDetailed: transcribeLocalDetailed, webgpuPlan: webgpuPlan, ttsGpuPlan: ttsGpuPlan, markTtsGpuBad: markTtsGpuBad, asrDefaultModel: asrDefaultModel, cancelLocalAsr: function () { asrKill('abort'); },
     persistOnce: persistOnce, modelCacheInfo: modelCacheInfo, clearModelCache: clearModelCache
   };

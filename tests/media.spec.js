@@ -23,7 +23,9 @@ export async function pipeline(task, model, opts) {
       busy(c.busyMs || 0);
       if (c.mode === 'oom') throw new RangeError('Out of memory');
       if (c.mode === 'crash') { setTimeout(() => { throw new Error('simulated worker crash'); }); await sleep(60000); }
-      return { text: (c.text || 'seg') + ':' + pcm.length + ':' + ((o && o.language) || 'auto') + ':' + model };
+      // นับครั้งที่เรียก (ต่อ Worker) ใส่ในข้อความ — ท่อนที่ติดกันต้องไม่เหมือนกันเป๊ะ ไม่งั้นตัวตัดคำซ้ำที่รอยต่อ (AsrCalc.mergeChunks) จะตัดท่อนที่สองทิ้งเป็นรอยต่อ
+      const n = (self.__asrN = (self.__asrN || 0) + 1);
+      return { text: (c.text || 'seg') + n + ':' + pcm.length + ':' + ((o && o.language) || 'auto') + ':' + model };
     };
     f.dispose = async () => {};
     return f;
@@ -129,7 +131,7 @@ test.describe('media-core: ถอดรหัส 16kHz + แบ่งช่ว�
     expect(r.dur).toBeCloseTo(1.5, 2);
   });
 
-  test('planSegments: 11 นาที → ช่วง ~5 นาที ต่อกันพอดีไม่ขาดไม่ซ้อน', async ({ context, page }) => {
+  test('planSegments (เดิม): 11 นาที → ช่วง ~5 นาที ต่อกันพอดีไม่ขาดไม่ซ้อน — ยังใช้ได้เป็นตัวช่วย แต่การถอดเสียงในเบราว์เซอร์ใช้ planAsrChunks (≤ 30 วิ) แล้ว', async ({ context, page }) => {
     await setup(context, page);
     await page.goto('/text-to-speech.html');
     const segs = await page.evaluate(() => TanotMedia.planSegments(TanotMedia.fromPcm(new Float32Array(16000 * 660)), 300));
@@ -139,27 +141,44 @@ test.describe('media-core: ถอดรหัส 16kHz + แบ่งช่ว�
     for (let i = 1; i < segs.length; i++) expect(segs[i][0]).toBe(segs[i - 1][1]);
     for (const [a, b] of segs.slice(0, 2)) expect(Math.abs(b - a - 16000 * 300)).toBeLessThanOrEqual(16000 * 3);
   });
+
+  test('planAsrChunks: 11 นาที → ทุกท่อน ≤ 30 วิ (Whisper รับ 30 วิต่อหน้าต่าง) · ท่อนแรกเริ่ม 0 · ท่อนสุดท้ายจบที่ท้ายไฟล์ · ท่อนถัดไปเริ่มก่อนจุดตัด 1.5 วิ (เหลื่อม) · จุดตัดต่อกันพอดี', async ({ context, page }) => {
+    await setup(context, page);
+    await page.goto('/text-to-speech.html');
+    for (const sec of [0.5, 12, 29, 31, 60, 660, 3601]) {
+      const ch = await page.evaluate((n) => TanotMedia.planAsrChunks(TanotMedia.fromPcm(new Float32Array(Math.round(16000 * n)))), sec);
+      expect(ch.length, sec + ' วิ').toBeGreaterThanOrEqual(1);
+      expect(ch[0].a).toBe(0); expect(ch[ch.length - 1].b).toBe(Math.round(16000 * sec));
+      for (const c of ch) expect((c.b - c.a) / 16000, sec + ' วิ').toBeLessThanOrEqual(30);
+      for (let i = 1; i < ch.length; i++) { expect(ch[i].start).toBe(ch[i - 1].end); expect(ch[i].start - ch[i].a).toBe(24000); } // เหลื่อมหลัง 1.5 วิ
+    }
+  });
 });
 
 test.describe('ถอดเสียงในเบราว์เซอร์ (asr-worker.js)', () => {
-  test('รันใน Worker ทีละช่วง 5 นาที — เธรดหลักไม่มี long task ≥ 200ms ระหว่างถอด, ผลรวมทุกช่วง', async ({ context, page }) => {
-    const errors = await setup(context, page, { cfg: { asr: { loadMs: 200, busyMs: 700 } }, engine: 'local' });
+  test('รันใน Worker ทีละท่อน ≤ 30 วิ (ตัดที่จุดเงียบ เหลื่อม 1.5 วิ) — เธรดหลักไม่มี long task ≥ 200ms ระหว่างถอด, ผลรวมทุกท่อนตามลำดับ', async ({ context, page }) => {
+    const errors = await setup(context, page, { cfg: { asr: { loadMs: 200, busyMs: 150 } }, engine: 'local' });
     await page.goto('/text-to-speech.html');
     await page.setInputFiles('#asrFile', { name: 'meeting.wav', mimeType: 'audio/wav', buffer: wav({ rate: 8000, seconds: 360, chFn: speech }) });
     await page.selectOption('#asrModel', 'Xenova/whisper-base');
     const t0 = await page.evaluate(() => performance.now());
     await page.click('#asrGoBtn');
     await expect(page.locator('#asrCancelBtn')).toBeVisible();
-    await expect(page.locator('#asrStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/, { timeout: 60000 });
     const text = await page.inputValue('#asrResult');
-    const parts = text.split(' ');
-    expect(parts.length).toBe(2);
-    expect(parts.every((p) => /^seg:\d+:auto:Xenova\/whisper-base$/.test(p))).toBe(true);
-    const total = parts.reduce((s, p) => s + +p.split(':')[1], 0);
-    expect(Math.abs(total - 360 * 16000)).toBeLessThanOrEqual(4);
+    const parts = text.split(/\s+/).filter(Boolean);
+    // ก้าว 25 วิ ค้นจุดเงียบ ±3 วิ → ท่อนละ 22–28 วิ (ไม่รวมส่วนเหลื่อม) → 360 วิ ได้ 13–17 ท่อน (ไม่ใช่ 2 ช่วง 5 นาทีแบบเดิม)
+    expect(parts.length).toBeGreaterThanOrEqual(13); expect(parts.length).toBeLessThanOrEqual(17);
+    expect(parts.every((p) => /^seg\d+:\d+:auto:Xenova\/whisper-base$/.test(p))).toBe(true);
+    expect(parts.map((p) => +p.match(/^seg(\d+)/)[1])).toEqual(parts.map((_, i) => i + 1)); // ตามลำดับท่อน
+    const lens = parts.map((p) => +p.split(':')[1]);
+    for (const n of lens) expect(n).toBeLessThanOrEqual(30 * 16000);
+    // เสียงทั้งหมดถูกส่งครบ: ผลรวม = ความยาวไฟล์ + ส่วนเหลื่อม 1.5 วิ ต่อรอยต่อ
+    const total = lens.reduce((x, y) => x + y, 0);
+    expect(Math.abs(total - (360 * 16000 + (lens.length - 1) * 24000))).toBeLessThanOrEqual(4);
     const asr = await workers(page, /asr-worker/);
     expect(asr.length).toBe(1);
-    expect(asr[0].posts.filter((p) => p.type === 'transcribe').length).toBe(2);
+    expect(asr[0].posts.filter((p) => p.type === 'transcribe').length).toBe(parts.length);
     const longest = await page.evaluate((t) => Math.max(0, ...window.__longtasks.filter((l) => l.start >= t).map((l) => l.dur)), t0);
     expect(longest).toBeLessThan(200);
     await expect(page.locator('#asrCancelBtn')).toBeHidden();
@@ -295,7 +314,7 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
   test('โมเดล fp32 (หญิง โทนพอดแคสต์) = Worker เดียวแม้เครื่องแรง', async ({ context, page }) => {
     await setup(context, page, { cfg: { tts: { busyMs: 20 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
-    await generate(page, 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx');
+    await generate(page, 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx');
     expect((await workers(page, /tts-worker/)).length).toBe(1);
   });
 

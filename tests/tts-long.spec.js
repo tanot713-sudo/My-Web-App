@@ -111,14 +111,14 @@ test.describe('A) ท่อน: รวมบรรทัดในย่อหน
   const LINE = (i) => 'เล่าเรื่องสมมติบรรทัดที่ ' + (i + 1);
   const SENT = Array.from({ length: 60 }, (_, i) => LINE(i));
 
-  test('MAX_CHUNK = 100 ค่าเดียว · ต่อกันทุกบรรทัด → จำนวนท่อนลดลง ≥ 50% เทียบกับตัดทุกบรรทัด · ทุกท่อน ≤ MAX · ข้อความครบ', () => {
-    expect(N.MAX_CHUNK).toBe(100);
+  test('MAX_CHUNK = 60 ค่าเดียว · ต่อกันทุกบรรทัด → จำนวนท่อนลดลง ≥ 30% เทียบกับตัดทุกบรรทัด (60 → 39) · ทุกท่อน ≤ MAX · ข้อความครบ', () => {
+    expect(N.MAX_CHUNK).toBe(60);
     const merged = N.plan(SENT.join('\n'));
     const perLine = N.plan(SENT.join('\n\n')); // บรรทัดว่างคั่น = ย่อหน้าละบรรทัด = พฤติกรรมเดิม (ตัดทุกบรรทัด)
     expect(perLine.chunks.length).toBe(60);
-    expect(merged.chunks.length).toBeLessThanOrEqual(25);
-    expect(merged.chunks.length / perLine.chunks.length).toBeLessThan(0.5);
-    merged.chunks.forEach((c) => { expect(c.length).toBeLessThanOrEqual(100); expect(c.length).toBeGreaterThan(0); expect(bad(c)).toEqual([]); });
+    expect(merged.chunks.length).toBe(39);                              // เพดาน 60: บรรทัด ~28 ตัวอักษร รวมได้ 2 บรรทัดต่อท่อน (เพดาน 100 ได้ 23 — ดู tts-voice.spec.js)
+    expect(merged.chunks.length / perLine.chunks.length).toBeLessThan(0.7);
+    merged.chunks.forEach((c) => { expect(c.length).toBeLessThanOrEqual(60); expect(c.length).toBeGreaterThan(0); expect(bad(c)).toEqual([]); });
     expect(merged.chunks.join(' ')).toBe(N.forMms(SENT.join('\n'))); // ตัดแล้วต่อกันได้ข้อความเดิมพอดี
     expect(new Set(merged.paras).size).toBe(1);                        // ทั้งก้อนเป็นย่อหน้าเดียว
   });
@@ -536,7 +536,7 @@ test.describe('B) งานยาวไม่หาย', () => {
     const rows = (await logRows(page)).filter((r) => r.kind === 'tts');
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({ code: 'info', stage: 'stats', engine: 'local', device: 'wasm' });
-    expect(rows[0].msg).toMatch(/^chars=\d+ chunks=40 max=100 workers=\d+ device=wasm sec=[\d.]+ sec\/chunk=[\d.]+ sec\/1000ch=[\d.]+ parts=1 mode=single$/);
+    expect(rows[0].msg).toMatch(/^chars=\d+ chunks=40 max=60 workers=\d+ device=wasm sec=[\d.]+ sec\/chunk=[\d.]+ sec\/1000ch=[\d.]+ parts=1 mode=single$/);
     expect(JSON.stringify(rows)).not.toContain('ลับ');
     expect(errors).toEqual([]);
   });
@@ -568,7 +568,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     const b = await page.evaluate(() => ({ batches: window.__batches, msgs: window.__wmsgs, workers: window.__workers.filter((u) => /tts-worker/.test(u)).length }));
     expect(b.workers).toBe(1);
     expect(b.batches.every((x) => x.device === 'webgpu')).toBe(true);
-    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-tts-2081-FM-stable-onnx', device: 'webgpu', dtype: 'fp32' }]);
+    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', device: 'webgpu', dtype: 'fp32' }]);
     expect(b.msgs.filter((m) => m.type === 'fallback')).toEqual([]);
     expect((await logRows(page)).filter((r) => r.code !== 'info')).toEqual([]);
     await expect(page.locator('#dlStatus')).toContainText('สร้างไฟล์เสียงเสร็จแล้ว');
@@ -620,7 +620,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
       const log = await logRows(page);
       const row = log.find((r) => r.stage === 'webgpu-' + stage);
       expect(row, JSON.stringify(log)).toBeTruthy();
-      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-tts-2081-FM-stable-onnx' });
+      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-tts-2081-FM-stable2-onnx' });
       expect(JSON.stringify(log)).not.toContain('ลับ');
       expect(await page.evaluate(() => +localStorage.getItem('tanot:tts:gpubad'))).toBeGreaterThan(0);
       // ไฟล์ปลายทางถูกต้อง: ทุกท่อนมีเสียง (ไม่ใช่ NaN/เงียบ)

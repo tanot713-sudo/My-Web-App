@@ -19,24 +19,51 @@
   'use strict';
   var TTS_DTYPE_OVERRIDES = {
     'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
-    /* ชุด stable (2026-10) — dtype ที่มีให้เหมือนต้นฉบับทุกประการ: พอดแคสต์ fp32 เท่านั้น, FM/M ใช้ q8 ตามค่าเริ่มต้น */
-    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'fp32'
+    /* ชุด stable / stable2 (2026-10) — dtype ที่มีให้เหมือนต้นฉบับทุกประการ: พอดแคสต์ fp32 เท่านั้น, FM/M ใช้ q8 ตามค่าเริ่มต้น */
+    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'fp32',
+    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'fp32'
   };
-  /* เสียงไทย "stable" (2026-10): VITS ฝังความสุ่มไว้ใน ONNX (noise_scale_duration 0.8 / noise_scale 0.667) → อาการ "ยานตอนต้นคำ / สั่นตอนท้ายคำ"
-     เจ้าของแปลงชุดใหม่ที่ noise_scale_duration 0.3 / noise_scale 0.333 (น้ำหนักเดิม) · stable → ต้นฉบับ = ทางถอยเมื่อโหลดชุดใหม่ไม่ได้ (404/เครือข่าย) ·
-     id เดิมทั้ง 4 (รวม "ค่าเริ่มต้น" Tanotfin/mms-tts-2081-onnx ที่เอาออกจากรายการเพราะฟังไม่รู้เรื่อง) แปลงเป็น stable ด้วย ttsMigrate */
-  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-tts-2081-FM-stable-onnx';
+  /* เสียงไทย (2026-10): VITS ฝังความสุ่มไว้ใน ONNX (noise_scale_duration 0.8 / noise_scale 0.667) → อาการ "ยานตอนต้นคำ / สั่นตอนท้ายคำ"
+     • stable  = noise_scale_duration 0.3 / noise_scale 0.333 (น้ำหนักเดิม) — ชุดรอบก่อน
+     • stable2 = noise_scale 0.1 / noise_scale_duration 0.0 (น้ำหนักเดิม, เว้นขอบท่อนเหมือนเดิม) — เจ้าของฟังเทียบ 4 ระดับความสุ่มแล้วเลือก "G"; ค่าเริ่มต้นตอนนี้
+     ทางถอยเมื่อโหลดชุดใหม่ไม่ได้ (404/เครือข่ายหลังลองซ้ำแล้ว) ไล่ทีละขั้น ขั้นละ 1 ครั้ง: stable2 → stable → ต้นฉบับ (TTS_LEGACY = "ขั้นถัดไปของ id นั้น")
+     id เดิมทั้ง 4 (รวม "ค่าเริ่มต้น" Tanotfin/mms-tts-2081-onnx ที่เอาออกจากรายการเพราะฟังไม่รู้เรื่อง) และชุด stable ที่เคยเลือกไว้ แปลงเป็น stable2 ด้วย ttsMigrate */
+  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-tts-2081-FM-stable2-onnx';
   var TTS_LEGACY = {
+    'Tanotfin/mms-tts-2081-FM-stable2-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
+    'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
+    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx',
     'Tanotfin/mms-tts-2081-FM-stable-onnx': 'Tanotfin/mms-tts-2081-FM-onnx',
     'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-onnx',
     'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'phlebotomy1996/mms-thai-female-podcast-spk0'
   };
   var TTS_MIGRATE = {
     'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
-    'Tanotfin/mms-tts-2081-FM-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
-    'Tanotfin/mms-tts-2081-M-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx'
+    'Tanotfin/mms-tts-2081-FM-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-M-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx',
+    'Tanotfin/mms-tts-2081-FM-stable-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
+    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx'
   };
+  /* "ลดเสียงแหลม" (ตัวกรอง low-pass 2nd-order biquad Q 0.707 ที่ TTS_LOWPASS_HZ — audio-gain.js): หญิง ทั่วไป (22.05 kHz) มีเสียงแหลมจนมีเสียงรบกวนเล็กน้อย (เจ้าของฟังจริง)
+     ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
+  var TTS_LOWPASS_HZ = 7000;
+  var TTS_LOWPASS_DEFAULT = {
+    'Tanotfin/mms-tts-2081-FM-stable2-onnx': true,
+    'Tanotfin/mms-tts-2081-FM-stable-onnx': true,
+    'Tanotfin/mms-tts-2081-FM-onnx': true,
+    'Tanotfin/mms-tts-2081-onnx': true
+  };
+  /* error ตอนโหลดโมเดลที่เป็นเครือข่ายสะดุด (เคยเจอ "TypeError: network error" ตอนโหลดโมเดลเสียงพอดแคสต์ 1 ครั้ง ครั้งต่อไปผ่าน) → tts-worker.js/asr-worker.js รอ NET_RETRY_MS แล้วลองโหลดใหม่ 1 ครั้งก่อนเข้าทางถอย
+     ไม่ใช่: 404/403/401/ไม่พบไฟล์ (ลองซ้ำไม่ช่วย → ทางถอยทันที) · หน่วยความจำไม่พอ (ลองซ้ำซ้ำเติม) */
+  var NET_RETRY_MS = 1500;
+  var NET_ERR_RE = /network ?error|failed to fetch|load failed|fetch failed|networkerror when attempting|net::err_|err_(network|internet|connection|timed_out|name_not|empty_response)|econn(reset|refused)|etimedout|socket hang up|\btimed? ?out\b|the network connection was lost|connection (was )?(reset|closed|lost)/i;
+  var NOT_NET_RE = /\b(40[0-9]|410|5\d\d)\b|could not locate|not found|unauthorized|forbidden|out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
+  function isNetworkError(err) {
+    var m = err && err.message ? String(err.message) : String(err == null ? '' : err);
+    return NET_ERR_RE.test(m) && !NOT_NET_RE.test(m);
+  }
   /* MMS-TTS บน WebGPU (Section 5, ทดลอง): ใช้ fp32 เสมอ — ตัว q8 (ค่าเริ่มต้นของ WASM) ต้องใช้ op แบบ quantized ที่ backend WebGPU ของ onnxruntime-web ยังไม่มี kernel ที่ดี
      (นี่คือเหตุผลที่รอบก่อนวัดแล้วช้ากว่า WASM) · ชื่อไฟล์ onnx/model.onnx (fp32) ของแต่ละ repo ยังไม่ได้ตรวจกับ Hugging Face จริง — ไม่มี/โหลดไม่ได้ = tts-worker.js ถอย WASM อัตโนมัติ + problem log
      เพิ่ม override รายโมเดลที่นี่ถ้าวัดแล้วพบว่า dtype อื่นดีกว่า */
@@ -83,10 +110,17 @@
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
     TTS_DEFAULT_VOICE: TTS_DEFAULT_VOICE,
     TTS_LEGACY: TTS_LEGACY,
-    /* id เสียงที่เคยเลือกไว้ (ชุดเดิม) → ตัว stable คู่กัน · id อื่น/ใหม่แล้ว = คืนค่าเดิม */
+    /* id เสียงที่เคยเลือกไว้ (ต้นฉบับ/stable) → ตัว stable2 คู่กัน · id อื่น/ใหม่แล้ว = คืนค่าเดิม */
     ttsMigrate: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_MIGRATE, modelId) ? TTS_MIGRATE[modelId] : modelId; },
-    /* ทางถอยของ stable = repo ต้นฉบับ (ไม่มี = null) */
+    /* ทางถอย "ขั้นถัดไป" ของ id นั้น: stable2 → stable → ต้นฉบับ → null (ไม่มี) · ผู้เรียกถอยทีละขั้น ขั้นละ 1 ครั้ง */
     ttsLegacy: function (modelId) { return TTS_LEGACY[modelId] || null; },
+    /* ห่วงโซ่ทางถอยทั้งหมดของ id (ไม่รวมตัวมันเอง) เช่น stable2 → [stable, ต้นฉบับ] */
+    ttsLegacyChain: function (modelId) { var out = [], id = modelId, guard = 0; while (TTS_LEGACY[id] && guard++ < 8) { id = TTS_LEGACY[id]; out.push(id); } return out; },
+    TTS_LOWPASS_HZ: TTS_LOWPASS_HZ,
+    /* ธงเริ่มต้นของ "ลดเสียงแหลม" ต่อเสียง (ผู้ใช้ override ได้ที่ tanot:tts:opts.lowpass) */
+    ttsLowpassDefault: function (modelId) { return TTS_LOWPASS_DEFAULT[modelId] === true; },
+    NET_RETRY_MS: NET_RETRY_MS,
+    isNetworkError: isNetworkError,
     ttsGpuDtype: function (modelId) { return TTS_GPU_DTYPE_OVERRIDES[modelId] || TTS_GPU_DTYPE; },
     asrHeavy: function (modelId) { var m = asrInfo(modelId); return !!(m && m.heavy); },
     asrInfo: asrInfo,

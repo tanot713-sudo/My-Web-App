@@ -38,11 +38,11 @@
   var SUMMARY_REMINDER = 'ย้ำ: ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "หัวข้อหลัก:" ทันที ' +
     'ห้ามขึ้นต้นด้วยคำนำ คำทักทาย หรือคำอธิบายอื่นก่อนหน้านั้นเด็ดขาด';
   /* เจอจริงว่าถ้าผู้ใช้ถามเป็นอังกฤษ โมเดลแชทจะตอบเป็นอังกฤษกลับ (ตาม system prompt) แล้วป้อนข้อความ
-     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-stable-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
+     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-stable2-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
      ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
      ตัวเดียว เช็คแค่ "มีตัวอักษรไทยอยู่ไหม" ก็พอ (ระบบตอบเต็มประโยคเป็นภาษาเดียวเสมอ ไม่สลับภาษากลางคำตอบ) */
   function pickTtsModel(text) {
-    return /[฀-๿]/.test(text) ? 'Tanotfin/mms-tts-2081-FM-stable-onnx' : 'Xenova/mms-tts-eng';
+    return /[฀-๿]/.test(text) ? ((window.TanotMediaModels && window.TanotMediaModels.TTS_DEFAULT_VOICE) || 'Tanotfin/mms-tts-2081-FM-stable2-onnx') : 'Xenova/mms-tts-eng';
   }
   /* ⚠️ 2026-08-10: มีรายงานยืนยันจริงจากผู้ใช้ (iPhone 14 Pro Max, Safari) ว่าพิมพ์ถามแค่คำเดียว
      ("สวัสดี") แล้วหน้าเว็บรีเฟรชเองระหว่างที่โมเดลแชทยังโหลดไม่ถึงครึ่ง (เห็น progress ~11% ค้าง
@@ -457,11 +457,12 @@
        ขนาด 1 ท่อน) ─────────────────────────────────────────────────────────────────── */
     /* เล่นต่อท้ายท่อนก่อนหน้าแบบไม่เว้นช่องว่างเกินจำเป็น: speakNextAt = เวลาที่ท่อนก่อนหน้าจบ + ความเงียบหลังท่อน (ประโยค ~0.12 วิ / ย่อหน้า ~0.4 วิ จาก TanotTtsNorm.plan)
        → ท่อนแรกเสร็จก็เริ่มพูดเลย ไม่ต้องรอทั้งคำตอบ */
-    var speakSources = [], speakNextAt = 0, speakGain = null;
+    var speakSources = [], speakNextAt = 0, speakGain = null, speakLowpass = false;
     /* ปรับความดังก่อนเล่น (audio-gain.js): gain วัดจากท่อนแรกของคำตอบแล้วใช้กับทุกท่อน (ความดังไม่กระโดดระหว่างท่อน) · แต่ละท่อนยังถูกจำกัด peak ≤ −1 dBFS */
     function levelPcm(samples, sampleRate) {
       var G = window.TanotAudioGain;
       if (!G) return;
+      if (speakLowpass && G.lowpass) G.lowpass(samples, sampleRate); // ลดเสียงแหลมก่อนวัด/ปรับความดัง (เฉพาะ sampleRate > 16 kHz — โมเดล 16 kHz ไม่ถูกแตะ)
       var m = G.measure(samples, sampleRate);
       if (speakGain === null && m.active) speakGain = G.gainFor(m);
       var g = speakGain === null ? 1 : speakGain;
@@ -520,6 +521,14 @@
         var topts = JSON.parse(localStorage.getItem('tanot:tts:opts') || '{}');
         if (topts && topts.skipParen === false) nopts.skipParen = false;
       } catch (e3) { /* ไม่มีคำอ่าน/ตัวเลือกเสียหาย — ใช้ค่าเริ่มต้น */ }
+      /* "ลดเสียงแหลม": ผู้ใช้ตั้งเองที่หน้า text-to-speech (tanot:tts:opts.lowpass) · ไม่ตั้ง = ค่าเริ่มต้นของเสียงนี้ (หญิง ทั่วไป เปิด) · เสียงอังกฤษไม่ใช้ */
+      speakLowpass = false;
+      try {
+        if (thai) {
+          var lp = JSON.parse(localStorage.getItem('tanot:tts:opts') || '{}');
+          speakLowpass = lp && typeof lp.lowpass === 'boolean' ? lp.lowpass : !!(window.TanotMediaModels && window.TanotMediaModels.ttsLowpassDefault && window.TanotMediaModels.ttsLowpassDefault(modelId));
+        }
+      } catch (e4) { speakLowpass = false; }
       var plan = N.plan(text, nopts); // แปลงเป็นข้อความที่อยู่ใน vocab ของโมเดลก่อนแล้วค่อยตัดท่อน ≤ MAX_CHUNK ตัวอักษร
       if (!plan.chunks.length) return; // แปลงแล้วว่าง (เช่นมีแต่อีโมจิ) = ไม่พูด ไม่ใช่ error
       stopSpeaking();

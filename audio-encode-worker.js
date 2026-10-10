@@ -5,8 +5,9 @@
    ที่นี่เข้ารหัส MP3 จาก PCM โดยตรงที่ความถี่ของโมเดล (MMS-TTS = 16kHz mono) ไม่ต้องผ่าน decodeAudioData
    (ใช้ใน Worker ไม่ได้) — เนื้อเสียงเท่าเดิม (PCM 16-bit ชุดเดียวกับไฟล์ .wav)
 
+   ลดเสียงแหลม (low-pass biquad ~7 kHz, audio-gain.js lowpass) เมื่อ msg.lowpass = true | Hz และ sampleRate > 16 kHz — ทำบนเสียงที่ต่อกันแล้ว "ก่อน" ปรับความดัง
    ปรับความดังอัตโนมัติ (audio-gain.js) ก่อนเข้ารหัสเสมอ — ปิดได้ด้วย normalize:false (ใช้ในเทสต์เท่านั้น)
-   ข้อความเข้า: { type:'encode', jobId, parts: Float32Array[] (transfer), sampleRate, gapSec | gaps:[วินาทีหลังท่อน i], kbps }
+   ข้อความเข้า: { type:'encode', jobId, parts: Float32Array[] (transfer), sampleRate, gapSec | gaps:[วินาทีหลังท่อน i], kbps, lowpass? }
    ข้อความออก: { type:'done', jobId, wav: ArrayBuffer, mp3: ArrayBuffer } (transfer) | { type:'error', jobId, name, message } */
 'use strict';
 importScripts('vendor/lamejs/lamejs.iife.js', 'audio-gain.js');
@@ -59,7 +60,8 @@ self.onmessage = function (e) {
     var rate = m.sampleRate || 16000;
     var gap = Array.isArray(m.gaps) ? m.gaps.map(function (g) { return Math.round(rate * g); }) : Math.round(rate * (m.gapSec || 0));
     var all = concat(m.parts || [], gap);
-    if (m.normalize !== false) self.TanotAudioGain.apply(all, rate); // ปรับความดังทั้งไฟล์/ทั้งตอน (กรอง −50 dBFS · เป้า RMS −20 · peak ≤ −1 dBFS) ก่อนเข้ารหัส
+    // ลดเสียงแหลม (ถ้าขอ + rate > 16 kHz) แล้วปรับความดังทั้งไฟล์/ทั้งตอน (กรอง −50 dBFS · เป้า RMS −20 · peak ≤ −1 dBFS) ก่อนเข้ารหัส
+    self.TanotAudioGain.process(all, rate, { lowpass: m.lowpass || false, normalize: m.normalize !== false });
     var pcm = toInt16(all);
     var wav = wavBuffer(pcm, rate);
     var mp3 = mp3Buffer(pcm, rate, m.kbps);
