@@ -47,7 +47,8 @@
       sumCloud: 'กำลังสรุปด้วย AI บนคลาวด์…', sumLocalPrep: 'กำลังเตรียมโมเดล AI…', sumFallback: '{msg} — สลับไปใช้โมเดลในเบราว์เซอร์แทน…', sumEmpty: 'สรุปไม่สำเร็จ ไม่ได้คำตอบจากโมเดล', sumDone: 'สรุปเสร็จแล้ว ตรวจทานก่อนดาวน์โหลดได้เลย', sumFail: 'สรุปไม่สำเร็จ: {msg}',
       sumPart: 'กำลังสรุปช่วงที่ {i}/{n}…', sumMerge: 'กำลังรวมเป็นสรุปฉบับเดียว…', sumPartCloud: 'กำลังสรุปช่วงที่ {i}/{n} (คลาวด์)…',
       asrSegment: 'กำลังถอดเสียงช่วงที่ {i}/{n}…', offlineLocal: 'ออฟไลน์ — ถอดเสียงในเบราว์เซอร์แทน', asrCancel: 'ยกเลิก', useCloud: 'ใช้โหมดคลาวด์แทน',
-      mobileNote: 'บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง'
+      mobileNote: 'บนมือถือใช้ได้เฉพาะโมเดลเล็ก/กลาง — โหมดคลาวด์แม่นกว่าและไม่ใช้หน่วยความจำของเครื่อง',
+      previewTitle: 'ดูข้อความที่จะอ่านจริง', previewLabel: 'ข้อความที่จะอ่านจริง'
     },
     en: {
       title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
@@ -86,7 +87,8 @@
       sumCloud: 'Summarizing with AI in the cloud…', sumLocalPrep: 'Preparing the AI model…', sumFallback: '{msg} — switching to the in-browser model…', sumEmpty: 'Could not summarize — the model returned no answer', sumDone: 'Summary ready — review it before downloading', sumFail: 'Summary failed: {msg}',
       sumPart: 'Summarizing part {i}/{n}…', sumMerge: 'Merging into one summary…', sumPartCloud: 'Summarizing part {i}/{n} (cloud)…',
       asrSegment: 'Transcribing part {i}/{n}…', offlineLocal: 'Offline — transcribing in the browser instead', asrCancel: 'Cancel', useCloud: 'Use cloud mode instead',
-      mobileNote: 'Phones can only use the small/medium models — cloud mode is more accurate and does not use this device\'s memory'
+      mobileNote: 'Phones can only use the small/medium models — cloud mode is more accurate and does not use this device\'s memory',
+      previewTitle: 'See the text that will be read', previewLabel: 'Text that will be read aloud'
     }
   });
   /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
@@ -207,8 +209,10 @@
     var text = $('ttsText').value;
     if (!text.trim()) { $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('typeFirst'); }); return; }
     if (!window.speechSynthesis) return;
+    var spoken = Norm.forNative(text); // ล้าง markdown/อีโมจิ/URL + ขยายตัวย่อ (ไม่แปลงตัวเลข — เอนจินของระบบอ่านเอง)
+    if (!spoken) { $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('typeFirst'); }); return; }
     window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(text);
+    var u = new SpeechSynthesisUtterance(spoken);
     var idx = parseInt($('wsVoice').value, 10);
     if (wsVoices[idx]) { u.voice = wsVoices[idx]; u.lang = wsVoices[idx].lang; }
     u.rate = parseFloat($('wsRate').value) || 1;
@@ -270,33 +274,19 @@
      (ไม่ใช่แค่ช้า) — โมเดล VITS คำนวณ attention แบบ O(n²) กับความยาวข้อความทั้งก้อน ยิ่งข้อความยาว
      หน่วยความจำ/เวลาคำนวณยิ่งพุ่งแบบทวีคูณ ไม่ใช่เชิงเส้น ตัดขนาดโมเดลให้เล็กลง (quantize) ก็ช่วย
      ได้แค่ความเร็วต่อท่อน ไม่ได้ช่วยเรื่องนี้เลยเพราะเป็นคนละสาเหตุกัน ทางแก้ที่ถูกต้องคือตัดข้อความ
-     เป็นท่อนสั้นๆ ก่อนเสมอ แล้วสังเคราะห์ทีละท่อนต่อกัน (เรียงตามลำดับ ไม่ขนาน กันแย่งหน่วยความจำ) */
-  var MAX_TTS_CHUNK_CHARS = 60;
-  function splitIntoTtsChunks(text, maxLen) {
-    maxLen = maxLen || MAX_TTS_CHUNK_CHARS;
-    var lines = text.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean);
-    var chunks = [];
-    lines.forEach(function (line) {
-      while (line.length > maxLen) {
-        var head = line.slice(0, maxLen);
-        var punctIdx = Math.max(head.lastIndexOf('.'), head.lastIndexOf('ๆ'), head.lastIndexOf('ฯ'));
-        var spaceIdx = head.lastIndexOf(' ');
-        var cut = punctIdx > 10 ? punctIdx + 1 : (spaceIdx > 10 ? spaceIdx : maxLen);
-        chunks.push(line.slice(0, cut).trim());
-        line = line.slice(cut).trim();
-      }
-      if (line) chunks.push(line);
-    });
-    return chunks;
-  }
+     เป็นท่อนสั้นๆ ก่อนเสมอ แล้วสังเคราะห์ทีละท่อนต่อกัน (เรียงตามลำดับ ไม่ขนาน กันแย่งหน่วยความจำ)
+     2026-10 (Section 4): การแปลงข้อความ + ตัดท่อน ย้ายไป tts-normalize.js (TanotTtsNorm.plan) ทั้งหมด — "แปลงก่อนแล้วค่อยตัด"
+     (เดิมตัด 60 ตัวอักษรก่อนแล้วแปลงเลขเป็นคำทีหลัง → ท่อนยาวเกินกำหนดหลายเท่า) พร้อมช่วงเงียบรายท่อน (ประโยค/ย่อหน้า) */
   function concatFloat32Arrays(arrays, gapSamples) {
-    gapSamples = gapSamples || 0;
-    var total = arrays.reduce(function (sum, a) { return sum + a.length; }, 0) + gapSamples * Math.max(0, arrays.length - 1);
+    /* gapSamples = ตัวเลขเดียว (ช่องว่างเท่ากันทุกท่อน) หรืออาร์เรย์ (gapSamples[i] = ความเงียบ "หลัง" ท่อน i) */
+    var perChunk = Array.isArray(gapSamples);
+    var gapAfter = function (i) { return i >= arrays.length - 1 ? 0 : Math.max(0, perChunk ? (gapSamples[i] | 0) : (gapSamples | 0)); };
+    var total = arrays.reduce(function (sum, a, i) { return sum + a.length + gapAfter(i); }, 0);
     var out = new Float32Array(total);
     var offset = 0;
     arrays.forEach(function (a, i) {
       out.set(a, offset);
-      offset += a.length + (i < arrays.length - 1 ? gapSamples : 0);
+      offset += a.length + gapAfter(i);
     });
     return out;
   }
@@ -438,12 +428,13 @@
   }
   /* ต่อเสียง + ทำ .wav/.mp3 ใน audio-encode-worker.js (เดิมทำบนเธรดหลัก — หน้าค้างตอนท้าย) → { wav: Blob, mp3: Blob }
      ส่ง Float32Array แต่ละท่อนแบบ transfer (ไม่ copy) · ไม่มี Worker = ทำบนเธรดหลักแบบเดิม */
-  var TTS_GAP_SEC = 0.3;
-  function encodeAudio(parts, sampleRate) {
+  var TTS_GAP_SEC = 0.3; // ใช้เมื่อไม่ส่ง gaps รายท่อนมา
+  function encodeAudio(parts, sampleRate, gaps) {
+    var gapSamples = gaps ? gaps.map(function (g) { return Math.round(sampleRate * g); }) : Math.round(sampleRate * TTS_GAP_SEC);
     var w = null;
     if (typeof Worker !== 'undefined') { try { w = new Worker('./audio-encode-worker.js'); } catch (e) { w = null; } }
     if (!w) {
-      var audio = concatFloat32Arrays(parts, Math.round(sampleRate * TTS_GAP_SEC));
+      var audio = concatFloat32Arrays(parts, gapSamples);
       var wavBlob = float32ToWavBlob(audio, sampleRate);
       return wavBlob.arrayBuffer().then(function (buf) {
         return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3) { return { wav: wavBlob, mp3: mp3 }; });
@@ -460,7 +451,7 @@
         w.terminate();
         reject(TanotMedia.error('crash', null, { name: 'WorkerError', message: (e && e.message) || 'encode worker crashed' }));
       };
-      w.postMessage({ type: 'encode', parts: parts, sampleRate: sampleRate, gapSec: TTS_GAP_SEC, kbps: 128 }, parts.map(function (p) { return p.buffer; }));
+      w.postMessage({ type: 'encode', parts: parts, sampleRate: sampleRate, gapSec: TTS_GAP_SEC, gaps: gaps || null, kbps: 128 }, parts.map(function (p) { return p.buffer; }));
     });
   }
   /* ห่อ Float32Array ตัวอย่างเสียงดิบเป็นไฟล์ .wav มาตรฐาน (mono, PCM 16-bit) — MMS-TTS คืนมาเป็น
@@ -545,39 +536,10 @@
   }
 
   /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-2081-onnx) ══════════════════
-     เจอจริงในโปรดักชัน: โมเดลนี้เทรนมาด้วยอักษรไทยล้วนๆ (vocab แค่ 71 ตัวอักษร ไม่รวม <unk>) ตัวเลข
-     อารบิกมีอยู่ในนั้นแค่บางส่วน (0,1,2,4 เท่านั้น ไม่มี 3,5,6,7,8,9) — เจอเลขที่ไม่อยู่ใน vocab
-     (เช่น "9" ใน "149") จะโดนแมปเป็น <unk> ซึ่งเป็น id ที่ตาราง embedding ของโมเดลไม่มีจริง (bug เดิม
-     ที่ติดมาจากโมเดลต้นฉบับของ Meta เอง ไม่ใช่ที่เราทำพลาด) ทำให้พังกลางคัน (ONNX Runtime error:
-     Gather node index out of bounds) จึงต้องแปลงตัวเลขทุกตัวเป็นคำอ่านภาษาไทยก่อนเสมอ (กันปัญหาทั้ง
-     เลขที่มีจริงและไม่มีใน vocab ให้พฤติกรรมสม่ำเสมอ) แล้วกรองอักขระอื่นที่ไม่อยู่ใน vocab ทิ้ง (แทนที่
-     ด้วยช่องว่าง) กันพังจากตัวอักษรแปลกอื่นๆ ที่อาจพิมพ์ปนมา (อังกฤษ, อีโมจิ, สัญลักษณ์แปลกๆ) */
-  var THAI_DIGIT_WORDS = ['ศูนย์', 'หนึ่ง', 'สอง', 'สาม', 'สี่', 'ห้า', 'หก', 'เจ็ด', 'แปด', 'เก้า'];
-  var THAI_PLACE_WORDS = ['', 'สิบ', 'ร้อย', 'พัน', 'หมื่น', 'แสน', 'ล้าน'];
-  function thaiNumberToWords(numStr) {
-    numStr = numStr.replace(/^0+(?=\d)/, '');
-    if (numStr === '' || numStr === '0') return THAI_DIGIT_WORDS[0];
-    if (numStr.length > 7) return numStr.split('').map(function (c) { return THAI_DIGIT_WORDS[+c]; }).join(''); // เลขยาวเกินหลักล้าน อ่านทีละตัวกันซับซ้อนเกินจำเป็น
-    var digits = numStr.split('').map(Number), n = digits.length, words = '';
-    for (var i = 0; i < n; i++) {
-      var place = n - 1 - i, d = digits[i];
-      if (d === 0) continue;
-      if (place === 0) words += (d === 1 && n > 1) ? 'เอ็ด' : THAI_DIGIT_WORDS[d];
-      else if (place === 1) words += (d === 1) ? 'สิบ' : (d === 2) ? 'ยี่สิบ' : THAI_DIGIT_WORDS[d] + 'สิบ';
-      else words += THAI_DIGIT_WORDS[d] + THAI_PLACE_WORDS[place];
-    }
-    return words;
-  }
-  var THAI_TTS_VALID_CHARS = 'าน่รเ้อกงวะัมทพยลจีคตดหขิแสบปไูใ็ื์ชุึํโผถญซธศณษฟภฉฝฐฤฏฮฆ๋ฎ\'0๊ฑ142-ฬฒฌ ';
-  function normalizeForThaiTts(text) {
-    var withWords = text.replace(/\d+/g, thaiNumberToWords);
-    var out = '';
-    for (var i = 0; i < withWords.length; i++) {
-      var ch = withWords[i];
-      out += THAI_TTS_VALID_CHARS.indexOf(ch) !== -1 ? ch : ' ';
-    }
-    return out.replace(/\s+/g, ' ').trim();
-  }
+     ย้ายไป tts-normalize.js (window.TanotTtsNorm — ใช้ร่วมกับวิดเจ็ตแชท) · เหตุผลที่ต้องแปลงเลขเป็นคำ/กรอง vocab:
+     โมเดลนี้เทรนด้วยอักษรไทยล้วน (vocab 72 ตัว) เลขอารบิกมีแค่ 0,1,2,4 — ตัวอักษรนอก vocab ทำให้พังกลางคัน
+     (ONNX Runtime: Gather node index out of bounds) · หน้านี้ใช้ plan()/forMms()/forNative() เท่านั้น */
+  var Norm = window.TanotTtsNorm;
 
   /* แปลงวินาทีเป็นข้อความอ่านง่าย ใช้โชว์เวลาที่เหลือโดยประมาณ (ETA) ระหว่างสร้างเสียง */
   function formatEta(sec) {
@@ -592,11 +554,9 @@
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('typeFirst'); }); return; }
     var lang = $('dlLang').value;
     var modelId = $('dlVoice').value;
-    var chunks = splitIntoTtsChunks(rawText);
-    if (lang === 'th') {
-      chunks = chunks.map(normalizeForThaiTts).filter(Boolean);
-      if (!chunks.length) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('emptyAfterFilter'); }); return; }
-    }
+    var plan = Norm.plan(rawText, { lang: lang === 'th' ? 'th' : 'en' }); // แปลงก่อน แล้วค่อยตัดท่อน ≤ 60 ตัวอักษร
+    var chunks = plan.chunks;
+    if (!chunks.length) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T(lang === 'th' ? 'emptyAfterFilter' : 'typeFirst'); }); return; }
     $('dlGenerateBtn').disabled = true;
     $('dlStatus').className = 'status';
     st('dlStatus', function () { return T(lang === 'th' ? 'prepTh' : 'prepEn'); });
@@ -621,7 +581,7 @@
       .then(function (output) {
         stage = 'encode';
         st('dlStatus', function () { return T('assembling'); });
-        return encodeAudio(output.parts, output.sampling_rate).then(function (files) {
+        return encodeAudio(output.parts, output.sampling_rate, plan.gaps).then(function (files) {
           showResult(URL.createObjectURL(files.wav), URL.createObjectURL(files.mp3));
           $('dlStatus').className = 'status ok';
           st('dlStatus', function () { return T('made'); });
@@ -1203,13 +1163,45 @@
     return docx.Packer.toBlob(doc);
   }
 
+  /* ══════════════════ ดูข้อความที่จะอ่านจริง (ช่วยตรวจการอ่าน) ══════════════════
+     ฟังทันที = forNative (ที่ส่งเข้า speechSynthesis) · สร้างไฟล์เสียง = ท่อนที่ส่งเข้าโมเดล MMS ตามภาษาที่เลือก (บรรทัดละท่อน, เว้นบรรทัดเมื่อขึ้นย่อหน้าใหม่) */
+  function previewText(kind) {
+    var text = $('ttsText').value;
+    if (kind === 'native') return Norm.forNative(text);
+    var plan = Norm.plan(text, { lang: $('dlLang').value === 'th' ? 'th' : 'en' });
+    var out = [];
+    plan.chunks.forEach(function (c, i) { if (i && plan.paras[i] !== plan.paras[i - 1]) out.push(''); out.push(c); });
+    return out.join('\n');
+  }
+  var previewTimer = null;
+  function updatePreviews() {
+    [['pvNativeBox', 'pvNative', 'native'], ['pvMmsBox', 'pvMms', 'mms']].forEach(function (e) {
+      var box = $(e[0]), area = $(e[1]);
+      if (box && area && box.open) area.value = previewText(e[2]); // ทำเฉพาะตอนกางอยู่ — ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์
+    });
+  }
+  function schedulePreviews() { clearTimeout(previewTimer); previewTimer = setTimeout(updatePreviews, 200); }
+
+  /* ══════════════════ ภาษาของการถอดเสียง — ค่าเริ่มต้น "ไทย" และจำที่ผู้ใช้เลือก ══════════════════
+     ใช้ค่าเดียวกันทั้งโหมดคลาวด์และในเบราว์เซอร์ (runAsr อ่านจาก #asrLang) · ค่าเริ่มต้นไทยบนคอม → Thonburian small ตามกลไก asrDefaultModel เดิม */
+  var ASR_LANG_KEY = 'tanot:asr:lang';
+  function initAsrLang() {
+    var sel = $('asrLang');
+    if (!sel) return;
+    var saved = null;
+    try { saved = localStorage.getItem(ASR_LANG_KEY); } catch (e) {}
+    sel.value = (saved === 'thai' || saved === 'english' || saved === 'auto') ? saved : 'thai';
+    sel.addEventListener('change', function () { try { localStorage.setItem(ASR_LANG_KEY, sel.value); } catch (e) {} });
+  }
+
   /* ══════════════════ init ══════════════════ */
   function init() {
     window.OME_PAGE_LIVE_LANG = true;
     /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
     OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); });
-    $('ttsText').addEventListener('input', updateCharCount);
+    $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); });
     updateCharCount();
+    ['pvNativeBox', 'pvMmsBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
     $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });
     $('importFileInput').addEventListener('change', importFileChange);
 
@@ -1225,12 +1217,13 @@
     $('wsRate').addEventListener('input', function () { $('wsRateVal').textContent = parseFloat($('wsRate').value).toFixed(1) + 'x'; });
 
     renderVoiceOptions();
-    $('dlLang').addEventListener('change', renderVoiceOptions);
+    $('dlLang').addEventListener('change', function () { renderVoiceOptions(); updatePreviews(); });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
 
     $('asrGoBtn').addEventListener('click', runAsr);
     $('asrCancelBtn').addEventListener('click', cancelAsr);
     $('asrUseCloudBtn').addEventListener('click', function () { setAsrEngine('cloud'); applyAsrEngineUI(); });
+    initAsrLang(); // ต้องมาก่อน initAsrModels — โมเดลเริ่มต้นดูจากภาษาที่เลือก
     initAsrModels();
     $('asrCopyBtn').addEventListener('click', copyAsrResult);
 
@@ -1284,7 +1277,7 @@
     wavBytesToMp3Blob: wavBytesToMp3Blob, floatTo16BitPCM: floatTo16BitPCM,
     decodeFileToPcm: decodeFileToPcm, encodeAudio: encodeAudio, ttsPool: ttsPool, TTS_IDLE_MS: function (ms) { if (ms != null) TTS_IDLE_MS = ms; return TTS_IDLE_MS; },
     isMobileUA: isMobileUA, getMediaDuration: getMediaDuration,
-    splitIntoTtsChunks: splitIntoTtsChunks, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
+    concatFloat32Arrays: concatFloat32Arrays, ttsPoolSize: ttsPoolSize, formatEta: formatEta,
     synthesizeMmsTtsChunks: synthesizeMmsTtsChunks,
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,

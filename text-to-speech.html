@@ -82,6 +82,10 @@
     <button class="btn sm" id="wsPauseBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pause"/></svg><span data-i18n="tts.pause">หยุดชั่วคราว</span></button>
     <button class="btn sm" id="wsStopBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.stop">หยุด</span></button>
   </div>
+  <details class="disclosure" id="pvNativeBox">
+    <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
+    <div class="disclosure-body"><textarea class="textarea" id="pvNative" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea></div>
+  </details>
   <div class="status" id="wsStatus"></div>
 </div>
 
@@ -101,6 +105,10 @@
   <div class="frow">
     <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.make">สร้างไฟล์เสียง</span></button>
   </div>
+  <details class="disclosure" id="pvMmsBox">
+    <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
+    <div class="disclosure-body"><textarea class="textarea" id="pvMms" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea></div>
+  </details>
   <div class="status" id="dlStatus"></div>
   <div class="tts-player" id="dlPlayerWrap">
     <audio id="dlAudio" controls></audio>
@@ -119,9 +127,9 @@
     </div>
     <div class="field"><label for="asrLang" data-i18n="tts.lang">ภาษา</label>
       <select id="asrLang">
-        <option value="auto" data-i18n="tts.asrAuto">ตรวจจับอัตโนมัติ</option>
-        <option value="thai" data-i18n="tts.langTh">ไทย</option>
+        <option value="thai" data-i18n="tts.langTh" selected>ไทย</option>
         <option value="english" data-i18n="tts.langEn">อังกฤษ</option>
+        <option value="auto" data-i18n="tts.asrAuto">ตรวจจับอัตโนมัติ</option>
       </select>
     </div>
     <div class="field" id="asrModelField"><label for="asrModel" data-i18n="tts.modelSize">ขนาดโมเดล</label>
@@ -212,6 +220,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="media-models.js"></script>
 <script src="media-core.js"></script>
 <script src="asr-cloud.js"></script>
+<script src="tts-normalize.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
 </html>

@@ -490,7 +490,7 @@ async function localSetup(context, page, { cfg, gpu, mem } = {}) {
     return route.abort('internetdisconnected');
   });
   await page.addInitScript((g) => {
-    try { localStorage.setItem('ome:theme', 'light'); localStorage.setItem('tanot:asr:engine', 'local'); } catch (e) {}
+    try { localStorage.setItem('ome:theme', 'light'); localStorage.setItem('tanot:asr:engine', 'local'); localStorage.setItem('tanot:asr:lang', 'auto'); /* Section 4: ค่าเริ่มต้นใหม่ = ไทย — spec นี้ทดสอบกลไกเลือกรุ่นตามภาษาโดยเริ่มจากค่าเดิม (อัตโนมัติ); ค่าเริ่มต้นไทย/การจำภาษาอยู่ใน tts-normalize.spec.js */ } catch (e) {}
     if (g) (0, eval)(g);
   }, gpu ? GPU_STUB : '');
   // mem: ตัวเลข GB · 'none' = เบราว์เซอร์ที่ไม่รายงานค่า (Firefox/Safari → undefined)

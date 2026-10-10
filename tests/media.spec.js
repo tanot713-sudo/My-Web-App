@@ -84,6 +84,8 @@ async function setup(context, page, { cfg, init, engine } = {}) {
     try {
       localStorage.setItem('ome:theme', 'light');
       if (engine) localStorage.setItem('tanot:asr:engine', engine);
+      // Section 4: ภาษาถอดเสียงเริ่มต้นเปลี่ยนเป็นไทย (→ Thonburian) · spec นี้ทดสอบกลไก Worker/OOM ด้วยค่าเดิม (ตรวจจับอัตโนมัติ → Xenova/whisper-tiny) จึงตรึงไว้ — ค่าเริ่มต้นใหม่ทดสอบใน tts-normalize.spec.js
+      localStorage.setItem('tanot:asr:lang', 'auto');
     } catch (e) {}
     if (init) (0, eval)(init);
   }, { init: init || '', engine: engine || '' });
@@ -248,7 +250,8 @@ test.describe('ถอดเสียงในเบราว์เซอร์ (
 
 test.describe('สร้างไฟล์เสียง (พูล tts-worker.js + audio-encode-worker.js)', () => {
   const N_CHUNKS = 24;
-  const LONG = Array.from({ length: N_CHUNKS }, (_, i) => 'ประโยคทดสอบที่ ' + (i + 1) + ' สำหรับการสร้างเสียงพูดภาษาไทยให้ยาวพอ').join('\n');
+  // Section 4: เลขถูกแปลงเป็นคำ "ก่อน" ตัดท่อน (≤ 60 ตัวอักษรหลังแปลง) — ประโยคต้องสั้นพอที่ 1 บรรทัด = 1 ท่อนแม้เลขเป็น "ยี่สิบสี่"
+  const LONG = Array.from({ length: N_CHUNKS }, (_, i) => 'ประโยคทดสอบที่ ' + (i + 1) + ' สร้างเสียงพูดภาษาไทย').join('\n');
   const BIG_DEVICE = `Object.defineProperty(Navigator.prototype, 'deviceMemory', { get: () => 8 }); Object.defineProperty(Navigator.prototype, 'hardwareConcurrency', { get: () => 8 });`;
 
   async function generate(page, voice) {
@@ -282,7 +285,7 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
     expect(files.mp3[0]).toBe(0xff);
     expect(files.mp3[1] & 0xe0).toBe(0xe0); // frame sync ของ MP3
     expect(files.wavHead).toBe('RIFF');
-    expect(files.wavLen).toBe(44 + (N_CHUNKS * 1600 + (N_CHUNKS - 1) * Math.round(16000 * 0.3)) * 2); // ทุกท่อน + ช่องว่าง 0.3 วิ ระหว่างท่อน
+    expect(files.wavLen).toBe(44 + (N_CHUNKS * 1600 + (N_CHUNKS - 1) * Math.round(16000 * 0.4)) * 2); // ทุกท่อน + ความเงียบ 0.4 วิ ระหว่างย่อหน้า (Section 4: ทุกบรรทัดคือย่อหน้า; เดิมคงที่ 0.3 วิ)
     await expect.poll(async () => (await workers(page, /tts-worker/)).every((w) => w.end != null), { timeout: 5000 }).toBe(true);
     expect(await page.evaluate(() => TanotMedia.budget.active())).not.toContain('tts');
     expect(errors).toEqual([]);
