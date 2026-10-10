@@ -133,7 +133,7 @@
   var ABBR_WORD_RE = new RegExp(byLenDesc(ABBR_WORD).map(function (e) { return esc(e[0]); }).join('|'), 'g');
   var ABBR_WORD_MAP = {}; ABBR_WORD.forEach(function (e) { ABBR_WORD_MAP[e[0]] = e[1]; });
   var UNIT_ALT = Object.keys(UNITS).sort(function (a, b) { return b.length - a.length; }).map(esc).join('|');
-  var NUM_RE = new RegExp('([฿$])?(\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.(\\d+))?(?:([ \\t]*บาท)|([ \\t]?%)|[ \\t]?(' + UNIT_ALT + ')(?![A-Za-z]))?', 'g');
+  var NUM_RE = new RegExp('([฿$])?(\\d{1,3}(?:,\\d{3})+|\\d+)(?:\\.(\\d+))?(?:([ \\t]*(?:บาท|บ\\.))|([ \\t]?%)|[ \\t]?(' + UNIT_ALT + ')(?![A-Za-z]))?', 'g');
 
   /* อีโมจิ/สัญลักษณ์ภาพ — ใช้ property escape ถ้าเบราว์เซอร์รองรับ ไม่งั้นช่วงโค้ดโดยประมาณ */
   var EMOJI_RE = re('[\\p{Extended_Pictographic}\\p{Emoji_Modifier}\\u200D\\uFE0F\\u20E3\\u{1F1E6}-\\u{1F1FF}\\u{E0020}-\\u{E007F}]', 'gu') ||
@@ -267,7 +267,7 @@
       if (cur === '฿' || baht) {
         if (dec && dec.length <= 2) { var sw = satangWords(dec); return iw + 'บาท' + (sw ? sw + 'สตางค์' : ''); }
         body = iw + (dec ? 'จุด' + spellDigits(dec) : '');
-        return cur === '฿' ? body + 'บาท' : body + baht; // "1,250 บาท" — ข้อความ "บาท" เดิมคงไว้
+        return cur === '฿' ? body + 'บาท' : body + baht.replace('บ.', 'บาท'); // "1,250 บาท" — ข้อความ "บาท" เดิมคงไว้ · "120 บ." = บาท
       }
       if (cur === '$') {
         if (dec && dec.length <= 2) { var cw = satangWords(dec); return iw + 'ดอลลาร์' + (cw ? cw + 'เซนต์' : ''); }
