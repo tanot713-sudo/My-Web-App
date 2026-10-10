@@ -67,6 +67,10 @@
 .dc-side-empty .ome-icon{display:block;width:30px;height:30px;margin:0 auto 8px;color:var(--ome-ok)}
 .dc-empty-state{text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-sm);padding:10px 20px 0}
 @media(max-width:600px){.dc-viewer{padding:var(--ome-sp-4)}}
+/* ตัวสลับเครื่องอ่าน (ฟรี / Claude Vision) ป้ายยาว — ที่ 360px ชนขอบจอพอดี: ไม่ให้กว้างเกินแถว + ลด padding บนจอแคบ */
+#ocrEngineToggle{max-width:100%}
+#ocrEngineToggle span{min-width:0;text-align:center}
+@media(max-width:400px){#ocrEngineToggle span{padding:0 8px}}
 </style>
 </head>
 <body data-layout="tool" data-doctitle-key="docTitleFile">
