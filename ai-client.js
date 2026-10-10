@@ -180,11 +180,44 @@
     return btoa(bin);
   }
 
-  /* asr({ pcm, sampleRate=16000, language:'th'|'en'|undefined }) หรือ { audioBase64 } → { text, neurons }
-     ส่งทั้งก้อนในคำขอเดียว เหมาะกับคลิปสั้น (คำถามจากไมค์); ไฟล์ยาวให้ตัดเป็นท่อนก่อนเหมือน text-to-speech.js */
+  /* asr({ pcm, sampleRate=16000, language:'th'|'en'|undefined, domain?, initialPrompt?, signal }) หรือ { audioBase64 } → { text, segments:[{start,end,text}], neurons }
+     ส่งทั้งก้อนในคำขอเดียว เหมาะกับคลิปสั้น (คำถามจากไมค์) และ 1 ท่อนของไฟล์ยาว (asr-cloud.js ตัดท่อนเหลื่อมแล้วส่งขนาน ≤ 3)
+     domain = ชุดคำศัพท์เฉพาะที่เซิร์ฟเวอร์ใส่เป็น initial_prompt (functions/_lib/asr.js DOMAIN_PROMPTS) · ไม่ส่ง = ไม่มี prompt */
+  /* เสียงก้อนเดียวยาวเกิน ASR_PIECE_SEC (เช่น อัดไมค์ในวิดเจ็ตแชทนานๆ) → แบ่งส่งทีละท่อนตามลำดับแล้วต่อผล
+     เพราะ /api/asr รับเสียงได้ ≤ ~93 วินาทีต่อคำขอ (MAX_AUDIO_B64 ใน functions/_lib/asr.js) — ท่อนของ asr-cloud.js สั้นกว่านี้อยู่แล้ว */
+  var ASR_PIECE_SEC = 60;
   function asr(opts) {
+    var rate = opts.sampleRate || 16000, step = rate * ASR_PIECE_SEC, pcm = opts.pcm;
+    if (opts.audioBase64 || !pcm || pcm.length <= step) return asrOne(opts);
+    var out = { text: '', segments: [], neurons: 0 }, chain = Promise.resolve();
+    for (var a = 0; a < pcm.length; a += step) (function (a) {
+      chain = chain.then(function () {
+        var piece = pcm.subarray ? pcm.subarray(a, a + step) : pcm.slice(a, a + step);
+        return asrOne(Object.assign({}, opts, { pcm: piece })).then(function (r) {
+          var off = a / rate;
+          out.text = (out.text + ' ' + ((r && r.text) || '')).trim();
+          ((r && r.segments) || []).forEach(function (s) { out.segments.push({ start: s.start + off, end: s.end + off, text: s.text }); });
+          out.neurons = r && r.neurons != null && out.neurons != null ? out.neurons + r.neurons : null;
+        });
+      });
+    })(a);
+    return chain.then(function () { return out; });
+  }
+  function asrOne(opts) {
     var b64 = opts.audioBase64 || pcmToWavBase64(opts.pcm, opts.sampleRate || 16000);
-    return json('/api/asr', { audio: b64, language: opts.language }, { signal: opts.signal, timeoutMs: 120000 });
+    var body = { audio: b64, language: opts.language };
+    if (opts.domain) body.domain = opts.domain;
+    if (opts.initialPrompt) body.initial_prompt = opts.initialPrompt;
+    return json('/api/asr', body, { signal: opts.signal, timeoutMs: opts.timeoutMs || 120000 });
+  }
+
+  /* ชุดคำศัพท์ที่เหมาะกับหน้าที่เปิดอยู่ (ไมค์ของวิดเจ็ตแชทใช้ทุกหน้า) — ตารางเดียวของฝั่งเว็บ; ชื่อชุดต้องมีใน DOMAIN_PROMPTS ฝั่งเซิร์ฟเวอร์ */
+  function asrDomain(pathname) {
+    var p = String(pathname == null ? location.pathname : pathname).split('/').pop().replace(/\.html$/, '');
+    if (/^(classroom-law|legal)$/.test(p)) return 'law';
+    if (/^(electrical|maintenance|cad|classroom-engineering|run|report-dashboard|sim-objects)$/.test(p)) return 'engineering';
+    if (/^invest|^tax$/.test(p)) return 'invest';
+    return 'general';
   }
 
   /* ocr({ imageBase64, mediaType } | { pdfBase64, pageStart? }, prompt?, model?, pin, signal) → { text, model, truncated? }
@@ -207,6 +240,6 @@
 
   window.AiClient = {
     available: available, canFallback: canFallback, friendlyMessage: friendlyMessage, Error: AiError,
-    chat: chat, summarize: summarize, embed: embed, usage: usage, asr: asr, ocr: ocr, image: image, pcmToWavBase64: pcmToWavBase64
+    chat: chat, summarize: summarize, embed: embed, usage: usage, asr: asr, asrDomain: asrDomain, ocr: ocr, image: image, pcmToWavBase64: pcmToWavBase64
   };
 })();

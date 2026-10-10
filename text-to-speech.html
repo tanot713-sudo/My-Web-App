@@ -132,6 +132,14 @@
         <option value="Xenova/whisper-medium" data-i18n="tts.mMedium">ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)</option>
       </select>
     </div>
+    <div class="field" id="asrDomainField" style="display:none"><label for="asrDomain" data-i18n="tts.domainLabel">ประเภทเนื้อหา (คำศัพท์เฉพาะ)</label>
+      <select id="asrDomain">
+        <option value="general" data-i18n="tts.domGeneral">ทั่วไป</option>
+        <option value="law" data-i18n="tts.domLaw">กฎหมาย</option>
+        <option value="engineering" data-i18n="tts.domEng">ไฟฟ้า / วิศวกรรม</option>
+        <option value="invest" data-i18n="tts.domInvest">การลงทุน</option>
+      </select>
+    </div>
   </div>
   <div class="asr-engine-row">
     <span class="asr-engine-label" data-i18n="tts.engineLabel">ถอดเสียงด้วย</span>
@@ -154,6 +162,7 @@
     <div class="stack">
       <textarea class="textarea" id="asrResult" rows="6" readonly></textarea>
       <div class="frow">
+        <label class="check"><input type="checkbox" id="asrTimeChk"><span data-i18n="tts.showTime">แสดงเวลา [hh:mm:ss]</span></label>
         <button class="btn sm" id="asrCopyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span data-i18n="tts.copy">คัดลอกข้อความ</span></button>
         <button class="btn primary sm" id="meetingSumBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.sumMeeting">สรุปประชุมด้วย AI</span></button>
       </div>
@@ -198,8 +207,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="file-reader.js"></script>
 <script src="vendor/lamejs/lamejs.iife.js"></script>
 <script src="ai-client.js"></script>
+<script src="asr-calc.js"></script>
 <script src="media-models.js"></script>
 <script src="media-core.js"></script>
+<script src="asr-cloud.js"></script>
 <script src="text-to-speech.js" defer></script>
 </body>
 </html>

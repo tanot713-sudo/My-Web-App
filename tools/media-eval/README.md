@@ -1,7 +1,7 @@
 # media-eval — วัดความแม่น/ความเร็วของการถอดเสียงและ OCR
 
 สคริปต์ Node สำหรับรัน **ในเครื่องเจ้าของ** (ไม่อยู่ใน CI — เอนจินในเบราว์เซอร์ต้องดาวน์โหลดโมเดลจาก Hugging Face และเอนจินคลาวด์มีค่าใช้จ่าย)
-ใช้เทียบผลก่อน/หลังเปลี่ยนโมเดลหรือการตั้งค่า (Section 3 ของ "ปรับปรุงเสียง/OCR" ใน ROADMAP)
+ใช้เทียบผลก่อน/หลังเปลี่ยนโมเดลหรือการตั้งค่า (Section 3 ของ "ปรับปรุงเสียง/OCR" ใน ROADMAP — ตอนนี้วัดโหมดใหม่ได้: WebGPU/WASM ในเบราว์เซอร์ และคลาวด์แบบขนาน+เหลื่อม)
 
 - **CER** (character error rate) — ตัดช่องว่างทิ้งก่อนเทียบ (ภาษาไทยไม่เว้นวรรคระหว่างคำ แต่ละเอนจินเว้นวรรคไม่เหมือนกัน)
 - **WER** (word error rate) — ตัดคำด้วย `Intl.Segmenter('th')`
@@ -40,7 +40,9 @@ node tools/media-eval/run.mjs --lang thai                       # ตัวเ�
 | เอนจิน | ทางที่รัน |
 |---|---|
 | `asr:tiny` `asr:base` `asr:small` `asr:medium` | Whisper ในเบราว์เซอร์ ผ่านหน้า `text-to-speech.html` จริง (เซิร์ฟเวอร์ static ในเครื่อง) — กดปุ่มเหมือนผู้ใช้ |
-| `asr:cloud` | ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (Whisper large-v3-turbo) |
+| `asr:gpu-tiny` `asr:gpu-base` `asr:gpu-small` `asr:gpu-large` | Whisper รุ่นใหม่ `onnx-community/whisper-*` บน **WebGPU** ผ่านหน้าเดียวกัน (Section 3) — ต้องมี GPU จริง รันด้วย `--headed`; สคริปต์เปิด Chromium อีกตัวพร้อมแฟล็ก WebGPU · ถ้าหน้าถอยเป็น WASM (หรือไม่มี WebGPU) แถวนั้นขึ้น ERROR ไม่ปนเป็นผล WebGPU · `asr:gpu-large` = large-v3-turbo (ต้องมี `shader-f16`) |
+| `asr:cloud` | ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (Whisper large-v3-turbo) = **โหมดใหม่**: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + `vad_filter` + ชุดคำศัพท์ตาม `--cloud-domain general\|law\|engineering\|invest` |
+| `asr:cloud-seq` | เหมือน `asr:cloud` แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) — เทียบเวลา/Neurons/CER กับ `asr:cloud` ด้วยไฟล์ชุดเดียวกัน |
 | `ocr:tesseract` | แนบไฟล์ (เปิด "ใช้ OCR") ในหน้า `text-to-speech.html` → `file-reader.js` |
 | `ocr:claude` | `POST /api/ocr` (prompt เริ่มต้นของเซิร์ฟเวอร์ โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์ = `claude-sonnet-5`) — รูปและ PDF · **เสียเงินค่า Claude API ทุกครั้ง** |
 | `ocr:claude-sonnet-5` `ocr:claude-sonnet-5-5` `ocr:claude-haiku-5-5` | เหมือน `ocr:claude` แต่ระบุโมเดลเอง (allowlist ฝั่งเซิร์ฟเวอร์) — วัด CER/เวลา/ความล้มเหลวของแต่ละรุ่นด้วยไฟล์ชุดเดียวกันก่อนเลือกค่าเริ่มต้น (ยังไม่เปลี่ยนค่าเริ่มต้นในรอบ Section 2) |
@@ -62,6 +64,22 @@ node tools/media-eval/run.mjs --engines ocr:claude-sonnet-5,ocr:claude-sonnet-5-
 
 - `asr:cloud` ใช้โควตา Neurons ฟรีรายวันร่วมกับแชท/สรุป — ถ้าไฟล์ยาวเกินโควตาที่เหลือ หน้าเว็บจะถามยืนยันค่าใช้จ่าย สคริปต์**ตอบยกเลิก**เสมอ (ไฟล์นั้นขึ้นว่าล้มเหลว) เว้นแต่ตั้ง `MEDIA_EVAL_ALLOW_PAID=1`
 - คุกกี้ Access มีอายุ — หมดแล้วจะได้ error "redirected to login"
+
+### ตรวจชื่อโมเดล (Hugging Face)
+
+```bash
+node tools/media-eval/check-models.mjs     # ตรวจว่า repo + ไฟล์ dtype ของทุกโมเดลใน media-models.js มีจริง (ต้องออกเน็ตได้) · exit 1 ถ้าขาด
+```
+
+รายการ `onnx-community/whisper-*` ใน `media-models.js` เขียนตามตัวอย่างทางการของ transformers.js แต่ตรวจกับ Hugging Face ตอนเขียนโค้ดไม่ได้ — รันสคริปต์นี้ก่อนเชื่อ/ก่อนเปลี่ยนค่าเริ่มต้นบน WASM เป็นรุ่นใหม่
+
+### วัดคลาวด์แบบใหม่เทียบแบบเดิม
+
+```bash
+node tools/media-eval/run.mjs --engines asr:cloud,asr:cloud-seq --cloud-domain law --only ประชุม
+```
+
+ตารางสรุปมีคอลัมน์ **Neurons รวม** (อ่านจากบรรทัด "ใช้ไปแล้ววันนี้" ของหน้า ก่อน/หลังแต่ละไฟล์) — ท่อนเหลื่อมควรใช้มากกว่า `asr:cloud-seq` ไม่เกิน ~5% (เกณฑ์ ≤ 10%) แต่เวลารวมน้อยกว่าเพราะส่งขนาน
 
 ## ผลลัพธ์
 
