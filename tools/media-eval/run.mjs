@@ -5,6 +5,8 @@
 //   asr:tiny asr:base asr:small asr:medium  — Whisper ในเบราว์เซอร์ ผ่านหน้า text-to-speech.html จริง (เซิร์ฟเวอร์ static ในเครื่อง)
 //   asr:gpu-tiny asr:gpu-base asr:gpu-small asr:gpu-large — Whisper รุ่นใหม่ onnx-community บน WebGPU (Section 3) · ต้องมี WebGPU จริงบนเครื่องนี้ (ใช้ --headed
 //                                             และเปิดแฟล็ก WebGPU ของ Chromium ให้ — สคริปต์ใส่ให้) · หน้าไม่ได้ใช้ WebGPU จริง (ถอย WASM) = แถวนั้นขึ้น ERROR ไม่นับเป็นผล WebGPU
+//   asr:th-small asr:th-medium              — Thonburian Whisper (Tanotfin/distill-whisper-th-*-onnx, Section 3 ข้อ 3) บน WASM ผ่านหน้าเดียวกัน · ใช้ --lang thai (หน้าบังคับ language:'thai' เมื่อเลือกอัตโนมัติอยู่แล้ว)
+//   asr:gpu-th-small asr:gpu-th-medium      — Thonburian บน WebGPU จริง (ใช้ --headed เหมือน asr:gpu-*) · medium ต้องมี shader-f16 · เทียบ CER กับ asr:small/asr:medium (Xenova), asr:gpu-small (onnx-community) และ asr:cloud
 //   asr:cloud                               — ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (ต้องตั้ง MEDIA_EVAL_URL + MEDIA_EVAL_COOKIE) = โหมดใหม่: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + vad_filter
 //   asr:cloud-seq                           — เหมือน asr:cloud แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) ใช้เทียบเวลา/Neurons/CER กับ asr:cloud (--cloud-domain ใส่ชุดคำศัพท์ได้ทั้งคู่)
 //   ocr:tesseract                           — แนบไฟล์ (เปิด OCR) ในหน้า text-to-speech.html → file-reader.js เส้นทางเดียวกับผู้ใช้
@@ -37,7 +39,7 @@ const ALLOW_PAID = process.env.MEDIA_EVAL_ALLOW_PAID === '1';
 const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิมพ์/บันทึกลงผลลัพธ์
 const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
 let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
-const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
+const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:th-small', 'asr:th-medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:gpu-th-small', 'asr:gpu-th-medium', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
 const ENGINES = (opt('engines', '') || ALL_ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const ONLY = opt('only', '') ? new RegExp(opt('only')) : null;
 const LANG = opt('lang', 'auto'); // auto | thai | english — ตัวเลือก "ภาษา" ของหน้า text-to-speech
@@ -45,8 +47,12 @@ const HEADED = args.includes('--headed');
 const TIMEOUT = +(opt('timeout-min', '60')) * 60000;
 const ASR_EXT = /\.(wav|mp3|m4a|aac|ogg|oga|opus|flac|webm|mp4|mov|m4v)$/i;
 const OCR_EXT = /\.(png|jpe?g|webp|bmp|pdf)$/i;
-const MODEL_OF = { 'asr:tiny': 'Xenova/whisper-tiny', 'asr:base': 'Xenova/whisper-base', 'asr:small': 'Xenova/whisper-small', 'asr:medium': 'Xenova/whisper-medium' };
-const GPU_MODEL_OF = { 'asr:gpu-tiny': 'onnx-community/whisper-tiny', 'asr:gpu-base': 'onnx-community/whisper-base', 'asr:gpu-small': 'onnx-community/whisper-small', 'asr:gpu-large': 'onnx-community/whisper-large-v3-turbo' };
+const MODEL_OF = { 'asr:tiny': 'Xenova/whisper-tiny', 'asr:base': 'Xenova/whisper-base', 'asr:small': 'Xenova/whisper-small', 'asr:medium': 'Xenova/whisper-medium',
+  // Thonburian Whisper (Section 3 ข้อ 3) บน WASM — เบราว์เซอร์ปกติไม่มี WebGPU จึงถอดบน WASM q8 · th-medium ต้อง navigator.deviceMemory ≥ 8 (ไม่งั้นตัวเลือกไม่ขึ้น → แถวนั้นขึ้น ERROR)
+  'asr:th-small': 'Tanotfin/distill-whisper-th-small-onnx', 'asr:th-medium': 'Tanotfin/distill-whisper-th-medium-onnx' };
+const GPU_MODEL_OF = { 'asr:gpu-tiny': 'onnx-community/whisper-tiny', 'asr:gpu-base': 'onnx-community/whisper-base', 'asr:gpu-small': 'onnx-community/whisper-small', 'asr:gpu-large': 'onnx-community/whisper-large-v3-turbo',
+  // Thonburian บน WebGPU (small = encoder fp32 + decoder q4 · medium = encoder fp16 + decoder q4 ต้องมี shader-f16)
+  'asr:gpu-th-small': 'Tanotfin/distill-whisper-th-small-onnx', 'asr:gpu-th-medium': 'Tanotfin/distill-whisper-th-medium-onnx' };
 const CLOUD_DOMAIN = opt('cloud-domain', 'general'); // general | law | engineering | invest — ช่อง "ประเภทเนื้อหา" ของหน้า (โหมดคลาวด์)
 const MIME = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.webp': 'image/webp', '.wasm': 'application/wasm', '.woff2': 'font/woff2' };
 

@@ -1,4 +1,4 @@
-// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ใน media-models.js (ตระกูล onnx-community) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
+// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js (Xenova, onnx-community และ Thonburian ของ Tanotfin) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
 // (sandbox ที่เขียนโค้ดรอบ Section 3 เข้า huggingface.co ไม่ได้ จึงตรวจเองไม่ได้ → ต้องรันสคริปต์นี้ก่อนเชื่อว่ารายการใช้ได้จริง)
 //   node tools/media-eval/check-models.mjs            → ตาราง repo × (ไฟล์ที่ต้องใช้) · exit 1 ถ้ามีอะไรขาด
 //   HF_TOKEN=hf_xxx node …                           → (ไม่จำเป็น) กัน rate limit · ห้ามเขียนโทเคนลงไฟล์

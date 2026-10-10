@@ -11,6 +11,10 @@
    • WebGPU ใช้ได้เฉพาะโมเดลตระกูล onnx-community (media-models.js) · โหลด/รันบน WebGPU ล้ม → ถอยกลับ WASM อัตโนมัติ "1 ครั้ง" (จำไว้ใน Worker นี้ว่าล้มแล้ว
      ไม่ลองซ้ำ) แล้วส่ง { type:'fallback', what:'device', from:'webgpu', to:'wasm', stage:'load'|'run', message } ให้ฝั่งหน้าเว็บบันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้)
    • โหลดโมเดล onnx-community ไม่ได้บน WASM (เช่น 404 ไม่มีไฟล์ dtype) และไม่ใช่เรื่องหน่วยความจำ → ถอยไป Xenova/whisper-* ตัวเทียบเท่า (what:'model')
+
+   2026-10 (Section 3 ข้อ 3): Thonburian Whisper (Tanotfin/distill-whisper-th-*-onnx — media-models.js `thai:true`)
+   • ฝึกไทยเป็นหลัก → ส่ง language:'thai' เสมอเมื่อหน้าเลือก "อัตโนมัติ" (ผู้ใช้เลือกภาษาเอง = ตามที่เลือก) · ตัวเทียบเท่า Xenova ที่ถอยไปใช้แทนก็ยังบังคับไทย (ผู้ใช้ตั้งใจถอดเสียงไทย)
+   • รุ่นที่ WASM ใช้ไม่ได้บนเครื่องแรมน้อย (medium: wasmMinMem 8) — WebGPU ล้มแล้ว "ไม่ถอย WASM" เหมือน gpuOnly (กันหน่วยความจำพุ่งจนแท็บแครช) ส่ง error จริงให้หน้าแสดง
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -104,12 +108,13 @@ self.onmessage = function (e) {
     }
   }
 
-  function transcribeWith(transcriber) {
+  function transcribeWith(transcriber, plan, models) {
     /* chunk_length_s/stride_length_s: Whisper รับเสียงทีละ ≤30 วินาที — ไม่ตัดจะ "หลอน" วนคำซ้ำทั้งไฟล์ ·
        no_repeat_ngram_size: กันแต่ละท่อนวนคำซ้ำ (โมเดลเล็ก/ภาษาไทย) — ห้ามเอาออก (ดูประวัติใน text-to-speech.js) ·
        return_timestamps: ขอเวลาของแต่ละช่วงคำพูด (แบ่งย่อหน้า/[hh:mm:ss]) เฉพาะเมื่อหน้าขอ */
     var opts = { task: 'transcribe', chunk_length_s: 30, stride_length_s: 5, no_repeat_ngram_size: 3 };
-    if (lang && lang !== 'auto') opts.language = lang;
+    var language = models ? models.asrLanguage(plan.thaiOf || plan.modelId, lang) : (lang && lang !== 'auto' ? lang : undefined);
+    if (language) opts.language = language;
     if (msg.timestamps) opts.return_timestamps = true;
     return transcriber(pcm, opts);
   }
@@ -117,26 +122,26 @@ self.onmessage = function (e) {
   /* models = ตารางจาก media-models.js (null ถ้าโหลดไม่ได้ → ทำงานแบบเดิมทุกอย่าง) */
   function attempt(models, plan) {
     return loadPipeline(plan, onModelProgress, jobId).then(function (tr) {
-      return transcribeWith(tr).then(function (r) { return { r: r, plan: plan }; }, function (err) { err.asrStage = 'run'; throw err; });
+      return transcribeWith(tr, plan, models).then(function (r) { return { r: r, plan: plan }; }, function (err) { err.asrStage = 'run'; throw err; });
     }, function (err) { err.asrStage = 'load'; throw err; }).catch(function (err) {
       if (currentJob !== jobId) throw err;
-      /* WebGPU ล้ม → WASM 1 ครั้ง (ตัวที่ใหญ่เกินรัน WASM ได้ไม่ถอย) */
-      if (plan.device === 'webgpu' && !(models && models.asrGpuOnly(plan.modelId))) {
+      /* WebGPU ล้ม → WASM 1 ครั้ง (ตัวที่ใหญ่เกินรัน WASM ได้ หรือเครื่องแรมไม่พอสำหรับ WASM ไม่ถอย) */
+      if (plan.device === 'webgpu' && !(models && (models.asrGpuOnly(plan.modelId) || !models.asrWasmOk(plan.modelId, self.navigator && self.navigator.deviceMemory)))) {
         gpuFailed = true; disposePipeline();
         self.postMessage({ type: 'fallback', jobId: jobId, what: 'device', from: 'webgpu', to: 'wasm', stage: err.asrStage || 'load', modelId: plan.modelId, name: (err && err.name) || 'Error', message: errMsg(err) });
-        return attempt(models, wasmPlan(models, plan.modelId));
+        return attempt(models, wasmPlan(models, plan.modelId, plan.thaiOf));
       }
       /* โมเดลตระกูลใหม่โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ตัวเทียบเท่าเดิม */
       var legacy = models && models.asrLegacy(plan.modelId);
       if (legacy && err.asrStage === 'load' && !MEM_RE.test(errMsg(err)) && plan.device === 'wasm') {
         disposePipeline();
         self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: plan.modelId, to: legacy, stage: 'load', modelId: plan.modelId, name: (err && err.name) || 'Error', message: errMsg(err) });
-        return attempt(models, { modelId: legacy, device: 'wasm', dtype: null });
+        return attempt(models, { modelId: legacy, device: 'wasm', dtype: null, thaiOf: plan.thaiOf || plan.modelId });
       }
       throw err;
     });
   }
-  function wasmPlan(models, id) { return { modelId: id, device: 'wasm', dtype: models ? models.asrDtype(id, 'wasm') : null }; }
+  function wasmPlan(models, id, thaiOf) { return { modelId: id, device: 'wasm', dtype: models ? models.asrDtype(id, 'wasm') : null, thaiOf: thaiOf }; }
 
   getModels().then(function (models) {
     var want = msg.device === 'webgpu' && !gpuFailed && models && models.asrWebgpuCapable(modelId);

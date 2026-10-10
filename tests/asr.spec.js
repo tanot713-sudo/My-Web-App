@@ -3,6 +3,8 @@
 //  B) /api/asr ตัวจริงบน sync-server (พอร์ต 8141) กับ Workers AI ตัวหลอก: allowlist โมเดล, initial_prompt ตามโดเมน + จำกัดความยาว, vad_filter, quota → 429
 //  C) หน้า text-to-speech: ส่งขนาน ≤ 3 + ประกอบตามลำดับเดิม, ลองใหม่ 1 ครั้ง, ยกเลิกกลางทาง, quota หยุดทั้งชุด, ชุดคำศัพท์ตามโดเมน, สวิตช์แสดงเวลา (คลาวด์ + ในเบราว์เซอร์)
 //  D) ในเบราว์เซอร์: WebGPU (adapter จริง) → รุ่นใหม่ onnx-community, ล้มตอนโหลด/รัน → WASM 1 ครั้ง + problem log, 404 → รุ่นเดิม
+//  E) Thonburian Whisper (Section 3 ข้อ 3, Tanotfin/distill-whisper-th-*-onnx): รายการรุ่นบนคอม WebGPU/WASM/มือถือ, ค่าเริ่มต้นตามภาษา (ไม่ทับที่ผู้ใช้เลือก),
+//     dtype ต่ออุปกรณ์, medium ไม่มี shader-f16 = ไม่ใช้ WebGPU, deviceMemory < 8 = ไม่มี medium บน WASM, language:'thai' ถูกบังคับ, 404 → Xenova + problem log, credits EN ไม่มีไทยหลุด
 // CI ห้ามโหลดโมเดล/เรียก Workers AI จริง: /api/asr ในส่วน C ถูก route เป็นตัวหลอกที่คุมช้า/ล้ม/ลำดับกลับ, transformers.js ถูก route เป็นโมดูลหลอก
 const { test, expect } = require('@playwright/test');
 const Asr = require('../asr-calc.js');
@@ -453,6 +455,7 @@ function fakeTransformers(cfg) {
   return `
 const CFG = ${JSON.stringify(cfg || {})};
 export const env = { backends: { onnx: { wasm: {} } } };
+if (CFG.mem != null) Object.defineProperty(WorkerNavigator.prototype, 'deviceMemory', { configurable: true, get: () => CFG.mem });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 export async function pipeline(task, model, opts) {
   const c = CFG.asr || {};
@@ -464,7 +467,7 @@ export async function pipeline(task, model, opts) {
   if (device === 'webgpu' && c.gpu === 'load-fail') throw new Error('Failed to create WebGPU adapter/device');
   const f = async (pcm, o) => {
     if (device === 'webgpu' && c.gpu === 'run-fail') throw new Error('GPUBuffer mapAsync failed: device lost');
-    const r = { text: 'seg:' + pcm.length + ':' + device + ':' + model + ':' + ((o && o.language) || 'auto') + ':' + (o && o.return_timestamps ? 'ts' : 'nots') };
+    const r = { text: 'seg:' + pcm.length + ':' + device + ':' + model + ':' + ((o && o.language) || 'auto') + ':' + (o && o.return_timestamps ? 'ts' : 'nots') + (c.echoDtype ? ':' + (opts && opts.dtype ? JSON.stringify(opts.dtype) : 'default') : '') };
     if (o && o.return_timestamps && c.chunks) r.chunks = c.chunks;
     return r;
   };
@@ -474,9 +477,10 @@ export async function pipeline(task, model, opts) {
 }
 const gpuStub = (features, fallback) => `Object.defineProperty(navigator, 'gpu', { configurable: true, value: { requestAdapter: async () => ({ features: new Set(${JSON.stringify(features)}), isFallbackAdapter: ${!!fallback} }) } });`;
 const GPU_STUB = gpuStub(['shader-f16'], false);
+const TH_SMALL = 'Tanotfin/distill-whisper-th-small-onnx', TH_MEDIUM = 'Tanotfin/distill-whisper-th-medium-onnx';
 const ANDROID_UA = 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36';
 
-async function localSetup(context, page, { cfg, gpu } = {}) {
+async function localSetup(context, page, { cfg, gpu, mem } = {}) {
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
   await context.route('**/*', (route) => {
@@ -489,6 +493,8 @@ async function localSetup(context, page, { cfg, gpu } = {}) {
     try { localStorage.setItem('ome:theme', 'light'); localStorage.setItem('tanot:asr:engine', 'local'); } catch (e) {}
     if (g) (0, eval)(g);
   }, gpu ? GPU_STUB : '');
+  // mem: ตัวเลข GB · 'none' = เบราว์เซอร์ที่ไม่รายงานค่า (Firefox/Safari → undefined)
+  if (mem != null) await page.addInitScript((m) => Object.defineProperty(Navigator.prototype, 'deviceMemory', { configurable: true, get: () => (m === 'none' ? undefined : m) }), mem);
   return errors;
 }
 const runLocal = async (page, seconds = 6) => {
@@ -500,11 +506,13 @@ const mediaLog = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('
 
 test.describe('ถอดเสียงในเบราว์เซอร์: WebGPU / WASM / รุ่นใหม่', () => {
   test('ไม่มี WebGPU (หรือ adapter ซอฟต์แวร์): รายการเดิม 4 ตัว ค่าเริ่มต้น tiny, WASM ด้วย Xenova เหมือนเดิม ไม่ส่ง dtype/device', async ({ context, page }) => {
-    const errors = await localSetup(context, page);
+    const errors = await localSetup(context, page, { mem: 8 });
     await page.addInitScript(gpuStub([], true));
     await page.goto('/text-to-speech.html');
     await page.waitForTimeout(300);
-    expect(await page.$$eval('#asrModel option', (o) => o.map((x) => x.value))).toEqual(['Xenova/whisper-tiny', 'Xenova/whisper-base', 'Xenova/whisper-small', 'Xenova/whisper-medium']);
+    // รุ่นเดิม 4 ตัวอยู่ครบตามลำดับเดิม · Thonburian (ไม่ต้องมี WebGPU) ต่อท้าย — ไม่มี onnx-community
+    expect(await page.$$eval('#asrModel option', (o) => o.map((x) => x.value))).toEqual(['Xenova/whisper-tiny', 'Xenova/whisper-base', 'Xenova/whisper-small', 'Xenova/whisper-medium', TH_SMALL, TH_MEDIUM]);
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-tiny');
     await runLocal(page);
     expect(await page.inputValue('#asrResult')).toMatch(/^seg:\d+:wasm:Xenova\/whisper-tiny:auto:ts$/);
     await expect(page.locator('#asrStatus')).not.toContainText('WebGPU');
@@ -518,6 +526,7 @@ test.describe('ถอดเสียงในเบราว์เซอร์: 
     expect(await page.$$eval('#asrModel option', (o) => o.map((x) => x.value))).toEqual([
       'Xenova/whisper-tiny', 'Xenova/whisper-base', 'Xenova/whisper-small', 'Xenova/whisper-medium',
       'onnx-community/whisper-tiny', 'onnx-community/whisper-base', 'onnx-community/whisper-small', 'onnx-community/whisper-large-v3-turbo',
+      TH_SMALL, TH_MEDIUM,
     ]);
     await expect(page.locator('#asrModel')).toHaveValue('onnx-community/whisper-small');
     await runLocal(page);
@@ -556,7 +565,7 @@ test.describe('ถอดเสียงในเบราว์เซอร์: 
     // เปิดหน้าใหม่: ไม่ลอง WebGPU อีก (จำ 3 วัน) → รายการเดิม 4 ตัว
     await page.reload();
     await page.waitForTimeout(300);
-    expect(await page.$$eval('#asrModel option', (o) => o.length)).toBe(4);
+    expect(await page.$$eval('#asrModel option', (o) => o.map((x) => x.value).filter((v) => !/^Tanotfin\//.test(v)))).toEqual(['Xenova/whisper-tiny', 'Xenova/whisper-base', 'Xenova/whisper-small', 'Xenova/whisper-medium']);
     expect(errors).toEqual([]);
   });
 
@@ -611,6 +620,361 @@ test.describe('ถอดเสียงในเบราว์เซอร์: 
     await page.check('#asrTimeChk');
     expect(await page.inputValue('#asrResult')).toBe('[00:00:00] สวัสดีครับ ยินดีต้อนรับ เข้าสู่การประชุม\n\n[00:01:23] ย่อหน้าที่สอง');
     expect(await page.evaluate(() => (globalThis.__loads || []).length)).toBe(0); // __loads อยู่ใน Worker ไม่ใช่หน้า
+    expect(errors).toEqual([]);
+  });
+});
+
+/* ═══════════════ E) Thonburian Whisper (Tanotfin/distill-whisper-th-*-onnx) ═══════════════ */
+const vm = require('node:vm');
+const fsNode = require('node:fs');
+const pathNode = require('node:path');
+function loadModels() {
+  const sb = { self: {} };
+  vm.runInNewContext(fsNode.readFileSync(pathNode.join(__dirname, '..', 'media-models.js'), 'utf8'), sb);
+  return sb.self.TanotMediaModels;
+}
+const THAI_RE = /[฀-๿]/;
+const DT_GPU_FP32 = '{"encoder_model":"fp32","decoder_model_merged":"q4"}';
+const DT_GPU_FP16 = '{"encoder_model":"fp16","decoder_model_merged":"q4"}';
+const DT_WASM_Q8 = '{"encoder_model":"q8","decoder_model_merged":"q8"}';
+const optValues = (page) => page.$$eval('#asrModel option', (o) => o.map((x) => x.value));
+const thOpt = (page, id) => page.locator('#asrModel option[value="' + id + '"]');
+
+test.describe('Thonburian: ตาราง media-models.js (known-answer, ไม่ผูกกับชื่อ onnx-community)', () => {
+  const M = loadModels();
+  test('2 รุ่น: heavy + thai, dtype ต่ออุปกรณ์ตรงที่เจ้าของทดสอบ, legacy เป็น Xenova ตัวเทียบเท่า', () => {
+    for (const id of [TH_SMALL, TH_MEDIUM]) {
+      expect(M.asrHeavy(id), id).toBe(true);
+      expect(M.asrThai(id), id).toBe(true);
+      expect(M.asrWebgpuCapable(id), id).toBe(true); // ตรวจ m.gpu ไม่ใช่ชื่อ repo
+      expect(M.asrGpuOnly(id), id).toBe(false);
+      expect(M.asrDtype(id, 'wasm')).toEqual({ encoder_model: 'q8', decoder_model_merged: 'q8' });
+    }
+    expect(M.asrDtype(TH_SMALL, 'webgpu')).toEqual({ encoder_model: 'fp32', decoder_model_merged: 'q4' });
+    expect(M.asrDtype(TH_MEDIUM, 'webgpu')).toEqual({ encoder_model: 'fp16', decoder_model_merged: 'q4' }); // ห้าม encoder fp32 ~1.2GB
+    expect(M.asrInfo(TH_MEDIUM).f16).toBe(true);
+    expect(M.asrInfo(TH_SMALL).f16).toBeFalsy();
+    expect(M.asrLegacy(TH_SMALL)).toBe('Xenova/whisper-small');
+    expect(M.asrLegacy(TH_MEDIUM)).toBe('Xenova/whisper-medium');
+    // ใช้เฉพาะ dtype ที่มีไฟล์ใน repo (ไม่มี int8/uint8/bnb4)
+    for (const id of [TH_SMALL, TH_MEDIUM]) for (const dev of ['webgpu', 'wasm']) for (const d of Object.values(M.asrDtype(id, dev))) expect(['fp32', 'fp16', 'q8', 'q4', 'q4f16']).toContain(d);
+    // รุ่นเดิมไม่เปลี่ยน
+    expect(M.asrThai('Xenova/whisper-small')).toBe(false);
+    expect(M.asrThai('onnx-community/whisper-small')).toBe(false);
+    expect(M.asrDtype('Xenova/whisper-small', 'wasm')).toBeNull();
+  });
+  test('asrWasmOk: medium ต้อง deviceMemory ≥ 8 (ไม่รู้ค่า = ผ่าน) · small/อื่นๆ ไม่จำกัด', () => {
+    expect(M.asrWasmOk(TH_MEDIUM, 4)).toBe(false);
+    expect(M.asrWasmOk(TH_MEDIUM, 2)).toBe(false);
+    expect(M.asrWasmOk(TH_MEDIUM, 8)).toBe(true);
+    expect(M.asrWasmOk(TH_MEDIUM, undefined)).toBe(true);
+    expect(M.asrWasmOk(TH_MEDIUM, 0)).toBe(true);
+    expect(M.asrWasmOk(TH_SMALL, 2)).toBe(true);
+    expect(M.asrWasmOk('Xenova/whisper-medium', 2)).toBe(true);
+  });
+  test('asrLanguage: Thonburian + อัตโนมัติ → thai เสมอ · ผู้ใช้เลือกภาษาเอง = ตามที่เลือก · รุ่นอื่นไม่เปลี่ยน', () => {
+    for (const id of [TH_SMALL, TH_MEDIUM]) {
+      expect(M.asrLanguage(id, 'auto')).toBe('thai');
+      expect(M.asrLanguage(id, undefined)).toBe('thai');
+      expect(M.asrLanguage(id, '')).toBe('thai');
+      expect(M.asrLanguage(id, 'thai')).toBe('thai');
+      expect(M.asrLanguage(id, 'english')).toBe('english');
+    }
+    expect(M.asrLanguage('Xenova/whisper-small', 'auto')).toBeUndefined();
+    expect(M.asrLanguage('onnx-community/whisper-small', undefined)).toBeUndefined();
+    expect(M.asrLanguage('Xenova/whisper-tiny', 'english')).toBe('english');
+  });
+});
+
+test.describe('Thonburian: รายการรุ่นตามเครื่อง', () => {
+  test('คอม WASM (ไม่มี WebGPU) แรม 8: Xenova 4 + Thonburian small/medium (ไม่มี onnx-community) · ป้ายภาษาไทย/อังกฤษตามที่กำหนด', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    expect(await optValues(page)).toEqual(['Xenova/whisper-tiny', 'Xenova/whisper-base', 'Xenova/whisper-small', 'Xenova/whisper-medium', TH_SMALL, TH_MEDIUM]);
+    await expect(thOpt(page, TH_SMALL)).toHaveText('ไทยแม่นยำ (Thonburian) small');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveText('ไทยแม่นยำ (Thonburian) medium');
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(thOpt(page, TH_SMALL)).toHaveText('Thai-tuned (Thonburian) small');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveText('Thai-tuned (Thonburian) medium');
+    expect(errors).toEqual([]);
+  });
+
+  test('แรมรายงาน 4GB (ไม่มี WebGPU): มีเฉพาะ small — ไม่มี medium บน WASM · แรมไม่รายงานค่า = มี medium', async ({ context, page, browser }) => {
+    await localSetup(context, page, { mem: 4 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(0);
+    const ctx2 = await browser.newContext();
+    const page2 = await ctx2.newPage();
+    await localSetup(ctx2, page2, { mem: 'none' });
+    await page2.goto('/text-to-speech.html');
+    await expect(thOpt(page2, TH_MEDIUM)).toHaveCount(1);
+    await ctx2.close();
+  });
+
+  test('WebGPU มี shader-f16: medium อยู่ในรายการแม้แรม 4GB (รันบน WebGPU ไม่ใช้ WASM) · WebGPU ไม่มี f16 + แรม 4GB: ไม่มี medium', async ({ context, page, browser }) => {
+    await localSetup(context, page, { gpu: true, mem: 4 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    const ctx2 = await browser.newContext();
+    const page2 = await ctx2.newPage();
+    await localSetup(ctx2, page2, { mem: 4 });
+    await page2.addInitScript(gpuStub([], false));
+    await page2.goto('/text-to-speech.html');
+    await expect(thOpt(page2, TH_SMALL)).toHaveCount(1);
+    await expect(page2.locator('#asrModel option[value="onnx-community/whisper-small"]')).toHaveCount(1);
+    await expect(thOpt(page2, TH_MEDIUM)).toHaveCount(0);
+    await ctx2.close();
+  });
+
+  test('มือถือ (Android, แม้มี navigator.gpu + แรม 8): ไม่มี Thonburian เลย (heavy) · เลือกภาษาไทยแล้วค่าเริ่มต้นยัง Xenova/whisper-tiny บน WASM', async ({ browser }) => {
+    const ctx = await browser.newContext({ userAgent: ANDROID_UA, viewport: { width: 390, height: 844 } });
+    const page = await ctx.newPage();
+    const errors = await localSetup(ctx, page, { gpu: true, mem: 8, cfg: { asr: { echoDtype: true } } });
+    await page.goto('/text-to-speech.html');
+    await page.waitForTimeout(300);
+    expect(await optValues(page)).toEqual(['Xenova/whisper-tiny', 'Xenova/whisper-base']);
+    await page.selectOption('#asrLang', 'thai');
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-tiny');
+    await runLocal(page);
+    expect(await page.inputValue('#asrResult')).toMatch(/^seg:\d+:wasm:Xenova\/whisper-tiny:thai:ts:default$/);
+    await ctx.close();
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('Thonburian: ค่าเริ่มต้นตามภาษา', () => {
+  test('คอม WASM: อัตโนมัติ = tiny (เดิม) → ไทย = Thonburian small → กลับอัตโนมัติ/อังกฤษ = tiny', async ({ context, page }) => {
+    await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-tiny');
+    await page.selectOption('#asrLang', 'thai');
+    await expect(page.locator('#asrModel')).toHaveValue(TH_SMALL);
+    await page.selectOption('#asrLang', 'english');
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-tiny');
+    await page.selectOption('#asrLang', 'thai');
+    await expect(page.locator('#asrModel')).toHaveValue(TH_SMALL);
+    await page.selectOption('#asrLang', 'auto');
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-tiny');
+  });
+
+  test('คอม WebGPU: อัตโนมัติ/อังกฤษ = onnx-community small (เดิม) · ไทย = Thonburian small', async ({ context, page }) => {
+    await localSetup(context, page, { gpu: true, mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await expect(page.locator('#asrModel')).toHaveValue('onnx-community/whisper-small');
+    await page.selectOption('#asrLang', 'thai');
+    await expect(page.locator('#asrModel')).toHaveValue(TH_SMALL);
+    await page.selectOption('#asrLang', 'english');
+    await expect(page.locator('#asrModel')).toHaveValue('onnx-community/whisper-small');
+  });
+
+  test('ผู้ใช้เลือกโมเดลเองแล้ว → เปลี่ยนภาษาไม่ทับ · เลือกภาษาไทยก่อนแล้วเลือกรุ่นอื่นเอง → ไม่ถูกดึงกลับ', async ({ context, page }) => {
+    await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await page.selectOption('#asrModel', 'Xenova/whisper-base');
+    await page.selectOption('#asrLang', 'thai');
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-base');
+    await page.selectOption('#asrLang', 'auto');
+    await expect(page.locator('#asrModel')).toHaveValue('Xenova/whisper-base');
+    // อีกทาง: ได้ Thonburian อัตโนมัติจากภาษาไทย แล้วผู้ใช้เปลี่ยนไป medium เอง
+    const p2 = await page.context().newPage();
+    await p2.goto('/text-to-speech.html');
+    await expect(thOpt(p2, TH_SMALL)).toHaveCount(1);
+    await p2.selectOption('#asrLang', 'thai');
+    await expect(p2.locator('#asrModel')).toHaveValue(TH_SMALL);
+    await p2.selectOption('#asrModel', 'Xenova/whisper-small');
+    await p2.selectOption('#asrLang', 'english');
+    await p2.selectOption('#asrLang', 'thai');
+    await expect(p2.locator('#asrModel')).toHaveValue('Xenova/whisper-small');
+  });
+
+  test('TanotMedia.asrDefaultModel: ไทยบนคอม = Thonburian small ทุกกรณี · อื่นๆ คงเดิม', async ({ context, page }) => {
+    await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    const r = await page.evaluate(() => ({
+      thNoGpu: TanotMedia.asrDefaultModel({ ok: false }, 'thai'),
+      thGpu: TanotMedia.asrDefaultModel({ ok: true }, 'thai'),
+      thNull: TanotMedia.asrDefaultModel(null, 'thai'),
+      autoGpu: TanotMedia.asrDefaultModel({ ok: true }, 'auto'),
+      enGpu: TanotMedia.asrDefaultModel({ ok: true }, 'english'),
+      autoNoGpu: TanotMedia.asrDefaultModel({ ok: false }, 'auto'),
+      none: TanotMedia.asrDefaultModel(null),
+    }));
+    expect(r).toEqual({ thNoGpu: TH_SMALL, thGpu: TH_SMALL, thNull: TH_SMALL, autoGpu: 'onnx-community/whisper-small', enGpu: 'onnx-community/whisper-small', autoNoGpu: 'Xenova/whisper-tiny', none: 'Xenova/whisper-tiny' });
+  });
+});
+
+test.describe('Thonburian: dtype ต่ออุปกรณ์ + language:thai + ถอยกลับ', () => {
+  const echo = { asr: { echoDtype: true } };
+
+  test('WebGPU (มี f16): small = encoder fp32 + decoder q4 · medium = encoder fp16 + decoder q4 (ไม่มี fp32 1.2GB) · ภาษาอัตโนมัติถูกบังคับเป็นไทย', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { gpu: true, mem: 8, cfg: echo });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    expect((await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '')).toBe(`webgpu:${TH_SMALL}:thai:ts:${DT_GPU_FP32}`);
+    await expect(page.locator('#asrStatus')).toContainText('WebGPU');
+    // medium ในหน้าเดียวกัน (Worker เปลี่ยนโมเดล = สร้างใหม่)
+    await page.selectOption('#asrModel', TH_MEDIUM);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    expect((await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '')).toBe(`webgpu:${TH_MEDIUM}:thai:ts:${DT_GPU_FP16}`);
+    expect(await mediaLog(page)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('WASM: small และ medium ใช้ q8 ทั้ง encoder + decoder', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { mem: 8, cfg: echo });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    for (const id of [TH_SMALL, TH_MEDIUM]) {
+      await page.selectOption('#asrModel', id);
+      await runLocal(page);
+      await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+      expect((await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '')).toBe(`wasm:${id}:thai:ts:${DT_WASM_Q8}`);
+    }
+    expect(errors).toEqual([]);
+  });
+
+  test('medium: WebGPU ไม่มี shader-f16 → ไม่ใช้ WebGPU (รัน WASM q8, ไม่โหลด encoder fp32/fp16 บน GPU) · small บนเครื่องเดียวกันยังใช้ WebGPU', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { mem: 8, cfg: echo });
+    await page.addInitScript(gpuStub([], false));
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_MEDIUM);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    const out = (await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '');
+    expect(out).toBe(`wasm:${TH_MEDIUM}:thai:ts:${DT_WASM_Q8}`);
+    expect(out).not.toMatch(/fp32|fp16|webgpu/);
+    await expect(page.locator('#asrStatus')).not.toContainText('WebGPU');
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    expect((await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '')).toBe(`webgpu:${TH_SMALL}:thai:ts:${DT_GPU_FP32}`);
+    expect(await mediaLog(page)).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('medium บน WebGPU ล้มกลางทาง + แรม 4GB → ไม่ถอยไป WASM (กันหน่วยความจำพุ่ง) แสดงข้อผิดพลาดตรงๆ · small ล้มแล้วถอย WASM ตามเดิม', async ({ context, page }) => {
+    await localSetup(context, page, { gpu: true, mem: 4, cfg: { mem: 4, asr: { gpu: 'load-fail', echoDtype: true } } });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_MEDIUM);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/err/);
+    expect(await page.inputValue('#asrResult')).toBe('');
+    expect((await mediaLog(page)).map((r) => r.stage)).not.toContain('webgpu-load');
+    await page.reload();
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    expect((await page.inputValue('#asrResult')).replace(/^seg:\d+:/, '')).toBe(`wasm:${TH_SMALL}:thai:ts:${DT_WASM_Q8}`);
+  });
+
+  test('language: อัตโนมัติ → thai (บังคับ) · เลือกไทย → thai · รุ่นอื่นอัตโนมัติยัง auto เหมือนเดิม', async ({ context, page }) => {
+    await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    const lang = async () => (await page.inputValue('#asrResult')).split(':')[4];
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    expect(await lang()).toBe('thai');
+    await page.selectOption('#asrLang', 'thai');
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    expect(await lang()).toBe('thai');
+    await page.selectOption('#asrLang', 'auto');
+    await page.selectOption('#asrModel', 'Xenova/whisper-tiny');
+    await runLocal(page);
+    expect(await lang()).toBe('auto');
+  });
+
+  test('ผู้ใช้เลือกอังกฤษคู่กับ Thonburian: ขึ้นคำแนะนำสั้นๆ (ไม่บล็อก — ยังถอดได้ ส่ง english ตามที่เลือก) · หายเมื่อเปลี่ยนรุ่น/ภาษา · อังกฤษไม่มีไทยหลุด', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { mem: 8 });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    const note = page.locator('#asrThaiNote');
+    await expect(note).toBeHidden();
+    await page.selectOption('#asrModel', TH_SMALL);
+    await expect(note).toBeHidden(); // อัตโนมัติ + Thonburian = ไม่ต้องเตือน
+    await page.selectOption('#asrLang', 'english');
+    await expect(note).toBeVisible();
+    await expect(note).toContainText('ภาษาไทยเป็นหลัก');
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/); // ไม่บล็อก
+    expect((await page.inputValue('#asrResult')).split(':')[4]).toBe('english');
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(note).toContainText('mainly for Thai');
+    expect(await note.innerText()).not.toMatch(THAI_RE);
+    await page.selectOption('#asrModel', 'Xenova/whisper-base');
+    await expect(note).toBeHidden();
+    await page.selectOption('#asrModel', TH_SMALL);
+    await expect(note).toBeVisible();
+    await page.selectOption('#asrLang', 'thai');
+    await expect(note).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
+  test('โหลด Tanotfin/* ไม่ได้ (404) → ถอยไป Xenova ตัวเทียบเท่าอัตโนมัติ (ยังถอดเป็นไทย) + บันทึก problem log (model-load, ไม่มีเนื้อหา) · medium → Xenova medium', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { mem: 8, cfg: { asr: { missing: [TH_SMALL, TH_MEDIUM], text: 'TOPSECRET' } } });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_MEDIUM)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    expect(await page.inputValue('#asrResult')).toMatch(/^seg:\d+:wasm:Xenova\/whisper-small:thai:ts$/);
+    await expect(page.locator('#asrStatus')).toContainText('โหลดโมเดลรุ่นใหม่ไม่ได้');
+    let log = await mediaLog(page);
+    expect(log.map((r) => r.stage)).toEqual(['model-load']);
+    expect(log[0]).toMatchObject({ kind: 'asr', stage: 'model-load', engine: 'local', device: 'wasm', model: TH_SMALL });
+    await page.selectOption('#asrModel', TH_MEDIUM);
+    await runLocal(page);
+    expect(await page.inputValue('#asrResult')).toMatch(/^seg:\d+:wasm:Xenova\/whisper-medium:thai:ts$/);
+    log = await mediaLog(page);
+    expect(log.map((r) => r.stage)).toEqual(['model-load', 'model-load']);
+    expect(JSON.stringify(log)).not.toMatch(/secret-meeting|TOPSECRET/i);
+    expect(errors).toEqual([]);
+  });
+
+  test('บน WebGPU: 404 ของ Tanotfin → บันทึกทั้ง webgpu-load แล้ว model-load, จบด้วย Xenova (ลำดับถอยเดียวกับ onnx-community)', async ({ context, page }) => {
+    const errors = await localSetup(context, page, { gpu: true, mem: 8, cfg: { asr: { missing: [TH_SMALL] } } });
+    await page.goto('/text-to-speech.html');
+    await expect(thOpt(page, TH_SMALL)).toHaveCount(1);
+    await page.selectOption('#asrModel', TH_SMALL);
+    await runLocal(page);
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/);
+    expect(await page.inputValue('#asrResult')).toMatch(/^seg:\d+:wasm:Xenova\/whisper-small:thai:ts$/);
+    expect((await mediaLog(page)).map((r) => r.stage)).toEqual(['webgpu-load', 'model-load']);
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('Thonburian: หน้า credits', () => {
+  const links = ['https://github.com/biodatlab/thonburian-whisper', 'https://huggingface.co/Tanotfin/distill-whisper-th-small-onnx', 'https://huggingface.co/Tanotfin/distill-whisper-th-medium-onnx'];
+  test('มีการ์ด Thonburian Whisper (biodatlab, MIT) + ลิงก์ 3 อัน · ภาษาอังกฤษไม่มีไทยหลุด · สลับสดกลับไทยได้', async ({ page }) => {
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+    await page.addInitScript(() => { try { localStorage.setItem('ome:lang', 'en'); } catch (e) {} });
+    await page.goto('/credits.html');
+    const card = page.locator('.card.lib', { hasText: 'Thonburian Whisper' });
+    await expect(card).toHaveCount(1);
+    await expect(card.locator('.badge')).toHaveText('MIT');
+    expect(await card.locator('a').evaluateAll((a) => a.map((x) => x.href))).toEqual(links);
+    const text = await card.innerText();
+    expect(text).not.toMatch(THAI_RE);
+    expect(text).toContain('Whisper fine-tuned for Thai');
+    expect(text).toContain('Speech to text');
+    await page.evaluate(() => OME_LANG.set('th'));
+    await expect(card.locator('.lib-desc')).toContainText('Whisper ที่ฝึกเพิ่มสำหรับภาษาไทย');
+    await expect(card.locator('.lib-meta span')).toHaveText('แปลงเสียงเป็นข้อความ');
     expect(errors).toEqual([]);
   });
 });

@@ -27,11 +27,18 @@
      • onnx-community/whisper-* = ONNX รุ่นใหม่ที่รันบน WebGPU ได้ (encoder fp32/fp16 + decoder q4 — ตามตัวอย่าง webgpu-whisper ของ transformers.js)
        เลือกได้ทั้ง WebGPU และ WASM (WASM ใช้ q8 ทั้งคู่) · legacy = ตัวเทียบเท่าใน Xenova ที่ถอยไปใช้อัตโนมัติถ้าโหลดตัวใหม่ไม่ได้ (404/ไฟล์ dtype ไม่มี)
        gpuOnly = ใหญ่เกินกว่าจะรันบน WASM ได้ — โชว์เฉพาะเครื่องที่ใช้ WebGPU ได้จริง · f16 = encoder เป็น fp16 ต้องมี shader-f16
+     • Tanotfin/distill-whisper-th-*-onnx = Thonburian Whisper (biodatlab/distill-whisper-th-*, MIT — Whisper ที่ฝึกภาษาไทย) ที่เจ้าของแปลงเป็น ONNX เอง
+       (transformers.js 3.8.1 scripts/convert.py --quantize; ทดสอบถอดเสียงไทยกับ transformers.js 4.2.0 แล้ว) · ไฟล์ใน onnx/ มีเฉพาะ
+       encoder_model / decoder_model_merged × {'' (fp32), _quantized (q8), _fp16, _q4, _q4f16} — ห้ามเดา dtype อื่น (int8/uint8/bnb4 ไม่มี)
+       thai = ฝึกไทยเป็นหลัก: asr-worker.js ส่ง language:'thai' เสมอเมื่อหน้าเลือก "อัตโนมัติ" (ผู้ใช้เลือกอังกฤษเองก็ตามที่เลือก + หน้าขึ้นคำแนะนำ)
+          และโชว์ในรายการบนคอมทุกเครื่อง (ไม่ต้องมี WebGPU เหมือนตระกูล onnx-community) · wasmMinMem = WASM ต้องการ navigator.deviceMemory ≥ ค่านี้ GB
+          (ไม่รู้ค่า = ผ่าน) — medium encoder fp32 ~1.2GB จึงห้ามใช้เป็น dtype ของ WebGPU เด็ดขาด: ใช้ fp16 เท่านั้น (f16:true → ไม่มี shader-f16 = ไม่ใช้ WebGPU)
      ⚠️ ชื่อ repo/ไฟล์ dtype ของ onnx-community ตรวจจาก sandbox ไม่ได้ (เข้า huggingface.co ไม่ได้) — ใช้ `node tools/media-eval/check-models.mjs`
         ตรวจกับ Hugging Face จริงก่อนปล่อย/เมื่อแก้ตารางนี้ */
   var GPU_DTYPE = { encoder_model: 'fp32', decoder_model_merged: 'q4' };
   var GPU_DTYPE_F16 = { encoder_model: 'fp16', decoder_model_merged: 'q4' };
   var WASM_DTYPE = { encoder_model: 'q8', decoder_model_merged: 'q8' };
+  var THAI_LANG = 'thai';
   var ASR_MODELS = [
     { id: 'Xenova/whisper-tiny', heavy: false },
     { id: 'Xenova/whisper-base', heavy: false },
@@ -40,7 +47,9 @@
     { id: 'onnx-community/whisper-tiny', heavy: false, legacy: 'Xenova/whisper-tiny', gpu: GPU_DTYPE, wasm: WASM_DTYPE },
     { id: 'onnx-community/whisper-base', heavy: false, legacy: 'Xenova/whisper-base', gpu: GPU_DTYPE, wasm: WASM_DTYPE },
     { id: 'onnx-community/whisper-small', heavy: true, legacy: 'Xenova/whisper-small', gpu: GPU_DTYPE, wasm: WASM_DTYPE },
-    { id: 'onnx-community/whisper-large-v3-turbo', heavy: true, gpuOnly: true, f16: true, gpu: GPU_DTYPE_F16 }
+    { id: 'onnx-community/whisper-large-v3-turbo', heavy: true, gpuOnly: true, f16: true, gpu: GPU_DTYPE_F16 },
+    { id: 'Tanotfin/distill-whisper-th-small-onnx', heavy: true, thai: true, legacy: 'Xenova/whisper-small', gpu: GPU_DTYPE, wasm: WASM_DTYPE },
+    { id: 'Tanotfin/distill-whisper-th-medium-onnx', heavy: true, thai: true, f16: true, wasmMinMem: 8, legacy: 'Xenova/whisper-medium', gpu: GPU_DTYPE_F16, wasm: WASM_DTYPE }
   ];
   function asrInfo(modelId) {
     for (var i = 0; i < ASR_MODELS.length; i++) if (ASR_MODELS[i].id === modelId) return ASR_MODELS[i];
@@ -52,11 +61,20 @@
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
     asrHeavy: function (modelId) { var m = asrInfo(modelId); return !!(m && m.heavy); },
     asrInfo: asrInfo,
-    /* รันบน WebGPU ได้ไหม (ตระกูล onnx-community เท่านั้น — Xenova เดิมคง WASM เหมือนก่อนหน้า) */
+    /* รันบน WebGPU ได้ไหม (ทุกรายการที่มี gpu dtype: onnx-community + Thonburian — Xenova เดิมคง WASM เหมือนก่อนหน้า; ไม่ผูกกับชื่อ repo) */
     asrWebgpuCapable: function (modelId) { var m = asrInfo(modelId); return !!(m && m.gpu); },
     asrGpuOnly: function (modelId) { var m = asrInfo(modelId); return !!(m && m.gpuOnly); },
     /* dtype ที่ส่งให้ pipeline() — null = ใช้ค่าเริ่มต้นของ transformers.js (Xenova เดิม) */
     asrDtype: function (modelId, device) { var m = asrInfo(modelId); return (m && (device === 'webgpu' ? m.gpu : m.wasm)) || null; },
-    asrLegacy: function (modelId) { var m = asrInfo(modelId); return (m && m.legacy) || null; }
+    asrLegacy: function (modelId) { var m = asrInfo(modelId); return (m && m.legacy) || null; },
+    /* Thonburian (ฝึกไทยเป็นหลัก) */
+    asrThai: function (modelId) { var m = asrInfo(modelId); return !!(m && m.thai); },
+    /* ภาษาที่ส่งให้ Whisper: Thonburian + หน้าเลือก "อัตโนมัติ"/ไม่ระบุ → 'thai' · ผู้ใช้เลือกภาษาเองก็ตามนั้น · รุ่นอื่นคืนค่าที่ส่งมาตามเดิม (ไม่ระบุ/auto → undefined) */
+    asrLanguage: function (modelId, lang) {
+      var m = asrInfo(modelId), explicit = lang && lang !== 'auto' ? lang : undefined;
+      return explicit || (m && m.thai ? THAI_LANG : undefined);
+    },
+    /* WASM รันรุ่นนี้ได้บนเครื่องที่รายงานแรมเท่านี้ไหม (mem = navigator.deviceMemory; ไม่รู้ค่า/0 = ผ่าน) */
+    asrWasmOk: function (modelId, mem) { var m = asrInfo(modelId); return !(m && m.wasmMinMem && mem && mem < m.wasmMinMem); }
   };
 })(typeof self !== 'undefined' ? self : window);

@@ -237,7 +237,8 @@ test.describe('ถอดเสียงในเบราว์เซอร์ (
     const p2 = await ctx2.newPage();
     await setup(ctx2, p2, { init: 'window.TANOT_AI = { enabled: true };' });
     await p2.goto('/text-to-speech.html');
-    expect(await p2.$$eval('#asrModel option', (o) => o.length)).toBe(4);
+    // Xenova เดิมครบ 4 ขนาด (Thonburian เพิ่มทีหลังตอนตรวจ adapter เสร็จ — ดู asr.spec.js)
+    expect(await p2.$$eval('#asrModel option', (o) => o.filter((x) => /^Xenova\//.test(x.value)).length)).toBe(4);
     await expect(p2.locator('#asrMobileNote')).toBeHidden();
     // pages.dev + ยังไม่เคยเลือก = คลาวด์เป็นค่าเริ่มต้น
     await expect(p2.locator('#asrEngineToggle [data-ae="cloud"]')).toHaveClass(/active/);

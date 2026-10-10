@@ -36,6 +36,7 @@
       neuronUse: 'ใช้ไปแล้ววันนี้ {used} / {limit} Neurons (เหลือฟรี ~{hours} ชม.เสียง)',
       costConfirm: 'เสียงไฟล์นี้ยาว ~{min} นาที ต้องใช้ ~{need} Neurons แต่วันนี้เหลือโควตาฟรีแค่ {left} Neurons (ใช้ไปแล้ว {used}/{limit}) — ส่วนที่เกิน ~{over} Neurons จะมีค่าใช้จ่ายจริง (~${cost}) กดตกลงเพื่อทำต่อ หรือยกเลิกเพื่อหยุด',
       mcTiny: 'เล็ก · รุ่นใหม่ (รองรับ WebGPU)', mcBase: 'กลาง · รุ่นใหม่ (รองรับ WebGPU)', mcSmall: 'ใหญ่ · รุ่นใหม่ (รองรับ WebGPU, แม่นขึ้นมาก)', mcLarge: 'ใหญ่มาก · large-v3-turbo (เฉพาะ WebGPU, ดาวน์โหลดใหญ่)',
+      mtThSmall: 'ไทยแม่นยำ (Thonburian) small', mtThMedium: 'ไทยแม่นยำ (Thonburian) medium', thaiModelNote: 'รุ่น Thonburian ฝึกมาสำหรับภาษาไทยเป็นหลัก — ถ้าเสียงเป็นภาษาอังกฤษ ควรเลือกรุ่นอื่น',
       domainLabel: 'ประเภทเนื้อหา (คำศัพท์เฉพาะ)', domGeneral: 'ทั่วไป', domLaw: 'กฎหมาย', domEng: 'ไฟฟ้า / วิศวกรรม', domInvest: 'การลงทุน',
       showTime: 'แสดงเวลา [hh:mm:ss]', gpuFallback: 'WebGPU ใช้ไม่ได้ ใช้ WASM แทน', modelFallback: 'โหลดโมเดลรุ่นใหม่ไม่ได้ ใช้รุ่นเดิมแทน',
       cancelledQuota: 'ยกเลิกแล้ว (เกินโควตาฟรีวันนี้)', cloudChunk: 'กำลังถอดเสียงผ่านคลาวด์… ท่อน {i}/{n}', pickAudio: 'เลือกไฟล์เสียง/วิดีโอก่อน',
@@ -74,6 +75,7 @@
       neuronUse: 'Used today {used} / {limit} Neurons (~{hours} h of audio left free)',
       costConfirm: 'This audio is ~{min} min long and needs ~{need} Neurons, but only {left} Neurons of the free quota are left today ({used}/{limit} used) — the extra ~{over} Neurons will cost real money (~${cost}). Press OK to continue or Cancel to stop',
       mcTiny: 'Small · newer build (WebGPU-ready)', mcBase: 'Medium · newer build (WebGPU-ready)', mcSmall: 'Large · newer build (WebGPU-ready, much more accurate)', mcLarge: 'Extra large · large-v3-turbo (WebGPU only, big download)',
+      mtThSmall: 'Thai-tuned (Thonburian) small', mtThMedium: 'Thai-tuned (Thonburian) medium', thaiModelNote: 'Thonburian models are trained mainly for Thai — for English audio, pick another model',
       domainLabel: 'Content type (domain terms)', domGeneral: 'General', domLaw: 'Law', domEng: 'Electrical / engineering', domInvest: 'Investing',
       showTime: 'Show timestamps [hh:mm:ss]', gpuFallback: 'WebGPU unavailable, using WASM', modelFallback: 'Could not load the newer model, using the previous one',
       cancelledQuota: 'Cancelled (over today\'s free quota)', cloudChunk: 'Transcribing in the cloud… segment {i}/{n}', pickAudio: 'Choose an audio/video file first',
@@ -747,13 +749,16 @@
   }
 
   /* โมเดลที่ใช้ได้บนเครื่องนี้ — มือถือตัด small/medium ออกจากตัวเลือก · ตัวใหญ่ที่รันได้เฉพาะ WebGPU (gpuOnly) โชว์เมื่อ WebGPU ใช้ได้จริง
-     · เครื่องที่ WebGPU ใช้ได้และผู้ใช้ยังไม่เลือกเอง ตั้งโมเดลเริ่มต้นตามเครื่อง (TanotMedia.asrDefaultModel) */
+     · Thonburian (thai) โชว์บนคอมทุกเครื่อง: WebGPU (ถ้ารุ่นต้อง shader-f16 ก็ต้องมี f16) หรือ WASM เมื่อแรมพอ (medium ต้อง deviceMemory ≥ 8 หรือไม่รู้ค่า)
+     · ผู้ใช้ยังไม่เลือกเอง → ตั้งโมเดลเริ่มต้นตามเครื่อง + ภาษา (TanotMedia.asrDefaultModel) */
   var ASR_SAFE_MODEL = 'Xenova/whisper-base';
-  var gpuPlan = { ok: false, f16: false };
+  var gpuPlan = { ok: false, f16: false }, gpuPlanDone = false;
   function asrModelAllowed(modelId) {
     var M = window.TanotMediaModels;
     if (TanotMedia.isMobile() && M && M.asrHeavy(modelId)) return false;
-    if (M && M.asrGpuOnly(modelId)) { var info = M.asrInfo(modelId); return !!(gpuPlan.ok && (!info.f16 || gpuPlan.f16)); }
+    var info = M && M.asrInfo(modelId);
+    if (info && info.thai) return !!(gpuPlan.ok && (!info.f16 || gpuPlan.f16)) || M.asrWasmOk(modelId, navigator.deviceMemory);
+    if (M && M.asrGpuOnly(modelId)) return !!(gpuPlan.ok && (!info.f16 || gpuPlan.f16));
     return true;
   }
   var asrModelPicked = false;
@@ -765,30 +770,44 @@
     Array.prototype.slice.call(sel.options).forEach(function (o) { if (TanotMedia.isMobile() && M && M.asrHeavy(o.value)) o.remove(); });
     if (!asrModelAllowed(sel.value) || !sel.value) sel.value = ASR_SAFE_MODEL;
   }
-  /* รุ่นใหม่ (onnx-community) เพิ่มเข้ารายการเฉพาะเครื่องที่ WebGPU ใช้ได้จริง (มี adapter จริงบนคอม) — เครื่องที่ใช้ WASM เห็นรายการเดิม 4 ตัวเหมือนเดิม
-     (ชื่อ repo/ไฟล์ dtype ของรุ่นใหม่ยังตรวจกับ Hugging Face จากที่นี่ไม่ได้ — ดู media-models.js) */
+  /* รุ่นใหม่ (onnx-community) เพิ่มเข้ารายการเฉพาะเครื่องที่ WebGPU ใช้ได้จริง (มี adapter จริงบนคอม) · Thonburian เพิ่มบนคอมทุกเครื่องที่รันไหว
+     — เครื่องที่ใช้ WASM เห็น Xenova เดิม 4 ตัว (+ Thonburian) (ชื่อ repo/ไฟล์ dtype ของรุ่นใหม่ยังตรวจกับ Hugging Face จากที่นี่ไม่ได้ — ดู media-models.js) */
   var COMMUNITY_OPTS = [['onnx-community/whisper-tiny', 'mcTiny'], ['onnx-community/whisper-base', 'mcBase'], ['onnx-community/whisper-small', 'mcSmall'], ['onnx-community/whisper-large-v3-turbo', 'mcLarge']];
-  function addCommunityOptions(sel) {
-    COMMUNITY_OPTS.forEach(function (c) {
+  var THAI_OPTS = [['Tanotfin/distill-whisper-th-small-onnx', 'mtThSmall'], ['Tanotfin/distill-whisper-th-medium-onnx', 'mtThMedium']];
+  function addModelOptions(sel, list) {
+    list.forEach(function (c) {
       if (!asrModelAllowed(c[0]) || Array.prototype.some.call(sel.options, function (o) { return o.value === c[0]; })) return;
       var o = document.createElement('option');
       o.value = c[0]; o.setAttribute('data-i18n', 'tts.' + c[1]); o.textContent = T(c[1]);
       sel.appendChild(o);
     });
   }
+  /* คำแนะนำสั้นๆ (ไม่บล็อก) เฉพาะตอนที่ผู้ใช้เลือกภาษาอังกฤษคู่กับรุ่น Thonburian บนโหมดในเบราว์เซอร์ */
+  function updateAsrThaiNote() {
+    var note = $('asrThaiNote'), sel = $('asrModel'), lang = $('asrLang');
+    if (!note || !sel || !lang) return;
+    var M = window.TanotMediaModels;
+    note.hidden = !(getAsrEngine() === 'local' && lang.value === 'english' && M && M.asrThai(sel.value));
+  }
+  /* โมเดลเริ่มต้นตามเครื่อง + ภาษา — ไม่ทับที่ผู้ใช้เลือกเอง (asrModelPicked) · รอตรวจ adapter เสร็จก่อน (ไม่งั้นรายการยังไม่ครบ) */
+  function applyAsrDefaultModel() {
+    var sel = $('asrModel');
+    if (!sel || asrModelPicked || !gpuPlanDone) return;
+    var d = TanotMedia.asrDefaultModel(gpuPlan, $('asrLang') ? $('asrLang').value : 'auto');
+    if (asrModelAllowed(d) && Array.prototype.some.call(sel.options, function (o) { return o.value === d; })) sel.value = d;
+    updateAsrThaiNote();
+  }
   function initAsrModels() {
     var sel = $('asrModel');
     if (!sel) return;
-    sel.addEventListener('change', function () { asrModelPicked = true; });
+    sel.addEventListener('change', function () { asrModelPicked = true; updateAsrThaiNote(); });
+    if ($('asrLang')) $('asrLang').addEventListener('change', function () { applyAsrDefaultModel(); updateAsrThaiNote(); });
     applyAsrModelGate();
     TanotMedia.webgpuPlan().then(function (p) {
-      gpuPlan = p;
-      if (!p.ok) return;
-      addCommunityOptions(sel);
-      if (!asrModelPicked) {
-        var d = TanotMedia.asrDefaultModel(p);
-        if (asrModelAllowed(d) && Array.prototype.some.call(sel.options, function (o) { return o.value === d; })) sel.value = d;
-      }
+      gpuPlan = p; gpuPlanDone = true;
+      if (p.ok) addModelOptions(sel, COMMUNITY_OPTS);
+      addModelOptions(sel, THAI_OPTS);
+      applyAsrDefaultModel();
     });
   }
   var asrAbort = null;
@@ -1241,6 +1260,7 @@
       if (asrEngineNote) asrEngineNote.style.display = engine === 'cloud' ? 'block' : 'none';
       if (asrModelField) asrModelField.style.display = engine === 'cloud' ? 'none' : '';
       if (asrDomainField) asrDomainField.style.display = engine === 'cloud' ? '' : 'none';
+      updateAsrThaiNote();
       if (engine === 'cloud') { updateNeuronStatusUI(); refreshServerNeuronUsage(); }
       updateCloudOffer(false);
     }
