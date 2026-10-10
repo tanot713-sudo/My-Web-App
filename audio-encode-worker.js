@@ -5,7 +5,7 @@
    ที่นี่เข้ารหัส MP3 จาก PCM โดยตรงที่ความถี่ของโมเดล (MMS-TTS = 16kHz mono) ไม่ต้องผ่าน decodeAudioData
    (ใช้ใน Worker ไม่ได้) — เนื้อเสียงเท่าเดิม (PCM 16-bit ชุดเดียวกับไฟล์ .wav)
 
-   ข้อความเข้า: { type:'encode', jobId, parts: Float32Array[] (transfer), sampleRate, gapSec, kbps }
+   ข้อความเข้า: { type:'encode', jobId, parts: Float32Array[] (transfer), sampleRate, gapSec | gaps:[วินาทีหลังท่อน i], kbps }
    ข้อความออก: { type:'done', jobId, wav: ArrayBuffer, mp3: ArrayBuffer } (transfer) | { type:'error', jobId, name, message } */
 'use strict';
 importScripts('vendor/lamejs/lamejs.iife.js');
@@ -18,11 +18,13 @@ function toInt16(f) {
   }
   return out;
 }
+/* gap = ตัวเลขเดียว (ช่องว่างเท่ากันทุกท่อน) หรืออาร์เรย์จำนวน sample ความเงียบ "หลัง" ท่อน i (ประโยค/ย่อหน้าไม่เท่ากัน) */
 function concat(parts, gap) {
+  function after(i) { return i >= parts.length - 1 ? 0 : Math.max(0, (Array.isArray(gap) ? gap[i] : gap) | 0); }
   var total = 0;
-  parts.forEach(function (p, i) { total += p.length + (i < parts.length - 1 ? gap : 0); });
+  parts.forEach(function (p, i) { total += p.length + after(i); });
   var out = new Float32Array(total), o = 0;
-  parts.forEach(function (p, i) { out.set(p, o); o += p.length + (i < parts.length - 1 ? gap : 0); });
+  parts.forEach(function (p, i) { out.set(p, o); o += p.length + after(i); });
   return out;
 }
 function wavBuffer(pcm, rate) {
@@ -54,7 +56,8 @@ self.onmessage = function (e) {
   if (!m || m.type !== 'encode') return;
   try {
     var rate = m.sampleRate || 16000;
-    var pcm = toInt16(concat(m.parts || [], Math.round(rate * (m.gapSec || 0))));
+    var gap = Array.isArray(m.gaps) ? m.gaps.map(function (g) { return Math.round(rate * g); }) : Math.round(rate * (m.gapSec || 0));
+    var pcm = toInt16(concat(m.parts || [], gap));
     var wav = wavBuffer(pcm, rate);
     var mp3 = mp3Buffer(pcm, rate, m.kbps);
     self.postMessage({ type: 'done', jobId: m.jobId, wav: wav, mp3: mp3, sampleRate: rate, samples: pcm.length }, [wav, mp3]);

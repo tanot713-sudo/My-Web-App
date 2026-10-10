@@ -455,7 +455,10 @@
 
     /* ── สังเคราะห์เสียงพูดคำตอบ (ใช้ tts-worker.js ตัวเดียวกับหน้าแปลงข้อความเป็นเสียง ส่ง batch
        ขนาด 1 ท่อน) ─────────────────────────────────────────────────────────────────── */
-    function playPcm(samples, sampleRate) {
+    /* เล่นต่อท้ายท่อนก่อนหน้าแบบไม่เว้นช่องว่างเกินจำเป็น: speakNextAt = เวลาที่ท่อนก่อนหน้าจบ + ความเงียบหลังท่อน (ประโยค ~0.12 วิ / ย่อหน้า ~0.4 วิ จาก TanotTtsNorm.plan)
+       → ท่อนแรกเสร็จก็เริ่มพูดเลย ไม่ต้องรอทั้งคำตอบ */
+    var speakSources = [], speakNextAt = 0;
+    function playPcm(samples, sampleRate, gapAfterSec) {
       try {
         var ctx = unlockAudioCtx();
         if (!ctx) { setStatus('เบราว์เซอร์นี้ไม่รองรับ AudioContext', 'err'); return; }
@@ -464,20 +467,45 @@
         var src = ctx.createBufferSource();
         src.buffer = buf;
         src.connect(ctx.destination);
-        src.start(0);
+        var at = Math.max(ctx.currentTime, speakNextAt);
+        src.start(at);
+        speakNextAt = at + buf.duration + (gapAfterSec || 0);
+        speakSources.push(src);
+        src.onended = function () { var k = speakSources.indexOf(src); if (k >= 0) speakSources.splice(k, 1); };
       } catch (e) { setStatus('เล่นเสียงไม่ได้: ' + (e && e.message ? e.message : e), 'err'); }
+    }
+    var speakJob = null; // { w, cleanup } ของงานสังเคราะห์ที่ยังไม่จบ
+    /* หยุดเสียงที่กำลังเล่น/คิวอยู่ + ยกเลิกงานสังเคราะห์ที่ค้าง (Worker รับได้ทีละงาน — งานใหม่มาซ้อนต้องปิดตัวเดิม) */
+    function stopSpeaking() {
+      speakSources.slice().forEach(function (src) { try { src.onended = null; src.stop(); } catch (e) {} });
+      speakSources = []; speakNextAt = 0;
+      if (speakJob) {
+        var j = speakJob; speakJob = null;
+        j.cleanup();
+        try { j.w.terminate(); } catch (e) {}
+        if (ttsWorker === j.w) ttsWorker = null;
+        if (TM) TM.budget.release('tts-widget');
+      }
     }
     function speakText(text) {
       if (!text) return;
-      /* iOS รันโมเดลเสียงพูดในเครื่องไม่ได้ (หน่วยความจำ) → ใช้เสียงของระบบ */
+      var N = window.TanotTtsNorm;
+      if (!N) return; // tts-normalize.js โหลดไม่ได้ — ไม่ส่งข้อความดิบเข้าโมเดล (เลขนอก vocab ทำให้ ONNX พัง)
+      /* iOS รันโมเดลเสียงพูดในเครื่องไม่ได้ (หน่วยความจำ) → ใช้เสียงของระบบ (forNative: ล้าง markdown/อีโมจิ/URL + ขยายตัวย่อ) */
       if (isIOS() && window.speechSynthesis && window.SpeechSynthesisUtterance) {
-        var u = new SpeechSynthesisUtterance(text);
-        u.lang = /[฀-๿]/.test(text) ? 'th-TH' : 'en-US';
+        var spoken = N.forNative(text);
+        if (!spoken) return;
+        var u = new SpeechSynthesisUtterance(spoken);
+        u.lang = /[฀-๿]/.test(spoken) ? 'th-TH' : 'en-US';
         window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
         return;
       }
+      var thai = /[฀-๿]/.test(text), modelId = pickTtsModel(text);
+      var plan = N.plan(text, { lang: thai ? 'th' : 'en' }); // แปลงเป็นข้อความที่อยู่ใน vocab ของโมเดลก่อนแล้วค่อยตัดท่อน ≤ 60 ตัวอักษร
+      if (!plan.chunks.length) return; // แปลงแล้วว่าง (เช่นมีแต่อีโมจิ) = ไม่พูด ไม่ใช่ error
+      stopSpeaking();
       var w = getTtsWorker();
-      var jobId = ++jobSeq;
+      var jobId = ++jobSeq, doneN = 0;
       function onMsg(e) {
         var msg = e.data;
         if (!msg || msg.jobId !== jobId) return;
@@ -485,28 +513,31 @@
           var pct = msg.progress != null ? Math.round(msg.progress) + '%' : '';
           setStatus('⏳ กำลังโหลดเสียงพูด (ครั้งแรกเท่านั้น) ' + msg.file + ' ' + pct, '');
         } else if (msg.type === 'item-done') {
-          cleanup(); setStatus('', ''); playPcm(msg.audio, msg.samplingRate);
+          setStatus('', '');
+          playPcm(msg.audio, msg.samplingRate, plan.gaps[msg.i]);
+          if (++doneN >= plan.chunks.length) { cleanup(); speakJob = null; }
         } else if (msg.type === 'item-error') {
-          cleanup();
+          cleanup(); speakJob = null;
           var cause = { name: msg.name || 'Error', message: msg.message || '' };
-          logMedia('tts', cause, { stage: 'synth', engine: 'local', model: pickTtsModel(text) });
+          logMedia('tts', cause, { stage: 'synth', engine: 'local', model: modelId });
           if (TM && TM.isMemoryError(cause)) { try { w.terminate(); } catch (e2) {} if (ttsWorker === w) ttsWorker = null; if (TM) TM.budget.release('tts-widget'); }
           setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM && TM.isMemoryError(cause) ? TM.errorText(TM.error('oom')) : msg.message), 'err');
         }
       }
       function onErr(e) {
-        cleanup();
+        cleanup(); speakJob = null;
         if (e && e.preventDefault) e.preventDefault();
         try { w.terminate(); } catch (e2) {}
         if (ttsWorker === w) ttsWorker = null;
         if (TM) TM.budget.release('tts-widget');
-        logMedia('tts', { name: 'WorkerError', message: (e && e.message) || 'worker crashed', code: 'crash' }, { stage: 'worker', engine: 'local', model: pickTtsModel(text) });
+        logMedia('tts', { name: 'WorkerError', message: (e && e.message) || 'worker crashed', code: 'crash' }, { stage: 'worker', engine: 'local', model: modelId });
         setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM ? TM.errorText(TM.error('crash')) : (e.message || '')), 'err');
       }
       function cleanup() { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); }
+      speakJob = { w: w, cleanup: cleanup };
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
-      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: 0, text: text }], modelId: pickTtsModel(text) });
+      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: plan.chunks.map(function (t, i) { return { i: i, text: t }; }), modelId: modelId });
     }
 
     /* ── ส่งข้อความแชท (ใช้ทั้งตอนพิมพ์และตอนถอดเสียงจากไมค์เสร็จ) ───────────────────────── */

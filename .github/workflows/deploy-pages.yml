@@ -80,6 +80,8 @@ jobs:
         run: npx playwright test ocr.spec.js
       - name: asr (ถอดเสียงแม่นและเร็วขึ้น — รอยต่อท่อนเหลื่อมตัดคำซ้ำ, ส่งขนาน ≤ 3 + ลำดับ/ลองใหม่/ยกเลิก/quota หยุดทั้งชุด, /api/asr allowlist + initial_prompt ตามโดเมน + จำกัดความยาว, WebGPU ล้ม → WASM, ย่อหน้า + สวิตช์เวลา — Workers AI/transformers ตัวหลอก)
         run: npx playwright test asr.spec.js
+      - name: tts-normalize (ข้อความก่อนพูด — known-answer ทุกกฎ ตัวเลข/เงิน/วันที่/เวลา/ตัวย่อ/ๆ ฯ/อังกฤษปน/markdown, fuzz 2,000 ข้อความต้องอยู่ใน vocab และท่อน ≤ 60, วิดเจ็ตแชทพูดคำตอบที่มีเลข/markdown/อีโมจิไม่พัง + iOS ใช้ forNative + ช่องว่างประโยค/ย่อหน้า, ดูข้อความที่จะอ่านจริง, ภาษาถอดเสียงเริ่มต้นไทย + จำที่เลือก — transformers ตัวหลอกที่โยน error เมื่อเจอตัวอักษรนอก vocab)
+        run: npx playwright test tts-normalize.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)
