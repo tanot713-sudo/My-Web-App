@@ -144,6 +144,9 @@
     <div class="card lib"><div class="lib-top"><span class="lib-name">Whisper (OpenAI)</span><span class="badge">MIT</span></div>
       <div class="lib-desc" data-cr="c27">โมเดล AI ถอดเสียงพูดเป็นข้อความ รองรับหลายภาษารวมไทย — ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรก ไม่ได้ฝังในโค้ดเว็บนี้</div>
       <div class="lib-meta"><span data-cr="c50">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/openai/whisper" target="_blank" rel="noopener">github.com/openai/whisper</a><a href="https://huggingface.co/Xenova" target="_blank" rel="noopener">Xenova/whisper-*</a><a href="https://huggingface.co/onnx-community" target="_blank" rel="noopener">onnx-community/whisper-* (WebGPU)</a><a href="https://developers.cloudflare.com/workers-ai/models/whisper-large-v3-turbo/" target="_blank" rel="noopener">@cf/openai/whisper-large-v3-turbo</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">Thonburian Whisper (biodatlab)</span><span class="badge">MIT</span></div>
+      <div class="lib-desc" data-cr="c70">Whisper ที่ฝึกเพิ่มสำหรับภาษาไทย (distill-whisper-th-small / medium โดยกลุ่ม biodatlab) — เจ้าของเว็บแปลงเป็น ONNX เองเพื่อรันในเบราว์เซอร์ (transformers.js 3.8.1 scripts/convert.py --quantize) ดาวน์โหลดจาก Hugging Face ตอนเลือกใช้ ไม่ได้ฝังในโค้ดเว็บนี้</div>
+      <div class="lib-meta"><span data-cr="c50">แปลงเสียงเป็นข้อความ</span><a href="https://github.com/biodatlab/thonburian-whisper" target="_blank" rel="noopener">github.com/biodatlab/thonburian-whisper</a><a href="https://huggingface.co/Tanotfin/distill-whisper-th-small-onnx" target="_blank" rel="noopener">Tanotfin/distill-whisper-th-small-onnx</a><a href="https://huggingface.co/Tanotfin/distill-whisper-th-medium-onnx" target="_blank" rel="noopener">Tanotfin/distill-whisper-th-medium-onnx</a></div></div>
     <div class="card lib"><div class="lib-top"><span class="lib-name">Hangeul Stroke Order (Adam Stone)</span><span class="badge">CC BY-SA 4.0</span></div>
       <div class="lib-desc" data-cr="c28">ภาพ SVG แผนภาพลำดับขีดตัวจามอฮันกึล (เกาหลี) 35 ตัว วาดด้วยมือและตรวจสอบแล้วโดย Adam Stone — ใช้ในโหมดฝึกเขียนตัวอักษรภาษาเกาหลี สัญญาอนุญาต ShareAlike กำหนดให้ต้องให้เครดิตเสมอ (แสดงไว้ใต้ภาพทุกครั้งด้วย)</div>
       <div class="lib-meta"><span data-cr="c51">ฝึกภาษา</span><a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener">github.com/MagisterAdamus/hangeul-stroke-order</a></div></div>
@@ -194,6 +197,7 @@
   var EN = {
  "c68": "Full-precision Thai + English language data for Tesseract (tessdata_best, tag 4.1.0), used by the opt-in \"Accurate mode\" — downloaded from GitHub only when that mode is turned on",
  "c69": "Text extraction, document check",
+ "c70": "Whisper fine-tuned for Thai (distill-whisper-th-small / medium by the biodatlab group) — converted to ONNX by the site owner so it runs in the browser (transformers.js 3.8.1 scripts/convert.py --quantize). Downloaded from Hugging Face when you choose it, not bundled in this site\'s code",
  "c67": "facebook/mms-tts-tha (original)",
  "c0": "Reads and renders PDF files in the browser (by Mozilla)",
  "c1": "Converts Word (.docx) files to HTML on import",

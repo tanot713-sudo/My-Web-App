@@ -291,10 +291,15 @@
     });
     return gpuPlanP;
   }
-  /* โมเดลเริ่มต้นตามเครื่อง: WebGPU + แรมพอ → onnx-community/whisper-small (WebGPU ทำให้ตัวกลางเร็วพอ) · WebGPU แรมน้อย → base ·
-     WASM → ค่าเดิม (Xenova/whisper-tiny; มือถือ → base ตามที่หน้า text-to-speech ตัดสินใจ) — ตระกูล onnx-community บน WASM ยังไม่ใช่ค่าเริ่มต้น
-     จนกว่า tools/media-eval/check-models.mjs ยืนยันชื่อ repo/ไฟล์กับ Hugging Face จริง */
-  function asrDefaultModel(plan) {
+  /* โมเดลเริ่มต้นตามเครื่อง/ภาษา:
+     • ภาษา = ไทย บนคอม (ไม่ใช่มือถือ) → Thonburian small (Tanotfin/distill-whisper-th-small-onnx) ทั้ง WebGPU และ WASM
+     • WebGPU + แรมพอ → onnx-community/whisper-small (WebGPU ทำให้ตัวกลางเร็วพอ) · WebGPU แรมน้อย → base
+     • WASM → ค่าเดิม (Xenova/whisper-tiny; มือถือ → base ตามที่หน้า text-to-speech ตัดสินใจ) — ตระกูล onnx-community บน WASM ยังไม่ใช่ค่าเริ่มต้น
+       จนกว่า tools/media-eval/check-models.mjs ยืนยันชื่อ repo/ไฟล์กับ Hugging Face จริง
+     ภาษาอังกฤษ/อัตโนมัติ/ไม่ระบุ = ค่าเดิมทุกกรณี (วิดเจ็ตแชท/languages.jsx ไม่เรียกฟังก์ชันนี้ — ยังใช้ Xenova/whisper-tiny) */
+  var THAI_DEFAULT_MODEL = 'Tanotfin/distill-whisper-th-small-onnx';
+  function asrDefaultModel(plan, lang) {
+    if (lang === 'thai' && !isMobile()) return THAI_DEFAULT_MODEL;
     if (plan && plan.ok) {
       var mem = navigator.deviceMemory || 0; // เบราว์เซอร์รายงานสูงสุด 8
       return mem && mem < 8 ? 'onnx-community/whisper-base' : 'onnx-community/whisper-small';

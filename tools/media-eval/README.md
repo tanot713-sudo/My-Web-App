@@ -41,6 +41,8 @@ node tools/media-eval/run.mjs --lang thai                       # ตัวเ�
 |---|---|
 | `asr:tiny` `asr:base` `asr:small` `asr:medium` | Whisper ในเบราว์เซอร์ ผ่านหน้า `text-to-speech.html` จริง (เซิร์ฟเวอร์ static ในเครื่อง) — กดปุ่มเหมือนผู้ใช้ |
 | `asr:gpu-tiny` `asr:gpu-base` `asr:gpu-small` `asr:gpu-large` | Whisper รุ่นใหม่ `onnx-community/whisper-*` บน **WebGPU** ผ่านหน้าเดียวกัน (Section 3) — ต้องมี GPU จริง รันด้วย `--headed`; สคริปต์เปิด Chromium อีกตัวพร้อมแฟล็ก WebGPU · ถ้าหน้าถอยเป็น WASM (หรือไม่มี WebGPU) แถวนั้นขึ้น ERROR ไม่ปนเป็นผล WebGPU · `asr:gpu-large` = large-v3-turbo (ต้องมี `shader-f16`) |
+| `asr:th-small` `asr:th-medium` | **Thonburian Whisper** (Whisper ที่ฝึกภาษาไทย — `Tanotfin/distill-whisper-th-small\|medium-onnx`) บน **WASM** ผ่านหน้าเดียวกัน (Section 3 ข้อ 3) · หน้าบังคับ `language:'thai'` อยู่แล้ว แต่ใส่ `--lang thai` ให้ชัด · medium ต้อง `navigator.deviceMemory` ≥ 8 (ไม่งั้นตัวเลือกไม่ขึ้น → แถวนั้นขึ้น ERROR) |
+| `asr:gpu-th-small` `asr:gpu-th-medium` | Thonburian บน **WebGPU** จริง (`--headed` เหมือน `asr:gpu-*`) · medium ใช้ encoder fp16 จึงต้องมี `shader-f16` · ถ้าหน้าถอยเป็น WASM แถวนั้นขึ้น ERROR |
 | `asr:cloud` | ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (Whisper large-v3-turbo) = **โหมดใหม่**: ท่อนเหลื่อม 1.5 วิ ส่งขนาน ≤ 3 + `vad_filter` + ชุดคำศัพท์ตาม `--cloud-domain general\|law\|engineering\|invest` |
 | `asr:cloud-seq` | เหมือน `asr:cloud` แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) — เทียบเวลา/Neurons/CER กับ `asr:cloud` ด้วยไฟล์ชุดเดียวกัน |
 | `ocr:tesseract` | แนบไฟล์ (เปิด "ใช้ OCR") ในหน้า `text-to-speech.html` → `file-reader.js` |
@@ -70,6 +72,17 @@ node tools/media-eval/run.mjs --engines ocr:claude-sonnet-5,ocr:claude-sonnet-5-
 ```bash
 node tools/media-eval/check-models.mjs     # ตรวจว่า repo + ไฟล์ dtype ของทุกโมเดลใน media-models.js มีจริง (ต้องออกเน็ตได้) · exit 1 ถ้าขาด
 ```
+
+รายการ `Tanotfin/distill-whisper-th-*-onnx` (Thonburian) แปลงโดยเจ้าของ (transformers.js 3.8.1 `scripts/convert.py --quantize`) และทดสอบถอดเสียงไทยกับ transformers.js 4.2.0 แล้ว แต่สคริปต์นี้ควรผ่านก่อนปล่อยเสมอ (ตรวจไฟล์ `encoder_model{,_fp16}` / `decoder_model_merged{,_quantized,_q4}` + config/tokenizer)
+
+### วัด Thonburian เทียบรุ่นอื่น (Section 5)
+
+```bash
+node tools/media-eval/run.mjs --engines asr:small,asr:th-small,asr:medium,asr:th-medium,asr:cloud --lang thai
+node tools/media-eval/run.mjs --engines asr:gpu-small,asr:gpu-th-small,asr:gpu-th-medium --lang thai --headed   # WebGPU จริง
+```
+
+ใช้ไฟล์เสียงภาษาไทยชุดเดียวกันทุกเอนจิน — ตารางสรุปให้ CER/เวลาต่อเอนจิน
 
 รายการ `onnx-community/whisper-*` ใน `media-models.js` เขียนตามตัวอย่างทางการของ transformers.js แต่ตรวจกับ Hugging Face ตอนเขียนโค้ดไม่ได้ — รันสคริปต์นี้ก่อนเชื่อ/ก่อนเปลี่ยนค่าเริ่มต้นบน WASM เป็นรุ่นใหม่
 
