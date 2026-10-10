@@ -13,7 +13,10 @@
   var T = OME_I18N.scope('ex', {
     th: {
       title: 'ดึงข้อความออกจากเอกสาร | Tanot', crumb: 'งานที่รับผิดชอบ', h1: 'ดึงข้อความออกจากเอกสาร', attach: 'แนบไฟล์',
-      dropMain: 'แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้', ocr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน',
+      dropMain: 'แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้', ocr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน', accurate: 'โหมดแม่นยำ (ช้ากว่า)',
+      engLabel: 'อ่านภาพสแกนด้วย', engFree: 'ฟรี (OCR)', engVision: 'Claude Vision',
+      readingClaude: 'Claude Vision กำลังอ่าน…', readingClaudePart: 'Claude Vision กำลังอ่านส่วนที่ {i}/{n}…', cancelled: 'ยกเลิกการอ่านด้วย Claude Vision',
+      doneTruncated: 'ดึงข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ข้อความยาวเกินที่ Claude ตอบได้ในครั้งเดียว ส่วนท้ายอาจขาด',
       result: 'ข้อความที่ดึงได้', resultPh: 'ข้อความที่ดึงได้จะขึ้นตรงนี้', copy: 'คัดลอกข้อความ', dlTxt: 'ดาวน์โหลด .txt', split: 'แยกหน้า PDF (.zip)',
       chars: '{n} ตัวอักษร', dropSub: '{kb} KB — แตะเพื่อเลือกไฟล์อื่น',
       reading: 'กำลังอ่านไฟล์…', readingOcr: 'กำลังอ่านด้วย OCR หน้า/รูป {page}/{total} (อาจใช้เวลาสักครู่ต่อหน้า)…', readingPdf: 'กำลังอ่าน PDF หน้า {page}/{total}…',
@@ -25,7 +28,10 @@
     },
     en: {
       title: 'Extract text from documents | Tanot', crumb: 'Work', h1: 'Extract text from documents', attach: 'Attach a file',
-      dropMain: 'Tap to choose a file, or drag one here', ocr: 'Use OCR on scanned pages/images',
+      dropMain: 'Tap to choose a file, or drag one here', ocr: 'Use OCR on scanned pages/images', accurate: 'Accurate mode (slower)',
+      engLabel: 'Read scans with', engFree: 'Free (OCR)', engVision: 'Claude Vision',
+      readingClaude: 'Claude Vision is reading…', readingClaudePart: 'Claude Vision is reading part {i}/{n}…', cancelled: 'Reading with Claude Vision was cancelled',
+      doneTruncated: 'Extracted text from {name} ({n} characters) — the text is longer than Claude can return in one reply; the end may be missing',
       result: 'Extracted text', resultPh: 'The extracted text will appear here', copy: 'Copy text', dlTxt: 'Download .txt', split: 'Split PDF pages (.zip)',
       chars: '{n} characters', dropSub: '{kb} KB — tap to choose another file',
       reading: 'Reading file…', readingOcr: 'Reading with OCR, page/image {page}/{total} (may take a moment per page)…', readingPdf: 'Reading PDF page {page}/{total}…',
@@ -38,6 +44,8 @@
   });
 
   var currentFile = null;
+  var engine = 'free'; /* 'free' | 'vision' — ไม่จำค่า ทุกครั้งที่เปิดหน้าเริ่มที่ฟรี (Claude ต้องเลือกเอง + กรอกรหัสทุกครั้ง) */
+  function visionOn() { return engine === 'vision' && !!window.TanotOcr && TanotOcr.available(); }
 
   function formatProgress(p) {
     if (!p) return T('reading');
@@ -66,7 +74,34 @@
   }
   function readStatus(fn, cls) { setStatus($('readStatus'), fn, cls); }
   function actionStatus(fn, cls) { setStatus($('actionStatus'), fn, cls); }
-  function errMsg(err) { return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(err) : (err && err.message ? err.message : String(err)); }
+  function errMsg(err) {
+    if (err && err.code && window.TanotOcr) return TanotOcr.errorText(err);
+    return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(err) : (err && err.message ? err.message : String(err));
+  }
+  function claudeProgress(p) {
+    if (p && p.stage === 'claude') readStatus(function () { return p.parts > 1 ? T('readingClaudePart', { i: p.part, n: p.parts }) : T('readingClaude'); }, '');
+  }
+
+  /* อ่านไฟล์ → Promise<{ text, truncated }> — Claude Vision เฉพาะเมื่อผู้ใช้เลือกเอง: รูป = ส่งรูป · PDF = ส่งทั้งไฟล์เมื่อมีหน้าที่ไม่มีเลเยอร์ข้อความ (ถ้ามีข้อความครบทุกหน้าใช้ข้อความจริงฟรีตามเดิม) */
+  function readOne(file) {
+    var name = file.name.toLowerCase(), opts = {
+      ocr: $('ocrChk').checked, accurate: $('accChk').checked && !visionOn(),
+      onProgress: function (p) { readStatus(function () { return formatProgress(p); }, ''); }
+    };
+    function plain() { return window.TanotFileReader.readAnyFile(file, opts).then(function (text) { return { text: text }; }); }
+    if (visionOn() && /\.(png|jpe?g|webp|bmp)$/.test(name)) {
+      readStatus(function () { return T('readingClaude'); }, '');
+      return TanotOcr.ocrImage(file);
+    }
+    if (visionOn() && /\.pdf$/.test(name)) {
+      return window.TanotFileReader.inspectPdf(file).then(function (info) {
+        if (!info.scanned.length) return plain();
+        readStatus(function () { return T('readingClaude'); }, '');
+        return TanotOcr.ocrPdf(file, { numPages: info.numPages, onProgress: claudeProgress });
+      });
+    }
+    return plain();
+  }
 
   function handleFile(file) {
     if (!file) return;
@@ -82,11 +117,8 @@
       return;
     }
     readStatus(function () { return T('readingFile', { name: file.name }); }, '');
-    window.TanotFileReader.readAnyFile(file, {
-      ocr: $('ocrChk').checked,
-      onProgress: function (p) { readStatus(function () { return formatProgress(p); }, ''); }
-    }).then(function (text) {
-      text = (text || '').trim();
+    readOne(file).then(function (res) {
+      var text = String((res && res.text) || '').trim();
       if (!text) {
         readStatus(function () { return T('empty'); }, 'err');
         return;
@@ -95,9 +127,10 @@
       updateCharCount();
       $('resultCard').style.display = '';
       $('splitPdfBtn').style.display = file.name.toLowerCase().endsWith('.pdf') ? '' : 'none';
-      readStatus(function () { return T('done', { name: file.name, n: text.length }); }, 'ok');
+      readStatus(function () { return T(res.truncated ? 'doneTruncated' : 'done', { name: file.name, n: text.length }); }, res.truncated ? '' : 'ok');
     }).catch(function (err) {
-      readStatus(function () { return T('readFail', { msg: errMsg(err) }); }, 'err');
+      if (window.TanotOcr && TanotOcr.isCancel(err)) readStatus(function () { return T('cancelled'); }, '');
+      else readStatus(function () { return T('readFail', { msg: errMsg(err) }); }, 'err');
     });
   }
 
@@ -189,6 +222,19 @@
       actionStatus(function () { return T('downloaded', { base: base }); }, 'ok');
     });
     $('splitPdfBtn').addEventListener('click', splitPdfPages);
+
+    /* ตัวเลือก Claude Vision — แสดงเฉพาะ *.pages.dev (ที่มี /api/ocr) */
+    if (window.TanotOcr && TanotOcr.available()) {
+      $('engRow').style.display = '';
+      $('engToggle').addEventListener('click', function (e) {
+        var span = e.target.closest('[data-oe]');
+        if (!span) return;
+        engine = span.getAttribute('data-oe') === 'vision' ? 'vision' : 'free';
+        $('engToggle').querySelectorAll('[data-oe]').forEach(function (x) { x.classList.toggle('active', x === span); });
+        $('ocrChk').disabled = engine === 'vision';
+        $('accChk').disabled = engine === 'vision';
+      });
+    }
     updateCharCount();
     window.OME_PAGE_LIVE_LANG = true; /* ข้อความในหน้าแปลสดผ่าน data-i18n + OME_I18N.live (ตัวตรวจ "สลับภาษาสด" ดูธงนี้) */
   }

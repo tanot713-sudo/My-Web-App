@@ -180,6 +180,13 @@ async function confirmDelete(page, ok = true) {
   await box.locator(ok ? '.btn.danger' : '.btn:not(.danger)').click();
   await expect(box).toHaveCount(0);
 }
+// Claude Vision ต้องกรอกรหัสทุกครั้ง (ocr-vision.js) — ในเทสต์ /api/ocr ถูกดัก (route) จึงรหัสอะไรก็ได้ แต่ต้องมี dialog ขึ้นก่อนส่งทุกครั้ง
+async function fillPin(page, pin = '123456') {
+  const dlg = page.locator('dialog[data-ocrv][open]');
+  await expect(dlg).toBeVisible();
+  await dlg.locator('input[type=password]').fill(pin);
+  await dlg.locator('[data-k=send]').click();
+}
 const AI_FULL = JSON.stringify({ store: 'ร้านเอ', date: '2026-09-15', total: 1070, vat: 70, taxId: '0105512345678', fullInvoice: true, items: [{ name: 'หูฟัง', amount: 1000 }] });
 
 test.describe('หน้า receipts.html', () => {
@@ -262,6 +269,16 @@ test.describe('หน้า receipts.html', () => {
     expect(log.ocr).toHaveLength(0);
 
     await page.click('#claudeBtn');
+    // 1) ยกเลิก dialog = ไม่ส่งคำขอ ฟอร์มไม่เปลี่ยน
+    const dlg = page.locator('dialog[data-ocrv][open]');
+    await expect(dlg).toBeVisible();
+    await dlg.locator('[data-k=cancel]').click();
+    await expect(page.locator('dialog[data-ocrv]')).toHaveCount(0);
+    expect(log.ocr).toHaveLength(0);
+    await expect(page.locator('#srcBadge')).toHaveText('ฟรี');
+    // 2) กดอีกครั้ง = ถามรหัสใหม่ (ไม่จำ) → ส่ง
+    await page.click('#claudeBtn');
+    await fillPin(page);
     await expect(page.locator('#fTotal')).toHaveValue('2500.5');
     await expect(page.locator('#fStore')).toHaveValue('ร้านบี สาขา 2');
     await expect(page.locator('#srcBadge')).toHaveText('Claude');
@@ -290,6 +307,7 @@ test.describe('หน้า receipts.html', () => {
     await page.setInputFiles('#fileInput', IMG);
     await expect(page.locator('#fStore')).toHaveValue('ร้านบี');
     await page.click('#claudeBtn');
+    await fillPin(page);
     await expect(page.locator('#readMsg')).toContainText('อ่านไม่ได้');
     await expect(page.locator('#fStore')).toHaveValue('ร้านบี');
     await expect(page.locator('#srcBadge')).toHaveText('ฟรี');

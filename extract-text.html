@@ -48,6 +48,17 @@
     <input type="checkbox" id="ocrChk" checked>
     <span data-i18n="ex.ocr">ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน</span>
   </label>
+  <label class="mini check">
+    <input type="checkbox" id="accChk">
+    <span data-i18n="ex.accurate">โหมดแม่นยำ (ช้ากว่า)</span>
+  </label>
+  <div class="row" id="engRow" style="display:none;margin-top:var(--ome-sp-2)">
+    <span class="mini" data-i18n="ex.engLabel">อ่านภาพสแกนด้วย</span>
+    <div class="lang-toggle" id="engToggle">
+      <span data-oe="free" data-i18n="ex.engFree" class="active">ฟรี (OCR)</span>
+      <span data-oe="vision" data-i18n="ex.engVision">Claude Vision</span>
+    </div>
+  </div>
   <div class="status" id="readStatus"></div>
 </div>
 
@@ -78,6 +89,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 <!-- ใช้เฉพาะตอนกด "แยกหน้า PDF" (สร้างไฟล์ PDF รายหน้าใหม่) — คนละหน้าที่กับ pdfjsLib ที่ใช้แค่อ่าน -->
 <script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="ai-client.js"></script>
+<script src="ocr-vision.js"></script>
 <script src="file-reader.js"></script>
 <script src="extract-text.js" defer></script>
 </body>

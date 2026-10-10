@@ -184,20 +184,36 @@ function requireLib(globalName, humanName) {
 
    ใช้ worker เดียวใช้ซ้ำได้ตลอดอายุหน้าเว็บ (ไม่ terminate ทิ้งหลังอ่านแต่ละครั้งเหมือน Tesseract.recognize()
    แบบสะดวก) เพื่อไม่ต้องโหลด/init โมเดลภาษาใหม่ทุกครั้งที่มีคนกด OCR ซ้ำในหน้าเดียวกัน */
-var ocrWorkerPromise = null;
-function getOcrWorker() {
-  if (!ocrWorkerPromise) {
-    var Tesseract = requireLib('Tesseract', 'Tesseract.js');
-    ocrWorkerPromise = Tesseract.createWorker('eng+tha', 1 /* OEM_LSTM_ONLY — ตรงกับชุดข้อมูลภาษาที่ Tesseract.js โหลดมาให้เป็นค่าเริ่มต้นอยู่แล้ว */);
+/* โหมดฟรีมี 2 แบบ: ค่าเริ่มต้น = ข้อมูลภาษาที่ Tesseract.js โหลดให้เอง (@tesseract.js-data 4.0.0_best_int, เล็ก/เร็ว) ·
+   "แม่นยำ" (ผู้ใช้เลือกเอง) = tessdata_best (โมเดลเต็ม ไม่ลดขนาด) tha + eng ปักแท็ก 4.1.0 — ใหญ่กว่า (~23 MB, ดาวน์โหลดครั้งแรกครั้งเดียวแล้วเก็บใน IndexedDB) และช้ากว่า
+   ⚠️ Tesseract.js เก็บแคชข้อมูลภาษาตามชื่อไฟล์ (<cachePath>/<lang>.traineddata) ไม่ดูว่ามาจาก langPath ไหน — โหมดแม่นยำจึงต้องใช้ cachePath แยก
+   ไม่งั้นจะได้ไฟล์ best_int ที่แคชไว้จากโหมดปกติโดยไม่รู้ตัว */
+var BEST_LANG_PATH = 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0';
+var BEST_CACHE_PATH = 'tessdata_best_4.1.0';
+var ocrWorkers = { fast: null, best: null };
+function getOcrWorker(accurate) {
+  var key = accurate ? 'best' : 'fast', other = accurate ? 'fast' : 'best';
+  if (ocrWorkers[other]) { // เก็บโมเดลไว้ตัวเดียวต่อครั้ง (มือถือหน่วยความจำน้อย)
+    ocrWorkers[other].then(function (w) { return w.terminate(); }).catch(function () {});
+    ocrWorkers[other] = null;
   }
-  return ocrWorkerPromise;
+  if (!ocrWorkers[key]) {
+    var Tesseract = requireLib('Tesseract', 'Tesseract.js');
+    /* OEM_LSTM_ONLY (1) — ตรงกับชุดข้อมูลภาษาที่ Tesseract.js โหลดมาให้เป็นค่าเริ่มต้นอยู่แล้ว */
+    ocrWorkers[key] = accurate
+      ? Tesseract.createWorker('eng+tha', 1, { langPath: BEST_LANG_PATH, gzip: false, cachePath: BEST_CACHE_PATH })
+      : Tesseract.createWorker('eng+tha', 1);
+  }
+  return ocrWorkers[key];
 }
 var PSM_AUTO = '3', PSM_SINGLE_LINE = '7';
-/* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE, onProgress: function(number 0-100) } — คืนข้อความล้วน (trim แล้ว) */
+/* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE, accurate: boolean (tessdata_best), onProgress: function(number 0-100) } — คืนข้อความล้วน (trim แล้ว)
+   image = canvas / Blob / ImageBitmap ที่ Tesseract.js รับได้ */
 async function recognizeText(image, opts) {
   opts = opts || {};
+  var accurate = !!opts.accurate;
   try {
-    var worker = await getOcrWorker();
+    var worker = await getOcrWorker(accurate);
     await worker.setParameters({
       tessedit_pageseg_mode: opts.psm || PSM_AUTO,
       user_defined_dpi: '300'
@@ -206,10 +222,70 @@ async function recognizeText(image, opts) {
     return (result.data.text || '').trim();
   } catch (e) {
     /* Worker ของ Tesseract พัง/โหลดภาษาไม่ได้ → ทิ้งตัวเดิม ครั้งหน้าสร้างใหม่ + บันทึกปัญหา (data.html: เฉพาะขนาดภาพ ไม่เก็บภาพ/ข้อความ) */
-    ocrWorkerPromise = null;
-    if (window.TanotMedia) window.TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: 'tesseract eng+tha', file: { type: image && image.width ? 'canvas ' + image.width + 'x' + image.height : 'image', size: 0 } });
+    ocrWorkers[accurate ? 'best' : 'fast'] = null;
+    var dim = image && image.width ? image.width + 'x' + image.height : '';
+    if (window.TanotMedia) window.TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: accurate ? 'tesseract best eng+tha' : 'tesseract eng+tha', file: { type: image && image.size != null ? 'blob' : (dim ? 'canvas ' + dim : 'image'), size: image && image.size != null ? image.size : 0 } });
     throw e;
   }
+}
+
+/* ── เตรียมภาพ (ขยาย/แก้เอียง/ขาวดำรายพื้นที่) ใน Worker แล้วค่อยส่ง Tesseract — ตรรกะอยู่ใน ocr-prep.js ──
+   getBitmap() ต้องคืน Promise<ImageBitmap> "ใหม่ทุกครั้งที่เรียก" (ส่งให้ Worker แบบ transfer แล้วใช้ต่อไม่ได้ — ถ้า Worker ล้มจะเรียกอีกรอบเพื่อทำบนเธรดหลักแทน)
+   popts: { source:'photo'|'pdf' } · คืน Blob PNG (จาก Worker) หรือ canvas (เธรดหลัก) */
+var PREP_URL = 'ocr-prep.js', PREP_WORKER_URL = 'ocr-prep-worker.js', PREP_TIMEOUT_MS = 90000;
+var prepWorker = null, prepSeq = 0, prepPending = {}, prepLoadP = null;
+function dropPrepWorker(reason) {
+  var w = prepWorker; prepWorker = null;
+  if (w) { try { w.terminate(); } catch (e) {} }
+  var p = prepPending; prepPending = {};
+  Object.keys(p).forEach(function (id) { clearTimeout(p[id].timer); p[id].reject(new Error(reason || 'prep worker closed')); });
+}
+function prepViaWorker(getBitmap, popts) {
+  if (typeof Worker === 'undefined' || typeof OffscreenCanvas === 'undefined') return Promise.reject(new Error('no worker'));
+  return getBitmap().then(function (bmp) {
+    return new Promise(function (resolve, reject) {
+      try {
+        if (!prepWorker) {
+          prepWorker = new Worker(PREP_WORKER_URL);
+          prepWorker.onmessage = function (ev) {
+            var m = ev.data || {}, p = prepPending[m.id];
+            if (!p) return;
+            delete prepPending[m.id]; clearTimeout(p.timer);
+            if (m.error) p.reject(new Error(m.error)); else p.resolve(m.blob);
+          };
+          prepWorker.onerror = function () { dropPrepWorker('prep worker error'); };
+        }
+      } catch (e) { reject(e); return; }
+      var id = ++prepSeq;
+      var timer = setTimeout(function () { dropPrepWorker('prep worker timeout'); }, PREP_TIMEOUT_MS);
+      prepPending[id] = { resolve: resolve, reject: reject, timer: timer };
+      try { prepWorker.postMessage({ id: id, bitmap: bmp, opts: popts }, [bmp]); }
+      catch (e) { delete prepPending[id]; clearTimeout(timer); reject(e); }
+    });
+  });
+}
+function ensurePrep() {
+  if (window.TanotOcrPrep) return Promise.resolve(window.TanotOcrPrep);
+  if (!prepLoadP) {
+    prepLoadP = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = PREP_URL;
+      s.onload = function () { resolve(window.TanotOcrPrep); };
+      s.onerror = function () { prepLoadP = null; reject(new Error('ocr-prep.js')); };
+      document.head.appendChild(s);
+    });
+  }
+  return prepLoadP;
+}
+function prepareOcrImage(getBitmap, popts) {
+  return prepViaWorker(getBitmap, popts).catch(function () {
+    return Promise.all([ensurePrep(), getBitmap()]).then(function (r) {
+      var bmp = r[1];
+      var out = r[0].prepare(bmp, bmp.width, bmp.height, popts, function (w, h) { var c = document.createElement('canvas'); c.width = w; c.height = h; return c; });
+      if (bmp.close) bmp.close();
+      return out.canvas;
+    });
+  });
 }
 
 async function readTxtFile(file) {
@@ -299,7 +375,10 @@ async function readPdfFile(file, opts) {
     canvas.width = viewport.width; canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
-    var ocrText = await recognizeText(preprocessForOcr(canvas), { psm: PSM_AUTO });
+    var pageImage;
+    try { pageImage = await prepareOcrImage(function () { return createImageBitmap(canvas); }, { source: 'pdf' }); }
+    catch (e) { pageImage = preprocessForOcr(canvas); } // เตรียมภาพแบบใหม่ไม่ได้ → ทางเดิม (Otsu บนเธรดหลัก)
+    var ocrText = await recognizeText(pageImage, { psm: PSM_AUTO, accurate: opts.accurate });
     parts.push(ocrText || FR_T('ocrNone', { n: i }));
   }
   return parts.join('\n\n').trim();
@@ -307,22 +386,46 @@ async function readPdfFile(file, opts) {
 
 async function readImageFile(file, opts) {
   requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
-  if (opts && opts.onProgress) opts.onProgress({ stage: 'ocr', page: 1, total: 1 });
-  /* ผ่าน preprocessForOcr() เสมอ (เดิมส่ง file ดิบเข้า Tesseract ตรงๆ ไม่มีการเตรียมภาพเลย) —
-     imageOrientation:'from-image' ให้เคารพค่า EXIF orientation ของรูปที่ถ่ายจากมือถือ (ไม่งั้นรูป
+  opts = opts || {};
+  if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: 1, total: 1 });
+  /* imageOrientation:'from-image' ให้เคารพค่า EXIF orientation ของรูปที่ถ่ายจากมือถือ (ไม่งั้นรูป
      ที่ถือแนวตั้งแต่กล้องบันทึก orientation ไว้ใน metadata แทนที่จะหมุน pixel จริง จะกลายเป็นเอียง/
-     คว่ำตอนวาดลง canvas ทำให้ OCR อ่านไม่ออกเลยทั้งที่ตาเรามองเห็นว่าตั้งตรงปกติ) */
-  var bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-  var rawCanvas = document.createElement('canvas');
-  rawCanvas.width = bitmap.width; rawCanvas.height = bitmap.height;
-  rawCanvas.getContext('2d').drawImage(bitmap, 0, 0);
-  return recognizeText(preprocessForOcr(rawCanvas), { psm: PSM_AUTO });
+     คว่ำตอนวาดลง canvas ทำให้ OCR อ่านไม่ออกเลยทั้งที่ตาเรามองเห็นว่าตั้งตรงปกติ)
+     เตรียมภาพ (ขยาย → แก้ภาพเอียง → ขาวดำ: Otsu ถ้าแสงสม่ำเสมอ / Sauvola ถ้ามีเงา-ไล่เฉด) ใน Worker — ล้มก็ทำบนเธรดหลัก ล้มอีกก็ทางเดิม */
+  var image;
+  try { image = await prepareOcrImage(function () { return createImageBitmap(file, { imageOrientation: 'from-image' }); }, { source: 'photo' }); }
+  catch (e) {
+    var bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    var rawCanvas = document.createElement('canvas');
+    rawCanvas.width = bitmap.width; rawCanvas.height = bitmap.height;
+    rawCanvas.getContext('2d').drawImage(bitmap, 0, 0);
+    image = preprocessForOcr(rawCanvas);
+  }
+  return recognizeText(image, { psm: PSM_AUTO, accurate: opts.accurate });
+}
+
+/* ตรวจ PDF ว่าหน้าไหนไม่มีเลเยอร์ข้อความใช้ได้ (สแกน/ฟอนต์เพี้ยน) → { numPages, scanned:[เลขหน้า] } — ใช้ตัดสินว่าจะส่งทั้งไฟล์ให้ Claude Vision หรือไม่
+   (เกณฑ์เดียวกับ readPdfFile) · ไม่ OCR ไม่ render จึงเร็ว */
+async function inspectPdf(file) {
+  var pdfjsLib = requireLib('pdfjsLib', 'pdf.js');
+  var buf = await file.arrayBuffer();
+  var doc = await pdfjsLib.getDocument({ data: buf }).promise;
+  var scanned = [];
+  for (var i = 1; i <= doc.numPages; i++) {
+    var page = await doc.getPage(i);
+    var content = await page.getTextContent();
+    var text = content.items.map(function (it) { return it.str; }).join(' ').replace(/\s+/g, ' ').trim();
+    if (!text || isGarbledText(text)) scanned.push(i);
+  }
+  var n = doc.numPages;
+  if (doc.destroy) { try { doc.destroy(); } catch (e) {} }
+  return { numPages: n, scanned: scanned };
 }
 
 /* ชนิดไฟล์ที่รองรับ — ใช้ทั้งตัดสินใจ dispatch ที่นี่ และใส่ใน <input accept="..."> ของหน้าที่เรียกใช้ */
 var ACCEPT_ATTR = '.txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp';
 
-/* opts: { ocr: boolean, onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
+/* opts: { ocr: boolean, accurate: boolean (โหมดแม่นยำ tessdata_best), onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
    (รูปภาพเดี่ยว .png/.jpg ฯลฯ ใช้ OCR เสมอเพราะไม่มีเลเยอร์ข้อความให้เลือกอยู่แล้ว) */
 function readAnyFile(file, opts) {
   var name = file.name.toLowerCase();
@@ -348,6 +451,9 @@ window.TanotFileReader = {
   readPptxFile: readPptxFile,
   readPdfFile: readPdfFile,
   readImageFile: readImageFile,
+  inspectPdf: inspectPdf,
+  prepareOcrImage: prepareOcrImage,
+  BEST_LANG_PATH: BEST_LANG_PATH,
   preprocessForOcr: preprocessForOcr,
   recognizeText: recognizeText,
   PSM_AUTO: PSM_AUTO,

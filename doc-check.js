@@ -32,13 +32,12 @@ var PAGE_CHAR_LIMIT = 2500;
 var LT_ENDPOINT = 'https://api.languagetool.org/v2/check';
 
 /* ══════════════════════════════════════════════════════════════════
-   OCR รูปภาพ: เลือกได้ระหว่าง Tesseract (ฟรี, ในเบราว์เซอร์, อ่านได้แค่ไทย/อังกฤษ)
+   OCR รูปภาพ/PDF สแกน: เลือกได้ระหว่าง Tesseract (ฟรี, ในเบราว์เซอร์, อ่านได้แค่ไทย/อังกฤษ)
    กับ Claude Vision (functions/api/ocr.js — แม่นยำกว่ามาก อ่านลายมือได้ รองรับทุกภาษา)
-   โหมด Vision มีค่าใช้จ่ายจริง สิทธิ์ตรวจฝั่งเซิร์ฟเวอร์ด้วย Cloudflare Access + _middleware.js
-   (เดิมล็อกด้วยรหัสผ่านฝั่งเบราว์เซอร์ ซึ่งข้ามได้ด้วย DevTools) — /api/* มีเฉพาะบนโดเมน Pages
+   โหมด Vision มีค่าใช้จ่ายจริง: ตรวจสิทธิ์ฝั่งเซิร์ฟเวอร์ด้วย Cloudflare Access + _middleware.js และ "รหัส OCR_PIN"
+   ที่ต้องกรอกทุกครั้งที่ส่ง (ocr-vision.js เปิด dialog ให้ ไม่จำรหัส) — /api/* มีเฉพาะบนโดเมน Pages
    บน GitHub Pages จึงซ่อนตัวเลือกนี้และใช้ Tesseract อย่างเดียว
    ══════════════════════════════════════════════════════════════════ */
-var OCR_API_URL = '/api/ocr';
 var OCR_VISION_AVAILABLE = /\.pages\.dev$/.test(location.hostname);
 var OCR_ENGINE_KEY = 'tanot:ocrengine';
 
@@ -50,17 +49,12 @@ function getOcrEngine() {
 function setOcrEngine(engine) {
   try { localStorage.setItem(OCR_ENGINE_KEY, engine); } catch (e) {}
 }
-
-/* แปลงไฟล์เป็น base64 แบบแบ่งชิ้น (กัน stack overflow จาก String.fromCharCode.apply กับไฟล์ใหญ่) */
-async function fileToBase64(file) {
-  var buf = await file.arrayBuffer();
-  var bytes = new Uint8Array(buf);
-  var binary = '', chunkSize = 0x8000;
-  for (var i = 0; i < bytes.length; i += chunkSize) {
-    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
-  }
-  return btoa(binary);
+/* โหมดแม่นยำของ Tesseract (tessdata_best) — ผู้ใช้ติ๊กเอง ไม่จำค่า */
+function getAccurate() {
+  var el = typeof document !== 'undefined' && document.getElementById('accChk');
+  return !!(el && el.checked && getOcrEngine() === 'tesseract');
 }
+var ocrProgressCb = null; /* handleFile ตั้งไว้ให้บรรทัดสถานะบอกความคืบหน้าของ Claude (หลายท่อน) */
 
 /* ══════════════════════════════════════════════════════════════════
    ภาษาที่ใช้แสดงผล UI (ไทย/อังกฤษ) — แยกจาก "ภาษาของเอกสาร" (state.lang) ด้านบน
@@ -126,11 +120,14 @@ var I18N = {
     ocrNoText: '(ไม่พบข้อความในภาพ)',
     unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
     ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})',
-    ocrEngineLabel: 'อ่านรูปภาพด้วย',
+    ocrEngineLabel: 'อ่านรูปภาพ/PDF สแกนด้วย',
+    ocrAccurate: 'โหมดแม่นยำ (ช้ากว่า)',
+    ocrClaudeReading: 'Claude Vision กำลังอ่าน…',
+    ocrClaudeReadingPart: 'Claude Vision กำลังอ่านส่วนที่ {i}/{n}…',
+    fileReadTruncated: 'อ่านไฟล์สำเร็จ — พบ {n} หน้า (ข้อความยาวเกินที่ Claude ตอบได้ในครั้งเดียว ส่วนท้ายอาจขาด)',
     ocrEngineTesseract: 'ฟรี (ไทย/อังกฤษ)',
     ocrEngineVision: 'Claude Vision (แม่นยำกว่า ทุกภาษา)',
-    ocrVisionNetErr: 'เชื่อมต่อบริการ Claude Vision ไม่ได้ — ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต หรือลองสลับไปใช้โหมดฟรี (Tesseract) แทน',
-    ocrVisionApiErr: 'บริการ Claude Vision ตอบกลับผิดพลาด ({status}) — ลองสลับไปใช้โหมดฟรี (Tesseract) แทน'
+    ocrCancelled: 'ยกเลิกการอ่านด้วย Claude Vision'
   },
   en: {
     docTitleType: 'Document Check | Tanot',
@@ -181,11 +178,14 @@ var I18N = {
     ocrNoText: '(No text found in the image)',
     unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
     ltServiceError: 'The spell-check service returned an error ({status})',
-    ocrEngineLabel: 'Read images with',
+    ocrEngineLabel: 'Read images / scanned PDFs with',
+    ocrAccurate: 'Accurate mode (slower)',
+    ocrClaudeReading: 'Claude Vision is reading…',
+    ocrClaudeReadingPart: 'Claude Vision is reading part {i}/{n}…',
+    fileReadTruncated: 'File read successfully — found {n} page(s) (the text is longer than Claude can return in one reply; the end may be missing)',
     ocrEngineTesseract: 'Free (Thai/English)',
     ocrEngineVision: 'Claude Vision (more accurate, all languages)',
-    ocrVisionNetErr: 'Could not reach the Claude Vision service — check your internet connection, or switch back to the free (Tesseract) mode.',
-    ocrVisionApiErr: 'The Claude Vision service returned an error ({status}) — try switching back to the free (Tesseract) mode.'
+    ocrCancelled: 'Reading with Claude Vision was cancelled'
   }
 };
 
@@ -285,7 +285,7 @@ async function readDocxFile(file) {
 async function readPdfFile(file) {
   var buf = await file.arrayBuffer();
   var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
-  var pages = [];
+  var pages = [], blank = 0;
   for (var i = 1; i <= doc.numPages; i++) {
     var page = await doc.getPage(i);
     var content = await page.getTextContent();
@@ -299,49 +299,49 @@ async function readPdfFile(file) {
     });
     if (line) lines.push(line);
     var text = lines.join('\n').trim();
-    if (!text) pages.push(t('pdfNoTextPage'));
-    else if (isGarbledText(text)) pages.push(t('pdfGarbledPage'));
+    if (!text) { pages.push(t('pdfNoTextPage')); blank++; }
+    else if (isGarbledText(text)) { pages.push(t('pdfGarbledPage')); blank++; }
     else pages.push(text);
+  }
+  /* เลือก Claude Vision และมีหน้าที่ไม่มีเลเยอร์ข้อความ (สแกน) → ส่งทั้งไฟล์ให้ Claude อ่าน (เกิน 100 หน้า/20 MB แบ่งช่วงหน้าให้เอง) แทนข้อความที่ได้บางหน้า */
+  if (blank && getOcrEngine() === 'vision' && window.TanotOcr) {
+    var total = doc.numPages;
+    var r = await window.TanotOcr.ocrPdf(file, { numPages: total, onProgress: function (p) { if (ocrProgressCb) ocrProgressCb(p); } });
+    var out = [];
+    for (var k = 0; k < total; k++) out.push('');
+    r.pages.forEach(function (p) { if (p.n >= 1 && p.n <= total) out[p.n - 1] += (out[p.n - 1] ? '\n' : '') + p.text; });
+    out = out.map(function (x) { return x || t('pdfNoTextPage'); });
+    out.truncated = r.truncated;
+    return out;
   }
   return pages.length ? pages : [''];
 }
 
 async function readImageFileTesseract(file) {
   /* ใช้ TanotFileReader.readImageFile() (file-reader.js) แทนเรียก Tesseract ตรงๆ — ฟังก์ชันนั้นเตรียม
-     ภาพก่อน OCR ด้วย (ขยายภาพเล็ก, ยืดคอนทราสต์, แปลงขาวดำด้วย Otsu, เคารพ EXIF orientation) ช่วยให้
+     ภาพก่อน OCR ด้วย (ขยายภาพเล็ก, แก้ภาพเอียง, ขาวดำ Otsu/Sauvola ตามแสง, เคารพ EXIF orientation) ช่วยให้
      อ่านแม่นขึ้นชัดเจน — เดิมหน้านี้เรียก Tesseract.recognize(file, ...) ตรงๆ ไม่มีการเตรียมภาพเลย */
   var text = window.TanotFileReader
-    ? await window.TanotFileReader.readImageFile(file)
+    ? await window.TanotFileReader.readImageFile(file, { accurate: getAccurate() })
     : (await window.Tesseract.recognize(file, 'eng+tha')).data.text;
   return splitIntoPages(text || t('ocrNoText'));
 }
 
 async function readImageFileVision(file) {
-  var base64 = await fileToBase64(file);
-  var mediaType = file.type || 'image/png';
-  var res;
-  try {
-    res = await fetch(OCR_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ imageBase64: base64, mediaType: mediaType })
-    });
-  } catch (e) {
-    throw new Error(t('ocrVisionNetErr'));
-  }
-  var data = {};
-  try { data = await res.json(); } catch (e) {}
-  if (!res.ok) throw new Error(data.error || t('ocrVisionApiErr', { status: res.status }));
-  return splitIntoPages(data.text || t('ocrNoText'));
+  /* ย่อรูป + dialog รหัส + เรียก /api/ocr อยู่ใน ocr-vision.js (ส่วนกลางของทุกหน้า) */
+  var r = await window.TanotOcr.ocrImage(file);
+  var pages = splitIntoPages(r.text || t('ocrNoText'));
+  pages.truncated = r.truncated;
+  return pages;
 }
 
 async function readImageFile(file) {
   var engine = getOcrEngine();
   try {
-    return await (engine === 'vision' ? readImageFileVision(file) : readImageFileTesseract(file));
+    return await (engine === 'vision' && window.TanotOcr ? readImageFileVision(file) : readImageFileTesseract(file));
   } catch (e) {
-    /* บันทึกปัญหา (data.html) — file-reader.js บันทึกฝั่ง Tesseract เองแล้ว ที่นี่บันทึกเฉพาะ Claude Vision / Tesseract แบบไม่มี file-reader */
-    if (window.TanotMedia && (engine === 'vision' || !window.TanotFileReader)) TanotMedia.logError('ocr', e, { stage: engine, engine: engine === 'vision' ? 'cloud' : 'local', file: file });
+    /* บันทึกปัญหา (data.html) — file-reader.js บันทึกฝั่ง Tesseract เองแล้ว, ocr-vision.js บันทึกฝั่ง Claude เอง; ที่นี่เฉพาะ Tesseract แบบไม่มี file-reader */
+    if (window.TanotMedia && engine !== 'vision' && !window.TanotFileReader) TanotMedia.logError('ocr', e, { stage: engine, engine: 'local', file: file });
     throw e;
   }
 }
@@ -350,8 +350,8 @@ async function readAnyFile(file) {
   var name = file.name.toLowerCase();
   if (name.endsWith('.txt')) return { pages: await readTxtFile(file) };
   if (name.endsWith('.docx')) return { pages: await readDocxFile(file) };
-  if (name.endsWith('.pdf')) return { pages: await readPdfFile(file) };
-  if (/\.(png|jpe?g|webp|bmp)$/.test(name)) return { pages: await readImageFile(file) };
+  if (name.endsWith('.pdf')) { var pp = await readPdfFile(file); return { pages: pp, truncated: !!pp.truncated }; }
+  if (/\.(png|jpe?g|webp|bmp)$/.test(name)) { var ip = await readImageFile(file); return { pages: ip, truncated: !!ip.truncated }; }
   throw new Error(t('unsupportedFileType'));
 }
 
@@ -415,7 +415,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
       emptyState = $('emptyState'), typeBox = $('typeBox'), modeTabs = $('modeTabs'),
       typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle'),
-      ocrEngineToggle = $('ocrEngineToggle');
+      ocrEngineToggle = $('ocrEngineToggle'), accChk = $('accChk');
 
   var SPEAK_ICON = '<svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg>';
   var STOP_ICON = '<svg class="ome-icon"><use href="icons.svg#i-square"/></svg>';
@@ -458,6 +458,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     ocrEngineToggle.querySelectorAll('[data-oe]').forEach(function (span) {
       span.classList.toggle('active', span.getAttribute('data-oe') === engine);
     });
+    if (accChk) accChk.closest('label').style.display = engine === 'tesseract' ? '' : 'none';
   }
 
   if (ocrEngineToggle) {
@@ -585,16 +586,25 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     render();
   });
 
+  function readErrText(err) {
+    return err && err.code && window.TanotOcr ? window.TanotOcr.errorText(err) : (err && err.message ? err.message : String(err));
+  }
+
   async function handleFile(file) {
     state.busy = true; render();
     setStatus(t('readingFile'), false, true);
+    ocrProgressCb = function (p) {
+      if (p.stage === 'claude') setStatus(p.parts > 1 ? t('ocrClaudeReadingPart', { i: p.part, n: p.parts }) : t('ocrClaudeReading'), false, true);
+    };
     try {
       var result = await readAnyFile(file);
       loadPages(result.pages, file.name);
-      setStatus(t('fileReadSuccess', { n: result.pages.length }));
+      setStatus(t(result.truncated ? 'fileReadTruncated' : 'fileReadSuccess', { n: result.pages.length }));
     } catch (err) {
-      setStatus(t('fileReadError', { msg: err.message }), true);
+      if (window.TanotOcr && window.TanotOcr.isCancel(err)) setStatus(t('ocrCancelled'));
+      else setStatus(t('fileReadError', { msg: readErrText(err) }), true);
     } finally {
+      ocrProgressCb = null;
       state.busy = false; render();
     }
   }

@@ -29,6 +29,7 @@ const AI_ROUTES = {
   '/api/ai/usage': await load('functions/api/ai/usage.js'),
   '/api/ai/image': await load('functions/api/ai/image.js'),
   '/api/asr': await load('functions/api/asr.js'),
+  '/api/ocr': await load('functions/api/ocr.js'),
 };
 
 let sqlite;
@@ -74,6 +75,33 @@ const AI = {
       : { response: 'สรุปหลัก', usage: { prompt_tokens: 20, completion_tokens: 9 } };
   },
 };
+
+// OCR (/api/ocr ตัวจริง): OCR_PIN ตัวหลอกขึ้นต้นด้วย 246810 (ไม่ใช่รหัสจริง) · /__ocr?pin=<ค่า> เปลี่ยน (ว่าง = ไม่ตั้ง) · ?key=0|1 ถอด/ใส่ ANTHROPIC_API_KEY · ?mode=<โหมด Anthropic ตัวหลอก>
+//   ok | flaky429 | flaky500 (ครั้งแรกล้ม ครั้งที่ 2 ผ่าน) | always429 | always500 | bad400 | auth401 | refusal | maxtokens · /__ocrlog = คำขอที่ Anthropic ตัวหลอกได้รับ (ไม่เก็บข้อมูลรูป เก็บแค่ชนิด/ขนาด)
+//   /__ocrunlock = จำลองเวลาผ่านไปเกินช่วงล็อก · /__ocrdb = ตัวนับการลองรหัสใน D1
+const OCR_DEFAULT_PIN = '246810';
+let ocrPin = OCR_DEFAULT_PIN, ocrKey = true, ocrMode = 'ok', ocrLog = [], ocrCalls = 0;
+const ocrEnv = () => ({ OCR_PIN: ocrPin || undefined, ANTHROPIC_API_KEY: ocrKey ? 'test-key' : undefined, ANTHROPIC_BASE_URL: `http://localhost:${PORT}/__anthropic` });
+async function fakeAnthropic(req, res) {
+  const chunks = [];
+  for await (const c of req) chunks.push(c);
+  const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+  ocrCalls++;
+  const blocks = (body.messages[0].content || []).map((b) => (b.type === 'text' ? { type: 'text', text: b.text } : { type: b.type, media: b.source && b.source.media_type, len: b.source && b.source.data.length }));
+  ocrLog.push({ model: body.model, thinking: body.thinking, max_tokens: body.max_tokens, blocks, key: req.headers['x-api-key'], version: req.headers['anthropic-version'], call: ocrCalls });
+  const send = (status, obj, headers) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); Object.entries(headers || {}).forEach(([k, v]) => res.setHeader(k, v)); res.end(JSON.stringify(obj)); };
+  const err = (status, message) => send(status, { type: 'error', error: { type: 'x', message } }, status === 429 ? { 'retry-after': '0.5' } : {});
+  if (ocrMode === 'always429') return err(429, 'rate limited');
+  if (ocrMode === 'always500') return err(500, 'boom');
+  if (ocrMode === 'bad400') return err(400, 'messages.0.content.0.image: bad image');
+  if (ocrMode === 'auth401') return err(401, 'invalid x-api-key');
+  if (ocrMode === 'flaky429' && ocrCalls % 2 === 1) return err(429, 'rate limited');
+  if (ocrMode === 'flaky500' && ocrCalls % 2 === 1) return err(500, 'boom');
+  if (ocrMode === 'refusal') return send(200, { content: [], stop_reason: 'refusal', usage: { input_tokens: 5, output_tokens: 0 } });
+  const isPdf = blocks.some((b) => b.type === 'document');
+  const text = isPdf ? '[[หน้า 1]]\nหน้าแรก\n[[หน้า 2]]\nหน้าสอง' : 'ข้อความจากรูป';
+  send(200, { content: [{ type: 'text', text }], stop_reason: ocrMode === 'maxtokens' ? 'max_tokens' : 'end_turn', usage: { input_tokens: 100, output_tokens: 20 } });
+}
 
 // R2 ตัวหลอก (Map ในหน่วยความจำ): put/get/delete ตามรูปแบบที่ functions/api/files.js ใช้ — /__files ดูกุญแจที่เก็บอยู่
 const r2 = new Map();
@@ -123,7 +151,7 @@ let offline = false;
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
-  if (url.pathname === '/__reset') { resetDb(); r2.clear(); aiMode = 'ok'; aiLimit = undefined; aiLog = []; pushLog = []; sinkStatus = {}; vapidOff = false; res.end('ok'); return; }
+  if (url.pathname === '/__reset') { resetDb(); r2.clear(); ocrPin = OCR_DEFAULT_PIN; ocrKey = true; ocrMode = 'ok'; ocrLog = []; ocrCalls = 0; aiMode = 'ok'; aiLimit = undefined; aiLog = []; pushLog = []; sinkStatus = {}; vapidOff = false; res.end('ok'); return; }
   if (url.pathname === '/__vapid') { vapidOff = url.searchParams.get('off') === '1'; res.end('ok'); return; }
   if (url.pathname === '/__pushsink' && url.searchParams.has('status')) { sinkStatus[url.searchParams.get('id')] = +url.searchParams.get('status'); res.end('ok'); return; }
   if (url.pathname.startsWith('/__pushsink/')) {
@@ -168,6 +196,16 @@ http.createServer(async (req, res) => {
     if (url.searchParams.has('limit')) aiLimit = url.searchParams.get('limit') || undefined;
     res.end('ok'); return;
   }
+  if (url.pathname === '/__ocr') {
+    if (url.searchParams.has('pin')) ocrPin = url.searchParams.get('pin');
+    if (url.searchParams.has('key')) ocrKey = url.searchParams.get('key') !== '0';
+    if (url.searchParams.has('mode')) { ocrMode = url.searchParams.get('mode'); ocrCalls = 0; }
+    res.end('ok'); return;
+  }
+  if (url.pathname === '/__ocrlog') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(ocrLog)); if (url.searchParams.get('clear')) { ocrLog = []; ocrCalls = 0; } return; }
+  if (url.pathname === '/__ocrunlock') { sqlite.exec('DELETE FROM ocr_pin_attempts; UPDATE ocr_pin_lock SET locked_until = 1'); res.end('ok'); return; }
+  if (url.pathname === '/__ocrdb') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify({ attempts: sqlite.prepare('SELECT * FROM ocr_pin_attempts').all(), lock: sqlite.prepare('SELECT * FROM ocr_pin_lock').all() })); return; }
+  if (url.pathname === '/__anthropic/v1/messages') { await fakeAnthropic(req, res); return; }
   if (url.pathname === '/__ailog') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(aiLog)); if (url.searchParams.get('clear')) aiLog = []; return; }
   if (url.pathname === '/__aidump') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(sqlite.prepare('SELECT key, task, model, result, hits FROM ai_cache').all())); return; }
   if (url.pathname === '/__files') { res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify([...r2.keys()])); return; }
@@ -211,7 +249,7 @@ http.createServer(async (req, res) => {
     const fn = req.method === 'GET' ? mod.onRequestGet : req.method === 'POST' ? mod.onRequestPost : null;
     if (!fn) { res.statusCode = 405; res.end(); return; }
     try {
-      const out = await fn({ request, env: { DB, AI, FILES, AI_DAILY_NEURONS: aiLimit }, data: { user: { email: 'test' } } });
+      const out = await fn({ request, env: { DB, AI, FILES, AI_DAILY_NEURONS: aiLimit, ...ocrEnv() }, data: { user: { email: 'test' } } });
       res.statusCode = out.status;
       out.headers.forEach((v, k) => res.setHeader(k, v));
       if (!out.body) { res.end(); return; }

@@ -7,7 +7,8 @@
 
    การอ่านใบเสร็จ (หลักการ: ฟรีเสมอ — Claude เฉพาะเมื่อผู้ใช้กดปุ่มเอง):
      อัตโนมัติ (ฟรี) = Tesseract.js ในเบราว์เซอร์ (tha+eng, โหลดตอนอ่านครั้งแรก) → /api/ai/chat โมเดล fast แยกช่องเป็น JSON → ไม่ได้ใช้ regex
-     "อ่านด้วย Claude" = /api/ocr เรียกจาก click handler ของปุ่ม claudeBtn ที่เดียวเท่านั้น — ห้ามเรียก AiClient.ocr / /api/ocr จากที่อื่น
+     "อ่านด้วย Claude" = /api/ocr เรียกจาก click handler ของปุ่ม claudeBtn ที่เดียวเท่านั้น (ผ่าน TanotOcr ใน ocr-vision.js: ย่อรูป + dialog รหัสทุกครั้ง) — ห้ามเรียก AiClient.ocr / /api/ocr จากที่อื่น
+       PDF ที่หน้าแรกไม่มีเลเยอร์ข้อความ (สแกน) ส่งทั้งไฟล์ให้ Claude · มีข้อความอยู่แล้ว = ส่งภาพหน้าแรกเหมือนเดิม
      ไม่จำตัวเลือก: ทุกใบเริ่มที่แบบฟรี
    ══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -251,7 +252,7 @@
   function updateClaudeBtn() {
     var b = $('claudeBtn');
     b.hidden = !aiAvailable();
-    b.disabled = !(S && S.imgBlob) || (S && S.reading);
+    b.disabled = !(S && (S.imgBlob || S.pdfClaude)) || (S && S.reading);
   }
   function updateEnd() {
     var end = C.warrantyEnd({ date: $('fDate').value, warrantyMonths: Number($('fMonths').value) });
@@ -329,31 +330,8 @@
     var m = /\.([a-z0-9]+)$/i.exec(f.name || '');
     return (m && MIME_BY_EXT[m[1].toLowerCase()]) || '';
   }
-  function shrinkImage(file) { // ด้านยาว ≤ 1600px, JPEG 0.8 (แปลง HEIC/PNG ไปด้วย) — เหมือน maintenance.js
-    function draw(src, w, h) {
-      var k = Math.min(1, 1600 / Math.max(w, h)), cv = document.createElement('canvas');
-      cv.width = Math.max(1, Math.round(w * k)); cv.height = Math.max(1, Math.round(h * k));
-      var ctx = cv.getContext('2d');
-      ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height);
-      ctx.drawImage(src, 0, 0, cv.width, cv.height);
-      return new Promise(function (resolve, reject) {
-        cv.toBlob(function (b) { b ? resolve(b) : reject(new Error(TR('convertImg'))); }, 'image/jpeg', 0.8);
-      });
-    }
-    function viaImg() {
-      return new Promise(function (resolve, reject) {
-        var u = URL.createObjectURL(file), img = new Image();
-        img.onload = function () { URL.revokeObjectURL(u); draw(img, img.naturalWidth, img.naturalHeight).then(resolve, reject); };
-        img.onerror = function () { URL.revokeObjectURL(u); reject(new Error(TR('openImg'))); };
-        img.src = u;
-      });
-    }
-    if (window.createImageBitmap) {
-      return createImageBitmap(file, { imageOrientation: 'from-image' }).then(function (bmp) {
-        return draw(bmp, bmp.width, bmp.height).then(function (b) { if (bmp.close) bmp.close(); return b; });
-      }).catch(function () { return viaImg(); });
-    }
-    return viaImg();
+  function shrinkImage(file) { // ด้านยาว ≤ 1600px, JPEG 0.8 (แปลง HEIC/PNG ไปด้วย) สำหรับเก็บใน R2 — ตัวย่อกลางอยู่ใน ocr-vision.js (TanotOcr.shrinkImage)
+    return window.TanotOcr.shrinkImage(file, { maxSide: 1600, quality: 0.8 });
   }
   function upload(blob, name, mime, st) {
     return api('POST', 'ns=receipts&ref=' + encodeURIComponent(st.rec.id) + '&name=' + encodeURIComponent(name), { headers: { 'Content-Type': mime }, body: blob })
@@ -406,7 +384,7 @@
           page.render({ canvasContext: ctx, viewport: vp }).promise.then(function () {
             return new Promise(function (resolve) { cv.toBlob(resolve, 'image/jpeg', 0.8); });
           })
-        ]).then(function (r) { return { text: r[0], image: r[1] }; });
+        ]).then(function (r) { return { text: r[0], image: r[1], numPages: doc.numPages }; });
       });
     });
   }
@@ -455,24 +433,17 @@
     }).then(function () { if (S === st) { st.reading = false; updateClaudeBtn(); } });
   }
 
-  function blobToBase64(blob) {
-    return new Promise(function (resolve, reject) {
-      var fr = new FileReader();
-      fr.onload = function () { resolve(String(fr.result).split(',')[1] || ''); };
-      fr.onerror = function () { reject(new Error(TR('readImg'))); };
-      fr.readAsDataURL(blob);
-    });
-  }
-  /* ปุ่มเดียวที่เรียก Claude (/api/ocr) — ผู้ใช้กดเองเท่านั้น */
+  /* ปุ่มเดียวที่เรียก Claude (/api/ocr) — ผู้ใช้กดเองเท่านั้น · TanotOcr เปิด dialog รหัสทุกครั้งก่อนส่ง (ยกเลิก = ไม่ส่ง) */
   $('claudeBtn').addEventListener('click', function () {
     var st = S;
-    if (!st || !st.imgBlob || st.reading) return;
+    if (!st || !(st.imgBlob || st.pdfClaude) || st.reading) return;
     st.reading = true; updateClaudeBtn();
     var token = ++st.token;
+    var job = st.pdfClaude
+      ? window.TanotOcr.ocrPdf(st.pdfClaude.file, { numPages: st.pdfClaude.numPages, prompt: C.CLAUDE_PROMPT })
+      : window.TanotOcr.ocrImage(st.imgBlob, { prompt: C.CLAUDE_PROMPT, skipShrink: true });
     setReadMsg(TR('claudeReading'));
-    blobToBase64(st.imgBlob).then(function (b64) {
-      return window.AiClient.ocr({ imageBase64: b64, mediaType: 'image/jpeg', prompt: C.CLAUDE_PROMPT });
-    }).then(function (r) {
+    job.then(function (r) {
       if (S !== st || token !== st.token) return;
       var f = C.parseFields(r && r.text);
       if (!f) { setReadMsg(TR('claudeBad')); return; }
@@ -481,9 +452,9 @@
       showSource('claude');
       setReadMsg('');
     }).catch(function (e) {
-      if (window.TanotMedia) TanotMedia.logError('ocr', e, { stage: 'claude', engine: 'cloud', file: { type: 'image/jpeg', size: st.imgBlob && st.imgBlob.size } });
+      // ocr-vision.js บันทึกปัญหาให้แล้ว (ไม่เก็บรูป/ข้อความ) · ยกเลิก dialog = เงียบ ไม่ส่งคำขอ
       if (S !== st || token !== st.token) return;
-      setReadMsg(window.AiClient.friendlyMessage(e));
+      setReadMsg(window.TanotOcr.isCancel(e) ? '' : window.TanotOcr.errorText(e));
     }).then(function () { if (S === st) { st.reading = false; updateClaudeBtn(); } });
   });
 
@@ -496,7 +467,11 @@
         return file.size <= MAX_FILE ? { blob: file, mime: mime, name: file.name } : Promise.reject(new Error(TR('openImg')));
       });
     return prep.then(function (p) {
-      var reading = isPdf ? pdfRead(file).then(function (r) { return startAutoRead(st, r.text, r.image); }, function () { return startAutoRead(st, '', null); }) :
+      var reading = isPdf ? pdfRead(file).then(function (r) {
+        // สแกน (หน้าแรกไม่มีข้อความ) และไม่เกินลิมิต 1 คำขอ → Claude ได้ทั้งไฟล์ · ไม่งั้นใช้ภาพหน้าแรกเหมือนเดิม
+        st.pdfClaude = String(r.text || '').trim().length < 20 && r.numPages <= window.TanotOcr.LIMITS.PDF_MAX_PAGES ? { file: file, numPages: r.numPages } : null;
+        return startAutoRead(st, r.text, r.image);
+      }, function () { return startAutoRead(st, '', null); }) :
         startAutoRead(st, '', p.blob);
       if (!isPdf) { st.imgBlob = p.blob; updateClaudeBtn(); }
       var up = !filesAvailable() ? Promise.resolve() : upload(p.blob, p.name, p.mime, st).then(function (j) {

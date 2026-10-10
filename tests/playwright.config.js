@@ -146,5 +146,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8139/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // ocr.spec.js: /api/ocr ตัวจริง (รหัส OCR_PIN + กันเดาใน D1) + Anthropic ตัวหลอก — แยกพอร์ตเพราะมี /__reset
+      command: 'node --no-warnings sync-server.mjs 8140',
+      cwd: __dirname,
+      url: 'http://localhost:8140/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

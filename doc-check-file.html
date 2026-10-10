@@ -67,6 +67,10 @@
 .dc-side-empty .ome-icon{display:block;width:30px;height:30px;margin:0 auto 8px;color:var(--ome-ok)}
 .dc-empty-state{text-align:center;color:var(--ome-text-2);font-size:var(--ome-fs-sm);padding:10px 20px 0}
 @media(max-width:600px){.dc-viewer{padding:var(--ome-sp-4)}}
+/* ตัวสลับเครื่องอ่าน (ฟรี / Claude Vision) ป้ายยาว — ที่ 360px ชนขอบจอพอดี: ไม่ให้กว้างเกินแถว + ลด padding บนจอแคบ */
+#ocrEngineToggle{max-width:100%}
+#ocrEngineToggle span{min-width:0;text-align:center}
+@media(max-width:400px){#ocrEngineToggle span{padding:0 8px}}
 </style>
 </head>
 <body data-layout="tool" data-doctitle-key="docTitleFile">
@@ -98,11 +102,14 @@
 <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
 
 <div class="row" style="margin-top:var(--ome-sp-3)">
-  <span class="mini" data-i18n="ocrEngineLabel">อ่านรูปภาพด้วย</span>
+  <span class="mini" data-i18n="ocrEngineLabel">อ่านรูปภาพ/PDF สแกนด้วย</span>
   <div class="lang-toggle" id="ocrEngineToggle">
     <span data-oe="tesseract" data-i18n="ocrEngineTesseract" class="active">ฟรี (ไทย/อังกฤษ)</span>
     <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
   </div>
+</div>
+<div class="row" style="margin-top:var(--ome-sp-2)">
+  <label class="mini check"><input type="checkbox" id="accChk"><span data-i18n="ocrAccurate">โหมดแม่นยำ (ช้ากว่า)</span></label>
 </div>
 
 <div class="toolbar dc-toolbar" id="toolbar">
@@ -176,6 +183,9 @@ window.dispatchEvent(new Event('pdfjs-ready'));
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="ai-client.js"></script>
+<script src="ocr-vision.js"></script>
+<script src="file-reader.js"></script>
 <script src="doc-check.js"></script>
 </body>
 </html>
