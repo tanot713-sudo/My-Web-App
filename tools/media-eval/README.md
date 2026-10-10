@@ -42,17 +42,23 @@ node tools/media-eval/run.mjs --lang thai                       # ตัวเ�
 | `asr:tiny` `asr:base` `asr:small` `asr:medium` | Whisper ในเบราว์เซอร์ ผ่านหน้า `text-to-speech.html` จริง (เซิร์ฟเวอร์ static ในเครื่อง) — กดปุ่มเหมือนผู้ใช้ |
 | `asr:cloud` | ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (Whisper large-v3-turbo) |
 | `ocr:tesseract` | แนบไฟล์ (เปิด "ใช้ OCR") ในหน้า `text-to-speech.html` → `file-reader.js` |
-| `ocr:claude` | `POST /api/ocr` (prompt เริ่มต้นของเซิร์ฟเวอร์) — รูปเท่านั้น · **เสียเงินค่า Claude API ทุกครั้ง** |
+| `ocr:claude` | `POST /api/ocr` (prompt เริ่มต้นของเซิร์ฟเวอร์ โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์ = `claude-sonnet-5`) — รูปและ PDF · **เสียเงินค่า Claude API ทุกครั้ง** |
+| `ocr:claude-sonnet-5` `ocr:claude-sonnet-5-5` `ocr:claude-haiku-5-5` | เหมือน `ocr:claude` แต่ระบุโมเดลเอง (allowlist ฝั่งเซิร์ฟเวอร์) — วัด CER/เวลา/ความล้มเหลวของแต่ละรุ่นด้วยไฟล์ชุดเดียวกันก่อนเลือกค่าเริ่มต้น (ยังไม่เปลี่ยนค่าเริ่มต้นในรอบ Section 2) |
 
-### เอนจินคลาวด์ (`asr:cloud`, `ocr:claude`)
+### เอนจินคลาวด์ (`asr:cloud`, `ocr:claude*`)
 
-ข้ามอัตโนมัติถ้าไม่ได้ตั้ง env ทั้งสองตัว:
+ข้ามอัตโนมัติถ้าไม่ได้ตั้ง env ที่ต้องใช้ (`ocr:claude*` ต้องมี `MEDIA_EVAL_OCR_PIN` ด้วย):
 
 ```bash
 export MEDIA_EVAL_URL=https://my-web-app-5w2.pages.dev
 export MEDIA_EVAL_COOKIE='CF_Authorization=<ค่าคุกกี้>'   # เปิดเว็บที่ล็อกอิน Access แล้ว → DevTools → Application → Cookies
+export MEDIA_EVAL_OCR_PIN='<รหัส OCR_PIN ที่ตั้งใน Cloudflare>'   # ใส่ในเทอร์มินัลเท่านั้น ห้ามเขียนลงไฟล์
 node tools/media-eval/run.mjs --engines asr:cloud,ocr:claude
+node tools/media-eval/run.mjs --engines ocr:claude-sonnet-5,ocr:claude-sonnet-5-5,ocr:claude-haiku-5-5 --only ใบเสร็จ
 ```
+
+- สคริปต์ไม่พิมพ์/ไม่บันทึกรหัส · ถ้าเซิร์ฟเวอร์ตอบว่ารหัสผิด/ล็อก/ยังไม่ได้ตั้ง สคริปต์**หยุดเรียก Claude ที่เหลือทันที** (กันผิดซ้ำจนล็อก 15 นาที)
+- สคริปต์ส่งไฟล์ตามที่เป็น (ไม่ย่อรูป) — รูปใหญ่เกิน 5 MB (base64) จะขึ้น error `too_large` ให้ย่อไฟล์ทดสอบเอง
 
 - `asr:cloud` ใช้โควตา Neurons ฟรีรายวันร่วมกับแชท/สรุป — ถ้าไฟล์ยาวเกินโควตาที่เหลือ หน้าเว็บจะถามยืนยันค่าใช้จ่าย สคริปต์**ตอบยกเลิก**เสมอ (ไฟล์นั้นขึ้นว่าล้มเหลว) เว้นแต่ตั้ง `MEDIA_EVAL_ALLOW_PAID=1`
 - คุกกี้ Access มีอายุ — หมดแล้วจะได้ error "redirected to login"

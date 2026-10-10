@@ -5,7 +5,9 @@
 //   asr:tiny asr:base asr:small asr:medium  — Whisper ในเบราว์เซอร์ ผ่านหน้า text-to-speech.html จริง (เซิร์ฟเวอร์ static ในเครื่อง)
 //   asr:cloud                               — ปุ่มคลาวด์ของหน้าเดียวกันบน pages.dev (ต้องตั้ง MEDIA_EVAL_URL + MEDIA_EVAL_COOKIE)
 //   ocr:tesseract                           — แนบไฟล์ (เปิด OCR) ในหน้า text-to-speech.html → file-reader.js เส้นทางเดียวกับผู้ใช้
-//   ocr:claude                              — POST /api/ocr (prompt เริ่มต้นของเซิร์ฟเวอร์) บน pages.dev (ต้องตั้ง env เหมือน asr:cloud)
+//   ocr:claude                              — POST /api/ocr (prompt เริ่มต้นของเซิร์ฟเวอร์, โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์) บน pages.dev (ต้องตั้ง env เหมือน asr:cloud + MEDIA_EVAL_OCR_PIN)
+//   ocr:claude-sonnet-5 ocr:claude-sonnet-5-5 ocr:claude-haiku-5-5 — เหมือน ocr:claude แต่ระบุโมเดลตัวเลขชัดเจน (allowlist ใน functions/api/ocr.js) ให้วัด CER/เวลาก่อนเลือกค่าเริ่มต้น
+//     ทุกตัวที่เรียก Claude ต้องมี env MEDIA_EVAL_OCR_PIN (รหัส OCR_PIN ที่ตั้งใน Cloudflare) — ไม่ตั้ง = ข้าม · รหัสผิดครั้งเดียวสคริปต์หยุดเรียก Claude ทั้งหมด (กันล็อก 15 นาที) · ไม่พิมพ์รหัสที่ไหน
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { readFile, readdir, writeFile, mkdir } from 'node:fs/promises';
@@ -29,7 +31,10 @@ const CLOUD_URL = (process.env.MEDIA_EVAL_URL || '').replace(/\/+$/, '');
 const CLOUD_COOKIE = process.env.MEDIA_EVAL_COOKIE || '';
 const CLOUD_OK = !!(CLOUD_URL && CLOUD_COOKIE);
 const ALLOW_PAID = process.env.MEDIA_EVAL_ALLOW_PAID === '1';
-const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:cloud', 'ocr:tesseract', 'ocr:claude'];
+const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิมพ์/บันทึกลงผลลัพธ์
+const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
+let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
+const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:cloud', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF)];
 const ENGINES = (opt('engines', '') || ALL_ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const ONLY = opt('only', '') ? new RegExp(opt('only')) : null;
 const LANG = opt('lang', 'auto'); // auto | thai | english — ตัวเลือก "ภาษา" ของหน้า text-to-speech
@@ -117,19 +122,23 @@ async function ocrTesseract(page, file) {
   return ok ? { text: await page.inputValue('#ttsText'), ms } : { text: '', ms, err: await page.textContent('#importStatus') };
 }
 
-async function ocrClaude(file) {
+async function ocrClaude(file, model) {
   const buf = await readFile(file);
   const ext = extname(file).toLowerCase();
-  const mediaType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg';
+  const body = ext === '.pdf'
+    ? { pdfBase64: buf.toString('base64') }
+    : { imageBase64: buf.toString('base64'), mediaType: ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg' };
+  if (model) body.model = model;
   const t0 = Date.now();
   const res = await fetch(CLOUD_URL + '/api/ocr', {
     method: 'POST', redirect: 'manual',
-    headers: { 'Content-Type': 'application/json', Cookie: CLOUD_COOKIE, Origin: CLOUD_URL },
-    body: JSON.stringify({ imageBase64: buf.toString('base64'), mediaType })
+    headers: { 'Content-Type': 'application/json', Cookie: CLOUD_COOKIE, Origin: CLOUD_URL, 'X-OCR-Pin': OCR_PIN },
+    body: JSON.stringify(body)
   });
   const ms = Date.now() - t0;
   if (res.status >= 300 && res.status < 400) return { text: '', ms, err: 'redirected to login — คุกกี้ Access หมดอายุ?' };
   const data = await res.json().catch(() => ({}));
+  if (/^pin_/.test(data.code || '')) { claudeStopped = true; return { text: '', ms, err: data.code + ' — หยุดเรียก Claude ที่เหลือ (' + (data.error || res.status) + ')' }; }
   return res.ok ? { text: data.text || '', ms } : { text: '', ms, err: data.error || 'HTTP ' + res.status };
 }
 
@@ -178,11 +187,12 @@ async function main() {
         for (const f of ocrFiles) record('ocr', engine, f, await ocrTesseract(page, f.path));
         await ctx.close();
       }
-      if (engine === 'ocr:claude' && ocrFiles.length) {
-        if (!CLOUD_OK) { console.log('ข้าม ocr:claude — ไม่ได้ตั้ง MEDIA_EVAL_URL / MEDIA_EVAL_COOKIE'); continue; }
+      if (engine in CLAUDE_MODEL_OF && ocrFiles.length) {
+        if (!CLOUD_OK) { console.log('ข้าม ' + engine + ' — ไม่ได้ตั้ง MEDIA_EVAL_URL / MEDIA_EVAL_COOKIE'); continue; }
+        if (!OCR_PIN) { console.log('ข้าม ' + engine + ' — ไม่ได้ตั้ง MEDIA_EVAL_OCR_PIN'); continue; }
         for (const f of ocrFiles) {
-          if (/\.pdf$/i.test(f.name)) { console.log('ข้าม ' + f.name + ' (ocr:claude รับเฉพาะรูป)'); continue; }
-          record('ocr', engine, f, await ocrClaude(f.path));
+          if (claudeStopped) { console.log('ข้าม ' + engine + ' ' + f.name + ' — รหัสไม่ผ่านก่อนหน้านี้'); continue; }
+          record('ocr', engine, f, await ocrClaude(f.path, CLAUDE_MODEL_OF[engine]));
         }
       }
     }

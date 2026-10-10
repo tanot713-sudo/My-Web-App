@@ -98,11 +98,14 @@
 <input type="file" id="fileInput" accept=".txt,.docx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
 
 <div class="row" style="margin-top:var(--ome-sp-3)">
-  <span class="mini" data-i18n="ocrEngineLabel">อ่านรูปภาพด้วย</span>
+  <span class="mini" data-i18n="ocrEngineLabel">อ่านรูปภาพ/PDF สแกนด้วย</span>
   <div class="lang-toggle" id="ocrEngineToggle">
     <span data-oe="tesseract" data-i18n="ocrEngineTesseract" class="active">ฟรี (ไทย/อังกฤษ)</span>
     <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
   </div>
+</div>
+<div class="row" style="margin-top:var(--ome-sp-2)">
+  <label class="mini check"><input type="checkbox" id="accChk"><span data-i18n="ocrAccurate">โหมดแม่นยำ (ช้ากว่า)</span></label>
 </div>
 
 <div class="toolbar dc-toolbar" id="toolbar">
@@ -176,6 +179,9 @@ window.dispatchEvent(new Event('pdfjs-ready'));
 <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="ai-client.js"></script>
+<script src="ocr-vision.js"></script>
+<script src="file-reader.js"></script>
 <script src="doc-check.js"></script>
 </body>
 </html>

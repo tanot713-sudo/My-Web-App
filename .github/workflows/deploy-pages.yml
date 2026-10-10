@@ -76,6 +76,8 @@ jobs:
         run: npx playwright test ai.spec.js
       - name: media (เสียง/OCR ไม่ให้ล่ม — ถอดเสียงใน Worker ทีละช่วง/ยกเลิก/หน่วยความจำไม่พอ, ถอดรหัส 16kHz, พูล TTS ทยอยโหลด, งบโมเดลวิดเจ็ตบนมือถือ, บันทึกปัญหา data.html — transformers หลอก)
         run: npx playwright test media.spec.js
+      - name: ocr (รหัส OCR_PIN ก่อนใช้ Claude Vision + กันเดา 5 ครั้ง/10 นาที ใน D1, ย่อรูป/PDF สแกน/แบ่งช่วงหน้า, allowlist โมเดล, Sauvola + แก้ภาพเอียง + โหมดแม่นยำของ Tesseract — Anthropic ตัวหลอก)
+        run: npx playwright test ocr.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)

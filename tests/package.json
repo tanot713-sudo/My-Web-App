@@ -23,6 +23,8 @@
     "lucide-static": "1.49.0",
     "luckysheet": "^2.1.13",
     "mammoth": "1.8.0",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "4.7.76",
     "tailwindcss": "3.4.17",
     "xlsx": "0.18.5",
     "xlsx-js-style": "1.2.0"
