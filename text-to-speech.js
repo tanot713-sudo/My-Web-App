@@ -268,6 +268,10 @@
   var ttsPipelinePromiseByModel = {};
   /* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" = fp32 เพราะไม่มีไฟล์ quantized) อยู่ใน media-models.js ที่เดียว —
      tts-worker.js อ่านไฟล์เดียวกัน (เดิมตารางซ้ำ 2 ชุดแล้วเคยลืมแก้คู่กันจนเกิดบั๊กแรมพุ่ง — ประวัติเต็มที่หัวไฟล์ media-models.js) */
+  function ttsMigrate(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsMigrate(modelId) : modelId; }
+  function ttsLegacy(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsLegacy(modelId) : null; }
+  /* เว้นขอบท่อน: ทุกท่อนที่เข้าโมเดล MMS ไทยขึ้นต้น/ลงท้ายด้วยช่องว่าง 1 ตัว (ฟังแล้วดีสุด คู่กับ noise ต่ำของชุด stable) · อังกฤษไม่ทำ */
+  function padMms(modelId, text) { return /mms-tts-eng/.test(modelId) ? text : (Norm && Norm.padMms ? Norm.padMms(text) : ' ' + text + ' '); }
   function ttsDtype(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsDtype(modelId) : null; }
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
@@ -281,9 +285,22 @@
     }
     return ttsPipelinePromiseByModel[modelId];
   }
+  /* ทางถอย (เธรดหลัก): โหลด repo stable ไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ใช้ repo เดิมของเสียงนั้น 1 ครั้ง + problem log · Worker ทำแบบเดียวกันใน tts-worker.js */
+  var ttsRedirect = {}, modelFallbackLogged = {};
+  function loadTtsPipelineSafe(modelId, onProgress) {
+    var eff = ttsRedirect[modelId] || modelId;
+    return loadTtsPipeline(eff, onProgress).catch(function (err) {
+      var lg = ttsLegacy(modelId);
+      if (!lg || eff !== modelId || (window.TanotMedia && TanotMedia.isMemoryError(err))) throw err;
+      delete ttsPipelinePromiseByModel[modelId];
+      ttsRedirect[modelId] = lg;
+      if (window.TanotMedia) TanotMedia.logError('tts', TanotMedia.error('model', null, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) }), { stage: 'model-load', engine: 'local', model: modelId, to: lg });
+      return loadTtsPipeline(lg, onProgress);
+    });
+  }
   function synthesizeMmsTts(text, modelId, onProgress) {
-    return loadTtsPipeline(modelId, onProgress).then(function (synthesizer) {
-      return synthesizer(text);
+    return loadTtsPipelineSafe(modelId, onProgress).then(function (synthesizer) {
+      return synthesizer(padMms(modelId, text));
     }).then(function (output) {
       if (!output || !output.audio || !output.audio.length) throw new Error(T('noAudioData'));
       return output;
@@ -418,7 +435,7 @@
         if (settled || !queue.length) { w._busy = false; return; }
         var i = queue.shift();
         w._busy = true;
-        w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: i, text: chunks[i] }], modelId: modelId, device: gpuActive ? 'webgpu' : 'wasm' });
+        w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: [{ i: i, text: padMms(modelId, chunks[i]) }], modelId: modelId, device: gpuActive ? 'webgpu' : 'wasm' });
       }
       function spawnNext() {
         if (settled || ttsPool.workers.length >= effSize() || !queue.length) return;
@@ -435,6 +452,10 @@
         onMessage: function (w, msg) {
           if (settled) return;
           if (msg.type === 'model-progress') { if (onModelProgress) onModelProgress({ status: 'progress', file: msg.file, progress: msg.progress }); }
+          else if (msg.type === 'fallback' && msg.what === 'model') {
+            /* โหลด repo stable ไม่ได้ → Worker ใช้ repo เดิมแทนแล้ว (1 ครั้งต่อ Worker) · ลง problem log ครั้งเดียวต่อเสียง (ไม่มีเนื้อหาผู้ใช้) */
+            if (!modelFallbackLogged[modelId]) { modelFallbackLogged[modelId] = true; TanotMedia.logError('tts', TanotMedia.error('model', null, { name: msg.name || 'Error', message: msg.message || '' }), { stage: 'model-load', engine: 'local', model: modelId, to: msg.to, device: msg.device || 'wasm' }); }
+          }
           else if (msg.type === 'fallback') {
             /* WebGPU ล้ม/เสียงผิดปกติ → Worker ทำท่อนเดิมซ้ำบน WASM แล้ว · บันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้) + จำว่าล้ม 3 วัน + ขยายพูลเป็นขนาดปกติ */
             var fe = TanotMedia.error('webgpu', null, { name: msg.name || 'Error', message: msg.message || '' });
@@ -494,6 +515,7 @@
     if (typeof Worker !== 'undefined') { try { w = new Worker('./audio-encode-worker.js'); } catch (e) { w = null; } }
     if (!w) {
       var audio = concatFloat32Arrays(parts, gapSamples);
+      if (window.TanotAudioGain) TanotAudioGain.apply(audio, sampleRate); // ไม่มี Worker = ปรับความดังบนเธรดหลัก (กฎเดียวกับ audio-encode-worker.js)
       var wavBlob = float32ToWavBlob(audio, sampleRate);
       return wavBlob.arrayBuffer().then(function (buf) {
         return wavBytesToMp3Blob(new Uint8Array(buf)).then(function (mp3) { return { wav: wavBlob, mp3: mp3 }; });
@@ -578,20 +600,20 @@
   }
   var TTS_VOICES = {
     th: [
-      { id: 'Tanotfin/mms-tts-2081-onnx', label: 'ค่าเริ่มต้น', k: 'v_default' },
-      { id: 'phlebotomy1996/mms-thai-female-podcast-spk0', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' },
-      { id: 'Tanotfin/mms-tts-2081-FM-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
-      { id: 'Tanotfin/mms-tts-2081-M-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' }
+      /* ชุด stable (ความสุ่มของ VITS ลดลง) · ตัวแรก = ค่าเริ่มต้น · ทางถอยไปต้นฉบับอยู่ที่ media-models.js (TTS_LEGACY) · เอา "ค่าเริ่มต้น" เดิม (Tanotfin/mms-tts-2081-onnx) ออกแล้ว */
+      { id: 'Tanotfin/mms-tts-2081-FM-stable-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
+      { id: 'Tanotfin/mms-tts-2081-M-stable-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' },
+      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น', k: 'v_default' }
     ]
   };
   function renderVoiceOptions() {
-    var lang = $('dlLang').value, keep = $('dlVoice').value;
+    var lang = $('dlLang').value, keep = ttsMigrate($('dlVoice').value); // ค่าที่เคยเลือกไว้ (id เดิม) → ตัว stable คู่กัน
     var voices = TTS_VOICES[lang] || TTS_VOICES.th;
     $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + T(v.k) + '</option>'; }).join('');
-    if (keep) $('dlVoice').value = keep;
+    if (keep && voices.some(function (v) { return v.id === keep; })) $('dlVoice').value = keep; // ไม่มีในรายการภาษานี้ = ตัวแรก (เดิมตั้งค่าที่ไม่มีอยู่ → select ว่าง → modelId '')
   }
 
   /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-2081-onnx) ══════════════════
@@ -763,7 +785,7 @@
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('typeFirst'); }); return; }
     lexFlush();
     var lang = $('dlLang').value, th = lang === 'th';
-    var modelId = $('dlVoice').value;
+    var modelId = ttsMigrate($('dlVoice').value);
     var nopts = normOpts(lang);
     var wantSplit = $('optSplit').checked;
     var chapters = wantSplit && Long ? Long.splitChapters(rawText) : null;

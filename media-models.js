@@ -18,7 +18,24 @@
 (function (g) {
   'use strict';
   var TTS_DTYPE_OVERRIDES = {
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32'
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
+    /* ชุด stable (2026-10) — dtype ที่มีให้เหมือนต้นฉบับทุกประการ: พอดแคสต์ fp32 เท่านั้น, FM/M ใช้ q8 ตามค่าเริ่มต้น */
+    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'fp32'
+  };
+  /* เสียงไทย "stable" (2026-10): VITS ฝังความสุ่มไว้ใน ONNX (noise_scale_duration 0.8 / noise_scale 0.667) → อาการ "ยานตอนต้นคำ / สั่นตอนท้ายคำ"
+     เจ้าของแปลงชุดใหม่ที่ noise_scale_duration 0.3 / noise_scale 0.333 (น้ำหนักเดิม) · stable → ต้นฉบับ = ทางถอยเมื่อโหลดชุดใหม่ไม่ได้ (404/เครือข่าย) ·
+     id เดิมทั้ง 4 (รวม "ค่าเริ่มต้น" Tanotfin/mms-tts-2081-onnx ที่เอาออกจากรายการเพราะฟังไม่รู้เรื่อง) แปลงเป็น stable ด้วย ttsMigrate */
+  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-tts-2081-FM-stable-onnx';
+  var TTS_LEGACY = {
+    'Tanotfin/mms-tts-2081-FM-stable-onnx': 'Tanotfin/mms-tts-2081-FM-onnx',
+    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-onnx',
+    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'phlebotomy1996/mms-thai-female-podcast-spk0'
+  };
+  var TTS_MIGRATE = {
+    'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-FM-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
+    'Tanotfin/mms-tts-2081-M-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
+    'phlebotomy1996/mms-thai-female-podcast-spk0': 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx'
   };
   /* MMS-TTS บน WebGPU (Section 5, ทดลอง): ใช้ fp32 เสมอ — ตัว q8 (ค่าเริ่มต้นของ WASM) ต้องใช้ op แบบ quantized ที่ backend WebGPU ของ onnxruntime-web ยังไม่มี kernel ที่ดี
      (นี่คือเหตุผลที่รอบก่อนวัดแล้วช้ากว่า WASM) · ชื่อไฟล์ onnx/model.onnx (fp32) ของแต่ละ repo ยังไม่ได้ตรวจกับ Hugging Face จริง — ไม่มี/โหลดไม่ได้ = tts-worker.js ถอย WASM อัตโนมัติ + problem log
@@ -64,6 +81,12 @@
     TTS_DTYPE_OVERRIDES: TTS_DTYPE_OVERRIDES,
     ASR_MODELS: ASR_MODELS,
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
+    TTS_DEFAULT_VOICE: TTS_DEFAULT_VOICE,
+    TTS_LEGACY: TTS_LEGACY,
+    /* id เสียงที่เคยเลือกไว้ (ชุดเดิม) → ตัว stable คู่กัน · id อื่น/ใหม่แล้ว = คืนค่าเดิม */
+    ttsMigrate: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_MIGRATE, modelId) ? TTS_MIGRATE[modelId] : modelId; },
+    /* ทางถอยของ stable = repo ต้นฉบับ (ไม่มี = null) */
+    ttsLegacy: function (modelId) { return TTS_LEGACY[modelId] || null; },
     ttsGpuDtype: function (modelId) { return TTS_GPU_DTYPE_OVERRIDES[modelId] || TTS_GPU_DTYPE; },
     asrHeavy: function (modelId) { var m = asrInfo(modelId); return !!(m && m.heavy); },
     asrInfo: asrInfo,

@@ -272,7 +272,7 @@ export async function pipeline(task, model, opts) {
     return async (text) => {
       const out = [...text].filter((c) => !VOCAB.has(c));
       if (out.length) throw new Error('Gather node index out of bounds: ' + JSON.stringify(out.join('')));
-      if (!text.trim() || text.length > ${N.MAX_CHUNK}) throw new Error('bad chunk length ' + text.length);
+      if (!text.trim() || text.length > ${N.MAX_CHUNK + 2}) throw new Error('bad chunk length ' + text.length);
       const a = new Float32Array(1600);
       for (let i = 0; i < a.length; i++) a[i] = Math.sin(i / 5) * 0.3;
       return { audio: a, sampling_rate: 16000 };
@@ -291,7 +291,7 @@ const SPY = `(() => {
     const w = new W(url, opts);
     window.__workers.push(String(url));
     const post = w.postMessage.bind(w);
-    w.postMessage = function (m, tr) { if (m && m.type === 'synthesize-batch') window.__batches.push({ url: String(url), model: m.modelId, items: m.items.map((i) => i.text) }); return post(m, tr); };
+    w.postMessage = function (m, tr) { if (m && m.type === 'synthesize-batch') window.__batches.push({ url: String(url), model: m.modelId, items: m.items.map((i) => i.text.trim()), rawItems: m.items.map((i) => i.text) }); return post(m, tr); };
     return w;
   }
   Spy.prototype = W.prototype; window.Worker = Spy;
@@ -332,7 +332,7 @@ test.describe('C) วิดเจ็ตแชท — พูดคำตอบไ
     await expect(page.locator('.ome-ai-row.bot .ome-ai-bubble')).toContainText('ขอบคุณมากๆ', { timeout: 15000 });
     await expect.poll(() => page.evaluate(() => window.__batches.length), { timeout: 10000 }).toBe(1);
     const b = (await page.evaluate(() => window.__batches))[0];
-    expect(b.model).toBe('Tanotfin/mms-tts-2081-FM-onnx');
+    expect(b.model).toBe('Tanotfin/mms-tts-2081-FM-stable-onnx');
     expect(b.items.length).toBeGreaterThanOrEqual(2);
     for (const t of b.items) { expect(bad(t), t).toEqual([]); expect(t.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(t).not.toMatch(/\d/); }
     expect(b.items[0]).toBe('ราคา สามพันห้าร้อยเก้าสิบเก้า บาท ลด สิบห้าเปอร์เซ็นต์');

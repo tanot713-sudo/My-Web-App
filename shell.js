@@ -39,10 +39,11 @@
     if (isEmbedded()) return; /* ในป๊อปอัพ หน้าที่เปิดป๊อปอัพมีวิดเจ็ตแชทของตัวเองอยู่แล้ว ไม่ต้องซ้ำ */
     /* ai-client.js ต้องมาก่อนวิดเจ็ต (วิดเจ็ตเรียกคลาวด์ก่อนโมเดลในเครื่อง) · media-core.js = งบหน่วยความจำโมเดล/ถอดรหัสเสียง/บันทึกปัญหา
        ที่วิดเจ็ตใช้ร่วมกับหน้า text-to-speech · tts-normalize.js = ปรับข้อความก่อนพูด (วิดเจ็ตต้องใช้ก่อนส่งเข้าโมเดลเสียงเสมอ) — async=false ให้สคริปต์ที่ฉีดรันเรียงตามลำดับที่ใส่ */
-    ['ai-client.js', 'media-core.js', 'tts-normalize.js', 'ai-chat-widget.js'].forEach(function (f) {
+    ['ai-client.js', 'media-core.js', 'tts-normalize.js', 'audio-gain.js', 'ai-chat-widget.js'].forEach(function (f) {
       if (f === 'ai-client.js' && window.AiClient) return;
       if (f === 'media-core.js' && window.TanotMedia) return;
       if (f === 'tts-normalize.js' && window.TanotTtsNorm) return;
+      if (f === 'audio-gain.js' && window.TanotAudioGain) return;
       var s = document.createElement('script');
       s.src = BASE + f; s.async = false;
       document.head.appendChild(s);

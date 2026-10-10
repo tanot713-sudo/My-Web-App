@@ -266,7 +266,7 @@ export async function pipeline(task, model, opts) {
   return async (text) => {
     const out = [...text].filter((c) => !VOCAB.has(c));
     if (out.length) throw new Error('Gather node index out of bounds: ' + JSON.stringify(out.join('')));
-    if (!text.trim() || text.length > ${N.MAX_CHUNK}) throw new Error('bad chunk length ' + text.length);
+    if (!text.trim() || text.length > ${N.MAX_CHUNK + 2}) throw new Error('bad chunk length ' + text.length);
     busy(CFG.busyMs || 0);
     if (device === 'webgpu' && CFG.gpu === 'throw-run') throw new Error('WebGPU device lost');
     const a = new Float32Array(1600);
@@ -284,7 +284,7 @@ const SPY = `(() => {
     const w = new W(url, opts);
     const u = String(url); window.__workers.push(u);
     const post = w.postMessage.bind(w);
-    w.postMessage = function (m, tr) { if (m && m.type === 'synthesize-batch') window.__batches.push({ url: u, model: m.modelId, device: m.device, items: m.items.map((i) => i.text) }); return post(m, tr); };
+    w.postMessage = function (m, tr) { if (m && m.type === 'synthesize-batch') window.__batches.push({ url: u, model: m.modelId, device: m.device, items: m.items.map((i) => i.text.trim()), rawItems: m.items.map((i) => i.text) }); return post(m, tr); };
     if (/tts-worker/.test(u)) w.addEventListener('message', (e) => { const d = e.data; if (d && (d.type === 'fake-pipeline' || d.type === 'fallback')) window.__wmsgs.push(d); });
     return w;
   }
@@ -568,7 +568,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     const b = await page.evaluate(() => ({ batches: window.__batches, msgs: window.__wmsgs, workers: window.__workers.filter((u) => /tts-worker/.test(u)).length }));
     expect(b.workers).toBe(1);
     expect(b.batches.every((x) => x.device === 'webgpu')).toBe(true);
-    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-tts-2081-onnx', device: 'webgpu', dtype: 'fp32' }]);
+    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-tts-2081-FM-stable-onnx', device: 'webgpu', dtype: 'fp32' }]);
     expect(b.msgs.filter((m) => m.type === 'fallback')).toEqual([]);
     expect((await logRows(page)).filter((r) => r.code !== 'info')).toEqual([]);
     await expect(page.locator('#dlStatus')).toContainText('สร้างไฟล์เสียงเสร็จแล้ว');
@@ -620,7 +620,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
       const log = await logRows(page);
       const row = log.find((r) => r.stage === 'webgpu-' + stage);
       expect(row, JSON.stringify(log)).toBeTruthy();
-      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-tts-2081-onnx' });
+      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-tts-2081-FM-stable-onnx' });
       expect(JSON.stringify(log)).not.toContain('ลับ');
       expect(await page.evaluate(() => +localStorage.getItem('tanot:tts:gpubad'))).toBeGreaterThan(0);
       // ไฟล์ปลายทางถูกต้อง: ทุกท่อนมีเสียง (ไม่ใช่ NaN/เงียบ)

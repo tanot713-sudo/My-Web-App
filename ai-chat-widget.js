@@ -38,11 +38,11 @@
   var SUMMARY_REMINDER = 'ย้ำ: ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "หัวข้อหลัก:" ทันที ' +
     'ห้ามขึ้นต้นด้วยคำนำ คำทักทาย หรือคำอธิบายอื่นก่อนหน้านั้นเด็ดขาด';
   /* เจอจริงว่าถ้าผู้ใช้ถามเป็นอังกฤษ โมเดลแชทจะตอบเป็นอังกฤษกลับ (ตาม system prompt) แล้วป้อนข้อความ
-     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
+     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-stable-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
      ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
      ตัวเดียว เช็คแค่ "มีตัวอักษรไทยอยู่ไหม" ก็พอ (ระบบตอบเต็มประโยคเป็นภาษาเดียวเสมอ ไม่สลับภาษากลางคำตอบ) */
   function pickTtsModel(text) {
-    return /[฀-๿]/.test(text) ? 'Tanotfin/mms-tts-2081-FM-onnx' : 'Xenova/mms-tts-eng';
+    return /[฀-๿]/.test(text) ? 'Tanotfin/mms-tts-2081-FM-stable-onnx' : 'Xenova/mms-tts-eng';
   }
   /* ⚠️ 2026-08-10: มีรายงานยืนยันจริงจากผู้ใช้ (iPhone 14 Pro Max, Safari) ว่าพิมพ์ถามแค่คำเดียว
      ("สวัสดี") แล้วหน้าเว็บรีเฟรชเองระหว่างที่โมเดลแชทยังโหลดไม่ถึงครึ่ง (เห็น progress ~11% ค้าง
@@ -457,9 +457,20 @@
        ขนาด 1 ท่อน) ─────────────────────────────────────────────────────────────────── */
     /* เล่นต่อท้ายท่อนก่อนหน้าแบบไม่เว้นช่องว่างเกินจำเป็น: speakNextAt = เวลาที่ท่อนก่อนหน้าจบ + ความเงียบหลังท่อน (ประโยค ~0.12 วิ / ย่อหน้า ~0.4 วิ จาก TanotTtsNorm.plan)
        → ท่อนแรกเสร็จก็เริ่มพูดเลย ไม่ต้องรอทั้งคำตอบ */
-    var speakSources = [], speakNextAt = 0;
+    var speakSources = [], speakNextAt = 0, speakGain = null;
+    /* ปรับความดังก่อนเล่น (audio-gain.js): gain วัดจากท่อนแรกของคำตอบแล้วใช้กับทุกท่อน (ความดังไม่กระโดดระหว่างท่อน) · แต่ละท่อนยังถูกจำกัด peak ≤ −1 dBFS */
+    function levelPcm(samples, sampleRate) {
+      var G = window.TanotAudioGain;
+      if (!G) return;
+      var m = G.measure(samples, sampleRate);
+      if (speakGain === null && m.active) speakGain = G.gainFor(m);
+      var g = speakGain === null ? 1 : speakGain;
+      if (m.peak > 0) g = Math.min(g, Math.pow(10, G.PEAK_DB / 20) / m.peak);
+      if (g !== 1) for (var i = 0; i < samples.length; i++) samples[i] *= g;
+    }
     function playPcm(samples, sampleRate, gapAfterSec) {
       try {
+        levelPcm(samples, sampleRate);
         var ctx = unlockAudioCtx();
         if (!ctx) { setStatus('เบราว์เซอร์นี้ไม่รองรับ AudioContext', 'err'); return; }
         var buf = ctx.createBuffer(1, samples.length, sampleRate);
@@ -478,7 +489,7 @@
     /* หยุดเสียงที่กำลังเล่น/คิวอยู่ + ยกเลิกงานสังเคราะห์ที่ค้าง (Worker รับได้ทีละงาน — งานใหม่มาซ้อนต้องปิดตัวเดิม) */
     function stopSpeaking() {
       speakSources.slice().forEach(function (src) { try { src.onended = null; src.stop(); } catch (e) {} });
-      speakSources = []; speakNextAt = 0;
+      speakSources = []; speakNextAt = 0; speakGain = null;
       if (speakJob) {
         var j = speakJob; speakJob = null;
         j.cleanup();
@@ -545,7 +556,7 @@
       speakJob = { w: w, cleanup: cleanup };
       w.addEventListener('message', onMsg);
       w.addEventListener('error', onErr);
-      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: plan.chunks.map(function (t, i) { return { i: i, text: t }; }), modelId: modelId });
+      w.postMessage({ type: 'synthesize-batch', jobId: jobId, items: plan.chunks.map(function (t, i) { return { i: i, text: thai ? N.padMms(t) : t }; }), modelId: modelId });
     }
 
     /* ── ส่งข้อความแชท (ใช้ทั้งตอนพิมพ์และตอนถอดเสียงจากไมค์เสร็จ) ───────────────────────── */
