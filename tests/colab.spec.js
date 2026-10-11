@@ -99,6 +99,15 @@ test.describe('B) การ์ดหนังสือเสียงคุณ�
     await expect(link).toHaveAttribute('target', '_blank');
     await expect(link).toHaveAttribute('rel', /noopener/);
     await page.click('#f5Box > summary');
+    await expect(page.locator('#f5ColabLink')).toBeVisible();
+    // คำอธิบายทั้งหมดพับไว้อีกชั้น — กางกล่องหลักแล้วเห็นแค่ปุ่ม/ตัวเลขประเมิน
+    await expect(page.locator('#f5HowBox')).not.toHaveAttribute('open', /.*/);
+    await expect(page.locator('#f5Card .f5-steps')).toBeHidden();
+    await expect(page.locator('#f5Card .f5-lead')).toBeHidden();
+    await page.click('#f5HowBox > summary');
+    await expect(page.locator('#f5Card .f5-steps')).toBeVisible();
+    await expect(page.locator('#f5Card .f5-lead')).toBeVisible();
+    await page.click('#f5HowBox > summary');
     await expect(page.locator('#f5Est')).toBeHidden();
     // 27 ย่อหน้า × 40 = 1,080 ตัวอักษร → 80 วิเสียง = ~1 นาที · สร้าง 21.6 วิ = ~1 นาที (ขั้นต่ำ 1 นาที)
     await fillText(page, Array.from({ length: 27 }, () => SENT).join('\n\n'));
