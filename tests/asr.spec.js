@@ -53,6 +53,78 @@ test.describe('asr-calc: รอยต่อท่อนเหลื่อม', (
   });
 });
 
+test.describe('asr-calc: รอยต่อที่สะกดต่างเล็กน้อย (แบบคลาดเคลื่อนได้) + จุดตัดเงียบไม่เหลื่อม', () => {
+  test('สะกดต่าง 1–2 ตัว (วรรณยุกต์/สระ/ตัวสะกด/สลับตำแหน่ง) → ตัดส่วนซ้ำ · คืน fuzzy + dist', () => {
+    const T = 'วันนี้เราจะมาคุยเรื่องการลงทุนในหุ้นไทย';
+    const cases = [
+      ['การลงทุนในหุ้นไท กันครับ เริ่มจาก', 'กันครับ เริ่มจาก', 1],   // ขาดตัวสะกด
+      ['การลงทุนไนหุ้นไทยกันครับ เริ่มจาก', 'กันครับ เริ่มจาก', 1],   // สระต่าง
+      ['การลุงทุนไนหุ้นไทยกันครับ เริ่มจาก', 'กันครับ เริ่มจาก', 2],  // 2 ตัว
+      ['ในหุ้นไท่ยกันครับ', 'กันครับ', 1],                            // วรรณยุกต์เกิน
+    ];
+    for (const [head, want, dist] of cases) {
+      const o = Asr.seamOverlap(T, head);
+      expect(o, head).toMatchObject({ fuzzy: true, dist });
+      expect(Asr.trimSeam(T, head).text, head).toBe(want);
+    }
+    expect(Asr.trimSeam('ราคาทองวันนี้ปรับตัวขึ้นเล็กน้อย', 'ปรับตัวขึ้นเล็กนอ้ย ตามตลาดโลก').text).toBe('ตามตลาดโลก'); // สลับตำแหน่ง ไม่เหลือเศษวรรณยุกต์
+    expect(Asr.trimSeam('ราคาทองวันนี้ปรับตัวขึ้นเล็กน้อย', 'ปรับตัวขึ้นเลกน้อย ตามตลาดโลก').text).toBe('ตามตลาดโลก');
+    expect(Asr.FUZZY_MIN_CHARS).toBe(8); expect(Asr.FUZZY_RATIO).toBe(0.2); expect(Asr.FUZZY_MAX_DIST).toBe(3);
+  });
+  test('แบบเป๊ะชนะเสมอ · fuzzy:false = พฤติกรรมเดิม · ปรับเกณฑ์ได้ใน opts', () => {
+    const exact = Asr.seamOverlap('การประชุมวันนี้เรื่องประมวลกฎหมายแพ่ง', 'ประมวลกฎหมายแพ่งและพาณิชย์');
+    expect(exact).toMatchObject({ fuzzy: false, dist: 0, len: 16 });
+    const T = 'วันนี้เราจะมาคุยเรื่องการลงทุนในหุ้นไทย', H = 'การลงทุนไนหุ้นไทยกันครับ เริ่มจาก';
+    expect(Asr.seamOverlap(T, H, { fuzzy: false }).drop).toBe(0);
+    expect(Asr.seamOverlap(T, H, { fuzzyRatio: 0 }).drop).toBe(0);
+    expect(Asr.seamOverlap(T, 'การลุงทุนไนหุ้นไทยกันครับ', { fuzzyMaxDist: 1 }).drop).toBe(0);  // ต่าง 2 ตัว > เพดาน 1
+    expect(Asr.seamOverlap('ในหุ้นไท่ย', 'ในหุ้นไทยกันครับ', { fuzzyMin: 12 }).drop).toBe(0);    // สั้นกว่าเกณฑ์ที่ตั้ง
+  });
+  test('ไม่ตัด: ข้อความต่างกันจริง · ซ้ำสั้นกว่า 8 ตัว · ข้อความจริงที่พูดซ้ำยาวเกินส่วนเหลื่อม · ขยะนำหน้า > 2 ตัว · สองท่อนคล้ายกันทั้งท่อน', () => {
+    const T = 'วันนี้เราจะมาคุยเรื่องการลงทุนในหุ้นไทย';
+    expect(Asr.trimSeam(T, 'ต่อมาเราก็ไปเที่ยวทะเลกันครับ').dropped).toBe(0);
+    expect(Asr.trimSeam(T, 'หุ้นไท่ ต่อไป').dropped).toBe(0);                                 // ส่วนที่คล้าย 5 ตัว < 8
+    expect(Asr.trimSeam('เราจะต้องทำ', 'เราจะต้องไปตลาด').dropped).toBe(0);                  // ต่างที่ท้าย (ทำ/ไป) = คนละประโยค
+    const X = 'ขอให้ทุกคนตั้งใจฟังให้ดีเพราะเรื่องนี้สำคัญมากสำหรับการสอบปลายภาคที่จะถึงนี้';       // 70+ ตัว > เพดานรอยต่อ 47
+    expect(Asr.trimSeam('เกริ่นนำ ' + X, X + ' ต่อจากนั้น').dropped).toBe(0);
+    expect(Asr.trimSeam('เกริ่นนำ ' + X, X.replace('สำคัญ', 'สําคัน') + ' ต่อจากนั้น').dropped).toBe(0); // ซ้ำยาวแบบคลาดเคลื่อนก็ไม่ตัด
+    expect(Asr.trimSeam('...ในสภาพแวดล้อมในการทำงาน', 'ออกขภาพแวดล้อมในการทํางานและความปลอดภัย').dropped).toBe(0);
+    expect(Asr.trimSeam('seg3:480000:auto:Xenova/whisper-base', 'seg4:480000:auto:Xenova/whisper-base').dropped).toBe(0);
+    // สุ่มประโยคไทยจากคำทั่วไป 5,000 คู่: แบบคลาดเคลื่อนได้ตัดผิดน้อยกว่าแบบเป๊ะที่บังเอิญตรง (≤ 0.2%)
+    const W = 'การ ลงทุน หุ้น ไทย วันนี้ เรา จะ มา คุย เรื่อง ของ ที่ ใน ได้ ไป ให้ เป็น และ มี ความ ว่า กับ แต่ ก็ คน นี้ จาก ทำ ต้อง อยู่ ครับ ค่ะ ตลาด ราคา ปี เงิน บริษัท ผล กำไร ขาดทุน ข่าว'.split(' ');
+    let seed = 7; const rnd = () => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; };
+    const sent = (n) => Array.from({ length: n }, () => W[Math.floor(rnd() * W.length)]).join('');
+    let fuzzy = 0;
+    for (let i = 0; i < 5000; i++) if (Asr.seamOverlap(sent(12), sent(12)).fuzzy) fuzzy++;
+    expect(fuzzy).toBeLessThanOrEqual(10);
+  });
+  test('mergeChunks: รอยต่อที่สะกดต่างถูกตัด (segments + เวลา) · ท่อนที่ ov = 0 (ตัดที่จุดเงียบ) ไม่ถูกตัดแม้ข้อความซ้ำ', () => {
+    const m = Asr.mergeChunks([
+      { offset: 0, ov: 0, segments: [{ start: 0, end: 4, text: 'ก่อนอื่นขอเริ่มประชุมวันนี้' }, { start: 24, end: 27.5, text: 'เรื่องแรกคือสัญญาซื้อขายที่ดิน' }] },
+      { offset: 26, ov: 1.5, segments: [{ start: 0, end: 1.5, text: 'เรื่องแรกคือสัญญาซื้อขายที่ดิ้น' }, { start: 2, end: 5, text: 'ผู้ซื้อต้องชำระราคา' }] },
+      { offset: 52, ov: 0, segments: [{ start: 0, end: 3, text: 'ผู้ซื้อต้องชำระราคา' }, { start: 3, end: 6, text: 'อีกครั้งหนึ่ง' }] }, // พูดซ้ำจริงหลังช่วงเงียบ
+    ]);
+    expect(m.segments.map((s) => s.text)).toEqual(['ก่อนอื่นขอเริ่มประชุมวันนี้', 'เรื่องแรกคือสัญญาซื้อขายที่ดิน', 'ผู้ซื้อต้องชำระราคา', 'ผู้ซื้อต้องชำระราคา', 'อีกครั้งหนึ่ง']);
+    expect(m.trimmed[1]).toBeGreaterThan(0);
+    expect(m.trimmed[2]).toBe(0);
+    expect(m.segments[2].start).toBe(28);
+  });
+  test('planChunks: isSilent(จุดตัด) = true → ท่อนถัดไป ov = 0 (a = จุดตัด) · false → 1.5 วิ · ส่งเสียงเพิ่มเฉพาะจุดที่ไม่เงียบ', () => {
+    const R = 16000, total = R * 100;
+    const asked = [];
+    const p = Asr.planChunks(total, { isSilent: (pos) => { asked.push(pos); return asked.length % 2 === 1; } }); // จุดตัดที่ 1, 3 เงียบ
+    expect(p.length).toBe(4);
+    expect(asked).toEqual(p.slice(1).map((c) => c.start));
+    expect(p.slice(1).map((c) => c.ov)).toEqual([0, 1.5, 0]);
+    expect(p.slice(1).map((c) => c.start - c.a)).toEqual([0, 24000, 0]);
+    for (let i = 1; i < p.length; i++) expect(p[i].start).toBe(p[i - 1].end);
+    expect(Asr.sentSeconds(p)).toBeCloseTo(101.5, 5);
+    const allSilent = Asr.planChunks(total, { isSilent: () => true });
+    expect(Asr.sentSeconds(allSilent)).toBe(100);
+    expect(Asr.planChunks(total, { isSilent: () => false }).slice(1).every((c) => c.ov === 1.5)).toBe(true);
+  });
+});
+
 test.describe('asr-calc: แผนท่อนเหลื่อม + Neurons + ย่อหน้า', () => {
   test('planChunks: ครอบคลุมทั้งไฟล์ ไม่ขาด · ท่อนถัดไปเริ่มก่อนจุดตัด 1.5 วิ · ท่อนยาว ≤ 33 วิ · ท่อนท้ายสั้นรวมเข้าท่อนก่อน', () => {
     const R = 16000, total = R * 100;
@@ -286,6 +358,32 @@ test.describe('ถอดเสียงคลาวด์: ท่อนเหล
     expect(flat(text)).toBe(EXPECT_TEXT);
     for (const phrase of ['เรื่องแรกคือสัญญาซื้อขาย', 'เรื่องละเมิด', 'ทางแพ่ง']) expect(text.split(phrase).length - 1).toBe(1);
     await expect(page.locator('#asrStatus')).toContainText('คลาวด์');
+  });
+
+  test('จุดตัดที่เงียบจริง → ท่อนนั้นไม่เหลื่อม (ไม่ส่งเสียงซ้ำ 1.5 วิ) และไม่ตัดคำซ้ำ · จุดตัดที่มีเสียง → เหลื่อม 1.5 วิ + ตัดคำซ้ำที่สะกดต่างเล็กน้อย', async ({ context, page }) => {
+    // 100 วิ ที่ 16 kHz: เสียงดังตลอด ยกเว้น 20–40 วิ เงียบสนิท → จุดตัดแรก (~25–31 วิ) อยู่กลางความเงียบ · จุดตัดอื่นอยู่ในเสียง
+    const R = 16000, n = R * 100, b = Buffer.alloc(44 + n * 2);
+    b.write('RIFF', 0); b.writeUInt32LE(36 + n * 2, 4); b.write('WAVE', 8); b.write('fmt ', 12);
+    b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22); b.writeUInt32LE(R, 24);
+    b.writeUInt32LE(R * 2, 28); b.writeUInt16LE(2, 32); b.writeUInt16LE(16, 34); b.write('data', 36); b.writeUInt32LE(n * 2, 40);
+    for (let i = 0; i < n; i++) b.writeInt16LE(i >= 20 * R && i < 40 * R ? 0 : Math.round(0.3 * Math.sin(i / 7) * 32767), 44 + i * 2);
+    const SAY = [
+      [{ start: 0, end: 4, text: 'ก่อนอื่นขอเริ่มประชุมวันนี้' }, { start: 15, end: 19, text: 'ขอบคุณทุกท่านครับ' }],
+      [{ start: 12, end: 15, text: 'ขอบคุณทุกท่านครับ' }, { start: 20, end: 27, text: 'เรื่องแรกคือสัญญาซื้อขายที่ดิน' }], // พูดซ้ำจริงหลังช่วงเงียบ → ต้องอยู่ครบ
+      [{ start: 0, end: 1.5, text: 'เรื่องแรกคือสัญญาซื้อขายที่ดิ้น' }, { start: 2, end: 6, text: 'ผู้ซื้อต้องชำระราคา' }],    // ส่วนเหลื่อมสะกดต่าง 1 ตัว
+      [{ start: 2, end: 5, text: 'จบการประชุม' }],
+    ];
+    const st = await cloudSetup(context, page, (k) => ({ json: { text: (SAY[k] || []).map((x) => x.text).join(' '), segments: SAY[k] || [], neurons: 3 } }));
+    await page.goto('/text-to-speech.html');
+    await page.setInputFiles('#asrFile', { name: 'meeting.wav', mimeType: 'audio/wav', buffer: b });
+    await page.selectOption('#asrLang', 'thai');
+    await page.click('#asrGoBtn');
+    await expect(page.locator('#asrStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    expect(st.calls.length).toBe(4);
+    const total = st.calls.reduce((x, c) => x + c.sec, 0);
+    expect(Math.abs(total - (100 + 2 * 1.5))).toBeLessThan(0.01);   // เหลื่อมเฉพาะ 2 รอยต่อที่มีเสียง ไม่ใช่ 3
+    const text = flat(await page.inputValue('#asrResult'));
+    expect(text).toBe('ก่อนอื่นขอเริ่มประชุมวันนี้ ขอบคุณทุกท่านครับ ขอบคุณทุกท่านครับ เรื่องแรกคือสัญญาซื้อขายที่ดิน ผู้ซื้อต้องชำระราคา จบการประชุม');
   });
 
   test('ท่อนที่ล้ม ลองใหม่ 1 ครั้งแล้วผ่าน → ผลครบ · ล้มซ้ำ 2 ครั้ง → หยุดทั้งชุดพร้อมข้อความ', async ({ context, page }) => {

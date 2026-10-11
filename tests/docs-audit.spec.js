@@ -167,7 +167,7 @@ const TARGETS = [
       ['text', async (p) => { await p.fill('#ttsText', 'Hello world. สวัสดีครับ นี่คือข้อความทดสอบสำหรับแปลงเป็นเสียง'); await settle(p, 200); }],
       ['imported', async (p) => { await files(p, '#importFileInput', txtFile('speech.txt', 'Imported speech text. ' + 'ข้อความที่นำเข้า '.repeat(10))); await settle(p, 600); }],
       // Section 5: คำอ่านของฉัน (มีแถวที่ถูกปฏิเสธ → ข้อความเตือน) · รายการคำที่ถูกข้ามใน "ดูข้อความที่จะอ่านจริง" · ตัวเลือก WebGPU · รายการไฟล์แบ่งตอน · กล่องเตือนระหว่างสร้าง
-      ['lexicon', async (p) => { await p.fill('#ttsText', 'Hero (ฮีโร่) บอกว่า Origin Blood กับ Zed สำคัญ ' + 'ข้อความภาษาไทยยาวๆ '.repeat(8)); await dom(p, '#lexBox > summary'); await p.fill('#lexText', 'Origin Blood = ออริจิน บลัด\nHero = hero\nไม่มีเท่ากับ'); await p.locator('#lexText').blur(); await settle(p, 500); }],
+      ['lexicon', async (p) => { await p.fill('#ttsText', 'Hero (ฮีโร่) บอกว่า Origin Blood กับ Zed สำคัญ บาดแผลได้ผล ' + 'ข้อความภาษาไทยยาวๆ '.repeat(8)); await dom(p, '#lexBox > summary'); await p.fill('#lexText', 'Origin Blood = ออริจิน บลัด\nHero = hero\nผล = ผน\nไม่มีเท่ากับ'); await p.locator('#lexText').blur(); await settle(p, 500); }],
       ['preview-skipped', async (p) => { await dom(p, '#pvMmsBox > summary'); await settle(p, 600); }],
       ['gpu-option-parts', async (p) => { await p.evaluate(() => { document.getElementById('optGpuWrap').hidden = false; window.__tts.demoParts(); document.getElementById('dlStatus').className = 'status ok'; document.getElementById('dlStatus').textContent = 'x'; }); await settle(p, 300); }],
       ['keep-note', async (p) => { await p.evaluate(() => window.__tts.demoRun(true, true)); await settle(p, 300); }],

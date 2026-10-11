@@ -146,12 +146,41 @@ test.describe('media-core: ถอดรหัส 16kHz + แบ่งช่ว�
     await setup(context, page);
     await page.goto('/text-to-speech.html');
     for (const sec of [0.5, 12, 29, 31, 60, 660, 3601]) {
-      const ch = await page.evaluate((n) => TanotMedia.planAsrChunks(TanotMedia.fromPcm(new Float32Array(Math.round(16000 * n)))), sec);
+      // เสียงดังตลอด (ไม่มีจุดเงียบจริง) → ทุกรอยต่อเหลื่อม 1.5 วิ
+      const ch = await page.evaluate((n) => { const p = new Float32Array(Math.round(16000 * n)); for (let i = 0; i < p.length; i++) p[i] = 0.2 * Math.sin(i / 7); return TanotMedia.planAsrChunks(TanotMedia.fromPcm(p)); }, sec);
       expect(ch.length, sec + ' วิ').toBeGreaterThanOrEqual(1);
       expect(ch[0].a).toBe(0); expect(ch[ch.length - 1].b).toBe(Math.round(16000 * sec));
       for (const c of ch) expect((c.b - c.a) / 16000, sec + ' วิ').toBeLessThanOrEqual(30);
-      for (let i = 1; i < ch.length; i++) { expect(ch[i].start).toBe(ch[i - 1].end); expect(ch[i].start - ch[i].a).toBe(24000); } // เหลื่อมหลัง 1.5 วิ
+      for (let i = 1; i < ch.length; i++) { expect(ch[i].start).toBe(ch[i - 1].end); expect(ch[i].start - ch[i].a).toBe(24000); expect(ch[i].ov).toBe(1.5); } // เหลื่อมหลัง 1.5 วิ
     }
+  });
+
+  test('planAsrChunks: จุดตัดที่เงียบจริง (±0.25 วิ < −45 dBFS) → ท่อนถัดไปไม่เหลื่อม (ov = 0) · ไม่เงียบ → 1.5 วิ · silentAt วัดระดับ', async ({ context, page }) => {
+    await setup(context, page);
+    await page.goto('/text-to-speech.html');
+    const r = await page.evaluate(() => {
+      const R = 16000;
+      const sig = (sec, fn) => { const p = new Float32Array(R * sec); for (let i = 0; i < p.length; i++) p[i] = fn(i); return TanotMedia.fromPcm(p); };
+      const silent = TanotMedia.planAsrChunks(sig(90, () => 0));                                   // เงียบสนิททั้งไฟล์
+      const hiss = TanotMedia.planAsrChunks(sig(90, (i) => 0.003 * Math.sin(i * 1.3)));            // เสียงพื้น ~ −53 dBFS (ต่ำกว่า −45) = เงียบ
+      const loud = TanotMedia.planAsrChunks(sig(90, (i) => 0.02 * Math.sin(i / 5)));               // ~ −37 dBFS = ไม่เงียบ
+      // พูด 4 วิ เงียบ 2 วิ สลับกัน → จุดตัดตกในช่วงเงียบ 2 วิ แต่จุดที่เงียบที่สุดอยู่ช่วงต้น (±0.25 วิ คร่อมเสียงพูด) หรือกลาง → ov แต่ละจุดตรงกับ silentAt
+      const mixDec = sig(120, (i) => ((i / R) % 6 < 4 ? 0.3 * Math.sin(i / 7) : 0));
+      const mix = TanotMedia.planAsrChunks(mixDec);
+      return {
+        silent: silent.slice(1).map((c) => [c.ov, c.start - c.a]), hiss: hiss.slice(1).map((c) => c.ov), loud: loud.slice(1).map((c) => c.ov),
+        mixOk: mix.slice(1).every((c) => c.ov === (TanotMedia.silentAt(mixDec, c.start) ? 0 : 1.5)),
+        at: [TanotMedia.silentAt(mixDec, R * 5), TanotMedia.silentAt(mixDec, R * 2), TanotMedia.silentAt(mixDec, R * 4), TanotMedia.silentAt(mixDec, Math.round(R * 4.3))],
+        consts: [TanotMedia.SILENT_SEC, TanotMedia.SILENT_DB]
+      };
+    });
+    expect(r.silent.length).toBeGreaterThanOrEqual(2);
+    for (const [ov, back] of r.silent) { expect(ov).toBe(0); expect(back).toBe(0); }
+    expect(r.hiss.every((ov) => ov === 0)).toBe(true);
+    expect(r.loud.every((ov) => ov === 1.5)).toBe(true);
+    expect(r.mixOk).toBe(true);
+    expect(r.at).toEqual([true, false, false, true]); // กลางช่วงเงียบ = เงียบ · กลางเสียงพูด/ขอบเสียงพูด = ไม่เงียบ · ห่างขอบ 0.3 วิ = เงียบ
+    expect(r.consts).toEqual([0.25, -45]);
   });
 });
 
