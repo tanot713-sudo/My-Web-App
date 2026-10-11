@@ -314,7 +314,7 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
     const errors = await setup(context, page, { cfg: { tts: { loadMs: 300, busyMs: 120 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
     await page.evaluate(() => window.__tts.TTS_IDLE_MS(800));
-    await generate(page);
+    await generate(page, 'Tanotfin/mms-tts-2081-FM-stable2-onnx'); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพูลหลาย Worker
     const tts = await workers(page, /tts-worker/);
     expect(tts.length).toBe(4);
     for (let k = 1; k < tts.length; k++) {

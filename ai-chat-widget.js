@@ -38,11 +38,11 @@
   var SUMMARY_REMINDER = 'ย้ำ: ตอบตามโครงสร้าง 3 หัวข้อที่กำหนดเท่านั้น เริ่มที่ "หัวข้อหลัก:" ทันที ' +
     'ห้ามขึ้นต้นด้วยคำนำ คำทักทาย หรือคำอธิบายอื่นก่อนหน้านั้นเด็ดขาด';
   /* เจอจริงว่าถ้าผู้ใช้ถามเป็นอังกฤษ โมเดลแชทจะตอบเป็นอังกฤษกลับ (ตาม system prompt) แล้วป้อนข้อความ
-     อังกฤษเข้าโมเดลเสียงไทยล้วน (Tanotfin/mms-tts-2081-FM-stable2-onnx) ทำให้ tokenize/คำนวณ tensor พังจริง
+     อังกฤษเข้าโมเดลเสียงไทยล้วน (โมเดลเสียงไทยค่าเริ่มต้น) ทำให้ tokenize/คำนวณ tensor พังจริง
      ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
      ตัวเดียว เช็คแค่ "มีตัวอักษรไทยอยู่ไหม" ก็พอ (ระบบตอบเต็มประโยคเป็นภาษาเดียวเสมอ ไม่สลับภาษากลางคำตอบ) */
   function pickTtsModel(text) {
-    return /[฀-๿]/.test(text) ? ((window.TanotMediaModels && window.TanotMediaModels.TTS_DEFAULT_VOICE) || 'Tanotfin/mms-tts-2081-FM-stable2-onnx') : 'Xenova/mms-tts-eng';
+    return /[฀-๿]/.test(text) ? ((window.TanotMediaModels && window.TanotMediaModels.TTS_DEFAULT_VOICE) || 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx') : 'Xenova/mms-tts-eng';
   }
   /* ⚠️ 2026-08-10: มีรายงานยืนยันจริงจากผู้ใช้ (iPhone 14 Pro Max, Safari) ว่าพิมพ์ถามแค่คำเดียว
      ("สวัสดี") แล้วหน้าเว็บรีเฟรชเองระหว่างที่โมเดลแชทยังโหลดไม่ถึงครึ่ง (เห็น progress ~11% ค้าง

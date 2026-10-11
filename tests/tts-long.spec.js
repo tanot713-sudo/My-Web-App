@@ -518,6 +518,7 @@ test.describe('B) งานยาวไม่หาย', () => {
   test('สร้างไฟล์ซ้ำติดกัน (พูลยังไม่ปิด) ใช้ Worker เดิมที่อุ่นแล้ว · ไม่ค้าง · ไม่สร้าง Worker เพิ่ม', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { busyMs: 20 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', 'Tanotfin/mms-tts-2081-FM-stable2-onnx');
     await page.fill('#ttsText', sentences(12));
     await page.click('#dlGenerateBtn'); await ok(page);
     const n1 = await page.evaluate(() => window.__workers.filter((u) => /tts-worker/.test(u)).length);
@@ -640,6 +641,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
   const gpuText = () => sentences(6);
   async function run(page, text) {
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', 'Tanotfin/mms-tts-2081-FM-stable2-onnx'); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพูล/WebGPU ของโมเดล q8
     await page.fill('#ttsText', text || gpuText());
     await page.click('#dlGenerateBtn'); await ok(page);
   }

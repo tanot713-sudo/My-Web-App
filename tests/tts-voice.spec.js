@@ -78,12 +78,12 @@ test.describe('A) audio-gain.js — ปรับความดังอัต�
 
 test.describe('A) media-models.js — เสียงไทยชุด stable2', () => {
   const M = models();
-  test('migrate: id ต้นฉบับทั้ง 4 + ชุด stable ทั้ง 3 → stable2 คู่กัน ("ค่าเริ่มต้น" เดิม → หญิง ทั่วไป) · id stable2/อังกฤษ/อื่นคงเดิม', () => {
+  test('migrate: id ต้นฉบับทั้ง 4 + ชุด stable ทั้ง 3 → stable2 คู่กัน ("ค่าเริ่มต้น" เดิม → หญิง ทั่วไป ไม่ใช่ค่าเริ่มต้นใหม่) · id stable2/อังกฤษ/อื่นคงเดิม', () => {
     expect(M.ttsMigrate(OLD.def)).toBe(S2.fm);
     expect(M.ttsMigrate(OLD.fm)).toBe(S2.fm); expect(M.ttsMigrate(OLD.m)).toBe(S2.m); expect(M.ttsMigrate(OLD.pod)).toBe(S2.pod);
     expect(M.ttsMigrate(STABLE.fm)).toBe(S2.fm); expect(M.ttsMigrate(STABLE.m)).toBe(S2.m); expect(M.ttsMigrate(STABLE.pod)).toBe(S2.pod);
     for (const id of Object.values(S2).concat(['Xenova/mms-tts-eng', 'x/y', ''])) expect(M.ttsMigrate(id)).toBe(id);
-    expect(M.TTS_DEFAULT_VOICE).toBe(S2.fm);
+    expect(M.TTS_DEFAULT_VOICE).toBe(S2.pod);   // ค่าเริ่มต้นใหม่ = โทนพอดแคสต์ แต่คนที่เคยเลือกหญิง ทั่วไปยังได้หญิง ทั่วไป (ด้านบน)
   });
   test('ทางถอย = "ขั้นถัดไป": stable2 → stable → ต้นฉบับ → null (ห่วงโซ่ 2 ขั้น ไม่วนกลับ)', () => {
     for (const k of ['fm', 'm', 'pod']) {
@@ -179,6 +179,7 @@ test.describe('A) tts-normalize.js — เพดานท่อน MAX_CHUNK = 6
   test('หน้าสร้างไฟล์เสียงส่ง Worker ท่อนละ ≤ 62 ตัวอักษร (ท่อน ≤ 60 + ช่องว่างเว้นขอบ 2 ตัว) และจำนวนท่อนเท่ากับ plan()', async ({ context, page }) => {
     const errors = await setup(context, page, { init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT2);
     await page.click('#dlGenerateBtn'); await ok(page);
     const items = (await page.evaluate(() => window.__batches)).flatMap((b) => b.rawItems);
@@ -274,15 +275,25 @@ const wavStats = (page, sel, seg) => page.evaluate(async ([s, sg]) => {
 }, [sel, seg || null]);
 
 test.describe('B) รายการเสียงไทย + ทางถอย', () => {
-  test('รายการ: 3 เสียง stable2 ไม่มี "ค่าเริ่มต้น" · ค่าเริ่มต้น = หญิง (ทั่วไป) stable2 · EN มีตัวเดียวเหมือนเดิม', async ({ context, page }) => {
+  test('รายการ: 3 เสียง stable2 ไม่มี "ค่าเริ่มต้น" · ค่าเริ่มต้น = หญิง (โทนพอดแคสต์) stable2 · EN มีตัวเดียวเหมือนเดิม', async ({ context, page }) => {
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
     const opts = await page.$$eval('#dlVoice option', (os) => os.map((o) => [o.value, o.textContent]));
-    expect(opts).toEqual([[S2.fm, 'หญิง (ทั่วไป)'], [S2.m, 'ชาย (ทั่วไป)'], [S2.pod, 'หญิง (โทนพอดแคสต์)']]);
+    expect(opts).toEqual([[S2.pod, 'หญิง (โทนพอดแคสต์)'], [S2.fm, 'หญิง (ทั่วไป)'], [S2.m, 'ชาย (ทั่วไป)']]);
     expect(opts.some(([v, t]) => v === OLD.def || t === 'ค่าเริ่มต้น')).toBe(false);
-    expect(await page.inputValue('#dlVoice')).toBe(S2.fm);
+    expect(await page.inputValue('#dlVoice')).toBe(S2.pod); // ค่าเริ่มต้นใหม่ = โทนพอดแคสต์
     await page.selectOption('#dlLang', 'en');
     expect(await page.$$eval('#dlVoice option', (os) => os.map((o) => o.value))).toEqual(['Xenova/mms-tts-eng']);
+    expect(errors).toEqual([]);
+  });
+
+  test('ผู้ใช้ที่เลือกหญิง (ทั่วไป) stable2 ไว้แล้ว ยังได้หญิง (ทั่วไป) เมื่อวาดรายการใหม่ (ค่าเริ่มต้นใหม่ไม่ทับ)', async ({ context, page }) => {
+    const errors = await setup(context, page);
+    await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm);
+    await page.selectOption('#dlLang', 'th');
+    await page.evaluate(() => document.getElementById('dlLang').dispatchEvent(new Event('change')));
+    expect(await page.inputValue('#dlVoice')).toBe(S2.fm);
     expect(errors).toEqual([]);
   });
 
@@ -291,6 +302,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
     test('ค่าที่เคยเลือกไว้ (' + name + ') → แปลงเป็น stable2 ตัวคู่กัน ทั้งในรายการและตอนสร้างไฟล์', async ({ context, page }) => {
       const errors = await setup(context, page, { init: BIG_DEVICE });
       await page.goto('/text-to-speech.html');
+      await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
       await page.evaluate((id) => { const s = document.getElementById('dlVoice'), o = document.createElement('option'); o.value = id; s.appendChild(o); s.value = id; }, old);
       await page.selectOption('#dlLang', 'th'); // วาดรายการใหม่ (เก็บค่าที่เลือกไว้)
       await page.evaluate(() => document.getElementById('dlLang').dispatchEvent(new Event('change')));
@@ -307,6 +319,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('dtype ต่อ id ที่ Worker โหลดจริง: พอดแคสต์ stable2 = fp32 · หญิง/ชาย stable2 = ค่าเริ่มต้น (ไม่ส่ง dtype)', async ({ context, page }) => {
     const errors = await setup(context, page, { init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     for (const id of [S2.pod, S2.m, S2.fm]) {
       await page.selectOption('#dlVoice', id);
       await page.fill('#ttsText', TEXT);
@@ -326,6 +339,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('ทางถอยขั้นที่ 1: โหลด stable2 ไม่ได้ (404) → stable 1 ครั้ง + problem log (ไม่มีเนื้อหาผู้ใช้) · ไฟล์ยังสร้างได้', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { missing: [S2.m] }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.selectOption('#dlVoice', S2.m);
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -349,6 +363,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('ทางถอย 2 ขั้น: stable2 และ stable โหลดไม่ได้ → ต้นฉบับ · ขั้นละ 1 ครั้ง · problem log 2 แถว (stable2→stable, stable→ต้นฉบับ)', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { missing: [S2.pod, STABLE.pod] }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.selectOption('#dlVoice', S2.pod);
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -364,6 +379,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('ทางถอยหมดห่วงโซ่ (ทั้ง 3 ตัวโหลดไม่ได้) → แจ้ง error ไม่วนซ้ำ ไม่ลองเกิน 3 ตัว', async ({ context, page }) => {
     await setup(context, page, { cfg: { missing: [S2.fm, STABLE.fm, OLD.fm] }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
@@ -373,6 +389,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('หน่วยความจำไม่พอ ≠ 404 → ไม่ถอยไปชุดอื่น (แจ้ง error ตามปกติ)', async ({ context, page }) => {
     await setup(context, page, { cfg: { mem: [S2.fm] }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
@@ -383,6 +400,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('เครือข่ายสะดุด (TypeError: network error) ตอนโหลด 1 ครั้ง → รอ ≥ 1.4 วิ ลองโหลดชุดเดิมซ้ำ → ผ่าน ไม่ถอย · problem log บันทึกว่าลองซ้ำ (code info, ไม่ใช่ error)', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { netFail: { [S2.pod]: 1 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.selectOption('#dlVoice', S2.pod);
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -402,6 +420,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('เครือข่ายสะดุดซ้ำหลังลองใหม่แล้ว → เข้าทางถอยขั้นถัดไป (stable) · fallback ระบุ retried · log: ลองซ้ำ 1 + ถอย 1', async ({ context, page }) => {
     await setup(context, page, { cfg: { netFail: { [S2.fm]: 2 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn'); await ok(page);
     expect(await pipelines(page)).toEqual([S2.fm, S2.fm, STABLE.fm]);
@@ -415,6 +434,7 @@ test.describe('B) รายการเสียงไทย + ทางถอ�
   test('404 ไม่ลองซ้ำ (ไปทางถอยทันที) — แต่ละ id ถูกโหลดครั้งเดียว ไม่มีแถว load-retry', async ({ context, page }) => {
     await setup(context, page, { cfg: { missing: [S2.fm] }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn'); await ok(page);
     expect(await pipelines(page)).toEqual([S2.fm, STABLE.fm]);
@@ -427,6 +447,7 @@ test.describe('B) เว้นขอบท่อน', () => {
   test('ทุกท่อนที่ Worker ได้รับขึ้นต้น/ลงท้ายด้วยช่องว่าง 1 ตัว · ตัวท่อนยัง ≤ MAX_CHUNK · "ดูข้อความที่จะอ่านจริง" ไม่มีช่องว่างพิเศษ', async ({ context, page }) => {
     const errors = await setup(context, page, { init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT + '\n\n' + 'คำ '.repeat(80));
     await page.click('#dlGenerateBtn'); await ok(page);
     const items = (await page.evaluate(() => window.__batches)).flatMap((b) => b.rawItems);
@@ -440,6 +461,7 @@ test.describe('B) เว้นขอบท่อน', () => {
   test('ภาษาอังกฤษ (mms-tts-eng) ไม่เว้นขอบท่อน', async ({ context, page }) => {
     await setup(context, page, { init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.selectOption('#dlLang', 'en');
     await page.fill('#ttsText', 'This is the first test sentence. This is another one.');
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -454,6 +476,7 @@ test.describe('B) ปรับความดังตอนสร้างไ�
   test('เสียงเบา (แอมพลิจูด 0.01 ≈ −43 dBFS) → ไฟล์ .wav RMS ใกล้ −20 dBFS · peak ≤ −1 dBFS', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { amp: 0.01 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn'); await ok(page);
     const s = await wavStats(page, '#dlWavLink');
@@ -464,6 +487,7 @@ test.describe('B) ปรับความดังตอนสร้างไ�
   test('เสียงดังเกิน (แอมพลิจูด 1.5) → ลดลง peak = −1 dBFS', async ({ context, page }) => {
     await setup(context, page, { cfg: { amp: 1.5 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn'); await ok(page);
     const s = await wavStats(page, '#dlWavLink');
@@ -472,6 +496,7 @@ test.describe('B) ปรับความดังตอนสร้างไ�
   test('ดังพออยู่แล้ว (แอมพลิจูด 0.3 → RMS ≈ −13.5) → ไม่ถูกลดเสียง', async ({ context, page }) => {
     await setup(context, page, { cfg: { amp: 0.3 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn'); await ok(page);
     const s = await wavStats(page, '#dlWavLink');
@@ -480,6 +505,7 @@ test.describe('B) ปรับความดังตอนสร้างไ�
   test('ช่วงเงียบสนิทไม่ถูกนับ/ขยาย: ครึ่งหลังของทุกท่อนเงียบ → ช่วงพูดยังได้ ≈ −20 dBFS ไม่ใช่ดังกว่า', async ({ context, page }) => {
     await setup(context, page, { cfg: { amp: 0.02, gap: true }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', 'ประโยคเดียวสั้นๆ ทดสอบ');
     await page.click('#dlGenerateBtn'); await ok(page);
     const sp = await wavStats(page, '#dlWavLink', [0, 8000]);
@@ -490,6 +516,7 @@ test.describe('B) ปรับความดังตอนสร้างไ�
   test('แบ่งไฟล์ตามตอน: ปรับความดังต่อตอน (ตอนที่ท่อนเบากับตอนที่ท่อนดัง ได้ RMS ใกล้ −20 ทั้งคู่)', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { amp: 0.01, loud: 0.05 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', ['1. ตอนเบา', 'ประโยคของตอนแรก เบา', '', '2. ตอนดัง', 'ประโยคของตอนสอง ดัง ดัง'].join('\n'));
     await page.check('#optSplit');
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -516,6 +543,7 @@ test.describe('C) วิดเจ็ตแชท', () => {
     const errors = await setup(ctx, page, { cfg: { amp: 0.01, chat: ['ราคา 3,599 บาท ลดห้าสิบเปอร์เซ็นต์ ', 'ขอบคุณมากครับ'] }, init: 'window.TANOT_AI = { enabled: true };' });
     await page.addInitScript(() => localStorage.setItem('ome:aiChatSpeak', 'on'));
     await page.goto('/credits.html');
+    await page.waitForFunction(() => window.TanotMediaModels); await page.evaluate((id) => { window.TanotMediaModels.TTS_DEFAULT_VOICE = id; }, S2.fm); // วิดเจ็ตใช้ค่าเริ่มต้นของตาราง — ตรึงเป็นหญิง (ทั่วไป) สำหรับเทสต์ที่ตรวจเสียงนี้
     await ask(page, 'ทดสอบ');
     await expect.poll(() => page.evaluate(() => window.__batches.length), { timeout: 15000 }).toBe(1);
     const b = (await page.evaluate(() => window.__batches))[0];
@@ -537,6 +565,7 @@ test.describe('C) วิดเจ็ตแชท', () => {
     await setup(ctx, page, { cfg: { missing: [S2.fm], chat: ['สวัสดีครับ ทดสอบเสียงพูด'] }, init: 'window.TANOT_AI = { enabled: true };' });
     await page.addInitScript(() => localStorage.setItem('ome:aiChatSpeak', 'on'));
     await page.goto('/credits.html');
+    await page.waitForFunction(() => window.TanotMediaModels); await page.evaluate((id) => { window.TanotMediaModels.TTS_DEFAULT_VOICE = id; }, S2.fm); // วิดเจ็ตใช้ค่าเริ่มต้นของตาราง — ตรึงเป็นหญิง (ทั่วไป) สำหรับเทสต์ที่ตรวจเสียงนี้
     await ask(page, 'ทดสอบ');
     await expect.poll(() => page.evaluate(() => window.__played.length), { timeout: 15000 }).toBeGreaterThan(0);
     const msgs = await page.evaluate(() => window.__wmsgs);
@@ -550,6 +579,7 @@ test.describe('C) วิดเจ็ตแชท', () => {
     await setup(ctx, page, { cfg: { missing: [S2.fm, STABLE.fm], chat: ['สวัสดีครับ ทดสอบเสียงพูด'] }, init: 'window.TANOT_AI = { enabled: true };' });
     await page.addInitScript(() => localStorage.setItem('ome:aiChatSpeak', 'on'));
     await page.goto('/credits.html');
+    await page.waitForFunction(() => window.TanotMediaModels); await page.evaluate((id) => { window.TanotMediaModels.TTS_DEFAULT_VOICE = id; }, S2.fm); // วิดเจ็ตใช้ค่าเริ่มต้นของตาราง — ตรึงเป็นหญิง (ทั่วไป) สำหรับเทสต์ที่ตรวจเสียงนี้
     await ask(page, 'ทดสอบ');
     await expect.poll(() => page.evaluate(() => window.__played.length), { timeout: 15000 }).toBeGreaterThan(0);
     const msgs = await page.evaluate(() => window.__wmsgs);
@@ -563,6 +593,7 @@ test.describe('C) วิดเจ็ตแชท', () => {
     await setup(ctx, page, { cfg: { netFail: { [S2.fm]: 1 }, chat: ['สวัสดีครับ ทดสอบเสียงพูด'] }, init: 'window.TANOT_AI = { enabled: true };' });
     await page.addInitScript(() => localStorage.setItem('ome:aiChatSpeak', 'on'));
     await page.goto('/credits.html');
+    await page.waitForFunction(() => window.TanotMediaModels); await page.evaluate((id) => { window.TanotMediaModels.TTS_DEFAULT_VOICE = id; }, S2.fm); // วิดเจ็ตใช้ค่าเริ่มต้นของตาราง — ตรึงเป็นหญิง (ทั่วไป) สำหรับเทสต์ที่ตรวจเสียงนี้
     await ask(page, 'ทดสอบ');
     await expect.poll(() => page.evaluate(() => window.__played.length), { timeout: 15000 }).toBeGreaterThan(0);
     const msgs = await page.evaluate(() => window.__wmsgs);
@@ -591,6 +622,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('หญิง (ทั่วไป) 22.05 kHz: ตัวเลือกติ๊กไว้เป็นค่าเริ่มต้น → ไฟล์ .wav มี 9 kHz ลดลง ≥ 10 dB เทียบ 1 kHz · ชาย/พอดแคสต์ ค่าเริ่มต้นไม่ติ๊ก', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { rate: 22050, tones: TONES, amp: 0.2 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await expect(page.locator('#optLowpass')).toBeChecked();
     await gen(page);
     const on = await ratio(page);
@@ -605,6 +637,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('ปิดตัวเลือกแล้วไม่กรอง (9 kHz เท่าเดิม) · จำค่าใน tanot:tts:opts · โหลดหน้าใหม่ยังปิดอยู่ แม้เลือกเสียงหญิง', async ({ context, page }) => {
     await setup(context, page, { cfg: { rate: 22050, tones: TONES, amp: 0.2 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.uncheck('#optLowpass');
     expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:tts:opts')).lowpass)).toBe(false);
     await gen(page);
@@ -622,6 +655,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('ยังไม่เคยตั้งเอง → ไม่เขียน lowpass ลง tanot:tts:opts (ตามค่าเริ่มต้นของเสียง) · ตัวเลือกอื่นยังบันทึกเหมือนเดิม', async ({ context, page }) => {
     await setup(context, page, { init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.check('#optSplit');
     const o = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:tts:opts')));
     expect(o).toEqual({ skipParen: true, split: true, gpu: false });
@@ -630,6 +664,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('โมเดล 16 kHz ไม่ถูกกรองแม้ติ๊กตัวเลือกไว้ (7 kHz เท่าเดิม ไม่ใช่ −3 dB)', async ({ context, page }) => {
     await setup(context, page, { cfg: { rate: 16000, tones: [[1000, 0.5], [7000, 0.5]], amp: 0.2 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await expect(page.locator('#optLowpass')).toBeChecked();
     await gen(page);
     const r = await ratio(page, 7000);
@@ -640,12 +675,14 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('ภาษาอังกฤษ: ซ่อนตัวเลือก · กลับไทยแล้วกลับมา · ไม่กรองไฟล์อังกฤษแม้ rate 22.05 kHz', async ({ context, page }) => {
     await setup(context, page, { cfg: { rate: 22050, tones: TONES, amp: 0.2 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.selectOption('#dlLang', 'en');
     await expect(page.locator('#optLowpassWrap')).toBeHidden();
     await page.fill('#ttsText', 'This is a short test sentence.');
     await page.click('#dlGenerateBtn'); await ok(page);
     expect((await ratio(page)).ratio).toBeGreaterThan(0.9);
     await page.selectOption('#dlLang', 'th');
+    await page.selectOption('#dlVoice', S2.fm); // กลับไทยแล้วรายการวาดใหม่ = ตัวแรก (พอดแคสต์) → เลือกหญิง (ทั่วไป) ที่ติ๊กลดเสียงแหลมเป็นค่าเริ่มต้น
     await expect(page.locator('#optLowpassWrap')).toBeVisible();
     await expect(page.locator('#optLowpass')).toBeChecked();
   });
@@ -653,6 +690,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
   test('แบ่งไฟล์ตามตอน: ทุกตอนถูกกรอง (ต่อส่วน)', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { rate: 22050, tones: TONES, amp: 0.2 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.fill('#ttsText', ['1. ตอนแรก', 'ประโยคของตอนแรก', '', '2. ตอนสอง', 'ประโยคของตอนสอง'].join('\n'));
     await page.check('#optSplit');
     await page.click('#dlGenerateBtn'); await ok(page);
@@ -668,6 +706,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
     await setup(context, page);
     await page.addInitScript(() => localStorage.setItem('ome:lang', 'en'));
     await page.goto('/text-to-speech.html');
+    await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await expect(page.locator('#optLowpassWrap')).toContainText('Reduce shrill treble');
     expect(await page.locator('#optLowpassWrap').innerText()).not.toMatch(/[ก-๙]/);
   });
@@ -680,6 +719,7 @@ test.describe('D) ลดเสียงแหลม — วิดเจ็ตแ
     await setup(ctx, page, { cfg: Object.assign({ rate: 22050, tones: TONES, amp: 0.2, chat: ['สวัสดีครับ ทดสอบเสียงพูด'] }, cfg || {}), init: 'window.TANOT_AI = { enabled: true };' });
     await page.addInitScript((p) => { localStorage.setItem('ome:aiChatSpeak', 'on'); if (p) localStorage.setItem('tanot:tts:opts', JSON.stringify(p)); }, preset || null);
     await page.goto('/credits.html');
+    await page.waitForFunction(() => window.TanotMediaModels); await page.evaluate((id) => { window.TanotMediaModels.TTS_DEFAULT_VOICE = id; }, S2.fm); // วิดเจ็ตใช้ค่าเริ่มต้นของตาราง — ตรึงเป็นหญิง (ทั่วไป) สำหรับเทสต์ที่ตรวจเสียงนี้
     await page.click('.ome-ai-fab');
     await page.fill('.ome-ai-inputrow textarea', 'ทดสอบ');
     await page.click('.ome-ai-btn.send');

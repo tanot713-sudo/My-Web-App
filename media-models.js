@@ -28,7 +28,10 @@
      • stable2 = noise_scale 0.1 / noise_scale_duration 0.0 (น้ำหนักเดิม, เว้นขอบท่อนเหมือนเดิม) — เจ้าของฟังเทียบ 4 ระดับความสุ่มแล้วเลือก "G"; ค่าเริ่มต้นตอนนี้
      ทางถอยเมื่อโหลดชุดใหม่ไม่ได้ (404/เครือข่ายหลังลองซ้ำแล้ว) ไล่ทีละขั้น ขั้นละ 1 ครั้ง: stable2 → stable → ต้นฉบับ (TTS_LEGACY = "ขั้นถัดไปของ id นั้น")
      id เดิมทั้ง 4 (รวม "ค่าเริ่มต้น" Tanotfin/mms-tts-2081-onnx ที่เอาออกจากรายการเพราะฟังไม่รู้เรื่อง) และชุด stable ที่เคยเลือกไว้ แปลงเป็น stable2 ด้วย ttsMigrate */
-  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-tts-2081-FM-stable2-onnx';
+  /* ค่าเริ่มต้น (2026-10) = หญิง (โทนพอดแคสต์): วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด (ระดับเสียงเปลี่ยน ≥ 5 เซมิโทนฉับพลัน) ~6–8 ครั้ง/นาที เป็นธรรมชาติของโมเดล
+     พอดแคสต์ ~1.5 · ชาย 0 — เจ้าของเลือกพอดแคสต์ · มีผลเฉพาะคนที่ยังไม่เคยเลือก: id เดิมของหญิง ทั่วไป แปลงไป FM stable2 (TTS_FEMALE) ไม่ใช่ค่าเริ่มต้น */
+  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx';
+  var TTS_FEMALE = 'Tanotfin/mms-tts-2081-FM-stable2-onnx';
   var TTS_LEGACY = {
     'Tanotfin/mms-tts-2081-FM-stable2-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
     'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
@@ -38,11 +41,11 @@
     'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'phlebotomy1996/mms-thai-female-podcast-spk0'
   };
   var TTS_MIGRATE = {
-    'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
-    'Tanotfin/mms-tts-2081-FM-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-onnx': TTS_FEMALE,
+    'Tanotfin/mms-tts-2081-FM-onnx': TTS_FEMALE,
     'Tanotfin/mms-tts-2081-M-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
     'phlebotomy1996/mms-thai-female-podcast-spk0': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx',
-    'Tanotfin/mms-tts-2081-FM-stable-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-FM-stable-onnx': TTS_FEMALE,
     'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
     'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx'
   };
