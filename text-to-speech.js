@@ -52,6 +52,7 @@
       lexTitle: 'คำอ่านของฉัน', lexPh: 'คำ = คำอ่าน', lexSaved: 'บันทึกแล้ว {n} คำ',
       lexRejFormat: 'บรรทัด {line}: ต้องเขียนเป็น "คำ = คำอ่าน" — ไม่บันทึกแถวนี้', lexRejVocab: 'บรรทัด {line}: คำอ่านมีตัวอักษรที่เสียงไทยอ่านไม่ได้ ({chars}) — ไม่บันทึกแถวนี้',
       lexRejLong: 'บรรทัด {line}: ยาวเกินไป — ไม่บันทึกแถวนี้', lexRejLimit: 'บรรทัด {line}: เกิน {max} คำ — ไม่บันทึกแถวนี้', lexRejMore: '…และอีก {n} แถว',
+      lexMid: 'ไม่แทน {n} จุดที่อยู่กลางคำอื่น',
       optParen: 'ข้ามอังกฤษในวงเล็บหลังคำไทย', optSplit: 'แบ่งไฟล์ตามตอน', optGpu: 'ใช้การ์ดจอ (WebGPU)', optLowpass: 'ลดเสียงแหลม',
       skipTimes: '{n} ครั้ง', addReading: 'เพิ่มคำอ่าน',
       keepNote: 'ระหว่างสร้างไฟล์เสียง อย่าสลับแท็บหรือปิดหน้าจอ — จะช้าลงมาก', keepNoteHidden: 'เคยสลับแท็บระหว่างสร้าง — ช่วงนั้นช้าลง เปิดหน้านี้ค้างไว้จะเร็วกว่า',
@@ -102,6 +103,7 @@
       lexTitle: 'My pronunciations', lexPh: 'word = reading', lexSaved: 'Saved {n} entries',
       lexRejFormat: 'Line {line}: write it as "word = reading" — this row is not saved', lexRejVocab: 'Line {line}: the reading has characters the Thai voice cannot say ({chars}) — this row is not saved',
       lexRejLong: 'Line {line}: too long — this row is not saved', lexRejLimit: 'Line {line}: more than {max} entries — this row is not saved', lexRejMore: '…and {n} more rows',
+      lexMid: 'Not replaced at {n} places inside other words',
       optParen: 'Skip English in brackets after Thai words', optSplit: 'Split into files by chapter', optGpu: 'Use the graphics card (WebGPU)', optLowpass: 'Reduce shrill treble',
       skipTimes: '{n} times', addReading: 'Add reading',
       keepNote: 'While the audio is being made, do not switch tabs or turn the screen off — it gets much slower', keepNoteHidden: 'You switched tabs while it was running — it was slower then. Keep this page open for the fastest result',
@@ -725,6 +727,21 @@
     lexStore(res.rows.map(function (r) { return r.from + ' = ' + r.to; }).join('\n'));
     renderLexStatus();
     schedulePreviews();
+  }
+  /* จุดที่คำอ่านของฉัน "ไม่แทน" เพราะอยู่กลางคำอื่น (Norm.lexiconSkips) — คำนวณเฉพาะตอนกางช่องคำอ่านอยู่ (ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์) */
+  var LEX_MID_SHOW = 5;
+  function renderLexMid() {
+    var el = $('lexMid');
+    if (!el) return;
+    var res = $('lexBox').open ? Norm.lexiconSkips($('ttsText').value, normOpts('th')) : { count: 0, words: [] };
+    el.textContent = '';
+    el.hidden = !res.count;
+    if (!res.count) return;
+    var label = document.createElement('span'), words = document.createElement('span');
+    OME_I18N.live(label, function () { return T('lexMid', { n: OME_I18N.number(res.count) }) + ': '; });
+    words.setAttribute('data-i18n-skip', '');
+    words.textContent = res.words.slice(0, LEX_MID_SHOW).map(function (w) { return w.word + ' ×' + w.count; }).join(' · ') + (res.words.length > LEX_MID_SHOW ? ' …' : '');
+    el.appendChild(label); el.appendChild(words);
   }
   function lexSchedule() { clearTimeout(lexTimer); lexTimer = setTimeout(lexCommit, 500); }
   function lexFlush() { if (lexTimer) lexCommit(); }
@@ -1554,6 +1571,7 @@
       if (box && area && box.open) area.value = previewText(e[2]); // ทำเฉพาะตอนกางอยู่ — ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์
     });
     renderSkipped();
+    renderLexMid();
   }
   function schedulePreviews() { clearTimeout(previewTimer); previewTimer = setTimeout(updatePreviews, 200); }
 
@@ -1576,7 +1594,7 @@
     OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); });
     $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); });
     updateCharCount();
-    ['pvNativeBox', 'pvMmsBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
+    ['pvNativeBox', 'pvMmsBox', 'lexBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
     $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });
     $('importFileInput').addEventListener('change', importFileChange);
 

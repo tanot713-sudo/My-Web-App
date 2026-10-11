@@ -61,6 +61,50 @@ test.describe('A) lexicon — parseLexicon / compileLexicon / forMms', () => {
   });
 });
 
+/* ═══════════════ A1b) ๆ หลังคำอ่านของฉัน + ไม่แทนกลางคำอื่น (ข้อมูลจริงจากนิยายของเจ้าของ — ใช้เฉพาะคำ ไม่ใช้ข้อความนิยาย) ═══════════════ */
+/* กรณีที่ใช้ตรวจทั้งใน Node และใน Chromium (Intl.Segmenter สองตัวอาจตัดคำต่างกัน — ต้องผ่านทั้งคู่) */
+const LEX_REPEAT = 'บริษัท = บอริสัด\nค่อย = ค็่อย\nGod = ก็อด\nOrigin Blood = ออริจิน บลัด';
+const REPEAT_CASES = [
+  ['บริษัทๆ', 'บอริสัดบอริสัด'], ['บริษัท ๆ', 'บอริสัดบอริสัด'], ['ต้องค่อยๆ ทำ', 'ต้องค็่อยค็่อย ทํา'], ['ต้องค่อย ๆ ทำ', 'ต้องค็่อยค็่อย ทํา'],
+  ['God ๆ', 'ก็อด ก็อด'], ['Godๆ', 'ก็อด ก็อด'], ['Origin Blood ๆ', 'ออริจิน บลัด ออริจิน บลัด'], ['บริษัทใหญ่ ๆ', 'บอริสัดใหญ่ใหญ่']
+];
+const LEX_MID = 'ผล = ผน\nจล = จน\nนว = นะวะ\nลออ = ละออ\nพลทหาร = พนละทะหาน\nทรัพย์สิน = ซับสิน\nจักรยาน = จักกะยาน\nภรรยา = พันยา\nGod = ก็อด';
+const MID_CASES = [
+  ['บาดแผลและผลลัพธ์ที่ได้ผล', 'บาดแผลและผลลัพธ์ที่ได้ผน'],  // แผล/ผลลัพธ์ ไม่ถูกแตะ · "ได้ผล" ยังแทน
+  ['เขาผลักประตู', 'เขาผลักประตู'], ['อำนาจล้นฟ้า', 'อํานาจล้นฟ้า'], ['กินวิญญาณ', 'กินวิญญาณ'], ['แนวคิดใหม่', 'แนวคิดใหม่'], ['น้ำไหลออกมา', 'น้ําไหลออกมา'],
+  ['พลทหารคนนั้นเดินมา', 'พนละทะหานคนนั้นเดินมา'], ['เขามีทรัพย์สินมาก', 'เขามีซับสินมาก'], ['ฉันขี่จักรยานไปโรงเรียน', 'ฉันขี่จักกะยานไปโรงเรียน'],
+  ['ภรรยาของเขาใจดี', 'พันยาของเขาใจดี'], ['ผล', 'ผน'], ['ผลไม้', 'ผนไม้'], ['ได้ผลดี', 'ได้ผนดี'], ['God of war', 'ก็อด'], ['godzilla', '']
+];
+test.describe('A) ๆ หลังคำอ่านของฉัน + ไม่แทนกลางคำอื่น (Node)', () => {
+  test('ๆ หลังคำในคำอ่านของฉัน (ติดกัน/เว้นวรรค, ไทย/อังกฤษ/วลี) → คำอ่านซ้ำทั้งคำ ไม่ตัดคำจากตัวสะกดใหม่', () => {
+    const lx = lex(LEX_REPEAT);
+    for (const [input, want] of REPEAT_CASES) expect(N.forMms(input, { lexicon: lx }), input).toBe(want);
+    N.useSegmenter(false);
+    try { for (const [input, want] of REPEAT_CASES) expect(N.forMms(input, { lexicon: lx }), 'ไม่มีตัวตัดคำ: ' + input).toBe(want); }
+    finally { N.useSegmenter(true); }
+  });
+  test('คำไทยในคำอ่านของฉันแทนเฉพาะเมื่อจุดเริ่ม/จุดจบตรงขอบคำ (Intl.Segmenter) · ภายในคำแบ่งอย่างไรก็ได้ · อังกฤษเหมือนเดิม', () => {
+    const lx = lex(LEX_MID);
+    for (const [input, want] of MID_CASES) expect(N.forMms(input, { lexicon: lx }), input).toBe(want);
+    expect(N.forMms('ตามOriginไป', { lexicon: lex('Origin = ออริจิน') })).toBe('ตาม ออริจิน ไป');
+  });
+  test('ไม่มี Intl.Segmenter → แทนทุกที่เหมือนเดิม', () => {
+    N.useSegmenter(false);
+    try {
+      const lx = lex(LEX_MID);
+      expect(N.forMms('บาดแผลและได้ผล', { lexicon: lx })).toBe('บาดแผนและได้ผน');
+      expect(N.lexiconSkips('บาดแผล', { lexicon: lx })).toEqual({ count: 0, words: [] });
+    } finally { N.useSegmenter(true); }
+  });
+  test('lexiconSkips: นับจุดที่ข้ามเพราะอยู่กลางคำอื่น ต่อคำ (มากไปน้อย) · ไม่นับจุดที่แทนได้ · ไม่มี lexicon = 0', () => {
+    const lx = lex(LEX_MID);
+    expect(N.lexiconSkips('บาดแผลและผลลัพธ์ที่ได้ผล อำนาจล้นฟ้า แนวคิด แนวคิด กินวิญญาณ', { lexicon: lx })).toEqual({
+      count: 6, words: [{ word: 'นว', count: 3 }, { word: 'ผล', count: 2 }, { word: 'จล', count: 1 }] });
+    expect(N.lexiconSkips('ได้ผล ทรัพย์สิน', { lexicon: lx })).toEqual({ count: 0, words: [] });
+    expect(N.lexiconSkips('บาดแผล', {})).toEqual({ count: 0, words: [] });
+  });
+});
+
 /* ═══════════════ A2) พจนานุกรมในระบบเพิ่ม ═══════════════ */
 test('A) พจนานุกรม: vs = ปะทะ (ติดไทยได้) · GOD = ก็อด · EP = อีพี (EP3 = อีพีสาม) · part = พาร์ท', () => {
   const cases = [
@@ -332,6 +376,45 @@ test.describe('B) คำอ่านของฉัน — ช่องในก
     await expect(page.locator('#lexMsg')).toHaveText('');
     await page.reload();
     await expect(page.locator('#lexText')).toHaveValue('Origin Blood = ออริจิน บลัด\nHero = ฮีโร่');
+    expect(errors).toEqual([]);
+  });
+
+  test('ใน Chromium (Intl.Segmenter ของเบราว์เซอร์): ๆ หลังคำอ่านซ้ำทั้งคำ · ไม่แทนกลางคำอื่น — ผลเหมือนใน Node', async ({ context, page }) => {
+    const errors = await setup(context, page);
+    await page.goto('/text-to-speech.html');
+    const got = await page.evaluate(([LR, RC, LM, MC]) => {
+      const N = window.TanotTtsNorm, lr = N.compileLexicon(LR), lm = N.compileLexicon(LM);
+      return { rep: RC.map(([i]) => N.forMms(i, { lexicon: lr })), mid: MC.map(([i]) => N.forMms(i, { lexicon: lm })), seg: typeof Intl.Segmenter };
+    }, [LEX_REPEAT, REPEAT_CASES, LEX_MID, MID_CASES]);
+    expect(got.seg).toBe('function');
+    expect(got.rep).toEqual(REPEAT_CASES.map((c) => c[1]));
+    expect(got.mid).toEqual(MID_CASES.map((c) => c[1]));
+    expect(errors).toEqual([]);
+  });
+
+  test('ใต้ช่องคำอ่านของฉัน: "ไม่แทน n จุดที่อยู่กลางคำอื่น" + คำที่ข้าม (เฉพาะเมื่อมี) · อัปเดตตามข้อความ · EN · ส่วนที่แทนได้ยังแทนตอนสร้างไฟล์', async ({ context, page }) => {
+    const errors = await setup(context, page);
+    await page.goto('/text-to-speech.html');
+    await openLex(page);
+    await expect(page.locator('#lexMid')).toBeHidden();
+    await page.fill('#lexText', 'ผล = ผน\nจล = จน');
+    await page.locator('#lexText').blur();
+    await page.fill('#ttsText', 'บาดแผลและผลลัพธ์ที่ได้ผล อำนาจล้นฟ้า แผลเป็น');
+    await expect(page.locator('#lexMid')).toBeVisible();
+    await expect(page.locator('#lexMid')).toContainText('ไม่แทน 4 จุดที่อยู่กลางคำอื่น');
+    await expect(page.locator('#lexMid')).toContainText('ผล ×3');
+    await expect(page.locator('#lexMid')).toContainText('จล ×1');
+    await expect(page.locator('#lexMid [data-i18n-skip]')).toHaveCount(1);
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#lexMid')).toContainText('Not replaced at 4 places inside other words');
+    await page.evaluate(() => OME_LANG.set('th'));
+    await page.fill('#ttsText', 'ได้ผลดี');
+    await expect(page.locator('#lexMid')).toBeHidden();
+    await page.click('#pvMmsBox > summary');
+    await expect(page.locator('#pvMms')).toHaveValue('ได้ผนดี');
+    await page.click('#lexBox > summary');                         // พับช่อง → ไม่คำนวณ/ซ่อน
+    await page.fill('#ttsText', 'บาดแผล');
+    await expect(page.locator('#lexMid')).toBeHidden();
     expect(errors).toEqual([]);
   });
 

@@ -7,7 +7,7 @@
       ใช้แรม ~1.4GB แค่ขั้นนี้ (แท็บมือถือแครช) · 16kHz ตั้งแต่แรกเหลือ 1/3 และรวมเป็นโมโนทีละช่วงตอนส่ง (segment)
       ไม่สร้างสำเนาโมโนทั้งไฟล์ · ใช้ฟังก์ชันเดียวกันทั้งถอดเสียงคลาวด์/ในเบราว์เซอร์/ไมค์ของวิดเจ็ตแชท
    2) transcribeLocal() — Whisper ใน asr-worker.js (ไม่ใช่เธรดหลัก) ส่งทีละท่อน (≤ 30 วิ ตัดที่จุดเงียบ + เหลื่อม 1.5 วิ ด้วย AsrCalc.planChunks แบบเดียวกับคลาวด์ →
-      ต่อด้วย AsrCalc.mergeChunks ตัดคำซ้ำที่รอยต่อ + เวลา segments จริงในไฟล์) แบบ transfer ArrayBuffer · เลิกใช้ chunk_length_s/stride_length_s ของ pipeline (เคยทำข้อความซ้ำที่รอยต่อ ~30 วิ) · ยกเลิกได้ (terminate Worker — WASM ที่กำลังคำนวณหยุดกลางทางได้ทางเดียว) · Worker พัง/
+      ต่อด้วย AsrCalc.mergeChunks ตัดคำซ้ำที่รอยต่อ + เวลา segments จริงในไฟล์; จุดตัดที่เงียบจริง ±0.25 วิ < −45 dBFS ไม่เหลื่อม — silentAt) แบบ transfer ArrayBuffer · เลิกใช้ chunk_length_s/stride_length_s ของ pipeline (เคยทำข้อความซ้ำที่รอยต่อ ~30 วิ) · ยกเลิกได้ (terminate Worker — WASM ที่กำลังคำนวณหยุดกลางทางได้ทางเดียว) · Worker พัง/
       หน่วยความจำไม่พอ → ปิดตัวที่พังทิ้ง ครั้งต่อไปสร้างใหม่ (โหลดโมเดลจากแคช)
       2026-10 Section 3: device:'auto' = ใช้ WebGPU เมื่อมี (webgpuPlan: navigator.gpu + requestAdapter ได้จริง + ไม่ใช่อะแดปเตอร์ซอฟต์แวร์, ไม่ใช่มือถือ/iOS) กับโมเดลตระกูล
       onnx-community · ล้มตอนโหลด/รัน → asr-worker.js ถอยกลับ WASM เอง 1 ครั้ง · เหตุการณ์ถอยลง problem log (ไม่มีเนื้อหา) และจำ 3 วัน (tanot:asr:gpubad, kind cache)
@@ -242,6 +242,17 @@
     }
     return best;
   }
+  /* จุดตัดเงียบจริงไหม: RMS ของเสียงรอบจุดตัด ±SILENT_SEC (0.25 วิ) ต่ำกว่า SILENT_DB (−45 dBFS) → ท่อนถัดไปไม่ต้องเหลื่อม (AsrCalc.planChunks opts.isSilent)
+     ไม่มีคำคร่อมรอยต่อ จึงไม่มีอะไรให้ถอดซ้ำ/ตัดซ้ำ · ใช้ทั้งถอดในเบราว์เซอร์ (planAsrChunks) และคลาวด์ (asr-cloud.js) */
+  var SILENT_SEC = 0.25, SILENT_DB = -45;
+  function silentAt(dec, pos, o) {
+    var half = Math.round(RATE * (o && o.sec != null ? o.sec : SILENT_SEC)), db = o && o.db != null ? o.db : SILENT_DB;
+    var a = Math.max(0, pos - half), b = Math.min(dec.length, pos + half);
+    if (b - a < half) return false;
+    var w = dec.segment(a, b), sum = 0;
+    for (var i = 0; i < w.length; i++) sum += w[i] * w[i];
+    return Math.sqrt(sum / w.length) < Math.pow(10, db / 20);
+  }
   var SEGMENT_SEC = 300;
   /* แบ่งเสียงที่ถอดแล้วเป็นช่วงละ ~segSec วินาที ตัดตรงจุดเงียบ ±3 วินาที → [[a, b], …] (ดัชนี sample) */
   function planSegments(dec, segSec) {
@@ -389,12 +400,13 @@
       document.head.appendChild(sc);
     });
   }
-  /* → [{ a, b, start, end, ov }] (ดัชนี sample) — ตัดที่จุดเงียบที่สุดในรัศมี ±3 วิรอบเป้า */
+  /* → [{ a, b, start, end, ov }] (ดัชนี sample) — ตัดที่จุดเงียบที่สุดในรัศมี ±3 วิรอบเป้า · จุดตัดที่เงียบจริง (silentAt) ไม่เหลื่อม (ov = 0) */
   function planAsrChunks(dec, o) {
     var A = window.AsrCalc, frame = Math.round(RATE * 0.02), c = o || ASR_CHUNK;
     return A.planChunks(dec.length, {
       rate: RATE, stepSec: c.stepSec, searchSec: c.searchSec, overlapSec: c.overlapSec, tailMinSec: c.tailMinSec,
-      cutAt: function (target, lo, hi) { var win = dec.segment(lo, hi); return lo + quietCut(win, 0, win.length, frame); }
+      cutAt: function (target, lo, hi) { var win = dec.segment(lo, hi); return lo + quietCut(win, 0, win.length, frame); },
+      isSilent: function (pos) { return silentAt(dec, pos); } // จุดตัดเงียบจริง → ท่อนถัดไปไม่เหลื่อม (ov = 0)
     });
   }
   /* opts: { dec (จาก decode16k) | pcm, modelId, lang:'auto'|'thai'|…, device:'auto'|'wasm' (ไม่ส่ง = 'wasm' เหมือนเดิม), timestamps,
@@ -439,7 +451,7 @@
               var st = +ck.start || 0;
               segs.push({ start: st, end: Math.max(st, ck.end != null ? +ck.end : Math.min(dur, st + 5)), text: ct });
             });
-            results.push({ offset: c.a / RATE, text: String(res.text || '').trim(), segments: segs, duration: dur });
+            results.push({ offset: c.a / RATE, text: String(res.text || '').trim(), segments: segs, duration: dur, ov: c.ov });
             i++; next();
           }, fail);
         }
@@ -496,7 +508,7 @@
     error: mediaError, isMemoryError: isMemoryError, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
     LOG_KEY: LOG_KEY, logError: logError, logNote: logNote, readLog: readLog, clearLog: clearLog,
     budget: budget,
-    decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, planAsrChunks: planAsrChunks, ASR_CHUNK: ASR_CHUNK, quietCut: quietCut,
+    decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, planAsrChunks: planAsrChunks, ASR_CHUNK: ASR_CHUNK, quietCut: quietCut, silentAt: silentAt, SILENT_SEC: SILENT_SEC, SILENT_DB: SILENT_DB,
     transcribeLocal: transcribeLocal, transcribeLocalDetailed: transcribeLocalDetailed, webgpuPlan: webgpuPlan, ttsGpuPlan: ttsGpuPlan, markTtsGpuBad: markTtsGpuBad, asrDefaultModel: asrDefaultModel, cancelLocalAsr: function () { asrKill('abort'); },
     persistOnce: persistOnce, modelCacheInfo: modelCacheInfo, clearModelCache: clearModelCache
   };

@@ -12,6 +12,7 @@
    • chunks(text, max=MAX_CHUNK, opts) → plan(...).chunks  — "ตัดท่อนหลัง normalize" เสมอ (ท่อน ≤ max ตัวอักษรหลังแปลงแล้ว)
    • parseLexicon(text) / compileLexicon(textหรือrows) → "คำอ่านของฉัน" (บรรทัดละ "คำ = คำอ่าน") — ใช้กับ forMms/plan ผ่าน opts.lexicon เท่านั้น (forNative ไม่ใช้)
    • skippedWords(text, opts) → [{word, count}] คำอังกฤษที่ถูกข้าม (ไม่นับแบบ "คำไทย (English)" ที่ตั้งใจข้าม และไม่นับคำที่ lexicon/พจนานุกรมอ่านให้แล้ว)
+   • lexiconSkips(text, opts) → {count, words:[{word, count}]} คำอ่านของฉันที่ไม่แทนเพราะอยู่กลางคำอื่น (ต้นทางไทย: จุดเริ่ม/จุดจบต้องตรงขอบคำของ Intl.Segmenter)
    ท่อน: บรรทัดที่ต่อกันโดยไม่มีบรรทัดว่างคั่น = ย่อหน้าเดียว รวมเป็นท่อนเดียว ≤ max แล้วตัดที่จบประโยค/ช่องว่าง/ขอบคำ (Intl.Segmenter)
    ช่วงเงียบหลังท่อน: ประโยคต่อประโยคในย่อหน้า GAP_SENT_SEC (0.12) · ขึ้นบรรทัดใหม่ในย่อหน้าเดียวกัน GAP_LINE_SEC (0.25) · ย่อหน้าใหม่ (บรรทัดว่างคั่น) GAP_PARA_SEC (0.4)
 
@@ -19,7 +20,7 @@
    เลขไทย/เต็มความกว้าง → อารบิก → ข้ามอังกฤษในวงเล็บหลังคำไทย → คำอ่านของฉัน (แทนด้วยตัวแทน PUA กันกฎอื่นแตะ) → ล้าง markdown/แชท/URL/อีเมล/อีโมจิ
    → วันที่ตัวเลข → เวลา → ตัวย่อ (มาตรา vs มัธยม)
    → เบอร์โทร → เลขคั่นขีด (บัตรประชาชน/รหัส) → ช่วงเลข (ถึง) → ติดลบ/บวก → จำนวน (เงิน/ทศนิยม/%/หน่วย/ล้านซ้อน/อ่านทีละตัว)
-   → คืนคำอ่านของฉันแทนตัวแทน → ๆ ซ้ำคำ / ฯ ตัดทิ้ง → อังกฤษปน (ทับศัพท์/สะกดตัวอักษร/ตัดทิ้ง) → กรอง vocab
+   → ๆ ซ้ำคำ (ข้ามช่องว่างหน้า ๆ; หลังตัวแทนคำอ่านของฉัน = ซ้ำตัวแทนทั้งตัว) / ฯ ตัดทิ้ง → คืนคำอ่านของฉันแทนตัวแทน → อังกฤษปน (ทับศัพท์/สะกดตัวอักษร/ตัดทิ้ง) → กรอง vocab
    ⚠️ ไม่ใช้ lookbehind ใน regex (Safari < 16.4 พาร์สไม่ได้ → ทั้งไฟล์พัง) · \p{…} ห่อ try/catch */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -313,17 +314,28 @@
     }
     return run.length <= 8 ? run : ''; // ไม่มีตัวตัดคำ: ซ้ำทั้งก้อนที่ติดกันถ้าสั้น ไม่งั้นตัดทิ้ง
   }
-  var RUN_CH = /[\u0E01-\u0E45\u0E47-\u0E4E]/;
+  var RUN_CH = /[ก-ๅ็-๎]/;
+  /* ช่องว่างที่ข้ามได้ระหว่างคำกับ ๆ ("คำ ๆ" แบบราชบัณฑิตฯ): เว้นวรรค/แท็บ/NBSP/ช่องว่างกว้างต่างๆ/ช่องว่างกว้างศูนย์ — ไม่ข้ามขึ้นบรรทัดใหม่ */
+  var REP_GAP = /[ \t  -​  ⁠　﻿]/;
+  var REP_FAST = /(อื่น|ต่าง)[ \t  -​  ⁠　﻿]*ๆ+/g;
+  function isLexMark(ch) { var c = ch ? ch.charCodeAt(0) : 0; return c >= 0xE100 && c <= 0xE5FF; } // ตัวแทนคำอ่านของฉัน (LEX_BASE + ลำดับแถว)
   function repeatMarks(s) {
     if (s.indexOf('ๆ') < 0) return s.replace(/ฯ/g, '');
-    s = s.replace(/อื่นๆ+/g, 'อื่นอื่น').replace(/ต่างๆ+/g, 'ต่างต่าง'); // คำที่เจอบ่อย — ไม่พึ่งตัวตัดคำ
+    s = s.replace(REP_FAST, '$1$1'); // คำที่เจอบ่อย (ติดกันหรือเว้นวรรค) — ไม่พึ่งตัวตัดคำ
     var out = '', pos = 0, i;
     while ((i = s.indexOf('ๆ', pos)) >= 0) {
-      var j = i, lim = Math.max(pos, i - 80);       // ก้อนอักษรไทยติดกันก่อน ๆ (ไม่ย้อนเกิน 80 ตัว — เร็วเป็นเส้นตรงแม้ข้อความยาวไม่เว้นวรรค)
-      while (j > lim && RUN_CH.test(s.charAt(j - 1))) j--;
-      var run = s.slice(j, i), k = i;
+      var g = i, glim = Math.max(pos, i - 8);
+      while (g > glim && REP_GAP.test(s.charAt(g - 1))) g--; // ข้ามช่องว่างหน้า ๆ (ไม่เกิน 8 ตัว ไม่ข้ามขึ้นบรรทัดใหม่)
+      var k = i, word = '';
       while (s.charAt(k) === 'ๆ') k++;
-      out += s.slice(pos, i) + (run ? lastWord(run) : '');
+      if (g > pos && isLexMark(s.charAt(g - 1))) word = s.charAt(g - 1); // คำอ่านของฉัน → ซ้ำตัวแทนทั้งตัว แล้ว lexExpand คืนคำอ่านครบทั้งสองครั้ง
+      else {
+        var j = g, lim = Math.max(pos, g - 80);       // ก้อนอักษรไทยติดกันก่อน ๆ (ไม่ย้อนเกิน 80 ตัว — เร็วเป็นเส้นตรงแม้ข้อความยาวไม่เว้นวรรค)
+        while (j > lim && RUN_CH.test(s.charAt(j - 1))) j--;
+        word = j < g ? lastWord(s.slice(j, g)) : '';
+      }
+      /* เจอคำ → "คำคำ" (ไม่เหลือช่องว่างระหว่างคำซ้ำ) · ไม่เจอ (ๆ ต้นบรรทัด/หลังเครื่องหมาย/ก้อนยาวไม่มีตัวตัดคำ) → ตัด ๆ ทิ้ง ช่องว่างคงเดิม */
+      out += word ? s.slice(pos, g) + word : s.slice(pos, i);
       pos = k;
     }
     return (out + s.slice(pos)).replace(/ฯ/g, '');
@@ -403,9 +415,31 @@
     var rx = re(alt, 'gi');
     return rx ? { rows: rows, re: rx, map: map } : null;
   }
-  var LATIN = /[A-Za-z]/;
-  function lexProtect(s, lex) {
-    var rx = lex.re, out = '', pos = 0, m;
+  var LATIN = /[A-Za-z]/, THAI_CH = /[ก-๎]/;
+  /* ขอบคำไทยรอบจุดที่ตรงกัน (Intl.Segmenter) — ตัดคำเฉพาะหน้าต่างรอบจุดนั้น (ถอยหลัง LEX_WIN_BACK / ไปหน้า LEX_WIN_AHEAD ตัว ไม่ข้ามบรรทัด)
+     ไม่ตัดทั้งเรื่อง · จุดที่ตรงกันถัดไปที่ยังอยู่ในหน้าต่างเดิม (ห่างขอบที่ถูกตัดกลางข้อความ ≥ LEX_WIN_MARGIN) ใช้ผลเดิม → ข้อความ ~500k ตัวอักษรยังเร็ว */
+  var LEX_WIN_BACK = 40, LEX_WIN_AHEAD = 200, LEX_WIN_MARGIN = 24;
+  function lexBoundsAt(s, start, end, cache) {
+    var lo = cache.lo, hi = cache.hi;
+    if (cache.b && start >= lo + (cache.loEdge ? 0 : LEX_WIN_MARGIN) && end <= hi - (cache.hiEdge ? 0 : LEX_WIN_MARGIN)) return cache.b;
+    lo = Math.max(0, start - LEX_WIN_BACK); hi = Math.min(s.length, end + LEX_WIN_AHEAD);
+    var nl = s.slice(lo, start).lastIndexOf('\n'); // ค้นเฉพาะในหน้าต่าง — บรรทัดยาวไม่มีขึ้นบรรทัดไม่สแกนทั้งเรื่องทุกครั้ง
+    if (nl >= 0) lo += nl + 1;
+    nl = s.slice(end, hi).indexOf('\n');
+    if (nl >= 0) hi = end + nl;
+    var b = new Uint8Array(hi - lo + 1), sg = getSegmenter(); // b[ตำแหน่ง − lo] = 1 ที่ขอบคำ
+    b[hi - lo] = 1;
+    try {
+      var it = sg.segment(s.slice(lo, hi))[Symbol.iterator](), r;
+      while (!(r = it.next()).done) b[r.value.index] = 1;
+    } catch (e) { b = null; }
+    cache.lo = lo; cache.hi = hi; cache.b = b;
+    cache.loEdge = lo === 0 || s.charAt(lo - 1) === '\n'; cache.hiEdge = hi === s.length || s.charAt(hi) === '\n';
+    return b;
+  }
+  /* stats.lexMid = { n, map:{คำ: จำนวน}, order:[…] } — จุดที่ข้ามเพราะอยู่กลางคำอื่น (หน้า text-to-speech แสดงใต้ช่องคำอ่านของฉัน) */
+  function lexProtect(s, lex, stats) {
+    var rx = lex.re, out = '', pos = 0, m, sg = getSegmenter(), cache = {};
     rx.lastIndex = 0;
     while ((m = rx.exec(s))) {
       var word = m[0], start = m.index, end = start + word.length;
@@ -416,6 +450,21 @@
       }
       var idx = lex.map[lexKey(word)];
       if (idx === undefined) { rx.lastIndex = start + 1; continue; }
+      /* ต้นทาง/ปลายทางเป็นอักษรไทย: จุดเริ่มและจุดจบต้องตรงขอบคำ ("ผล = ผน" ไม่แทนใน "บาดแผล"/"ผลัก", "จล" ไม่แทนใน "อำนาจล้น")
+         ภายในคำแบ่งอย่างไรก็ได้ ("ทรัพย์สิน" = ทรัพย์|สิน ยังแทน) · ไม่มี Intl.Segmenter = แทนทุกที่เหมือนเดิม */
+      var thS = THAI_CH.test(word.charAt(0)), thE = THAI_CH.test(word.charAt(word.length - 1));
+      if (sg && (thS || thE)) {
+        var b = lexBoundsAt(s, start, end, cache), lo = cache.lo;
+        /* ICU ติด ๆ/ฯ เข้ากับคำหน้า ("บริษัทๆ" เป็นก้อนเดียว) → ตำแหน่งหน้า ๆ/ฯ นับเป็นขอบคำ */
+        if (b && ((thS && !b[start - lo]) || (thE && !b[end - lo] && !/[ฯๆ]/.test(s.charAt(end))))) {
+          if (stats) {
+            var mid = stats.lexMid || (stats.lexMid = { n: 0, map: {}, order: [] }), key = lex.rows[idx].from;
+            if (!mid.map[key]) { mid.map[key] = 0; mid.order.push(key); }
+            mid.map[key]++; mid.n++;
+          }
+          rx.lastIndex = start + 1; continue;
+        }
+      }
       out += s.slice(pos, start) + String.fromCharCode(LEX_BASE + idx);
       pos = end;
     }
@@ -444,14 +493,14 @@
     var mms = mode === 'mms', lex = mms ? lexOf(opts) : null;
     var s = arabicDigits(String(text == null ? '' : text));
     if (mms && !(opts && opts.skipParen === false)) s = skipParenEnglish(s);
-    if (lex) s = lexProtect(s, lex);
+    if (lex) s = lexProtect(s, lex, stats);
     s = cleanMarkup(s, mode === 'native' && !hasThai(s) ? 'en' : 'th');
     s = dates(s);
     s = times(s);
     s = abbreviations(s);
     if (mms) s = numbers(s);
+    s = repeatMarks(s);              // ก่อน lexExpand: ๆ หลังคำอ่านของฉันซ้ำ "ตัวแทนทั้งตัว" (ไม่ตัดคำจากตัวสะกดใหม่ "บอริสัด" → "บอริสัดสัด")
     if (lex) s = lexExpand(s, lex);
-    s = repeatMarks(s);
     if (mms) s = english(s, stats).replace(/[-\u2013\u2014]/g, ' ');
     return s;
   }
@@ -473,6 +522,22 @@
     return stats.order.map(function (k, i) { return { word: stats.map[k].word, count: stats.map[k].n, i: i }; })
       .sort(function (a, b) { return b.count - a.count || a.i - b.i; })
       .map(function (e) { return { word: e.word, count: e.count }; });
+  }
+  /* คำอ่านของฉันที่ "ไม่แทน" เพราะอยู่กลางคำอื่น → { count, words:[{word, count}] } (มากไปน้อย) — ทำเฉพาะขั้นที่อยู่ก่อน lexProtect ใน prepare (เร็ว) */
+  function lexiconSkips(text, opts) {
+    var lex = lexOf(opts), stats = {};
+    if (!lex) return { count: 0, words: [] };
+    var s = arabicDigits(String(text == null ? '' : text));
+    if (!(opts && opts.skipParen === false)) s = skipParenEnglish(s);
+    lexProtect(s, lex, stats);
+    var mid = stats.lexMid;
+    if (!mid) return { count: 0, words: [] };
+    return {
+      count: mid.n,
+      words: mid.order.map(function (k, i) { return { word: k, count: mid.map[k], i: i }; })
+        .sort(function (a, b) { return b.count - a.count || a.i - b.i; })
+        .map(function (e) { return { word: e.word, count: e.count }; })
+    };
   }
   function forNative(text) {
     return lines(prepare(text, 'native')).map(function (l) { return l.replace(/[ \t]+/g, ' ').trim(); }).filter(Boolean).join('\n');
@@ -630,7 +695,7 @@
     plan: plan, chunks: chunks, filterVocab: filterVocab,
     /* เว้นขอบท่อนที่ส่งเข้าโมเดล MMS ไทย: " " + ท่อน + " " (ทำที่จุดส่งเข้า Worker ไม่ใช่ใน plan() — ความยาวท่อนจึง ≤ MAX_CHUNK + 2 และ "ดูข้อความที่จะอ่านจริง" ไม่เปลี่ยน) */
     padMms: function (text) { return ' ' + text + ' '; },
-    parseLexicon: parseLexicon, compileLexicon: compileLexicon, skippedWords: skippedWords, LEX_MAX_ROWS: LEX_MAX_ROWS,
+    parseLexicon: parseLexicon, compileLexicon: compileLexicon, skippedWords: skippedWords, lexiconSkips: lexiconSkips, LEX_MAX_ROWS: LEX_MAX_ROWS,
     /* ตารางคำอ่านทั้งหมด — test ตรวจว่า "ทุกตัวอักษรของคำอ่านอยู่ใน vocab" (กรองแล้วไม่หายไปไหน) */
     TABLES: { DIGIT: DIGIT, MONTHS: MONTHS, ABBR: ABBR_ANY.concat(ABBR_WORD), UNITS: UNITS, EN_DICT: EN_DICT, LETTER: LETTER,
       FIXED: ['จุด', 'ลบ', 'บวก', 'ถึง', 'บาท', 'สตางค์', 'ดอลลาร์', 'เซนต์', 'เปอร์เซ็นต์', 'นาฬิกา', 'นาที', 'วินาที', 'มาตรา', 'มอ', 'ลิงก์', 'อีเมล', 'ล้าน', 'เอ็ด', 'ยี่สิบ'].concat(PLACE) },

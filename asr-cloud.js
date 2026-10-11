@@ -3,7 +3,7 @@
    ใช้โดย text-to-speech.js · ต้องโหลดหลัง asr-calc.js, ai-client.js, media-core.js
 
    ขั้นตอน (ROADMAP ปรับปรุงเสียง/OCR Section 3 ข้อ 1–2)
-   1) แผนท่อน  AsrCalc.planChunks — ~28 วินาที/ท่อน ตัดที่จุดเงียบ ท่อนถัดไปเริ่มก่อนจุดตัด 1.5 วินาที (เหลื่อม)
+   1) แผนท่อน  AsrCalc.planChunks — ~28 วินาที/ท่อน ตัดที่จุดเงียบ ท่อนถัดไปเริ่มก่อนจุดตัด 1.5 วินาที (เหลื่อม) — ยกเว้นจุดตัดที่เงียบจริง (TanotMedia.silentAt) ไม่เหลื่อม
    2) ส่งขนาน ≤ 3 ท่อน (คิวจำกัดจำนวน) — ผลเก็บตามดัชนีท่อน ประกอบตามลำดับเดิมเสมอ ไม่ขึ้นกับว่าท่อนไหนเสร็จก่อน
    3) ท่อนล้ม (เครือข่าย/เซิร์ฟเวอร์ 5xx) ลองใหม่ 1 ครั้ง · quota (429)/ล็อกอินหมดอายุ/คำขอผิด/ยกเลิก = หยุดทั้งชุดทันที:
       ไม่เริ่มท่อนที่ยังไม่ส่ง และยกเลิกคำขอที่ค้างทั้งหมด (ไม่เสีย Neurons เพิ่มกับท่อนที่เหลือ)
@@ -26,7 +26,10 @@
   }
   function plan(dec) {
     var c = cfg();
-    return AsrCalc.planChunks(dec.length, { rate: AsrCalc.RATE, cutAt: cutFinder(dec), overlapSec: c.overlapSec, stepSec: c.stepSec });
+    return AsrCalc.planChunks(dec.length, {
+      rate: AsrCalc.RATE, cutAt: cutFinder(dec), overlapSec: c.overlapSec, stepSec: c.stepSec,
+      isSilent: function (pos) { return TanotMedia.silentAt(dec, pos); } // จุดตัดเงียบจริง (±0.25 วิ < −45 dBFS) → ไม่เหลื่อม ไม่เสียเสียงที่ส่งเพิ่ม
+    });
   }
 
   function delay(ms, signal) {
@@ -67,7 +70,7 @@
         return AiClient.asr({ pcm: pcm, sampleRate: AsrCalc.RATE, language: opts.language, domain: opts.domain, signal: ctrl.signal }).then(function (r) {
           var seconds = (c.b - c.a) / AsrCalc.RATE;
           if (opts.onChunk) opts.onChunk({ index: i, seconds: seconds, neurons: r && r.neurons != null ? r.neurons : AsrCalc.neuronsFor(seconds) });
-          return { offset: c.a / AsrCalc.RATE, text: (r && r.text) || '', segments: (r && r.segments) || [], duration: seconds };
+          return { offset: c.a / AsrCalc.RATE, text: (r && r.text) || '', segments: (r && r.segments) || [], duration: seconds, ov: c.ov };
         });
       }
       function attempt(i, n) {
