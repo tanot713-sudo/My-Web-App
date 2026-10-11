@@ -118,6 +118,8 @@ jobs:
         run: npx playwright test invest.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)
         run: npx playwright test github-redirect.spec.js
+      - name: session-layout (ช่องวันที่ไม่ล้นทั้งเว็บแบบจำลอง iOS, area เว้นระยะแถวใช้ล่าสุด, แถบเซสชันหมดอายุของ sw.js ตรวจจากหน้าเว็บเอง ไม่วนรีโหลด จำนวนรอซิงก์ เข้าสู่ระบบใหม่ 2 ขั้น)
+        run: npx playwright test session-layout.spec.js
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4

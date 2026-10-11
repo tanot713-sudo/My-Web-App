@@ -53,6 +53,15 @@
     });
   })();
 
+  /* ── กลับมาจากปุ่ม "เข้าสู่ระบบใหม่" ของแถบเซสชันหมดอายุ (sw.js) — ?relogin=1|2 / ?swnet=1 → session-guard.js
+     ลบพารามิเตอร์ออกจาก URL, ตรวจ /api/session จากหน้าเว็บ, ยังไม่ผ่านไปทาง logout แล้วกลับหน้าเดิม, ผ่านแล้วส่งคิวซิงก์ทันที ── */
+  (function reloginLanding() {
+    if (!/[?&](relogin|swnet)=/.test(location.search) || window.TanotSession) return;
+    var s = document.createElement('script');
+    s.src = BASE + 'session-guard.js';
+    document.head.appendChild(s);
+  })();
+
   /* ── ธีม: ค่าและการตั้งค่าอยู่ที่ theme-boot.js (window.OmeTheme) ซึ่งตั้ง data-theme/accent/style
      + ฟอนต์ไว้ก่อนวาดจอแล้ว ที่นี่เก็บแค่ป้ายชื่อสำหรับแผงตั้งค่า ── */
   var OT = window.OmeTheme;

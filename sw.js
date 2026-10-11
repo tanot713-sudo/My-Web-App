@@ -5,11 +5,13 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v641';
+const CACHE = 'ome-v642';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
 const BG_CACHE = 'ome-bg-v1';
+/* สถานะเล็กๆ ของ SW ที่ต้องอยู่รอดตอน iOS ปิด SW ทิ้ง (ตอนนี้มีแค่ "หน้าเว็บยืนยันว่าเซสชันใช้ได้ถึงเวลา…") — ไม่ถูกล้างตอน bump CACHE */
+const STATE_CACHE = 'ome-state-v1';
 const PRECACHE = [
   './',
   './index.html',
@@ -244,7 +246,8 @@ const PRECACHE = [
   './icon-maskable-512.png',
   './apple-touch-icon.png',
   './favicon-32.png',
-  './i18n.js'
+  './i18n.js',
+  './session-guard.js'
 ];
 
 self.addEventListener('install', (e) => {
@@ -258,7 +261,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -267,15 +270,43 @@ self.addEventListener('activate', (e) => {
    พอเซสชัน Access หมดอายุ การเปิดหน้าจะถูก redirect ไปหน้าล็อกอินที่โดเมนอื่น ซึ่งแอปบนหน้าจอโฮม iPhone
    มักค้างอยู่ตรงนั้น จึงแสดงหน้าจากแคชพร้อมลิงก์เข้าสู่ระบบใหม่แทน — แต่ Pages เองก็ redirect ปกติด้วย
    (ตัด .html ออกจาก URL) และ SW อ่านปลายทางของ opaqueredirect ไม่ได้ เลยต้องถาม /api/session ก่อนว่า
-   ยังล็อกอินอยู่ไหม (endpoint นี้ไม่โดน redirect ของ Pages จะ redirect ก็ต่อเมื่อ Access ไม่ผ่านเท่านั้น) */
+   ยังล็อกอินอยู่ไหม (endpoint นี้ไม่โดน redirect ของ Pages จะ redirect ก็ต่อเมื่อ Access ไม่ผ่านเท่านั้น)
+   ผลของ SW เองเชื่อไม่ได้ทั้งหมด: บน iPhone เคยได้ opaqueredirect/401/403 ทุกครั้งทั้งที่หน้าเว็บเข้า /api/session ได้
+   → SW ไม่ตัดสินเอง: เสิร์ฟหน้าจากแคชพร้อมแถบ "แบบซ่อน" + session-guard.js ให้หน้าเว็บตรวจเอง
+   (ผ่าน = postMessage มาบอกให้เชื่อ SESSION_TRUST_MS แล้วโหลดหน้าจริง · ไม่ผ่าน = แสดงแถบ + บันทึกปัญหา) */
 const RELOGIN_PARAM = 'relogin';
+const BYPASS_PARAM = 'swnet'; // session-guard.js ใช้โหลดหน้าจริงแบบไม่ผ่านการตรวจของ SW (กันวน)
+const SESSION_TRUST_MS = 10 * 60 * 1000;
+const SESSION_TRUST_KEY = '/__tanot-sw/session-ok';
+let sessionOkUntil = null; // null = ยังไม่ได้อ่านจาก STATE_CACHE
 
-async function accessSessionExpired() {
+async function sessionTrusted() {
+  if (sessionOkUntil === null) {
+    sessionOkUntil = 0;
+    try {
+      const hit = await (await caches.open(STATE_CACHE)).match(SESSION_TRUST_KEY);
+      if (hit) sessionOkUntil = Number(await hit.text()) || 0;
+    } catch (err) {}
+  }
+  return sessionOkUntil > Date.now();
+}
+
+async function setSessionTrust(ok) {
+  sessionOkUntil = ok ? Date.now() + SESSION_TRUST_MS : 0;
+  try {
+    const c = await caches.open(STATE_CACHE);
+    if (ok) await c.put(SESSION_TRUST_KEY, new Response(String(sessionOkUntil)));
+    else await c.delete(SESSION_TRUST_KEY);
+  } catch (err) {}
+}
+
+// คืน { expired, type, status } — เครือข่ายล้ม = ไม่ถือว่าหมดอายุ (เหมือนเดิม)
+async function checkSessionFromSw() {
   try {
     const r = await fetch('/api/session', { redirect: 'manual', credentials: 'same-origin', cache: 'no-store' });
-    return r.type === 'opaqueredirect' || r.status === 401 || r.status === 403;
+    return { expired: r.type === 'opaqueredirect' || r.status === 401 || r.status === 403, type: r.type, status: r.status };
   } catch (err) {
-    return false;
+    return { expired: false, type: 'error', status: 0 };
   }
 }
 
@@ -297,27 +328,56 @@ function escapeHtml(s) {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+// JSON ใน <script> — กัน </script> หลุดจาก URL
+function scriptJson(v) {
+  return JSON.stringify(v).replace(/</g, '\\u003c');
+}
+
 async function handleRedirectedNavigation(req, redirectRes) {
   if (!/\.pages\.dev$/.test(location.hostname)) return redirectRes;
-  if (!(await accessSessionExpired())) return redirectRes;
+  if (await sessionTrusted()) return redirectRes;
+  const sw = await checkSessionFromSw();
+  if (!sw.expired) {
+    if (sw.type !== 'error') await setSessionTrust(true);
+    return redirectRes;
+  }
   const url = new URL(req.url);
   const cached = await cachedPageFor(url);
   if (!cached) return redirectRes;
 
   const relogin = new URL(url.href);
   relogin.searchParams.set(RELOGIN_PARAM, '1');
+  const bypass = new URL(url.href);
+  bypass.searchParams.set(BYPASS_PARAM, '1');
+  // ตัวตรวจฝั่งหน้าเว็บอ่านจากแคช (อยู่ใน PRECACHE) แล้วฝังทั้งไฟล์ — ตอนเซสชันหมดอายุโหลดไฟล์จากเครือข่ายไม่ได้
+  const guardHit = await caches.match('session-guard.js', { ignoreSearch: true });
+  const guardSrc = guardHit ? (await guardHit.text()).replace(/<\/script/gi, '<\\/script') : '';
+  const cfg = { url: url.href, bypass: bypass.href, relogin: relogin.href, sw: { type: sw.type, status: sw.status } };
+  // แถบเริ่มซ่อน (display:none) — แสดงเมื่อหน้าเว็บตรวจเองแล้วไม่ผ่านเท่านั้น
   const bar =
-    '<div id="tanot-relogin" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;display:flex;gap:12px;' +
-    'align-items:center;justify-content:center;flex-wrap:wrap;padding:10px 16px calc(10px + env(safe-area-inset-bottom));' +
-    'background:#1B2030;color:#E6EAF2;font:600 13px/1.4 Prompt,system-ui,sans-serif;box-shadow:0 -4px 16px rgba(0,0,0,.25)">' +
-    '<span>เซสชันหมดอายุ — กำลังแสดงหน้าจากแคช</span>' +
-    '<a href="' + escapeHtml(relogin.href) + '" style="color:#fff;background:#0F8475;padding:6px 14px;border-radius:999px;' +
-    'text-decoration:none">เข้าสู่ระบบใหม่</a></div>';
+    '<div id="tanot-relogin" role="status" style="position:fixed;left:0;right:0;bottom:0;z-index:99999;display:none;gap:12px;' +
+    'align-items:center;justify-content:center;flex-wrap:wrap;padding:10px calc(16px + env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));' +
+    'background:var(--ome-surface-2,#1B2030);color:var(--ome-text-1,#E6EAF2);border-top:1px solid var(--ome-border,#2A3040);' +
+    'font:600 14px/1.4 var(--ome-f,system-ui),system-ui,sans-serif;box-shadow:0 -4px 16px rgba(0,0,0,.25)">' +
+    '<span id="tanot-relogin-msg">เซสชันหมดอายุ — กำลังแสดงหน้าจากแคช</span>' +
+    '<a id="tanot-relogin-go" href="' + escapeHtml(relogin.href) + '" style="display:inline-flex;align-items:center;min-height:40px;' +
+    'color:var(--ome-on-accent,#fff);background:var(--ome-accent,#0F8475);padding:0 16px;border-radius:999px;text-decoration:none">เข้าสู่ระบบใหม่</a></div>' +
+    (guardSrc ? '<script>' + guardSrc + '</script>' : '<script src="session-guard.js"></script>') +
+    '<script>window.TanotSession&&TanotSession.guard(' + scriptJson(cfg) + ');</script>';
   let html = await cached.text();
   const i = html.lastIndexOf('</body>');
   html = i === -1 ? html + bar : html.slice(0, i) + bar + html.slice(i);
   return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
 }
+
+// session-guard.js (หน้าเว็บตรวจ /api/session เอง) / tanot-data.js (ซิงก์ผ่านหรือโดนปฏิเสธ) บอกผลมา
+self.addEventListener('message', (e) => {
+  const d = e.data;
+  if (!d || d.type !== 'tanot:session') return;
+  const port = e.ports && e.ports[0];
+  const reply = () => { if (port) port.postMessage({ ok: true }); };
+  e.waitUntil(setSessionTrust(!!d.ok).then(reply, reply));
+});
 
 self.addEventListener('fetch', (e) => {
   const req = e.request;
@@ -344,8 +404,8 @@ self.addEventListener('fetch', (e) => {
   // API (Pages Functions) และหน้าล็อกอินของ Cloudflare Access ต้องไปถึงเครือข่ายเสมอ ห้ามแคช
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/cdn-cgi/')) return;
 
-  // ลิงก์ "เข้าสู่ระบบใหม่" จากแถบเซสชันหมดอายุ — ปล่อยให้เบราว์เซอร์ตาม redirect ไปหน้าล็อกอินเอง
-  if (req.mode === 'navigate' && url.searchParams.has(RELOGIN_PARAM)) return;
+  // ลิงก์ "เข้าสู่ระบบใหม่" จากแถบเซสชันหมดอายุ / ทางเลี่ยงของ session-guard.js — ปล่อยให้เบราว์เซอร์ตาม redirect เอง
+  if (req.mode === 'navigate' && (url.searchParams.has(RELOGIN_PARAM) || url.searchParams.has(BYPASS_PARAM))) return;
 
   if (url.pathname.indexOf('/assets/backgrounds/') !== -1) {
     e.respondWith(caches.open(BG_CACHE).then((c) => c.match(req).then((hit) => {
