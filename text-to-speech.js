@@ -642,10 +642,10 @@
   }
   var TTS_VOICES = {
     th: [
-      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) · เอา "ค่าเริ่มต้น" เดิม (Tanotfin/mms-tts-2081-onnx) ออกแล้ว */
+      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น = โทนพอดแคสต์ (วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด ≥ 5 เซมิโทน ~6–8 ครั้ง/นาที, พอดแคสต์ ~1.5, ชาย 0 — เจ้าของเลือกพอดแคสต์) · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) */
+      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' },
       { id: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
-      { id: 'Tanotfin/mms-tts-2081-M-stable2-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' },
-      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' }
+      { id: 'Tanotfin/mms-tts-2081-M-stable2-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' }
     ],
     en: [
       { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น', k: 'v_default' }
