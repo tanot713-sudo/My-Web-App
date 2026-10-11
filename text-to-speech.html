@@ -36,6 +36,11 @@
 .tts-page .form-msg{white-space:pre-line}
 .tts-page #dlParts{margin-top:var(--ome-sp-3)}
 .tts-page details.disclosure > .disclosure-body{padding-top:var(--ome-sp-3)}
+.tts-page .f5-lead{margin:0}
+.tts-page #f5Status:empty{display:none}
+.tts-page .f5-steps{margin:0;padding-left:1.4em}
+.tts-page .f5-steps li + li{margin-top:var(--ome-sp-1)}
+.tts-page .f5-steps code{font-size:inherit;overflow-wrap:anywhere}
 
 .tts-player{display:none;padding:14px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg)}
 .tts-player audio{width:100%;margin-bottom:10px}
@@ -141,6 +146,46 @@
       <a class="btn sm" id="dlMp3Link" download="tts-output.mp3"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.dlMp3">ดาวน์โหลด .mp3</span></a>
     </div>
   </div>
+</div>
+
+<div class="card" id="f5Card">
+  <h2><svg class="ome-icon"><use href="icons.svg#i-book-open"/></svg><span data-i18n="tts.f5Title">หนังสือเสียงคุณภาพสูง (Google Colab)</span><span class="badge" data-i18n-skip>F5-TTS-THAI</span></h2>
+  <details class="disclosure" id="f5Box">
+    <summary data-i18n="tts.f5Summary">ประเมินเวลาและเปิดใน Colab</summary>
+    <div class="disclosure-body stack">
+      <div class="kv" id="f5Est" hidden>
+        <span class="k" data-i18n="tts.f5Chars">ตัวอักษรหลังแปลง</span><span class="v" id="f5EstChars"></span>
+        <span class="k" data-i18n="tts.f5Audio">ความยาวเสียง (ต่อ 1 เสียง)</span><span class="v" id="f5EstAudio"></span>
+        <span class="k" data-i18n="tts.f5Gen">เวลาสร้างบน L4 (ต่อ 1 เสียง)</span><span class="v" id="f5EstGen"></span>
+        <span class="k" id="f5EstPartsK"></span><span class="v" id="f5EstParts"></span>
+      </div>
+      <div class="frow">
+        <button class="btn sm" id="f5TxtBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.f5Txt">บันทึกข้อความเป็น .txt</span></button>
+        <a class="btn primary sm" id="f5ColabLink" href="https://colab.research.google.com/github/tanot713-sudo/My-Web-App/blob/main/tools/colab/tanot-audiobook-f5.ipynb" target="_blank" rel="noopener"><svg class="ome-icon"><use href="icons.svg#i-external-link"/></svg><span data-i18n="tts.f5Open">เปิดใน Colab</span></a>
+      </div>
+      <div class="status" id="f5Status"></div>
+      <!-- คำอธิบายทั้งหมดพับไว้อีกชั้น (เจ้าของขอ: ไม่กดดูก็ไม่รกหน้าจอ) -->
+      <details class="disclosure" id="f5HowBox">
+        <summary data-i18n="tts.f5How">วิธีใช้และข้อควรรู้</summary>
+        <div class="disclosure-body stack">
+          <p class="f5-lead" data-i18n="tts.f5Lead">อ่านไทยแม่นกว่าเสียงในเบราว์เซอร์ราว 2–3 เท่า (วัดจากการถอดเสียงกลับ) แต่ต้องใช้ Google Colab + GPU ใช้เวลานาน และไฟล์ไปอยู่ใน Google Drive</p>
+          <ol class="f5-steps">
+            <li data-i18n="tts.f5Step1">ใน Colab: Runtime → Change runtime type → เลือก L4 GPU → Save</li>
+            <li data-i18n="tts.f5Step2">กด Run ที่ cell โค้ด</li>
+            <li data-i18n="tts.f5Step3">อนุญาตให้เข้าถึง Google Drive</li>
+            <li data-i18n="tts.f5Step4">อัปโหลดไฟล์ .txt — ครั้งแรกเลือก ref-F-C.wav และ ref-M-C.wav ไปพร้อมกัน (ครั้งต่อไปใช้ที่เก็บไว้ใน Drive)</li>
+            <li><span data-i18n="tts.f5Step5">เปิดแท็บ Colab ค้างไว้จนเสร็จ — หลุดแล้วกด Run ใหม่ ทำต่อจากตอนที่ค้าง · ไฟล์ MP3 อยู่ที่</span> <code data-i18n-skip>My Drive/Tanot หนังสือเสียง</code></li>
+          </ol>
+          <div class="callout info">
+            <div class="stack">
+              <span data-i18n="tts.f5NoteLex">"คำอ่านของฉัน" ไม่ถูกใช้กับเสียงนี้</span>
+              <span data-i18n="tts.f5NoteRef">เสียงตัวอย่างยาว 6–8 วินาที พร้อมข้อความกำกับที่ตรงทุกคำ — ใช้เสียงที่สร้างเองหรือได้รับอนุญาตเท่านั้น</span>
+            </div>
+          </div>
+        </div>
+      </details>
+    </div>
+  </details>
 </div>
 
 <div class="card">

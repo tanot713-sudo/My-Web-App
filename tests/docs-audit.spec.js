@@ -171,6 +171,8 @@ const TARGETS = [
       ['preview-skipped', async (p) => { await dom(p, '#pvMmsBox > summary'); await settle(p, 600); }],
       ['gpu-option-parts', async (p) => { await p.evaluate(() => { document.getElementById('optGpuWrap').hidden = false; window.__tts.demoParts(); document.getElementById('dlStatus').className = 'status ok'; document.getElementById('dlStatus').textContent = 'x'; }); await settle(p, 300); }],
       ['keep-note', async (p) => { await p.evaluate(() => window.__tts.demoRun(true, true)); await settle(p, 300); }],
+      // หนังสือเสียงคุณภาพสูง (Google Colab): กางกล่อง + ส่วนประเมิน (ข้อความมีหัวตอน) + สถานะหลังกดบันทึก .txt
+      ['f5-open', async (p) => { await p.evaluate(() => window.__tts.demoRun(false)); await p.fill('#ttsText', '1. Chapter one\n\n' + 'ข้อความภาษาไทยสำหรับประเมินเวลา '.repeat(20) + '\n\n2. Chapter two\n\n' + 'ย่อหน้าที่สอง '.repeat(20)); await dom(p, '#f5Box > summary'); await p.waitForSelector('#f5Est:not([hidden])', { timeout: 5000 }).catch(() => {}); await dom(p, '#f5TxtBtn'); await settle(p, 300); }],
       ['live-status', async (p) => { await p.evaluate(() => { const s = document.getElementById('wsStatus'); s.className = 'status err'; s.textContent = 'x'; }); await dom(p, '#wsPlayBtn'); await settle(p, 300); }],
       ['download-ready', async (p) => { await p.evaluate(() => { document.getElementById('dlPlayerWrap').style.display = 'block'; }); await settle(p, 200); }],
       ['asr-no-file', async (p) => { await dom(p, '#asrGoBtn'); await settle(p, 300); }],

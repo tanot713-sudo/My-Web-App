@@ -9,7 +9,8 @@
    • createCollector      รับเสียงรายท่อนที่เสร็จ "ลำดับใดก็ได้" แล้วส่งออกเป็นส่วน (ตอน/ช่วง ~30 นาที) ทันทีที่ท่อนในส่วนนั้นเสร็จครบต่อเนื่อง
                           → ส่วนที่ส่งออกแล้วถูกปล่อยจากหน่วยความจำ (เหลือเฉพาะส่วนที่ยังไม่ครบ)
    • createEta            ETA จากค่าเฉลี่ยเคลื่อนที่ (ไม่ใช้ elapsed/done ซึ่งรวมช่วงโหลดโมเดลและช่วงทยอยเปิด Worker แล้วประเมินสูงเกิน)
-   • statsInfo            สรุปสถิติสำหรับ problem log — ตัวเลข/รหัสสั้นๆ เท่านั้น ไม่มีเนื้อหาของผู้ใช้ */
+   • statsInfo            สรุปสถิติสำหรับ problem log — ตัวเลข/รหัสสั้นๆ เท่านั้น ไม่มีเนื้อหาของผู้ใช้
+   • f5Estimate           ประเมินความยาวเสียง/เวลาสร้าง/จำนวนตอนของหนังสือเสียง F5-TTS-THAI บน Colab (การ์ด "หนังสือเสียงคุณภาพสูง") */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
   else root.TanotTtsLong = factory();
@@ -149,9 +150,39 @@
       s.cancelled ? 'cancelled' : ''].filter(Boolean).join(' ');
   }
 
+  /* ══════════════ ประเมินงานหนังสือเสียง F5-TTS-THAI บน Google Colab (การ์ด "หนังสือเสียงคุณภาพสูง") ══════════════
+     ตัวเลขวัดจากงานจริงของเจ้าของ 2026-10 (นิยาย 170,803 ตัวอักษร 17 ตอน → 2 เสียง ~3.3 ชม./เสียง ใช้ 134 นาทีบน L4 ไม่มีท่อนล้ม):
+     • F5_CHARS_PER_SEC   ตัวอักษร (หลังแปลง) ต่อ 1 วินาทีเสียง ≈ 13.5
+     • F5_L4_SPEED        L4 สร้างเร็วกว่าเวลาจริง ~3.5–4 เท่า → ใช้ 3.7
+     ส่วนที่เหลือเลียนแบบสคริปต์ tools/colab/tanot_audiobook_f5.py (PLAN_JS) ให้จำนวนตอน/ตัวอักษรตรงกับที่ Colab จะทำจริง:
+     ท่อน ≤ 100 ตัว · ไม่ใช้ "คำอ่านของฉัน" · ข้ามอังกฤษในวงเล็บตามค่าเริ่มต้น · `ํา` → `ำ` · ไม่พบหัวตอน = ตัดส่วนละ ~25,000 ตัวอักษร (~30 นาทีเสียง) ที่ขอบย่อหน้า */
+  var F5_CHARS_PER_SEC = 13.5;
+  var F5_L4_SPEED = 3.7;
+  var F5_MAX_CHUNK = 100;              // = MAX_CHUNK ในสคริปต์ Colab
+  var F5_TIME_SPLIT_CHARS = 25000;     // = TIME_SPLIT_CHARS ในสคริปต์ Colab
+  /* norm = TanotTtsNorm (ส่งเข้ามา ไฟล์นี้ไม่ require เอง) → { chars, parts, chapters: พบหัวตอนหรือไม่, audioSec, genSec } — ต่อ 1 เสียง */
+  function f5Estimate(text, norm) {
+    var opt = { max: F5_MAX_CHUNK }, chars = 0, parts = 0;
+    function len(cs) { return cs.reduce(function (s, c) { return s + c.replace(/ํา/g, 'ำ').length; }, 0); }
+    var ch = splitChapters(text);
+    if (ch) {
+      ch.forEach(function (c) { var p = norm.plan(c.text, opt); if (p.chunks.length) { parts++; chars += len(p.chunks); } });
+    } else {
+      var p = norm.plan(String(text == null ? '' : text), opt), n = 0;
+      p.chunks.forEach(function (c, i) {
+        if (!i || (n >= F5_TIME_SPLIT_CHARS && p.paras[i] !== p.paras[i - 1])) { parts++; n = 0; }
+        n += c.length;
+      });
+      chars = len(p.chunks);
+    }
+    var audioSec = chars / F5_CHARS_PER_SEC;
+    return { chars: chars, parts: parts, chapters: !!ch, audioSec: audioSec, genSec: audioSec / F5_L4_SPEED };
+  }
+
   return {
     TIME_SPLIT_SEC: TIME_SPLIT_SEC, TIME_HARD_CAP_SEC: TIME_HARD_CAP_SEC,
     headingOf: headingOf, splitChapters: splitChapters, chapterFileName: chapterFileName, timeFileName: timeFileName, formatDur: formatDur,
-    createCollector: createCollector, createEta: createEta, statsInfo: statsInfo
+    createCollector: createCollector, createEta: createEta, statsInfo: statsInfo,
+    F5_CHARS_PER_SEC: F5_CHARS_PER_SEC, F5_L4_SPEED: F5_L4_SPEED, F5_MAX_CHUNK: F5_MAX_CHUNK, F5_TIME_SPLIT_CHARS: F5_TIME_SPLIT_CHARS, f5Estimate: f5Estimate
   };
 });

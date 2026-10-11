@@ -84,6 +84,8 @@ jobs:
         run: npx playwright test tts-normalize.spec.js
       - name: tts-long (เสียงพูดยาว — คำอ่านของฉัน ยาวสุดก่อน/ไม่สนตัวพิมพ์/ติดไทย/แถวผิด vocab ถูกปฏิเสธ, vs/GOD/EP/part, ข้ามอังกฤษในวงเล็บ + รายการคำที่ถูกข้าม + ปุ่มเพิ่มคำอ่าน, รวมบรรทัดในย่อหน้า + ช่วงเงียบ 3 ระดับ, แบ่งไฟล์ตามตอน, Wake Lock, ยกเลิกแล้วได้ไฟล์ที่เสร็จ, ETA, WebGPU ล้ม → WASM + problem log, สร้างซ้ำติดกันไม่ค้าง — transformers ตัวหลอก ข้อความตัวอย่างแต่งเอง)
         run: npx playwright test tts-long.spec.js
+      - name: colab (หนังสือเสียง F5-TTS-THAI บน Google Colab — notebook ตรงกับ .py ทุกตัวอักษร, ประเมินความยาวเสียง/เวลาสร้าง/จำนวนตอน, การ์ดในหน้า text-to-speech + ดาวน์โหลด .txt + ลิงก์ Colab + ไทย/อังกฤษ + 360px)
+        run: npx playwright test colab.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)

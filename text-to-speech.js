@@ -59,7 +59,16 @@
       workersInfo: 'Worker {n} ตัว · ~{s} วิ/ท่อน', gpuInfo: 'WebGPU · ~{s} วิ/ท่อน', gpuWasm: 'WebGPU ใช้ไม่ได้กับเสียงนี้ — สลับไปใช้ WASM แล้ว',
       etaHr: 'อีกประมาณ {h} ชั่วโมง', etaHrMin: 'อีกประมาณ {h} ชั่วโมง {m} นาที',
       madeParts: 'สร้างเสร็จ {n} ไฟล์ — ดาวน์โหลดแต่ละไฟล์ด้านล่าง', cancelPartial: 'ยกเลิกแล้ว — ได้ไฟล์เสร็จแล้ว {n} ไฟล์ (ดาวน์โหลดด้านล่าง)', partsKept: 'ได้ไฟล์เสร็จแล้ว {n} ไฟล์ — ดาวน์โหลดด้านล่าง',
-      partMeta: '{dur} · ท่อน {from}–{to}'
+      partMeta: '{dur} · ท่อน {from}–{to}',
+      f5Title: 'หนังสือเสียงคุณภาพสูง (Google Colab)', f5Summary: 'ประเมินเวลาและเปิดใน Colab', f5How: 'วิธีใช้และข้อควรรู้',
+      f5Lead: 'อ่านไทยแม่นกว่าเสียงในเบราว์เซอร์ราว 2–3 เท่า (วัดจากการถอดเสียงกลับ) แต่ต้องใช้ Google Colab + GPU ใช้เวลานาน และไฟล์ไปอยู่ใน Google Drive',
+      f5Chars: 'ตัวอักษรหลังแปลง', f5Audio: 'ความยาวเสียง (ต่อ 1 เสียง)', f5Gen: 'เวลาสร้างบน L4 (ต่อ 1 เสียง)', f5Chapters: 'จำนวนตอน', f5TimeParts: 'จำนวนไฟล์ (ไม่พบหัวตอน — แบ่งทุก ~30 นาที)',
+      f5Min: '~{m} นาที', f5Hr: '~{h} ชม.', f5HrMin: '~{h} ชม. {m} นาที',
+      f5Txt: 'บันทึกข้อความเป็น .txt', f5Open: 'เปิดใน Colab', f5Saved: 'บันทึก {name} แล้ว',
+      f5Step1: 'ใน Colab: Runtime → Change runtime type → เลือก L4 GPU → Save', f5Step2: 'กด Run ที่ cell โค้ด', f5Step3: 'อนุญาตให้เข้าถึง Google Drive',
+      f5Step4: 'อัปโหลดไฟล์ .txt — ครั้งแรกเลือก ref-F-C.wav และ ref-M-C.wav ไปพร้อมกัน (ครั้งต่อไปใช้ที่เก็บไว้ใน Drive)',
+      f5Step5: 'เปิดแท็บ Colab ค้างไว้จนเสร็จ — หลุดแล้วกด Run ใหม่ ทำต่อจากตอนที่ค้าง · ไฟล์ MP3 อยู่ที่',
+      f5NoteLex: '"คำอ่านของฉัน" ไม่ถูกใช้กับเสียงนี้', f5NoteRef: 'เสียงตัวอย่างยาว 6–8 วินาที พร้อมข้อความกำกับที่ตรงทุกคำ — ใช้เสียงที่สร้างเองหรือได้รับอนุญาตเท่านั้น'
     },
     en: {
       title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
@@ -110,7 +119,16 @@
       workersInfo: '{n} workers · ~{s} s/segment', gpuInfo: 'WebGPU · ~{s} s/segment', gpuWasm: 'WebGPU does not work with this voice — switched to WASM',
       etaHr: 'about {h} h left', etaHrMin: 'about {h} h {m} min left',
       madeParts: '{n} files ready — download each file below', cancelPartial: 'Cancelled — {n} files were already finished (download below)', partsKept: '{n} files were already finished — download below',
-      partMeta: '{dur} · segments {from}–{to}'
+      partMeta: '{dur} · segments {from}–{to}',
+      f5Title: 'High-quality audiobook (Google Colab)', f5Summary: 'Estimate and open in Colab', f5How: 'How to use and notes',
+      f5Lead: 'Reads Thai about 2–3× more accurately than the browser voice (measured by transcribing it back), but it needs Google Colab + a GPU, takes a long time, and the files go to Google Drive',
+      f5Chars: 'Characters after conversion', f5Audio: 'Audio length (per voice)', f5Gen: 'Time to make on an L4 (per voice)', f5Chapters: 'Chapters', f5TimeParts: 'Files (no chapter headings — split every ~30 min)',
+      f5Min: '~{m} min', f5Hr: '~{h} h', f5HrMin: '~{h} h {m} min',
+      f5Txt: 'Save text as .txt', f5Open: 'Open in Colab', f5Saved: 'Saved {name}',
+      f5Step1: 'In Colab: Runtime → Change runtime type → pick L4 GPU → Save', f5Step2: 'Press Run on the code cell', f5Step3: 'Allow access to Google Drive',
+      f5Step4: 'Upload the .txt file — the first time, also pick ref-F-C.wav and ref-M-C.wav (later runs reuse the copies kept in Drive)',
+      f5Step5: 'Keep the Colab tab open until it finishes — if it disconnects, press Run again to continue where it stopped · the MP3 files are in',
+      f5NoteLex: '"My pronunciations" are not used for this voice', f5NoteRef: 'Reference voice clips are 6–8 seconds with a transcript that matches every word — only use voices you made yourself or have permission to use'
     }
   });
   /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
@@ -191,7 +209,9 @@
         return;
       }
       $('ttsText').value = text;
+      importedName = file.name || '';
       updateCharCount();
+      scheduleF5();
       $('importStatus').className = 'status ok';
       st('importStatus', function () { return T('imported', { name: file.name, n: text.length }); });
     }).catch(function (err) {
@@ -1575,6 +1595,50 @@
   }
   function schedulePreviews() { clearTimeout(previewTimer); previewTimer = setTimeout(updatePreviews, 200); }
 
+  /* ══════════════════ หนังสือเสียงคุณภาพสูง (F5-TTS-THAI บน Google Colab — tools/colab/) ══════════════════
+     ประเมินด้วย TanotTtsLong.f5Estimate (ตัวเลขวัดจริงอยู่ที่นั่นที่เดียว) เฉพาะตอนกางกล่องอยู่ · ข้อความยาวไม่คำนวณทุกครั้งที่พิมพ์ (debounce)
+     ปุ่ม .txt สร้างไฟล์ในเครื่องจากกล่องข้อความ (Blob) — ไม่ส่งข้อความไปเซิร์ฟเวอร์ใดๆ · ผู้ใช้อัปโหลดไฟล์นั้นใน Colab เอง */
+  var importedName = '', f5Est = null, f5Timer = null;
+  function f5Dur(sec) {
+    var m = Math.max(1, Math.round(sec / 60)), h = Math.floor(m / 60);
+    if (m < 60) return T('f5Min', { m: OME_I18N.number(m) });
+    return m % 60 ? T('f5HrMin', { h: OME_I18N.number(h), m: OME_I18N.number(m % 60) }) : T('f5Hr', { h: OME_I18N.number(h) });
+  }
+  function renderF5() {
+    var box = $('f5Est');
+    if (!box) return;
+    box.hidden = !(f5Est && f5Est.chars > 0);
+    if (box.hidden) return;
+    $('f5EstChars').textContent = OME_I18N.number(f5Est.chars);
+    $('f5EstAudio').textContent = f5Dur(f5Est.audioSec);
+    $('f5EstGen').textContent = f5Dur(f5Est.genSec);
+    $('f5EstPartsK').textContent = T(f5Est.chapters ? 'f5Chapters' : 'f5TimeParts');
+    $('f5EstParts').textContent = OME_I18N.number(f5Est.parts);
+  }
+  function updateF5() {
+    clearTimeout(f5Timer); f5Timer = null;
+    if (!$('f5Box') || !$('f5Box').open) return;
+    var text = $('ttsText').value;
+    f5Est = /\S/.test(text) && Long && Norm ? Long.f5Estimate(text, Norm) : null;
+    renderF5();
+  }
+  function scheduleF5() { clearTimeout(f5Timer); f5Timer = setTimeout(updateF5, 400); }
+  /* ชื่อไฟล์ = ชื่อไฟล์ที่ผู้ใช้แนบมา (เปลี่ยนนามสกุลเป็น .txt) ไม่มี = tanot-text.txt — สคริปต์ Colab ใช้ชื่อนี้เป็นชื่อเรื่อง/โฟลเดอร์ใน Drive */
+  function f5TxtName() {
+    var base = importedName.replace(/\.[^.]*$/, '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').trim();
+    return (base || 'tanot-text') + '.txt';
+  }
+  function saveF5Txt() {
+    var text = $('ttsText').value;
+    if (!/\S/.test(text)) { st('f5Status', function () { return T('typeFirst'); }, 'err'); return; }
+    var name = f5TxtName(), url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.hidden = true;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    st('f5Status', function () { return T('f5Saved', { name: name }); }, 'ok');
+  }
+
   /* ══════════════════ ภาษาของการถอดเสียง — ค่าเริ่มต้น "ไทย" และจำที่ผู้ใช้เลือก ══════════════════
      ใช้ค่าเดียวกันทั้งโหมดคลาวด์และในเบราว์เซอร์ (runAsr อ่านจาก #asrLang) · ค่าเริ่มต้นไทยบนคอม → Thonburian small ตามกลไก asrDefaultModel เดิม */
   var ASR_LANG_KEY = 'tanot:asr:lang';
@@ -1591,8 +1655,10 @@
   function init() {
     window.OME_PAGE_LIVE_LANG = true;
     /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
-    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); });
-    $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); });
+    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); renderF5(); });
+    $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); if ($('f5Box').open) scheduleF5(); });
+    $('f5Box').addEventListener('toggle', updateF5);
+    $('f5TxtBtn').addEventListener('click', saveF5Txt);
     updateCharCount();
     ['pvNativeBox', 'pvMmsBox', 'lexBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
     $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });
@@ -1700,7 +1766,7 @@
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
     chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS,
-    wake: wake, genRun: function () { return genRun; }, lexCommit: lexCommit,
+    wake: wake, genRun: function () { return genRun; }, lexCommit: lexCommit, f5Estimate: function () { return f5Est; },
     /* ตัวช่วยตรวจ UI (docs-audit.spec.js): วาดรายการไฟล์ตัวอย่าง / กล่องเตือนระหว่างสร้างโดยไม่ต้องรันโมเดล */
     demoParts: function () {
       clearParts();
