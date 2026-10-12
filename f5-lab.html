@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="f5lab.docTitle">F5 ในเบราว์เซอร์ (ทดลอง) | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+/* หน้าทดลอง F5-TTS-THAI ในเบราว์เซอร์ — คอมโพเนนต์ทั้งหมดมาจาก theme.css (data-layout="tool") */
+.f5-page{max-width:780px}
+.f5-page > * + *{margin-top:var(--ome-sp-4)}
+.f5-page .page-head{display:flex;align-items:center;gap:var(--ome-sp-2);flex-wrap:wrap}
+.f5-page .page-head h1{margin:0}
+.f5-page .card > * + *{margin-top:var(--ome-sp-3)}
+.f5-page .card > h2{display:flex;align-items:center;gap:8px;margin:0;font-size:var(--ome-fs-md)}
+.f5-page .f5-acts{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);align-items:center}
+.f5-page .status:empty{display:none}
+.f5-page .f5-env > * + *{margin-top:var(--ome-sp-2)}
+.f5-page .f5-license{margin:0;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.f5-page .f5-license a{color:var(--ome-accent-strong)}
+.f5-page .char-count{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:right;margin-top:4px}
+.f5-page .field input[type=file]{height:auto;padding:6px 8px}
+.f5-page details.disclosure > .disclosure-body{padding-top:var(--ome-sp-3)}
+.f5-page details.disclosure > .disclosure-body > * + *{margin-top:var(--ome-sp-3)}
+.f5-page .kv .v{overflow-wrap:anywhere}
+.f5-page audio{width:100%}
+[hidden]{display:none !important}
+</style>
+</head>
+<body data-layout="tool">
+<main class="page f5-page">
+  <nav class="crumb" data-i18n-attr="aria-label:f5lab.crumb" aria-label="ตำแหน่ง"><a href="text-to-speech.html" data-i18n="f5lab.back">แปลงเสียง ↔ ข้อความ</a><span class="sep">/</span><span data-i18n="f5lab.title">F5 ในเบราว์เซอร์</span></nav>
+  <div class="page-head"><h1 data-i18n="f5lab.title">F5 ในเบราว์เซอร์</h1><span class="badge" data-i18n="f5lab.lab">ทดลอง</span></div>
+
+  <div class="f5-env" id="envMsg" hidden>
+    <div class="callout warn" id="envText" role="status"></div>
+    <div class="f5-acts" id="envActs">
+      <a class="btn sm" href="text-to-speech.html#f5Card" id="colabLink"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-external-link"/></svg><span data-i18n="f5lab.colab">ใช้ Google Colab</span></a>
+      <button class="btn sm" type="button" id="cpuBtn" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-cpu"/></svg><span data-i18n="f5lab.cpu">ลองบน CPU (ช้ามาก)</span></button>
+    </div>
+  </div>
+
+  <section class="card" id="modelCard">
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-box"/></svg><span data-i18n="f5lab.model">โมเดล</span><span class="badge" data-i18n-skip>F5-TTS-THAI v1</span></h2>
+    <div class="segmented" id="variant" role="group" data-i18n-attr="aria-label:f5lab.model" aria-label="โมเดล">
+      <button type="button" data-v="q4">q4</button><button type="button" data-v="fp16">fp16</button>
+    </div>
+    <div class="kv">
+      <span class="k" data-i18n="f5lab.need">ขนาดที่ต้องโหลด</span><span class="v" id="needSize"></span>
+      <span class="k" data-i18n="f5lab.cached">โหลดไว้ในเครื่อง</span><span class="v" id="cachedSize"></span>
+    </div>
+    <div class="meter" id="dlMeter" hidden><i></i></div>
+    <div class="status" id="modelStatus" role="status" aria-live="polite"></div>
+    <div class="f5-acts">
+      <button class="btn primary" type="button" id="loadBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="f5lab.load">โหลดโมเดล</span></button>
+      <button class="btn" type="button" id="stopLoadBtn" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg><span data-i18n="f5lab.stop">หยุด</span></button>
+      <button class="btn danger" type="button" id="clearBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="f5lab.clear">ลบโมเดลที่โหลดไว้</span></button>
+    </div>
+    <p class="f5-license"><span data-i18n="f5lab.license">ใช้ส่วนตัว/ไม่แสวงกำไรเท่านั้น (CC BY-NC 4.0)</span> · <a href="credits.html#f5" data-i18n="f5lab.credits">เครดิต</a></p>
+  </section>
+
+  <section class="card" id="voiceCard">
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-mic"/></svg><span data-i18n="f5lab.voices">เสียงตัวอย่าง</span></h2>
+    <div class="list plain" id="voiceList" data-i18n-skip></div>
+    <div class="empty compact" id="voiceEmpty" data-i18n="f5lab.noVoice">ยังไม่มีเสียงตัวอย่าง</div>
+    <details class="disclosure" id="addVoice">
+      <summary data-i18n="f5lab.addVoice">เพิ่มเสียงตัวอย่าง</summary>
+      <div class="disclosure-body">
+        <div class="callout warn" data-i18n="f5lab.consent">ใช้เสียงที่สร้างเองหรือได้รับอนุญาตเท่านั้น</div>
+        <div class="field">
+          <label for="vFile" data-i18n="f5lab.vFile">ไฟล์เสียง (wav / mp3 / m4a)</label>
+          <input class="input" type="file" id="vFile" accept="audio/*,.wav,.mp3,.m4a">
+        </div>
+        <div class="field">
+          <label for="vName" data-i18n="f5lab.vName">ชื่อเสียง</label>
+          <input class="input" type="text" id="vName" maxlength="40" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="vText" data-i18n="f5lab.vText">ข้อความที่พูดในไฟล์ (ตรงทุกคำ)</label>
+          <textarea class="textarea" id="vText" rows="3" maxlength="400" autocomplete="off"></textarea>
+        </div>
+        <div class="status" id="vStatus" role="status" aria-live="polite"></div>
+        <div class="f5-acts">
+          <button class="btn primary" type="button" id="vSave"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-save"/></svg><span data-i18n="f5lab.vSave">บันทึกเสียงตัวอย่าง</span></button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="card" id="genCard">
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-volume-2"/></svg><span data-i18n="f5lab.gen">สร้างเสียง</span></h2>
+    <div class="field">
+      <label for="genText" data-i18n="f5lab.text">ข้อความ</label>
+      <textarea class="textarea" id="genText" rows="5" maxlength="1000" autocomplete="off"></textarea>
+      <div class="char-count" id="charCount"></div>
+    </div>
+    <div class="f5-acts">
+      <button class="btn primary" type="button" id="genBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg><span data-i18n="f5lab.genBtn">สร้างและฟัง</span></button>
+      <button class="btn" type="button" id="stopBtn" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg><span data-i18n="f5lab.stop">หยุด</span></button>
+      <a class="btn" id="wavBtn" href="#" download="tanot-f5.wav" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="f5lab.wav">ดาวน์โหลด WAV</span></a>
+    </div>
+    <div class="meter" id="genMeter" hidden><i></i></div>
+    <div class="status" id="genStatus" role="status" aria-live="polite"></div>
+    <audio id="player" controls hidden></audio>
+  </section>
+
+  <section class="card" id="statsCard">
+    <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-chart-column"/></svg><span data-i18n="f5lab.stats">ผลวัด</span></h2>
+    <div class="kv" id="stats"></div>
+    <div class="f5-acts">
+      <button class="btn" type="button" id="copyBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg><span data-i18n="f5lab.copy">คัดลอกผลวัด</span></button>
+    </div>
+  </section>
+</main>
+<script src="tts-normalize.js"></script>
+<script src="media-models.js"></script>
+<script src="media-core.js"></script>
+<script src="audio-gain.js"></script>
+<script src="f5-calc.js"></script>
+<script src="f5-lab.js" defer></script>
+</body>
+</html>

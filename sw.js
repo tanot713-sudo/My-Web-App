@@ -5,13 +5,15 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v644';
+const CACHE = 'ome-v645';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
 const BG_CACHE = 'ome-bg-v1';
 /* สถานะเล็กๆ ของ SW ที่ต้องอยู่รอดตอน iOS ปิด SW ทิ้ง (ตอนนี้มีแค่ "หน้าเว็บยืนยันว่าเซสชันใช้ได้ถึงเวลา…") — ไม่ถูกล้างตอน bump CACHE */
 const STATE_CACHE = 'ome-state-v1';
+/* โมเดล F5-TTS-THAI ONNX ของหน้าทดลอง f5-lab.html (f5-engine.js เก็บเอง ไฟล์ละหลายร้อย MB) — ไม่ถูกลบตอน bump CACHE · ลบได้จากปุ่มในหน้า · ไม่อยู่ใน PRECACHE */
+const F5_CACHE_PREFIX = 'tanot-f5-models-';
 const PRECACHE = [
   './',
   './index.html',
@@ -47,6 +49,11 @@ const PRECACHE = [
   './budget.html',
   './text-to-speech.html',
   './text-to-speech.js',
+  './f5-lab.html',
+  './f5-lab.js',
+  './f5-calc.js',
+  './f5-engine.js',
+  './f5-worker.js',
   './tts-worker.js',
   './media-core.js',
   './media-models.js',
@@ -261,7 +268,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE && !k.startsWith(F5_CACHE_PREFIX)).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
