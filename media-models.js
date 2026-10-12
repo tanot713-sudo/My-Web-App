@@ -64,8 +64,68 @@
   var NET_ERR_RE = /network ?error|failed to fetch|load failed|fetch failed|networkerror when attempting|net::err_|err_(network|internet|connection|timed_out|name_not|empty_response)|econn(reset|refused)|etimedout|socket hang up|\btimed? ?out\b|the network connection was lost|connection (was )?(reset|closed|lost)/i;
   var NOT_NET_RE = /\b(40[0-9]|410|5\d\d)\b|could not locate|not found|unauthorized|forbidden|out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
   function isNetworkError(err) {
+    if (isSessionError(err)) return false;
     var m = err && err.message ? String(err.message) : String(err == null ? '' : err);
     return NET_ERR_RE.test(m) && !NOT_NET_RE.test(m);
+  }
+  /* ── โมเดลของ Tanotfin โหลดผ่าน /api/hf/ เท่านั้น (2026-10: เตรียมตั้ง repo บน Hugging Face เป็น private) ──
+     functions/api/hf/[[path]].js อยู่หลัง Cloudflare Access (+ _middleware.js) แล้วส่งต่อไป huggingface.co พร้อม HF_TOKEN (Secret)
+     useHfProxy(env) ตั้ง env.fetch ของ transformers.js: เปลี่ยนเฉพาะ https://huggingface.co/Tanotfin/… → <origin>/api/hf/Tanotfin/… (same-origin + คุกกี้)
+     repo อื่น (onnx-community, Xenova, phlebotomy1996 …) และไฟล์อื่น (jsDelivr) โหลดตรงเหมือนเดิม
+     • ทำงานเฉพาะ *.pages.dev (มี /api/*) หรือเมื่อเทสต์ตั้ง self.TANOT_HF_PROXY = { enabled: true } · ที่อื่น = โหลดตรง (ใช้ได้เฉพาะตอน repo ยัง public)
+     • แคชของ transformers.js (Cache Storage 'transformers-cache') ใช้ URL ของ huggingface.co เป็นคีย์ ไม่ใช่ URL ที่ fetch จริง → แคชเดิมในเครื่องใช้ต่อได้ ไม่ต้องโหลดใหม่
+     • เซสชัน Access หมดอายุ (opaqueredirect ไปหน้าล็อกอิน / 401 / 403 จาก _middleware.js) → โยน SessionError (code 'session') — ไม่ใช่ "เครือข่ายสะดุด"
+       (ไม่ลองซ้ำ) และไม่เข้าทางถอยโมเดล · media-core.js แสดง "เข้าสู่ระบบใหม่" · Function ตอบ 401/403 ของ HF เป็น 502 จึงไม่ปนกับเซสชัน */
+  var HF_OWNER = 'Tanotfin';
+  var HF_DIRECT_RE = /^https:\/\/(?:huggingface\.co|hf\.co)\/Tanotfin\/([^?#]+)/;
+  var SESSION_RE = /tanot-session/;
+  function hfProxyActive() {
+    try {
+      if (g.TANOT_HF_PROXY) return !!g.TANOT_HF_PROXY.enabled;
+      return /\.pages\.dev$/.test(g.location.hostname);
+    } catch (e) { return false; }
+  }
+  /* URL ของ huggingface.co/Tanotfin/… → URL ของ /api/hf/ (null = ไม่ต้องเปลี่ยน) */
+  function hfProxyUrl(url) {
+    var m = HF_DIRECT_RE.exec(String(url == null ? '' : url));
+    if (!m || !hfProxyActive()) return null;
+    return g.location.origin + '/api/hf/' + HF_OWNER + '/' + m[1];
+  }
+  function sessionError(why) {
+    var e = new Error('tanot-session: sign-in expired (' + why + ')');
+    e.name = 'SessionError'; e.code = 'session';
+    return e;
+  }
+  /* error (หรือ {name,message} ที่ส่งข้าม Worker) มาจากเซสชันหมดอายุไหม */
+  function isSessionError(err) {
+    if (!err) return false;
+    if (err.code === 'session' || err.name === 'SessionError' || err.causeName === 'SessionError') return true;
+    return SESSION_RE.test(String(err.message || '') + ' ' + String(err.causeMessage || ''));
+  }
+  function hfFetch(base) {
+    return function (input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url) || String(input);
+      var proxied = hfProxyUrl(url);
+      if (!proxied) return base(input, init);
+      var o = {};
+      if (init) for (var k in init) if (Object.prototype.hasOwnProperty.call(init, k)) o[k] = init[k];
+      o.credentials = 'same-origin';
+      o.redirect = 'manual'; // Access พาไปหน้าล็อกอิน (ข้ามโดเมน) = opaqueredirect · Function ตาม redirect ของ HF เองฝั่งเซิร์ฟเวอร์ เบราว์เซอร์จึงไม่เคยเห็น redirect ปกติ
+      return base(proxied, o).then(function (res) {
+        if (res.type === 'opaqueredirect' || (res.status >= 300 && res.status < 400)) throw sessionError('redirect');
+        if (res.status === 401 || res.status === 403) throw sessionError(res.status);
+        return res;
+      });
+    };
+  }
+  /* ตั้งใน env ของ transformers.js ทุกจุดที่ import มัน (tts-worker.js, asr-worker.js, ai-chat-worker.js, text-to-speech.js) — ซ้ำได้ ไม่ห่อซ้อน */
+  function useHfProxy(env) {
+    if (!env || env.__tanotHfFetch) return env;
+    var base = typeof env.fetch === 'function' ? env.fetch : (typeof g.fetch === 'function' ? g.fetch.bind(g) : null);
+    if (!base) return env;
+    env.fetch = hfFetch(base);
+    env.__tanotHfFetch = true;
+    return env;
   }
   /* MMS-TTS บน WebGPU (Section 5, ทดลอง): ใช้ fp32 เสมอ — ตัว q8 (ค่าเริ่มต้นของ WASM) ต้องใช้ op แบบ quantized ที่ backend WebGPU ของ onnxruntime-web ยังไม่มี kernel ที่ดี
      (นี่คือเหตุผลที่รอบก่อนวัดแล้วช้ากว่า WASM) · ชื่อไฟล์ onnx/model.onnx (fp32) ของแต่ละ repo ยังไม่ได้ตรวจกับ Hugging Face จริง — ไม่มี/โหลดไม่ได้ = tts-worker.js ถอย WASM อัตโนมัติ + problem log
@@ -124,6 +184,13 @@
     ttsLowpassDefault: function (modelId) { return TTS_LOWPASS_DEFAULT[modelId] === true; },
     NET_RETRY_MS: NET_RETRY_MS,
     isNetworkError: isNetworkError,
+    HF_OWNER: HF_OWNER,
+    hfProxyActive: hfProxyActive,
+    hfProxyUrl: hfProxyUrl,
+    hfFetch: hfFetch,
+    useHfProxy: useHfProxy,
+    sessionError: sessionError,
+    isSessionError: isSessionError,
     ttsGpuDtype: function (modelId) { return TTS_GPU_DTYPE_OVERRIDES[modelId] || TTS_GPU_DTYPE; },
     asrHeavy: function (modelId) { var m = asrInfo(modelId); return !!(m && m.heavy); },
     asrInfo: asrInfo,

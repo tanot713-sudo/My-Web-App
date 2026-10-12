@@ -42,8 +42,12 @@ var MODEL_ID_BIG = 'onnx-community/Qwen2.5-1.5B-Instruct';   // ลองก่�
 var MODEL_ID_SMALL = 'onnx-community/Qwen2.5-0.5B-Instruct'; // ตัวสำรอง (ใช้แน่ๆ ถ้าตัวใหญ่พัง/ไม่มี WebGPU)
 
 function loadSpecific(modelId, device, onProgress) {
-  return import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+  /* media-models.js: env.fetch กลาง — โมเดลของ Tanotfin โหลดผ่าน /api/hf/ (แชทใช้ onnx-community ซึ่งโหลดตรงเหมือนเดิม; ตั้งไว้ให้ทุกจุดที่ import transformers.js ตรงกัน) */
+  var models = import('./media-models.js').then(function () { return self.TanotMediaModels; }, function () { return null; });
+  return Promise.all([import('./vendor/transformers/transformers.web.min.js'), models]).then(function (r) {
+    var mod = r[0];
     configureOnnxWasmPaths(mod.env);
+    if (r[1]) r[1].useHfProxy(mod.env);
     var opts = { dtype: 'q4', progress_callback: onProgress };
     if (device) opts.device = device;
     return mod.pipeline('text-generation', modelId, opts).then(function (generator) {

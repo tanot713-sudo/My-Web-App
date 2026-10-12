@@ -549,7 +549,7 @@
           var cause = { name: msg.name || 'Error', message: msg.message || '' };
           logMedia('tts', cause, { stage: 'synth', engine: 'local', model: modelId });
           if (TM && TM.isMemoryError(cause)) { try { w.terminate(); } catch (e2) {} if (ttsWorker === w) ttsWorker = null; if (TM) TM.budget.release('tts-widget'); }
-          setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM && TM.isMemoryError(cause) ? TM.errorText(TM.error('oom')) : msg.message), 'err');
+          setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM && (TM.isMemoryError(cause) || TM.isSessionError(cause)) ? TM.errorText(cause) : msg.message), 'err');
         }
       }
       function onErr(e) {

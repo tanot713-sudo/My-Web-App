@@ -86,6 +86,8 @@ jobs:
         run: npx playwright test tts-long.spec.js
       - name: colab (หนังสือเสียง F5-TTS-THAI บน Google Colab — notebook ตรงกับ .py ทุกตัวอักษร, ประเมินความยาวเสียง/เวลาสร้าง/จำนวนตอน, การ์ดในหน้า text-to-speech + ดาวน์โหลด .txt + ลิงก์ Colab + ไทย/อังกฤษ + 360px)
         run: npx playwright test colab.spec.js
+      - name: hf (โมเดลของ Tanotfin ผ่าน /api/hf/ — Function ปฏิเสธ path/method อื่น, ไม่มี HF_TOKEN → 503, token ไป huggingface.co เท่านั้นไม่ตามไป CDN, Range + stream ไม่ buffer, env.fetch เปลี่ยนเฉพาะ URL ของ Tanotfin, เซสชันหมดอายุ → เข้าสู่ระบบใหม่ ไม่ถอยรุ่น — upstream/transformers ตัวหลอก)
+        run: npx playwright test hf.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)

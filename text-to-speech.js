@@ -300,6 +300,7 @@
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
         var env = mod.env;
         configureOnnxWasmPaths(env);
+        if (window.TanotMediaModels) TanotMediaModels.useHfProxy(env); // โมเดลของ Tanotfin โหลดผ่าน /api/hf/ (media-models.js)
         var opts = { progress_callback: onProgress };
         if (ttsDtype(modelId)) opts.dtype = ttsDtype(modelId);
         return mod.pipeline('text-to-speech', modelId, opts);
@@ -327,6 +328,7 @@
     return loadTtsPipelineRetry(eff, onProgress).catch(function (err) {
       var lg = ttsLegacy(eff);
       if (!lg || (window.TanotMedia && TanotMedia.isMemoryError(err))) throw err;
+      if (window.TanotMediaModels && TanotMediaModels.isSessionError(err)) throw err; // เซสชันหมดอายุ — ไม่ถอยรุ่น
       delete ttsPipelinePromiseByModel[eff];
       ttsRedirect[modelId] = lg;
       if (window.TanotMedia) TanotMedia.logError('tts', TanotMedia.error('model', null, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) }), { stage: 'model-load', engine: 'local', model: eff, to: lg });

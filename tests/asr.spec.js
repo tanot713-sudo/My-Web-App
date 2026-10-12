@@ -1056,7 +1056,7 @@ test.describe('Thonburian: dtype ต่ออุปกรณ์ + language:thai 
 });
 
 test.describe('Thonburian: หน้า credits', () => {
-  const links = ['https://github.com/biodatlab/thonburian-whisper', 'https://huggingface.co/Tanotfin/distill-whisper-th-small-onnx', 'https://huggingface.co/Tanotfin/distill-whisper-th-medium-onnx'];
+  const links = ['https://github.com/biodatlab/thonburian-whisper', 'https://huggingface.co/biodatlab/distill-whisper-th-small', 'https://huggingface.co/biodatlab/distill-whisper-th-medium'];
   test('มีการ์ด Thonburian Whisper (biodatlab, MIT) + ลิงก์ 3 อัน · ภาษาอังกฤษไม่มีไทยหลุด · สลับสดกลับไทยได้', async ({ page }) => {
     const errors = [];
     page.on('pageerror', (e) => errors.push(e.message));

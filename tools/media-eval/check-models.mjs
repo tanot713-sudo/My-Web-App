@@ -1,7 +1,7 @@
 // ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js (Xenova, onnx-community และ Thonburian ของ Tanotfin) และของเสียงพูด MMS-TTS ทุกเสียงใน text-to-speech.js (Section 5: ไฟล์ fp32 สำหรับ WebGPU + ไฟล์ของ WASM) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
 // (sandbox ที่เขียนโค้ดรอบ Section 3 เข้า huggingface.co ไม่ได้ จึงตรวจเองไม่ได้ → ต้องรันสคริปต์นี้ก่อนเชื่อว่ารายการใช้ได้จริง)
 //   node tools/media-eval/check-models.mjs            → ตาราง repo × (ไฟล์ที่ต้องใช้) · exit 1 ถ้ามีอะไรขาด
-//   HF_TOKEN=hf_xxx node …                           → (ไม่จำเป็น) กัน rate limit · ห้ามเขียนโทเคนลงไฟล์
+//   HF_TOKEN=hf_xxx node …                           → จำเป็นเมื่อ repo ของ Tanotfin เป็น private (token แบบ Read) + กัน rate limit · ห้ามเขียนโทเคนลงไฟล์
 // กฎชื่อไฟล์ของ transformers.js: onnx/<ส่วนประกอบ><คำต่อท้ายของ dtype>.onnx · fp32 '' · fp16 _fp16 · q8 _quantized · int8 _int8 · uint8 _uint8 · q4 _q4 · bnb4 _bnb4
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -21,6 +21,7 @@ async function files(repo) {
   const list = async (path) => {
     const res = await fetch('https://huggingface.co/api/models/' + repo + '/tree/main' + (path ? '/' + path : ''), { headers });
     if (res.status === 404) return null;
+    if ((res.status === 401 || res.status === 403) && /^Tanotfin\//.test(repo)) throw new Error('HTTP ' + res.status + (process.env.HF_TOKEN ? ' — HF_TOKEN ไม่มีสิทธิ์อ่าน repo นี้' : ' — repo เป็น private: ตั้ง HF_TOKEN (token แบบ Read) ก่อนรัน'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
     return (await res.json()).map((f) => (path ? path + '/' : '') + f.path.replace(/^.*\//, ''));
   };

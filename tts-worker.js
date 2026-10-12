@@ -72,6 +72,7 @@ function loadPipeline(modelId, device, onProgress, jobId) {
   if (!pipelinePromiseByModel[key]) {
     pipelinePromiseByModel[key] = Promise.all([import('./vendor/transformers/transformers.web.min.js'), ttsPipelineOpts(modelId, device, onProgress)]).then(function (r) {
       configureOnnxWasmPaths(r[0].env);
+      if (self.TanotMediaModels) self.TanotMediaModels.useHfProxy(r[0].env); // โมเดลของ Tanotfin โหลดผ่าน /api/hf/ (media-models.js)
       return r[0].pipeline('text-to-speech', modelId, r[1]);
     });
     pipelinePromiseByModel[key].then(function () {
@@ -123,6 +124,7 @@ function synthesizeOnDevice(text, modelId, device, onProgress, jobId) {
     return (modelsPromise || Promise.resolve(null)).then(function (M) {
       var next = M && M.ttsLegacy ? M.ttsLegacy(eff) : null;
       if (!next || device !== 'wasm' || (err && err.ttsStage) !== 'load' || MEM_RE.test(String(err && err.message ? err.message : err))) throw err;
+      if (M.isSessionError && M.isSessionError(err)) throw err; // เซสชันหมดอายุ — รุ่นถัดไปก็โหลดไม่ได้ ให้หน้าบอกให้เข้าสู่ระบบใหม่
       modelRedirect[modelId] = next;
       delete pipelinePromiseByModel[eff + '|' + device];
       self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: eff, to: next, stage: 'load', device: device, modelId: modelId, retried: !!(err && err.ttsRetried),
@@ -146,6 +148,7 @@ function synthesizeRaw(text, modelId, device, onProgress, jobId) {
 function synthesizeOneItem(text, modelId, wantGpu, onProgress, jobId) {
   if (!wantGpu || gpuFailed) return synthesizeOnDevice(text, modelId, 'wasm', onProgress, jobId);
   return synthesizeOnDevice(text, modelId, 'webgpu', onProgress, jobId).catch(function (err) {
+    if (self.TanotMediaModels && self.TanotMediaModels.isSessionError(err)) throw err; // ไม่ใช่ปัญหาของ WebGPU
     gpuFailed = true; disposeGpuPipelines();
     self.postMessage({ type: 'fallback', jobId: jobId, what: 'device', from: 'webgpu', to: 'wasm', stage: (err && err.ttsStage) || 'run', modelId: modelId,
       name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });

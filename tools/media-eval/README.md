@@ -70,10 +70,23 @@ node tools/media-eval/run.mjs --engines ocr:claude-sonnet-5,ocr:claude-sonnet-5-
 - `asr:cloud` ใช้โควตา Neurons ฟรีรายวันร่วมกับแชท/สรุป — ถ้าไฟล์ยาวเกินโควตาที่เหลือ หน้าเว็บจะถามยืนยันค่าใช้จ่าย สคริปต์**ตอบยกเลิก**เสมอ (ไฟล์นั้นขึ้นว่าล้มเหลว) เว้นแต่ตั้ง `MEDIA_EVAL_ALLOW_PAID=1`
 - คุกกี้ Access มีอายุ — หมดแล้วจะได้ error "redirected to login"
 
+### โมเดลของ Tanotfin เป็น private (`HF_TOKEN`)
+
+บนเว็บจริง (`*.pages.dev`) เบราว์เซอร์โหลดโมเดลของ `Tanotfin/*` ผ่าน `/api/hf/` (Function แนบ `HF_TOKEN` เอง) · สคริปต์ในโฟลเดอร์นี้รันหน้าเว็บบนเซิร์ฟเวอร์ในเครื่อง (ไม่มี `/api/`) จึงโหลดตรงจาก huggingface.co — เมื่อ repo เป็น private ต้องตั้ง token แบบ **Read** ในเทอร์มินัล:
+
+```bash
+export HF_TOKEN='hf_…'   # ใส่ในเทอร์มินัลเท่านั้น ห้ามเขียนลงไฟล์/commit
+node tools/media-eval/check-models.mjs
+node tools/media-eval/run.mjs --engines asr:th-small,tts:wasm-60 --lang thai
+```
+
+- `run.mjs` แนบ `Authorization` ให้เฉพาะคำขอไป `https://huggingface.co/…/Tanotfin/…` (redirect ไป CDN ไม่ได้รับ token) · ไม่พิมพ์/ไม่บันทึก token
+- ไม่ตั้ง `HF_TOKEN` = เอนจินที่ใช้โมเดลของ Tanotfin (`asr:th-*`, `asr:gpu-th-*`, `tts:*`) ขึ้น ERROR เมื่อ repo เป็น private · `check-models.mjs` บอกว่าต้องตั้ง token
+
 ### ตรวจชื่อโมเดล (Hugging Face)
 
 ```bash
-node tools/media-eval/check-models.mjs     # ตรวจว่า repo + ไฟล์ dtype ของทุกโมเดลใน media-models.js มีจริง (ต้องออกเน็ตได้) · exit 1 ถ้าขาด
+node tools/media-eval/check-models.mjs     # ตรวจว่า repo + ไฟล์ dtype ของทุกโมเดลใน media-models.js มีจริง (ต้องออกเน็ตได้; repo private ต้องตั้ง HF_TOKEN) · exit 1 ถ้าขาด
 ```
 
 รายการ `Tanotfin/distill-whisper-th-*-onnx` (Thonburian) แปลงโดยเจ้าของ (transformers.js 3.8.1 `scripts/convert.py --quantize`) และทดสอบถอดเสียงไทยกับ transformers.js 4.2.0 แล้ว แต่สคริปต์นี้ควรผ่านก่อนปล่อยเสมอ (ตรวจไฟล์ `encoder_model{,_fp16}` / `decoder_model_merged{,_quantized,_q4}` + config/tokenizer)

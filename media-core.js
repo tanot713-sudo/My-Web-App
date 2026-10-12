@@ -36,14 +36,16 @@
       crash: 'ตัวประมวลผลในเบราว์เซอร์หยุดทำงานกลางทาง (มักเป็นเพราะหน่วยความจำไม่พอ) — ลองใหม่ด้วยโมเดลที่เล็กลง หรือใช้โหมดคลาวด์',
       abort: 'ยกเลิกแล้ว', evicted: 'หยุดแล้วเพื่อคืนหน่วยความจำให้งานอื่น', decode: 'ถอดรหัสไฟล์เสียงนี้ไม่ได้ — ลองไฟล์ชนิดอื่น (mp3/wav/mp4/webm)',
       noWorker: 'สร้าง Web Worker ไม่ได้',
-      webgpu: 'WebGPU ใช้ไม่ได้บนเครื่องนี้ — ถอยกลับไปใช้ WASM', modelFallback: 'โหลดโมเดลรุ่นใหม่ไม่ได้ — ใช้รุ่นเดิมแทน'
+      webgpu: 'WebGPU ใช้ไม่ได้บนเครื่องนี้ — ถอยกลับไปใช้ WASM', modelFallback: 'โหลดโมเดลรุ่นใหม่ไม่ได้ — ใช้รุ่นเดิมแทน',
+      session: 'เซสชันหมดอายุ — เข้าสู่ระบบใหม่แล้วลองอีกครั้ง', sessionAsk: 'เซสชันหมดอายุ จึงโหลดโมเดลไม่ได้ — เข้าสู่ระบบใหม่ตอนนี้ไหม?', relogin: 'เข้าสู่ระบบใหม่'
     },
     en: {
       oom: 'The browser ran out of memory for this model — try a smaller model, close other tabs, or use cloud mode',
       crash: 'The in-browser processor stopped part way (usually not enough memory) — try again with a smaller model, or use cloud mode',
       abort: 'Cancelled', evicted: 'Stopped to free memory for another task', decode: 'Could not decode this audio file — try another type (mp3/wav/mp4/webm)',
       noWorker: 'Could not create a Web Worker',
-      webgpu: 'WebGPU is not usable on this device — falling back to WASM', modelFallback: 'Could not load the newer model — using the previous one instead'
+      webgpu: 'WebGPU is not usable on this device — falling back to WASM', modelFallback: 'Could not load the newer model — using the previous one instead',
+      session: 'Session expired — sign in again and retry', sessionAsk: 'Your session expired, so the model could not be loaded — sign in again now?', relogin: 'Sign in again'
     }
   };
   var T = I18N ? I18N.scope('media', DICT) : function (k) { return DICT.th[k] || ''; };
@@ -74,8 +76,15 @@
     var m = String(err.message || err.causeMessage || err), n = err.name || err.causeName || '';
     return MEM_RE.test(m) || (n === 'RangeError' && /memory|alloc|buffer|array length/i.test(m));
   }
+  /* เซสชัน Cloudflare Access หมดอายุตอนโหลดโมเดลของ Tanotfin ผ่าน /api/hf/ (media-models.js โยน SessionError — ข้าม Worker มาเป็น name/message) */
+  function isSessionError(err) {
+    if (!err) return false;
+    if (window.TanotMediaModels && TanotMediaModels.isSessionError) return TanotMediaModels.isSessionError(err);
+    return err.code === 'session' || err.name === 'SessionError' || err.causeName === 'SessionError' || /tanot-session/.test(String(err.message || '') + ' ' + String(err.causeMessage || ''));
+  }
   function classify(err) {
     if (!err) return 'other';
+    if (isSessionError(err)) return 'session';
     if (err.code === 'abort' || err.code === 'evicted' || err.code === 'crash' || err.code === 'decode') return err.code;
     if (isMemoryError(err)) return 'oom';
     if (err.code) return err.code;
@@ -85,7 +94,7 @@
   /* ข้อความให้ผู้ใช้อ่าน — ใช้ใน OME_I18N.live(el, fn) ได้ (แปลตามภาษาปัจจุบันทุกครั้ง) */
   function errorText(err) {
     var c = classify(err);
-    if (c === 'oom' || c === 'crash' || c === 'abort' || c === 'evicted' || c === 'decode') return T(c);
+    if (c === 'oom' || c === 'crash' || c === 'abort' || c === 'evicted' || c === 'decode' || c === 'session') return T(c);
     return (err && err.message) || String(err);
   }
   /* ควรแนะนำคลาวด์ไหม — ปัญหาที่เกิดจากเครื่อง (หน่วยความจำ/Worker พัง) */
@@ -124,7 +133,23 @@
       ua: d.ua, mem: d.mem, cores: d.cores, online: navigator.onLine !== false, file: fileMeta(ctx.file)
     };
     var rows = readLog(); rows.push(row); writeLog(rows);
+    if (code === 'session') askRelogin();
     return row;
+  }
+  /* ถามครั้งเดียวต่อการเปิดหน้า: "เข้าสู่ระบบใหม่" = หน้าเดิม ?relogin=1 (ทางเดียวกับแถบเซสชันของ sw.js → shell.js โหลด session-guard.js ต่อเอง) */
+  var reloginAsked = false;
+  function reloginUrl() {
+    var u = new URL(location.href);
+    u.searchParams.set('relogin', '1');
+    return u.pathname + u.search + u.hash;
+  }
+  function relogin() { location.assign(reloginUrl()); }
+  function askRelogin() {
+    if (reloginAsked || typeof window.tanotConfirm !== 'function') return;
+    reloginAsked = true;
+    setTimeout(function () {
+      window.tanotConfirm(T('sessionAsk'), { okLabel: T('relogin') }).then(function (ok) { if (ok) relogin(); }, function () {});
+    }, 0);
   }
   /* บันทึกสถิติ/เหตุการณ์ที่ไม่ใช่ error (เช่น สรุปความเร็วหลังสร้างไฟล์เสียงเสร็จ) — แถวชนิดเดียวกับ logError แต่ code:'info' · info = ตัวเลข/รหัสสั้นๆ เท่านั้น ห้ามมีข้อความ/ชื่อไฟล์ของผู้ใช้ */
   function logNote(kind, ctx, info) {
@@ -505,7 +530,7 @@
   window.TanotMedia = {
     BASE: BASE, RATE: RATE, SEGMENT_SEC: SEGMENT_SEC,
     isIOS: isIOS, isAndroid: isAndroid, isMobile: isMobile, device: device,
-    error: mediaError, isMemoryError: isMemoryError, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
+    error: mediaError, isMemoryError: isMemoryError, isSessionError: isSessionError, relogin: relogin, reloginUrl: reloginUrl, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
     LOG_KEY: LOG_KEY, logError: logError, logNote: logNote, readLog: readLog, clearLog: clearLog,
     budget: budget,
     decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, planAsrChunks: planAsrChunks, ASR_CHUNK: ASR_CHUNK, quietCut: quietCut, silentAt: silentAt, SILENT_SEC: SILENT_SEC, SILENT_DB: SILENT_DB,
