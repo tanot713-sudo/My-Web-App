@@ -499,11 +499,9 @@ test.describe('D) breadcrumb + ตัวเลือกลดภาระ', () =
       expect(last.adapter).toContain('fakevendor');
       expect(last.ua.length).toBeGreaterThan(3);
       expect(THAI_RE.test(JSON.stringify(trail))).toBe(false); // ไม่มีข้อความผู้ใช้ (ข้อความ/ชื่อเสียงเป็นภาษาไทย)
-      // Safari ฆ่าแท็บ = renderer ตาย (ไม่มี pagehide/unload)
-      const cdp = await context.newCDPSession(page);
-      const crashed = page.waitForEvent('crash', { timeout: 10000 });
-      cdp.send('Page.crash').catch(() => {});
-      await crashed;
+      // Safari ฆ่าแท็บ = renderer ตาย (ไม่มี pagehide/unload) — CDP Page.crash ไม่ทำให้ renderer ตายใน Chromium ของ CI
+      // (ไม่มี event 'crash') จึงจำลองด้วยการไม่ปิดแท็บเดิมเลย: ค้างอยู่ที่ step 7 ไม่มี pagehide → crumb ยังไม่ done
+      // เหมือนแท็บที่ถูกฆ่า แล้วเปิดหน้าใหม่ใน context เดียวกัน (localStorage ร่วมกัน)
       const p2 = await context.newPage();
       const errors = [];
       p2.on('pageerror', (e) => errors.push(e.message));
