@@ -104,6 +104,7 @@
 .table .actions{display:flex;gap:4px;justify-content:flex-end}
 .mp-bin{width:110px;text-align:right}
 #catColor{padding:3px;cursor:pointer;width:64px}
+.mp-color-warn{margin-top:var(--ome-sp-3)}
 .mp-cat-add .frow > .field.narrow{flex:0 0 auto}
 .mp-cat-add .frow > .field{flex-basis:200px}
 .mp-cat-add .frow > button{align-self:flex-end}
@@ -234,6 +235,7 @@
         <div class="field narrow"><label for="catColor" data-i18n="budget.color">สี</label><input type="color" id="catColor" value="#4F6EF5"></div>
         <button class="btn primary" id="saveCategory" type="button" data-i18n="budget.save">บันทึก</button>
       </div>
+      <p class="callout warn mp-color-warn" id="catColorWarn" role="status" hidden></p>
     </div>
 
     <div class="card">
@@ -306,7 +308,8 @@ var TR = I18N.scope('budget', {
     newBadge: 'รายการใหม่', rmRow: 'ลบแถวนี้', fDate: 'วันที่', fAmt: 'จำนวนเงิน', phNote: 'รายละเอียดเพิ่มเติม (ไม่บังคับ)', details: 'รายละเอียด', del: 'ลบ',
     delCat: 'ลบหมวดหมู่', confirmDelEntry: 'ลบรายการนี้ใช่หรือไม่?', confirmDelCat: 'ลบหมวดหมู่นี้ใช่หรือไม่? รายการเดิมที่ใช้หมวดหมู่นี้จะยังอยู่', confirmClear: 'ล้างข้อมูลทั้งหมดจริงหรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้',
     clearOk: 'ล้างข้อมูล', confirmImport: 'นำเข้าข้อมูลจะแทนที่ข้อมูลปัจจุบันทั้งหมด ดำเนินการต่อหรือไม่?', importOk: 'นำเข้า', noPrevBudget: 'ไม่มีงบประมาณของเดือนก่อนหน้าให้คัดลอก',
-    cleared: 'ล้างข้อมูลเรียบร้อยแล้ว', imported: 'นำเข้าข้อมูลเรียบร้อยแล้ว', badFile: 'ไฟล์ไม่ถูกต้อง: {msg}'
+    cleared: 'ล้างข้อมูลเรียบร้อยแล้ว', imported: 'นำเข้าข้อมูลเรียบร้อยแล้ว', badFile: 'ไฟล์ไม่ถูกต้อง: {msg}',
+    colorNear: 'สีใกล้กับหมวด {name} — ในกราฟอาจแยกยาก'
   },
   en: {
       title: 'Income & expenses | Tanot', h1: 'Income & expenses', tDash: 'Overview', tCal: 'Calendar', tRec: 'Log', tCat: 'Categories', tBud: 'Budget', tSet: 'Settings',
@@ -321,7 +324,8 @@ var TR = I18N.scope('budget', {
     noDay: 'No entries on this day', newBadge: 'New entry', rmRow: 'Remove this row', fDate: 'Date', fAmt: 'Amount', phNote: 'More details (optional)', details: 'Details',
     del: 'Delete', delCat: 'Delete category', confirmDelEntry: 'Delete this entry?', confirmDelCat: 'Delete this category? Existing entries that use it are kept.',
     confirmClear: 'Clear all data? This cannot be undone.', clearOk: 'Clear data', confirmImport: 'Importing will replace all current data. Continue?', importOk: 'Import',
-    noPrevBudget: 'There is no budget from last month to copy', cleared: 'Data cleared', imported: 'Data imported', badFile: 'Invalid file: {msg}'
+    noPrevBudget: 'There is no budget from last month to copy', cleared: 'Data cleared', imported: 'Data imported', badFile: 'Invalid file: {msg}',
+    colorNear: 'Colour is close to {name} — may be hard to tell apart in the chart'
   }
 });
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
@@ -420,13 +424,19 @@ function recordsForMonth(y,m){
   return records.filter(function(r){ return r.date && r.date.slice(0,7) === prefix; });
 }
 
-/* สีกราฟจาก chart-theme.js (8 สีตายตัว ตามธีมสว่าง/มืด) — ถ้ามีเกิน 8 หมวด รวมที่เหลือเป็น "อื่นๆ" */
+/* สีสำรองของกราฟจาก chart-theme.js (8 สีตายตัว ตามธีมสว่าง/มืด) — โดนัทแบ่งตามหมวดใช้สีที่ผู้ใช้ตั้งให้หมวด (c.color)
+   ก่อน ชุดนี้ใช้เฉพาะหมวดที่ไม่มีสี/สีไม่ใช่ hex ที่ถูกต้อง · หมวดที่ไม่พบ และ "อื่นๆ" (เกิน 8 หมวด) = other
+   กราฟแนวโน้มรายรับ-รายจ่ายยังใช้ชุดนี้ตามเดิม */
 function chartColors(){
   var t = window.OmeChartTheme && window.OmeChartTheme.get();
   if (t) return { series: t.series, other: t.axis };
   var fb = []; for (var i=1;i<=8;i++) fb.push('var(--ome-chart-' + i + ')');
   return { series: fb, other: 'var(--ome-chart-axis)' };
 }
+
+/* สีหมวดมาจากข้อมูลที่ซิงก์ได้ — ใส่ลง style เฉพาะ hex #rgb/#rrggbb เท่านั้น (กัน CSS injection) */
+function safeHex(c){ return typeof c === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : null; }
+var DONUT_GAP = 0.6; // % ของวง — ช่องสีพื้นการ์ดคั่นระหว่างชิ้น ให้แยกชิ้นสีใกล้กันได้
 
 function renderDonut(containerId, items, total){
   var el = $('#' + containerId);
@@ -439,12 +449,14 @@ function renderDonut(containerId, items, total){
     var rest = items.slice(7).reduce(function(s,it){ return s + it.amount; }, 0);
     items = items.slice(0, 7).concat([{name: TR('others'), amount: rest, other: true}]);
   }
-  var acc = 0, stops = [];
+  var acc = 0, stops = [], gapOn = items.length > 1;
   items.forEach(function(it, i){
-    it.color = it.other ? cc.other : cc.series[i];
-    var pct = it.amount / total * 100;
-    stops.push(it.color + ' ' + acc.toFixed(2) + '% ' + (acc+pct).toFixed(2) + '%');
-    acc += pct;
+    it.color = (it.other || it.unknown) ? cc.other : (safeHex(it.catColor) || cc.series[i]);
+    var pct = it.amount / total * 100, end = acc + pct;
+    var gap = gapOn ? Math.min(DONUT_GAP, pct * 0.3) : 0;
+    stops.push(it.color + ' ' + acc.toFixed(2) + '% ' + (end - gap).toFixed(2) + '%');
+    if (gap > 0) stops.push('var(--ome-surface-1) ' + (end - gap).toFixed(2) + '% ' + end.toFixed(2) + '%');
+    acc = end;
   });
   var legend = items.map(function(it){
     var pct = Math.round(it.amount/total*100);
@@ -465,7 +477,7 @@ function groupByCategory(recs){
   var out = [];
   Object.keys(map).forEach(function(id){
     var c = catById(id);
-    out.push({name: c ? catName(c) : TR('unknownCat'), color: c ? c.color : 'var(--ome-text-3)', amount: map[id]});
+    out.push({name: c ? catName(c) : TR('unknownCat'), catColor: c ? c.color : null, unknown: !c, amount: map[id]});
   });
   out.sort(function(a,b){ return b.amount - a.amount; });
   return out;
@@ -742,7 +754,45 @@ $('#saveCategory').addEventListener('click', function(){
   catTab = $('#catType').value;
   syncCatTabs();
   renderCategoryList();
+  hideCatColorWarn(); // หมวดที่เพิ่งบันทึกมีสีเดียวกับช่อง — ไม่เตือนเทียบกับตัวเอง
 });
+
+/* เตือน (ไม่ห้ามบันทึก) เมื่อสีที่เลือกใกล้กับหมวดประเภทเดียวกัน — ระยะสี CIE76 ΔE ใน Lab < COLOR_NEAR_DE */
+var COLOR_NEAR_DE = 20;
+function hexLab(hex){
+  hex = safeHex(hex); if (!hex) return null;
+  var h = hex.slice(1); if (h.length === 3) h = h.replace(/./g, '$&$&');
+  var rgb = [0, 2, 4].map(function(i){
+    var v = parseInt(h.substr(i, 2), 16) / 255;
+    return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+  });
+  var x = (rgb[0]*0.4124 + rgb[1]*0.3576 + rgb[2]*0.1805) / 0.95047,
+      y =  rgb[0]*0.2126 + rgb[1]*0.7152 + rgb[2]*0.0722,
+      z = (rgb[0]*0.0193 + rgb[1]*0.1192 + rgb[2]*0.9505) / 1.08883;
+  var f = function(t){ return t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16/116; };
+  return [116*f(y) - 16, 500*(f(x) - f(y)), 200*(f(y) - f(z))];
+}
+function nearestCat(color, type){
+  var a = hexLab(color), best = null, bestD = Infinity;
+  if (!a) return null;
+  categories.forEach(function(c){
+    if (c.type !== type) return;
+    var b = hexLab(c.color); if (!b) return;
+    var d = Math.sqrt(Math.pow(a[0]-b[0], 2) + Math.pow(a[1]-b[1], 2) + Math.pow(a[2]-b[2], 2));
+    if (d < bestD){ bestD = d; best = c; }
+  });
+  return best && bestD < COLOR_NEAR_DE ? best : null;
+}
+function hideCatColorWarn(){ var el = $('#catColorWarn'); el.hidden = true; el.textContent = ''; }
+function checkCatColor(){
+  var el = $('#catColorWarn');
+  var near = nearestCat($('#catColor').value, $('#catType').value);
+  el.hidden = !near;
+  el.textContent = near ? TR('colorNear', { name: catName(near) }) : '';
+}
+$('#catColor').addEventListener('input', checkCatColor);
+$('#catColor').addEventListener('change', checkCatColor);
+$('#catType').addEventListener('change', checkCatColor);
 function renderCategoryList(){
   var list = categories.filter(function(c){ return c.type === catTab; });
   var el = $('#catList');
@@ -759,6 +809,7 @@ function renderCategoryList(){
         categories = categories.filter(function(c){ return c.id !== btn.dataset.id; });
         persistCategories();
         renderCategoryList();
+        if (!$('#catColorWarn').hidden) checkCatColor();
       });
     });
   });
@@ -879,6 +930,7 @@ I18N && window.OME_LANG && window.OME_LANG.onChange(function(){
   if (bm.dataset.init){ fillMonthSelect(bm); bm.value = budgetSelMonth; fillYearSelect(by); by.value = budgetSelYear; }
   I18N.apply(document);
   setView(location.hash.slice(1) || 'dashboard');
+  if (!$('#catColorWarn').hidden) checkCatColor();
 });
 if (window.OmeChartTheme) window.OmeChartTheme.onChange(function(){
   if ($('#view-dashboard').classList.contains('active')) renderDashboard();
