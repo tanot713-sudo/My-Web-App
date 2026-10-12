@@ -160,5 +160,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8141/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // session-layout.spec.js: /api/sync ตัวจริงหลังด่าน "Access" ตัวหลอกในสเปก (โฮสต์ *.pages.dev จำลอง) — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8142',
+      cwd: __dirname,
+      url: 'http://localhost:8142/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

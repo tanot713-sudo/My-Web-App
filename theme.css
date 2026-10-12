@@ -735,6 +735,7 @@ body[data-layout="app"]{height:100dvh;display:flex;flex-direction:column;overflo
 [data-layout="hub"] .tile-latest{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ome-sp-3)}
 [data-layout="hub"] .tile-latest .tile.row{background:var(--ome-surface-1);border:1px solid var(--ome-border);box-shadow:var(--ome-shadow-1)}
 [data-layout="hub"] .tile-latest .tile.row:hover{border-color:var(--ome-accent)}
+[data-layout="hub"] .area-sec{margin:0 0 var(--ome-card-gap)}
 [data-layout="hub"] .area-sec > h2{margin:0 0 var(--ome-sp-3);font-size:var(--ome-fs-md)}
 @media (max-width:1000px){[data-layout="hub"] .tile-cols{columns:2}}
 @media (max-width:900px){[data-layout="hub"] .tile-latest{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -1046,6 +1047,16 @@ html[data-bg="settings"][data-theme="dark"]::before{background-image:url(assets/
 @media (max-width:700px){
   :is(input:not([type=checkbox],[type=radio],[type=range],[type=file],[type=color],[type=button],[type=submit],[type=reset],[type=image],[type=hidden]),select,textarea):not([data-doc-area] *,.luckysheet *,#xlCellEditor,.ome-ai-panel *){font-size:max(16px,1em)!important}
 }
+
+/* ช่องวันที่/เวลา (date/time/datetime-local/month/week) — iOS Safari ให้ช่องชนิดนี้กว้างขั้นต่ำตามรูปแบบวันที่ของตัวเอง
+   ไม่หดตาม flex/grid จึงล้นไปทับช่องข้างๆ (budget .f-date ทับ "ประเภท", quick-add ทับ "บันทึก") — กฎกลางทั้งเว็บ ไม่อยู่ใน layer
+   (ชนะ CSS ของหน้า/quick-add): ไม่มีความกว้างขั้นต่ำ ไม่เกินกล่องแม่ ปิดหน้าตา native (ความสูง/ขอบมาจาก .field/.input/CSS ของหน้า)
+   · Chrome เดสก์ท็อปยังมีไอคอนปฏิทิน (::-webkit-calendar-picker-indicator ไม่ถูกแตะ) · ::-webkit-date-and-time-value มีเฉพาะ
+   WebKit: ชิดซ้ายเหมือนช่องอื่น + กันช่องว่างยุบเหลือแค่ padding · กล่องแม่และกล่องปู่ (label/div ใน flex/grid) ได้ min-width:0
+   ไม่งั้น min-width:auto ของ flex/grid item ยังดันตามความกว้างของช่อง */
+input:is([type=date],[type=time],[type=datetime-local],[type=month],[type=week]){min-width:0;max-width:100%;box-sizing:border-box;-webkit-appearance:none;appearance:none}
+input:is([type=date],[type=time],[type=datetime-local],[type=month],[type=week])::-webkit-date-and-time-value{text-align:left;min-height:1.25em}
+:is(:has(> input:is([type=date],[type=time],[type=datetime-local],[type=month],[type=week])),:has(> * > input:is([type=date],[type=time],[type=datetime-local],[type=month],[type=week]))):not(html,body){min-width:0}
 
 /* safe-area แนวนอน (iPhone มีรอยบากซ้าย/ขวา): ดันเนื้อหาออกจากรอยบาก — ค่าเป็น 0 ในแนวตั้ง/เครื่องที่ไม่มีรอยบาก · องค์ประกอบ fixed ใส่เองที่ตัวมัน (ดู repo-guards "safe-area") */
 html{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}

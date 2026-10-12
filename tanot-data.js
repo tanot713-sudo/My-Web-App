@@ -714,6 +714,15 @@
     document.body.appendChild(bar);
   }
 
+  /* ผลของ /api/sync = หลักฐานว่า fetch จากหน้าเว็บผ่าน Access หรือไม่ → บอก sw.js (ใช้ตัดสินแถบ "เซสชันหมดอายุ"
+     แทนการถาม /api/session จาก SW เอง ซึ่งบน iPhone เคยได้ผลผิด — ดู session-guard.js) */
+  function tellSwSession(ok) {
+    try {
+      var c = navigator.serviceWorker && navigator.serviceWorker.controller;
+      if (c) c.postMessage({ type: 'tanot:session', ok: !!ok });
+    } catch (e) {}
+  }
+
   var firstCycle = true;
   function syncNow() {
     if (!ENABLED) return Promise.resolve(status);
@@ -731,11 +740,13 @@
         .then(function () {
           firstCycle = false;
           status.state = 'ok'; status.lastError = ''; status.lastSyncAt = Date.now();
+          tellSwSession(true);
           return metaSet('lastSyncAt', status.lastSyncAt);
         });
     }).catch(function (e) {
       status.state = e && e.auth ? 'auth' : 'error';
       status.lastError = String(e && e.message || e);
+      if (e && e.auth) tellSwSession(false);
     }).then(function () {
       running = null;
       notify();
