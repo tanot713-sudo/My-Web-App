@@ -44,6 +44,15 @@
   <nav class="crumb" data-i18n-attr="aria-label:f5lab.crumb" aria-label="ตำแหน่ง"><a href="text-to-speech.html" data-i18n="f5lab.back">แปลงเสียง ↔ ข้อความ</a><span class="sep">/</span><span data-i18n="f5lab.title">F5 ในเบราว์เซอร์</span></nav>
   <div class="page-head"><h1 data-i18n="f5lab.title">F5 ในเบราว์เซอร์</h1><span class="badge" data-i18n="f5lab.lab">ทดลอง</span></div>
 
+  <div class="f5-env" id="crashBox" hidden>
+    <div class="callout err" id="crashText" role="alert"></div>
+    <div class="f5-acts">
+      <button class="btn sm" type="button" id="crashCopy"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg><span data-i18n="f5lab.copy">คัดลอกผลวัด</span></button>
+      <button class="btn sm" type="button" id="crashLight"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sliders-horizontal"/></svg><span data-i18n="f5lab.lightest">ใช้ตัวเลือกเบาที่สุด</span></button>
+      <button class="btn sm ghost" type="button" id="crashClose"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg><span data-i18n="f5lab.close">ปิด</span></button>
+    </div>
+  </div>
+
   <div class="f5-env" id="envMsg" hidden>
     <div class="callout warn" id="envText" role="status"></div>
     <div class="f5-acts" id="envActs">
@@ -75,6 +84,17 @@
     <h2><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-mic"/></svg><span data-i18n="f5lab.voices">เสียงตัวอย่าง</span></h2>
     <div class="list plain" id="voiceList" data-i18n-skip></div>
     <div class="empty compact" id="voiceEmpty" data-i18n="f5lab.noVoice">ยังไม่มีเสียงตัวอย่าง</div>
+    <div class="f5-env" id="cutBox" hidden>
+      <div class="callout warn" id="cutMsg" role="status"></div>
+      <div class="field">
+        <label for="cutText" data-i18n="f5lab.cutText">ข้อความของส่วนที่เหลือ (ตรงทุกคำ)</label>
+        <textarea class="textarea" id="cutText" rows="2" maxlength="400" autocomplete="off"></textarea>
+      </div>
+      <div class="f5-acts">
+        <button class="btn sm" type="button" id="cutPlay"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-headphones"/></svg><span data-i18n="f5lab.cutPlay">ฟังส่วนที่เหลือ</span></button>
+        <button class="btn sm" type="button" id="cutSave"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-save"/></svg><span data-i18n="f5lab.cutSave">บันทึกเป็นเสียงใหม่</span></button>
+      </div>
+    </div>
     <details class="disclosure" id="addVoice">
       <summary data-i18n="f5lab.addVoice">เพิ่มเสียงตัวอย่าง</summary>
       <div class="disclosure-body">
@@ -106,6 +126,34 @@
       <textarea class="textarea" id="genText" rows="5" maxlength="1000" autocomplete="off"></textarea>
       <div class="char-count" id="charCount"></div>
     </div>
+    <details class="disclosure" id="optBox">
+      <summary data-i18n="f5lab.opts">ตัวเลือกลดภาระ</summary>
+      <div class="disclosure-body">
+        <div class="field">
+          <label id="cutLbl" data-i18n="f5lab.optCut">ตัดเสียงตัวอย่าง</label>
+          <div class="segmented" id="cutSeg" role="group" aria-labelledby="cutLbl"></div>
+        </div>
+        <div class="field">
+          <label id="maxLbl" data-i18n="f5lab.optMax">ความยาวท่อนสูงสุด</label>
+          <div class="segmented" id="maxSeg" role="group" aria-labelledby="maxLbl"></div>
+        </div>
+        <div class="field">
+          <label id="devLbl" data-i18n="f5lab.optDev">อุปกรณ์</label>
+          <div class="segmented" id="devSeg" role="group" aria-labelledby="devLbl">
+            <button type="button" data-d="webgpu">WebGPU</button><button type="button" data-d="wasm" data-i18n="f5lab.devCpu">CPU (ช้ามาก)</button>
+          </div>
+        </div>
+        <div class="field">
+          <label id="ioLbl" data-i18n="f5lab.sIo">tensor ระหว่าง step</label>
+          <div class="segmented" id="ioSeg" role="group" aria-labelledby="ioLbl">
+            <button type="button" data-io="gpu">GPU</button><button type="button" data-io="cpu">CPU</button>
+          </div>
+        </div>
+        <div class="f5-acts">
+          <button class="btn" type="button" id="probeBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-zap"/></svg><span data-i18n="f5lab.probe">ทดสอบ 1 step</span></button>
+        </div>
+      </div>
+    </details>
     <div class="f5-acts">
       <button class="btn primary" type="button" id="genBtn"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg><span data-i18n="f5lab.genBtn">สร้างและฟัง</span></button>
       <button class="btn" type="button" id="stopBtn" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-square"/></svg><span data-i18n="f5lab.stop">หยุด</span></button>
