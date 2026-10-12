@@ -7,11 +7,17 @@
    • เสียงตัวอย่าง: IndexedDB 'tanot-f5-lab' (store voices: {id, name, text, pcm Float32 24 kHz ที่ตัดเงียบแล้ว, sec, at}) — ไม่อยู่ใน data-registry
      ตั้งใจ: ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย ไม่ออกนอกเครื่อง · ข้อความที่พิมพ์ก็ไม่ถูกเก็บ/ส่งไปไหน
    • ผลวัด/ข้อผิดพลาดลง tanot:media:log (TanotMedia.logNote/logError, kind 'f5') — ตัวเลข/รหัสเท่านั้น ไม่มีข้อความหรือเสียงของผู้ใช้
-   • คีย์: tanot:f5lab:ui (cache — รุ่นที่เลือก + เสียงที่เลือก) */
+   • iPhone (Safari ฆ่าแท็บตอนสร้างเสียง — หน่วยความจำ/GPU เกิน): breadcrumb tanot:f5lab:crumb เขียน localStorage ทันทีก่อนทุก run
+     (engine ส่ง {type:'crumb'} — บนเธรดหลักเขียนแบบ sync ไม่ผ่าน microtask) · เปิดหน้าใหม่แล้วพบ crumb ที่ยังไม่ done = รอบก่อนแท็บถูกปิดกลางทาง
+     → กล่องเตือน + problem log (kind f5, code crash) + แถวในผลวัด · ออกจากหน้าเอง (pagehide) ไม่นับ
+   • ตัวเลือกลดภาระ (C.cleanOpts — iPhone/iPad ค่าเริ่มต้นตัดเสียงตัวอย่าง 4 วิ + ท่อน 60): ตัดเสียงตัวอย่าง (C.cutRef — ข้อความของส่วนที่เหลือแก้เองได้
+     หรือบันทึกเป็นเสียงใหม่; ไม่บันทึก = อยู่ในหน่วยความจำของหน้าเท่านั้น) · ความยาวท่อน 100/60/40 · อุปกรณ์ WebGPU/CPU · tensor ระหว่าง step GPU/CPU ·
+     "ทดสอบ 1 step" (preprocess + transformer 1 ครั้ง ไม่ decode) · fp16 ปิดบน iPhone/iPad
+   • คีย์: tanot:f5lab:ui (cache — รุ่นที่เลือก + เสียงที่เลือก + ตัวเลือกลดภาระที่ผู้ใช้เลือกเอง) · tanot:f5lab:crumb (cache) */
 (function () {
   'use strict';
   var C = window.TanotF5Calc, Norm = window.TanotTtsNorm, TM = window.TanotMedia, I18N = window.OME_I18N;
-  var UI_KEY = 'tanot:f5lab:ui', DB = 'tanot-f5-lab', STORE = 'voices';
+  var UI_KEY = 'tanot:f5lab:ui', CRUMB_KEY = 'tanot:f5lab:crumb', DB = 'tanot-f5-lab', STORE = 'voices';
   var MB = 1024 * 1024;
 
   var T = I18N.scope('f5lab', {
@@ -45,7 +51,17 @@
       sVariant: 'รุ่น', sDevice: 'อุปกรณ์', sWhere: 'รันที่', sAdapter: 'GPU', sF16: 'shader-f16', sIo: 'tensor ระหว่าง step', sFiles: 'เวลาโหลดไฟล์',
       sSession: 'เวลาสร้าง session', sFirst: 'เวลาถึงเสียงแรก', sStep: 'ms/step เฉลี่ย', sRtf: 'RTF (เวลาสร้าง/ความยาวเสียง)', sAudio: 'ความยาวเสียง',
       sChunks: 'จำนวนท่อน', sRef: 'เสียงตัวอย่าง', worker: 'Worker', page: 'หน้าเว็บ', yes: 'มี', no: 'ไม่มี', onGpu: 'อยู่บน GPU', onCpu: 'คัดลอกผ่าน CPU',
-      fromCacheShort: '{t} (จากเครื่อง)'
+      fromCacheShort: '{t} (จากเครื่อง)',
+      lightest: 'ใช้ตัวเลือกเบาที่สุด', close: 'ปิด', opts: 'ตัวเลือกลดภาระ', optCut: 'ตัดเสียงตัวอย่าง', optMax: 'ความยาวท่อนสูงสุด (ตัวอักษร)', optDev: 'อุปกรณ์',
+      devCpu: 'CPU (ช้ามาก)', cutNone: 'ไม่ตัด', probe: 'ทดสอบ 1 step', gProbe: 'กำลังทดสอบ preprocess + 1 step…',
+      probeOk: 'ทดสอบผ่าน: preprocess {pre} · step 1 {step} · T {T}',
+      cutText: 'ข้อความของส่วนที่เหลือ (ตรงทุกคำ)', cutPlay: 'ฟังส่วนที่เหลือ', cutSave: 'บันทึกเป็นเสียงใหม่',
+      cutMsg: 'ตัดเสียงตัวอย่างเหลือ {n} วิ (จาก {from} วิ) — แก้ข้อความด้านล่างให้ตรงกับส่วนที่เหลือ', cutName: '{name} ({n} วิ)', cutSaved: 'บันทึกเสียงใหม่แล้ว ({n} วิ)',
+      fp16Ios: 'iPhone/iPad: ปิดรุ่น fp16 (หน่วยความจำไม่พอ) — ใช้ q4',
+      crashMsg: 'รอบก่อนแท็บถูกปิดกลางทาง — หยุดที่ {where}', stStart: 'เริ่มสร้างเสียง', stLoad: 'โหลดโมเดล', stSession: 'สร้าง session {part}',
+      stPre: 'preprocess', stStep: 'transformer step {k}/{of}', stDec: 'decode', stChunk: 'หลังส่งเสียงท่อนนั้น', stOf: '{where} · ท่อน {i}/{n}',
+      hintSession: 'ลองรุ่น q4 หรือ CPU', hintPre: 'ลองตัดเสียงตัวอย่างให้สั้นลง', hintStep: 'ลองตัดเสียงตัวอย่าง 3 วิ + ท่อน 40 ตัวอักษร, tensor ผ่าน CPU หรือทดสอบ 1 step',
+      hintDec: 'ลองท่อนที่สั้นลง (40 ตัวอักษร)', sCut: 'ตัดเสียงตัวอย่าง', sMax: 'ความยาวท่อนสูงสุด', sMem: 'หน่วยความจำเครื่อง', sCrash: 'รอบก่อนแท็บถูกปิด', gb: '{n} GB'
     },
     en: {
       docTitle: 'F5 in the browser (lab) | Tanot', crumb: 'Breadcrumb', back: 'Speech ↔ text', title: 'F5 in the browser', lab: 'Lab',
@@ -77,7 +93,17 @@
       sVariant: 'Model', sDevice: 'Device', sWhere: 'Runs in', sAdapter: 'GPU', sF16: 'shader-f16', sIo: 'Tensors between steps', sFiles: 'File load time',
       sSession: 'Session creation', sFirst: 'Time to first audio', sStep: 'Avg ms/step', sRtf: 'RTF (generation time / audio length)', sAudio: 'Audio length',
       sChunks: 'Chunks', sRef: 'Reference voice', worker: 'Worker', page: 'Page', yes: 'Yes', no: 'No', onGpu: 'Stay on the GPU', onCpu: 'Copied via the CPU',
-      fromCacheShort: '{t} (from this device)'
+      fromCacheShort: '{t} (from this device)',
+      lightest: 'Use the lightest options', close: 'Close', opts: 'Lighter-load options', optCut: 'Cut the reference voice', optMax: 'Max chunk length (characters)', optDev: 'Device',
+      devCpu: 'CPU (very slow)', cutNone: 'No cut', probe: 'Test 1 step', gProbe: 'Testing preprocess + 1 step…',
+      probeOk: 'Test passed: preprocess {pre} · step 1 {step} · T {T}',
+      cutText: 'Words in the remaining part (exact)', cutPlay: 'Listen to the remaining part', cutSave: 'Save as a new voice',
+      cutMsg: 'Reference voice cut to {n} s (from {from} s) — edit the text below to match the remaining part', cutName: '{name} ({n} s)', cutSaved: 'New voice saved ({n} s)',
+      fp16Ios: 'iPhone/iPad: fp16 is off (not enough memory) — use q4',
+      crashMsg: 'The last run was closed mid-way — it stopped at {where}', stStart: 'starting generation', stLoad: 'loading the model', stSession: 'creating session {part}',
+      stPre: 'preprocess', stStep: 'transformer step {k}/{of}', stDec: 'decode', stChunk: 'after sending that chunk', stOf: '{where} · chunk {i}/{n}',
+      hintSession: 'Try q4 or the CPU', hintPre: 'Try cutting the reference voice shorter', hintStep: 'Try a 3 s reference cut + 40-character chunks, tensors via the CPU, or Test 1 step',
+      hintDec: 'Try shorter chunks (40 characters)', sCut: 'Reference cut', sMax: 'Max chunk length', sMem: 'Device memory', sCrash: 'Last run closed mid-way', gb: '{n} GB'
     }
   });
   window.OME_PAGE_LIVE_LANG = true;
@@ -87,14 +113,64 @@
   function fmt(n, d) { return n == null || !isFinite(n) ? '—' : I18N.number(n, { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
   function secTxt(ms) { return ms == null ? '—' : T('sec', { n: fmt(ms / 1000, ms < 10000 ? 2 : 1) }); }
   function readUi() { try { var v = JSON.parse(localStorage.getItem(UI_KEY) || '{}'); return v && typeof v === 'object' ? v : {}; } catch (e) { return {}; } }
-  function saveUi() { try { localStorage.setItem(UI_KEY, JSON.stringify({ variant: st.variant, voice: st.voiceId })); } catch (e) {} }
+  function saveUi() {
+    var o = { variant: st.variant, voice: st.voiceId };
+    if (st.optsSet) o.opts = st.opts;
+    try { localStorage.setItem(UI_KEY, JSON.stringify(o)); } catch (e) {}
+  }
 
-  var ui = readUi();
+  var ui = readUi(), IOS = !!(TM && TM.isIOS && TM.isIOS());
   var st = {
-    variant: ui.variant === 'fp16' ? 'fp16' : 'q4', voiceId: ui.voice || null, device: 'webgpu', where: 'worker',
+    variant: ui.variant === 'fp16' && !IOS ? 'fp16' : 'q4', voiceId: ui.voice || null, device: 'webgpu', where: 'worker',
     caps: null, cache: {}, loaded: null, loading: null, gen: null, voices: [], ctx: null, wavUrl: null, stats: {},
-    worker: null, eng: null, send: null, ready: null, switched: false
+    worker: null, eng: null, send: null, ready: null, switched: false,
+    opts: C.cleanOpts(ui.opts, IOS), optsSet: !!ui.opts, cutMemo: null, cutText: {}, cutShown: null, crash: null, lastCrash: null
   };
+  function ioWant() { return st.device === 'wasm' ? 'cpu' : st.opts.io; }
+
+  /* ── breadcrumb: จุดที่ไปถึงล่าสุด (รอดหลังแท็บถูกปิด) ── */
+  function readCrumb() { try { var c = JSON.parse(localStorage.getItem(CRUMB_KEY) || 'null'); return c && typeof c === 'object' ? c : null; } catch (e) { return null; } }
+  function putCrumb(c) { try { localStorage.setItem(CRUMB_KEY, JSON.stringify(c)); } catch (e) {} }
+  var CRUMB_NUM = ['part', 'k', 'of', 'i', 'n', 'T', 'idsLen', 'refFrames'];
+  function writeCrumb(m) {
+    var g = st.gen, c = {
+      v: 1, at: Date.now(), stage: m.stage, done: false, variant: st.variant, device: st.device, where: st.where,
+      ioGpu: st.loaded ? !!st.loaded.ioGpu : ioWant() === 'gpu', cut: st.opts.cut, max: st.opts.max, probe: !!(g && g.probe), refSec: g ? +g.refSec.toFixed(2) : null,
+      ua: C.shortUa(navigator.userAgent), mem: navigator.deviceMemory || null, adapter: (st.caps && st.caps.adapter) || ''
+    };
+    for (var i = 0; i < CRUMB_NUM.length; i++) if (m[CRUMB_NUM[i]] != null) c[CRUMB_NUM[i]] = m[CRUMB_NUM[i]];
+    putCrumb(c);
+  }
+  function doneCrumb(result) {
+    var c = readCrumb();
+    if (c && !c.done) { c.done = true; c.result = result; putCrumb(c); }
+  }
+  function crumbWhere(c) {
+    var w = c.stage === 'session' ? T('stSession', { part: c.part || '' }) : c.stage === 'pre' ? T('stPre') : c.stage === 'step' ? T('stStep', { k: c.k, of: c.of || C.NFE })
+      : c.stage === 'dec' ? T('stDec') : c.stage === 'chunk' ? T('stChunk') : c.stage === 'load' ? T('stLoad') : T('stStart');
+    return c.i != null && c.n ? T('stOf', { where: w, i: c.i + 1, n: c.n }) : w;
+  }
+  function crumbHint(c) {
+    return T(c.stage === 'session' || c.stage === 'load' ? 'hintSession' : c.stage === 'pre' ? 'hintPre' : c.stage === 'dec' ? 'hintDec' : 'hintStep');
+  }
+  /* เปิดหน้า: crumb ค้าง (ไม่ done) = แท็บถูกปิดระหว่างทำงาน → บันทึกปัญหา 1 ครั้ง แล้วเก็บไว้แสดงในผลวัดจนกว่าจะเริ่มรอบใหม่ */
+  function checkCrash() {
+    var c = readCrumb();
+    if (c && !c.done) {
+      c.done = true; c.result = 'crash'; c.crashed = true; c.seenAt = Date.now();
+      putCrumb(c);
+      st.crash = c;
+      if (TM) TM.logError('f5', { name: 'TabClosed', code: 'crash', message: C.crumbSummary(c) },
+        { stage: 'crash-' + (c.stage || ''), model: 'f5-' + (c.variant || ''), device: c.device || '', engine: 'local' });
+    }
+    st.lastCrash = c && c.crashed ? c : null;
+    renderCrash();
+  }
+  function renderCrash() {
+    var c = st.crash;
+    $('crashBox').hidden = !c;
+    I18N.live($('crashText'), c ? function () { return T('crashMsg', { where: crumbWhere(c) }) + ' · ' + crumbHint(c); } : null);
+  }
 
   /* ── engine (Worker หรือเธรดหลัก) ── */
   function startEngine() {
@@ -122,7 +198,8 @@
   function pageEngine() {
     st.where = 'page';
     (window.TanotF5Engine ? Promise.resolve() : loadScript('f5-engine.js')).then(function () {
-      var eng = window.TanotF5Engine.create(function (m) { Promise.resolve().then(function () { onMsg(m); }); });
+      // crumb เขียนทันที (sync) ก่อน run ถัดไปเริ่ม — ถ้าแท็บตายระหว่าง run ก็ยังรู้ว่าไปถึงไหน
+      var eng = window.TanotF5Engine.create(function (m) { if (m.type === 'crumb') { writeCrumb(m); return; } Promise.resolve().then(function () { onMsg(m); }); });
       var q = Promise.resolve();
       st.eng = eng;
       st.send = function (m) { if (m.cmd === 'cancel') eng.cancel(); else q = q.then(function () { return eng.handle(m); }); };
@@ -133,12 +210,14 @@
     if (st.worker) { try { st.worker.terminate(); } catch (e) {} }
     if (st.eng) { try { st.eng.cancel(); st.eng.handle({ cmd: 'dispose' }); } catch (e) {} }
     st.worker = null; st.eng = null; st.send = null; st.ready = null; st.loaded = null;
+    doneCrumb('released');
     if (st.loading) { st.loading.reject({ code: 'abort', name: 'AbortError', message: 'released' }); st.loading = null; }
     if (st.gen) endGen(T('gStopped'));
   }
   function send(m, tr) { return startEngine().then(function () { st.send(m, tr); }); }
 
   function onMsg(m) {
+    if (m.type === 'crumb') { writeCrumb(m); return; }
     if (m.type === 'caps') {
       // Worker ไม่มี WebGPU แต่หน้ามี → ใช้ engine บนเธรดหลัก (ครั้งเดียว)
       if (st.where === 'worker' && !m.gpu && navigator.gpu && !st.switched) {
@@ -159,7 +238,8 @@
     } else if (m.type === 'warn') {
       if (m.code === 'cacheFull') setStatus('modelStatus', function () { return T('cacheFull'); }, 'warn');
     } else if (m.type === 'loaded') {
-      st.loaded = { variant: m.variant, device: m.device, ioGpu: m.ioGpu };
+      st.loaded = { variant: m.variant, device: m.device, ioGpu: m.ioGpu, io: st.loadIo || ioWant() };
+      if (!st.gen) doneCrumb('loaded');
       if (!m.reused) {
         st.stats.files = m.ms && m.ms.files; st.stats.fromCache = m.fromCache; st.stats.session = m.ms && m.ms.session; st.stats.ioGpu = m.ioGpu;
         st.stats.variant = m.variant; st.stats.device = m.device;
@@ -179,7 +259,10 @@
       onChunk(m);
     } else if (m.type === 'done') {
       onDone(m);
+    } else if (m.type === 'probe') {
+      onProbe(m);
     } else if (m.type === 'cancelled') {
+      doneCrumb('cancelled');
       if (st.loading) { st.loading.reject({ code: 'abort', name: 'AbortError', message: 'cancelled' }); st.loading = null; setStatus('modelStatus', function () { return T('loadStopped'); }); $('dlMeter').hidden = true; }
       if (st.gen) endGen(T('gStopped'));
       renderBusy();
@@ -211,6 +294,7 @@
   }
   function fail(stage, e) {
     var err = { name: (e && e.name) || 'Error', message: (e && e.message) || String(e), code: (e && e.code) || '' };
+    doneCrumb('error');
     if (TM) TM.logError('f5', err, { stage: stage || '', model: 'f5-' + st.variant, device: st.device, engine: 'local' });
     var target = stage === 'synth' || (st.gen && stage !== 'load') ? 'genStatus' : 'modelStatus';
     setStatus(target, function () { return errText(err); }, 'err');
@@ -231,6 +315,7 @@
       vs[i].setAttribute('aria-pressed', v === st.variant ? 'true' : 'false');
       vs[i].textContent = v + ' · ' + T('mb', { n: fmt(C.variantMb(v)) });
     }
+    if (IOS) $('variant').querySelector('[data-v="fp16"]').disabled = true;
     $('needSize').textContent = T('mb', { n: fmt(needMb(st.variant)) });
     var c = cacheOf(st.variant);
     $('cachedSize').textContent = !c || !c.bytes ? T('none') : T(c.complete ? 'full' : 'partial', { n: fmt(c.bytes / MB, c.bytes < 10 * MB ? 1 : 0) });
@@ -244,6 +329,7 @@
     if (st.device === 'wasm') msgs.push(T('cpuOn'));
     else if (noGpu) msgs.push(T('noGpu'));
     if (!noGpu && st.device !== 'wasm' && st.variant === 'fp16' && !caps.f16) msgs.push(T('noF16'));
+    if (IOS) msgs.push(T('fp16Ios'));
     if (!caps.proxy && !cachedComplete()) msgs.push(T('noProxy'));
     if (!caps.caches) msgs.push(T('noCache'));
     box.hidden = !msgs.length;
@@ -258,9 +344,88 @@
     $('stopLoadBtn').hidden = !st.loading;
     $('clearBtn').disabled = busy;
     $('genBtn').disabled = busy || !canLoad;
+    $('probeBtn').disabled = busy || !canLoad;
     $('stopBtn').hidden = !st.gen;
     var vs = $('variant').querySelectorAll('button');
-    for (var i = 0; i < vs.length; i++) vs[i].disabled = busy;
+    for (var i = 0; i < vs.length; i++) vs[i].disabled = busy || (IOS && vs[i].getAttribute('data-v') === 'fp16');
+    renderOpts();
+  }
+
+  /* ── ตัวเลือกลดภาระ ── */
+  function segButtons(box, values, attr, label, cur, disabled) {
+    if (box.children.length !== values.length) {
+      box.textContent = '';
+      values.forEach(function (v) { var b = document.createElement('button'); b.type = 'button'; b.setAttribute(attr, String(v)); box.appendChild(b); });
+    }
+    Array.prototype.forEach.call(box.children, function (b, i) {
+      b.textContent = label(values[i]);
+      b.setAttribute('aria-pressed', values[i] === cur ? 'true' : 'false');
+      b.disabled = !!disabled;
+    });
+  }
+  function renderOpts() {
+    var busy = !!(st.loading || st.gen), caps = st.caps || {};
+    segButtons($('cutSeg'), C.CUT_OPTS, 'data-cut', function (v) { return v ? T('sec', { n: v }) : T('cutNone'); }, st.opts.cut, busy);
+    segButtons($('maxSeg'), C.CHUNK_OPTS, 'data-max', function (v) { return fmt(v); }, st.opts.max, busy);
+    Array.prototype.forEach.call($('devSeg').children, function (b) {
+      var d = b.getAttribute('data-d');
+      b.setAttribute('aria-pressed', d === st.device ? 'true' : 'false');
+      b.disabled = busy || (d === 'webgpu' && !caps.gpu);
+    });
+    Array.prototype.forEach.call($('ioSeg').children, function (b) {
+      b.setAttribute('aria-pressed', b.getAttribute('data-io') === ioWant() ? 'true' : 'false');
+      b.disabled = busy || st.device === 'wasm';
+    });
+  }
+  function setOpt(k, v) {
+    st.opts[k] = v; st.optsSet = true; saveUi();
+    renderOpts(); renderCut(); renderStats();
+  }
+  function useCpuAsk() {
+    return window.tanotConfirm(T('cpuWarn'), { okLabel: T('cpuOk') }).then(function (ok) {
+      if (!ok) return;
+      st.device = 'wasm'; renderEnv(); renderBusy(); renderStats();
+    });
+  }
+
+  /* ── ตัดเสียงตัวอย่าง (หน่วยความจำของหน้าเท่านั้น จนกว่าจะกด "บันทึกเป็นเสียงใหม่") ── */
+  function refFor(v) {
+    if (!v) return null;
+    var cut = st.opts.cut, key = v.id + '|' + cut;
+    if (!cut || v.pcm.length <= Math.round(cut * C.SR)) return { pcm: v.pcm, text: v.text, sec: v.sec, cut: false };
+    if (!st.cutMemo || st.cutMemo.key !== key) st.cutMemo = { key: key, r: C.cutRef(v.pcm, C.SR, cut) };
+    var r = st.cutMemo.r;
+    var t = st.cutText[key];
+    return { pcm: r.pcm, text: t != null && t.trim() ? t : v.text, sec: r.sec, cut: true, key: key, from: v.sec };
+  }
+  function renderCut() {
+    var v = currentVoice(), ref = refFor(v), box = $('cutBox');
+    box.hidden = !(ref && ref.cut);
+    if (box.hidden) { I18N.live($('cutMsg'), null); return; }
+    I18N.live($('cutMsg'), function () { return T('cutMsg', { n: fmt(ref.sec, 1), from: fmt(ref.from, 1) }); });
+    if (st.cutShown !== ref.key) { $('cutText').value = ref.text; st.cutShown = ref.key; }
+  }
+  function playPcm(pcm) {
+    var ctx = ensureCtx();
+    if (!ctx) return;
+    if (st.cutSrc) { try { st.cutSrc.stop(); } catch (e) {} }
+    var b = ctx.createBuffer(1, pcm.length, C.SR);
+    b.getChannelData(0).set(pcm);
+    var src = ctx.createBufferSource(); src.buffer = b; src.connect(ctx.destination); src.start();
+    st.cutSrc = src;
+  }
+  function saveCut() {
+    var v = currentVoice(), ref = refFor(v);
+    if (!ref || !ref.cut) return;
+    var text = $('cutText').value.trim();
+    if (!text) { window.tanotToast && tanotToast(T('vNeedText'), 'err'); return; }
+    var rec = { id: 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: T('cutName', { name: v.name, n: fmt(ref.sec, 1) }).slice(0, 40),
+      text: text.slice(0, 400), pcm: ref.pcm, sec: ref.sec, at: Date.now() };
+    tx('readwrite', function (s2) { return s2.put(rec); }).then(function () {
+      st.voiceId = rec.id; saveUi();
+      window.tanotToast && tanotToast(T('cutSaved', { n: fmt(rec.sec, 1) }), 'ok');
+      return loadVoices();
+    }, function (e) { if (TM) TM.logError('f5', e, { stage: 'ref-save' }); window.tanotToast && tanotToast(T('failed', { msg: (e && e.name) || 'IndexedDB' }), 'err'); });
   }
   function onProgress(m) {
     var meter = $('dlMeter');
@@ -274,7 +439,7 @@
     });
   }
   function load() {
-    if (st.loaded && st.loaded.variant === st.variant && st.loaded.device === st.device) return Promise.resolve();
+    if (st.loaded && st.loaded.variant === st.variant && st.loaded.device === st.device && st.loaded.io === ioWant()) return Promise.resolve();
     if (st.loading) return st.loading.promise;
     var d = {};
     d.promise = new Promise(function (res, rej) { d.resolve = res; d.reject = rej; });
@@ -285,7 +450,9 @@
       TM.budget.acquire('f5', function () { killEngine(); });
     }
     checkSpace();
-    send({ cmd: 'load', variant: st.variant, device: st.device });
+    if (!st.gen) writeCrumb({ stage: 'load' });
+    st.loadIo = ioWant();
+    send({ cmd: 'load', variant: st.variant, device: st.device, io: st.loadIo });
     return d.promise;
   }
   function checkSpace() {
@@ -351,6 +518,7 @@
       grow.appendChild(title); grow.appendChild(meta); end.appendChild(use); end.appendChild(del);
       row.appendChild(grow); row.appendChild(end); box.appendChild(row);
     });
+    renderCut();
   }
   function decodeRef(file) {
     return file.arrayBuffer().then(function (buf) {
@@ -408,28 +576,35 @@
     st.gen.sources.forEach(function (s) { try { s.stop(); } catch (e) {} });
     st.gen.sources = [];
   }
-  function generate() {
+  function generate(probe) {
     if (st.gen || st.loading) return;
+    probe = probe === true;
     var text = $('genText').value.trim(), v = currentVoice();
     if (!v) { setStatus('genStatus', function () { return T('needVoice'); }, 'err'); return; }
     if (!text) { setStatus('genStatus', function () { return T('needText'); }, 'err'); return; }
     ensureCtx(); // ต้องสร้าง/resume ในจังหวะที่ผู้ใช้กด (iOS)
-    var items = C.planText(text.slice(0, C.MAX_CHARS), Norm);
+    var items = C.planText(text.slice(0, C.MAX_CHARS), Norm, st.opts.max);
     if (!items.length) { setStatus('genStatus', function () { return T('nothing'); }, 'err'); return; }
+    var ref = refFor(v);
+    if (ref.cut) { st.cutText[ref.key] = $('cutText').value; ref = refFor(v); }
     var fit;
-    try { fit = C.fitChunks(items, C.refText(v.text), C.refFrames(v.pcm.length)); }
+    try { fit = C.fitChunks(items, C.refText(ref.text), C.refFrames(ref.pcm.length)); }
     catch (e) { setStatus('genStatus', function () { return T('tooLong'); }, 'err'); return; }
+    if (probe) fit = fit.slice(0, 1);
     if (st.wavUrl) { URL.revokeObjectURL(st.wavUrl); st.wavUrl = null; }
     $('wavBtn').hidden = true; $('player').hidden = true; $('player').removeAttribute('src');
-    var g = st.gen = { id: Date.now(), n: fit.length, gaps: fit.map(function (x) { return x.gap; }), parts: [], sources: [], nextAt: 0,
-      t0: 0, first: null, stepMs: [], chars: fit.reduce(function (s, x) { return s + x.norm.length; }, 0), refSec: v.sec };
+    var g = st.gen = { id: Date.now(), probe: probe, n: fit.length, gaps: fit.map(function (x) { return x.gap; }), parts: [], sources: [], nextAt: 0,
+      t0: 0, first: null, stepMs: [], chars: fit.reduce(function (s, x) { return s + x.norm.length; }, 0), refSec: ref.sec };
+    st.crash = null; renderCrash();
+    writeCrumb({ stage: 'start' });
     $('genMeter').hidden = false; $('genMeter').firstElementChild.style.width = '0%';
     setStatus('genStatus', function () { return T('gWait'); });
     renderBusy();
     load().then(function () {
       if (st.gen !== g) return;
       g.t0 = now();
-      send({ cmd: 'synth', id: g.id, ref: { pcm: v.pcm }, items: fit.map(function (x) { return { full: x.full, frames: x.frames }; }) });
+      if (probe) setStatus('genStatus', function () { return T('gProbe'); });
+      send({ cmd: 'synth', id: g.id, probe: probe, ref: { pcm: ref.pcm }, items: fit.map(function (x) { return { full: x.full, frames: x.frames }; }) });
     }, function (e) {
       if (st.gen !== g) return;
       if (e && e.code === 'abort') endGen(T('gStopped'));
@@ -438,7 +613,7 @@
   }
   function onStep(m) {
     var g = st.gen;
-    if (!g || m.id !== g.id) return;
+    if (!g || m.id !== g.id || g.probe) return;
     $('genMeter').firstElementChild.style.width = ((m.i + m.k / m.of) / m.n * 100).toFixed(1) + '%';
     setStatus('genStatus', function () { return T('gChunk', { i: m.i + 1, n: m.n, k: m.k, of: m.of }); });
   }
@@ -476,9 +651,20 @@
       's first=' + Math.round(g.first || 0) + 'ms step=' + Math.round(stepAvg || 0) + 'ms rtf=' + (st.stats.rtf == null ? '' : st.stats.rtf.toFixed(2)) +
       ' io=' + (st.loaded && st.loaded.ioGpu ? 'gpu' : 'cpu') + ' gpu=' + ((st.caps && st.caps.adapter) || ''));
     var n = g.n;
+    doneCrumb('done');
     endGen(null);
     setStatus('genStatus', function () { return T('gDone', { n: n, sec: fmt(audioSec, 1), gen: fmt(genMs / 1000, 1) }); }, 'ok');
     renderStats();
+  }
+  function onProbe(m) {
+    var g = st.gen;
+    if (!g || m.id !== g.id) return;
+    doneCrumb('probe');
+    if (TM) TM.logNote('f5', { stage: 'probe', model: 'f5-' + (st.loaded && st.loaded.variant || st.variant), device: st.device, engine: 'local' },
+      'where=' + st.where + ' pre=' + Math.round(m.ms.pre) + 'ms step1=' + Math.round(m.ms.step) + 'ms T=' + m.T + ' ids=' + m.idsLen + ' refFrames=' + m.refFrames +
+      ' cut=' + st.opts.cut + ' max=' + st.opts.max + ' io=' + (st.loaded && st.loaded.ioGpu ? 'gpu' : 'cpu'));
+    endGen(null);
+    setStatus('genStatus', function () { return T('probeOk', { pre: secTxt(m.ms.pre), step: secTxt(m.ms.step), T: m.T }); }, 'ok');
   }
   function endGen(msg) {
     var g = st.gen;
@@ -512,7 +698,11 @@
       ['sRtf', s.rtf == null ? '—' : fmt(s.rtf, 2)],
       ['sAudio', s.audio == null ? '—' : T('sec', { n: fmt(s.audio, 1) })],
       ['sChunks', s.chunks == null ? '—' : fmt(s.chunks)],
-      ['sRef', s.ref != null ? T('sec', { n: fmt(s.ref, 1) }) : v ? T('sec', { n: fmt(v.sec, 1) }) : '—']
+      ['sRef', s.ref != null ? T('sec', { n: fmt(s.ref, 1) }) : v ? T('sec', { n: fmt(refFor(v).sec, 1) }) : '—'],
+      ['sCut', st.opts.cut ? T('sec', { n: st.opts.cut }) : T('cutNone')],
+      ['sMax', fmt(st.opts.max)],
+      ['sMem', navigator.deviceMemory ? T('gb', { n: navigator.deviceMemory }) : '—'],
+      ['sCrash', st.lastCrash ? crumbWhere(st.lastCrash) : '—']
     ];
   }
   function renderStats() {
@@ -529,6 +719,7 @@
     var lines = statRows().map(function (r) { return T(r[0]) + ': ' + r[1]; });
     lines.unshift('Tanot F5 lab · ' + new Date().toISOString().slice(0, 16).replace('T', ' '));
     lines.push('UA: ' + navigator.userAgent);
+    if (st.lastCrash) lines.push('crumb: ' + C.crumbSummary(st.lastCrash));
     var txt = lines.join('\n');
     var p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject();
     p.then(function () { window.tanotToast && tanotToast(T('copied'), 'ok'); }, function () { window.tanotToast && tanotToast(T('copyFail'), 'err'); });
@@ -547,19 +738,40 @@
   $('clearBtn').addEventListener('click', function () {
     window.tanotConfirm(T('clearAsk'), { danger: true, okLabel: T('clear') }).then(function (ok) { if (ok) send({ cmd: 'clear' }); });
   });
-  $('cpuBtn').addEventListener('click', function () {
-    window.tanotConfirm(T('cpuWarn'), { okLabel: T('cpuOk') }).then(function (ok) {
-      if (!ok) return;
-      st.device = 'wasm'; renderEnv(); renderBusy(); renderStats();
-    });
+  $('cpuBtn').addEventListener('click', useCpuAsk);
+  $('cutSeg').addEventListener('click', function (e) { var b = e.target.closest('button[data-cut]'); if (b && !b.disabled) setOpt('cut', +b.getAttribute('data-cut')); });
+  $('maxSeg').addEventListener('click', function (e) { var b = e.target.closest('button[data-max]'); if (b && !b.disabled) setOpt('max', +b.getAttribute('data-max')); });
+  $('ioSeg').addEventListener('click', function (e) { var b = e.target.closest('button[data-io]'); if (b && !b.disabled) setOpt('io', b.getAttribute('data-io')); });
+  $('devSeg').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-d]');
+    if (!b || b.disabled) return;
+    var d = b.getAttribute('data-d');
+    if (d === st.device) return;
+    if (d === 'wasm') useCpuAsk();
+    else { st.device = 'webgpu'; renderEnv(); renderBusy(); renderStats(); }
   });
+  $('probeBtn').addEventListener('click', function () { generate(true); });
+  $('cutText').addEventListener('input', function () { var ref = refFor(currentVoice()); if (ref && ref.cut) st.cutText[ref.key] = $('cutText').value; });
+  $('cutPlay').addEventListener('click', function () { var ref = refFor(currentVoice()); if (ref) playPcm(ref.pcm); });
+  $('cutSave').addEventListener('click', saveCut);
+  $('crashCopy').addEventListener('click', copyStats);
+  $('crashClose').addEventListener('click', function () { st.crash = null; renderCrash(); });
+  $('crashLight').addEventListener('click', function () {
+    st.opts.cut = C.LIGHTEST.cut; st.opts.max = C.LIGHTEST.max; st.optsSet = true; saveUi();
+    st.crash = null; renderCrash();
+    $('optBox').open = true;
+    renderOpts(); renderCut(); renderStats();
+  });
+  // ออกจากหน้าเอง (ปิดแท็บ/ไปหน้าอื่น) ไม่ใช่แท็บถูกปิดกลางทาง
+  window.addEventListener('pagehide', function () { doneCrumb('left'); });
   $('vSave').addEventListener('click', saveVoice);
-  $('genBtn').addEventListener('click', generate);
+  $('genBtn').addEventListener('click', function () { generate(false); });
   $('stopBtn').addEventListener('click', stopGen);
   $('copyBtn').addEventListener('click', copyStats);
   $('genText').addEventListener('input', charCount);
-  OME_LANG.onChange(function () { renderModel(); renderEnv(); renderVoices(); renderStats(); });
+  OME_LANG.onChange(function () { renderModel(); renderEnv(); renderVoices(); renderStats(); renderOpts(); });
 
+  checkCrash();
   renderModel(); renderStats(); charCount(); renderBusy();
   loadVoices();
   startEngine();

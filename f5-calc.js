@@ -51,8 +51,9 @@
     return out.replace(/ ๆ/g, 'ๆ').trim();
   }
   /* ท่อนจาก TanotTtsNorm.plan (ไม่ใช้ lexicon — เหมือน Colab) → [{norm, gap}] · ท่อนที่ว่างหลังลบสัญลักษณ์ ยกช่วงเงียบไปให้ท่อนก่อนหน้า */
-  function planText(text, Norm) {
-    var p = Norm.plan(String(text == null ? '' : text), { max: MAX_CHUNK }), out = [];
+  /* max = ความยาวท่อนสูงสุด (ตัวเลือกลดภาระของหน้า CHUNK_OPTS) — ไม่ส่ง = MAX_CHUNK (100) เหมือน Colab */
+  function planText(text, Norm, max) {
+    var p = Norm.plan(String(text == null ? '' : text), { max: max > 0 ? max : MAX_CHUNK }), out = [];
     for (var i = 0; i < p.chunks.length; i++) {
       var n = normChunk(p.chunks[i]), gap = p.gaps[i] || 0;
       if (n) out.push({ norm: n, gap: gap });
@@ -164,6 +165,27 @@
   }
   function refFrames(samples) { return Math.floor(samples / HOP); }
 
+  /* ตัดเสียงตัวอย่าง (ผลของ trimRef) ให้เหลือ ≤ maxSec วินาที — ตัดที่เฟรม 20 ms ที่เบาที่สุดในช่วง 1.5 วิสุดท้ายก่อนเพดาน
+     (เท่ากันเลือกจุดหลังสุด) แล้วตัดเงียบท้าย + ต่อเงียบ 50 ms ด้วย trimRef อีกรอบ → ยาวรวมไม่เกิน maxSec
+     maxSec ≤ 0 หรือสั้นกว่าอยู่แล้ว = คืนตัวเดิม · คืน {pcm, sec, cut, at (วินาทีที่ตัด)} — ข้อความเสียงตัวอย่างต้องแก้ให้ตรงส่วนที่เหลือเอง */
+  var CUT_SEARCH_SEC = 1.5;
+  function cutRef(x, sr, maxSec) {
+    sr = sr || SR;
+    var n = x.length, pad = Math.round(sr * 0.05);
+    if (!(maxSec > 0) || n <= Math.round(maxSec * sr)) return { pcm: x, sec: n / sr, cut: false, at: null };
+    var fr = Math.round(sr * 0.02), hi = Math.round(maxSec * sr) - pad, lo = Math.max(sr, hi - Math.round(CUT_SEARCH_SEC * sr));
+    if (hi <= lo) lo = Math.max(0, hi - fr);
+    var best = hi, bestE = Infinity;
+    for (var a = lo; a + fr <= hi; a += fr) {
+      var e = 0;
+      for (var i = a; i < a + fr; i++) e += x[i] * x[i];
+      if (e <= bestE) { bestE = e; best = a + (fr >> 1); }
+    }
+    var y = trimRef(x.subarray(0, best), sr);
+    if (y.length > Math.round(maxSec * sr)) y = y.slice(0, Math.round(maxSec * sr));
+    return { pcm: y, sec: y.length / sr, cut: true, at: best / sr };
+  }
+
   /* tools/colab: trim(x, db=-45, keep=0.05) — ตัดความเงียบหัว/ท้ายท่อนที่ F5 ใส่มาเอง → ช่วงเงียบระหว่างท่อนเท่ากับ plan().gaps */
   function trimOut(x, sr, db, keep) {
     sr = sr || SR; db = db == null ? -45 : db; keep = keep == null ? 0.05 : keep;
@@ -224,12 +246,61 @@
   /* เวลาเป็นตัวเลข (วินาที) ต่อความยาวเสียง → RTF */
   function rtf(genSec, audioSec) { return audioSec > 0 ? genSec / audioSec : null; }
 
+  /* ── ตัวเลือกลดภาระ (หน้าเลือก, เก็บใน tanot:f5lab:ui.opts) ──
+     cut = ตัดเสียงตัวอย่างเหลือ ≤ N วิ (0 = ไม่ตัด) · max = ความยาวท่อนสูงสุดที่ส่งให้ plan · io = tensor ระหว่าง step บน GPU ('gpu') หรือคัดลอกผ่าน CPU ('cpu')
+     iPhone/iPad ค่าเริ่มต้นเบากว่า (แท็บถูก Safari ปิดตอนสร้างเสียง — T เล็กลง = attention/activation เล็กลงมาก) */
+  var CUT_OPTS = [0, 5, 4, 3], CHUNK_OPTS = [100, 60, 40], IO_OPTS = ['gpu', 'cpu'];
+  function defaultOpts(ios) { return { cut: ios ? 4 : 0, max: ios ? 60 : MAX_CHUNK, io: 'gpu' }; }
+  function cleanOpts(o, ios) {
+    var d = defaultOpts(ios), x = o && typeof o === 'object' ? o : {};
+    return {
+      cut: CUT_OPTS.indexOf(x.cut) >= 0 ? x.cut : d.cut,
+      max: CHUNK_OPTS.indexOf(x.max) >= 0 ? x.max : d.max,
+      io: IO_OPTS.indexOf(x.io) >= 0 ? x.io : d.io
+    };
+  }
+  var LIGHTEST = { cut: 3, max: 40 };
+
+  /* ── breadcrumb (tanot:f5lab:crumb) — จุดที่ไปถึงล่าสุด เขียนทันทีก่อน/หลังทุกขั้น เพื่อให้รู้ว่าแท็บถูกปิดตรงไหน ──
+     ตัวเลข/รหัสเท่านั้น ไม่มีข้อความ/เสียงของผู้ใช้ · ua สั้น: อุปกรณ์ + ระบบ + เบราว์เซอร์ */
+  function shortUa(ua) {
+    ua = String(ua || '');
+    var dev = /iPad/.test(ua) ? 'iPad' : /iPhone/.test(ua) ? 'iPhone' : /Android/.test(ua) ? 'Android' : /Macintosh/.test(ua) ? 'Mac' : /Windows/.test(ua) ? 'Windows' : /Linux/.test(ua) ? 'Linux' : 'other';
+    var os = /OS (\d+)[_.](\d+)(?:[_.](\d+))? like Mac/.exec(ua) || /Android (\d+)(?:\.(\d+))?/.exec(ua) || /Mac OS X (\d+)[_.](\d+)/.exec(ua) || /Windows NT (\d+)\.(\d+)/.exec(ua);
+    var br = /Edg\/(\d+)/.exec(ua) ? 'Edge ' + /Edg\/(\d+)/.exec(ua)[1] : /CriOS\/(\d+)/.exec(ua) ? 'Chrome ' + /CriOS\/(\d+)/.exec(ua)[1]
+      : /Chrome\/(\d+)/.exec(ua) ? 'Chrome ' + /Chrome\/(\d+)/.exec(ua)[1] : /Firefox\/(\d+)/.exec(ua) ? 'Firefox ' + /Firefox\/(\d+)/.exec(ua)[1]
+      : /Version\/(\d+(?:\.\d+)?).*Safari/.exec(ua) ? 'Safari ' + /Version\/(\d+(?:\.\d+)?)/.exec(ua)[1] : '';
+    return (dev + (os ? ' ' + os.slice(1).filter(function (v) { return v != null; }).join('.') : '') + (br ? ' · ' + br : '')).slice(0, 60);
+  }
+  /* สรุป 1 บรรทัดสำหรับบันทึกปัญหา/คัดลอกผลวัด */
+  function crumbSummary(c) {
+    if (!c) return '';
+    var p = ['stage=' + (c.stage || '')];
+    if (c.part) p.push('part=' + c.part);
+    if (c.k != null) p.push('step=' + c.k + '/' + (c.of || NFE));
+    if (c.i != null) p.push('chunk=' + (c.i + 1) + '/' + (c.n || '?'));
+    if (c.T != null) p.push('T=' + c.T);
+    if (c.idsLen != null) p.push('ids=' + c.idsLen);
+    if (c.refFrames != null) p.push('refFrames=' + c.refFrames);
+    if (c.refSec != null) p.push('ref=' + (+c.refSec).toFixed(1) + 's');
+    if (c.cut != null) p.push('cut=' + c.cut);
+    if (c.max != null) p.push('max=' + c.max);
+    if (c.probe) p.push('probe=1');
+    p.push('v=' + (c.variant || ''), 'dev=' + (c.device || ''), 'where=' + (c.where || ''), 'io=' + (c.ioGpu ? 'gpu' : 'cpu'));
+    if (c.mem != null) p.push('mem=' + c.mem);
+    if (c.ua) p.push('ua=' + c.ua);
+    if (c.adapter) p.push('gpu=' + c.adapter);
+    return p.join(' ');
+  }
+
   return {
     SR: SR, HOP: HOP, NFE: NFE, MAX_SIGNAL: MAX_SIGNAL, MAX_CHUNK: MAX_CHUNK, MAX_CHARS: MAX_CHARS, REF_WARN_SEC: REF_WARN_SEC,
     SYMBOLS: SYMBOLS, COEF: COEF, REPO: REPO, FILES: FILES, VARIANTS: VARIANTS, ORT_WASM_URL: ORT_WASM_URL, ORT_WASM_MB: ORT_WASM_MB, CACHE_NAME: CACHE_NAME,
     modelUrl: modelUrl, variantMb: variantMb,
     normChunk: normChunk, planText: planText, refText: refText, fullText: fullText, parseVocab: parseVocab, textIds: textIds,
     feats: feats, estimate: estimate, genFrames: genFrames, estFrames: estFrames, maxDuration: maxDuration, prepare: prepare, fitChunks: fitChunks,
-    trimRef: trimRef, refFrames: refFrames, trimOut: trimOut, concat: concat, encodeWav: encodeWav, toF16: toF16, fromF16: fromF16, rtf: rtf
+    trimRef: trimRef, refFrames: refFrames, trimOut: trimOut, concat: concat, encodeWav: encodeWav, toF16: toF16, fromF16: fromF16, rtf: rtf,
+    cutRef: cutRef, CUT_OPTS: CUT_OPTS, CHUNK_OPTS: CHUNK_OPTS, IO_OPTS: IO_OPTS, LIGHTEST: LIGHTEST, defaultOpts: defaultOpts, cleanOpts: cleanOpts,
+    shortUa: shortUa, crumbSummary: crumbSummary
   };
 });

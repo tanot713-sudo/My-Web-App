@@ -104,6 +104,45 @@ test.describe('A) f5-calc.js known-answer (Colab)', () => {
     expect(Array.from(f).map((v) => +v.toFixed(3))).toEqual([0, 1, -2.5, 65504, 0.1]);
   });
 
+  test('ตัดเสียงตัวอย่าง ≤ N วิ: ตัดที่ช่วงเงียบท้ายสุดก่อนเพดาน + เงียบ 50 ms · สั้นกว่า/ไม่ตัด = ตัวเดิม', () => {
+    const sr = 24000, x = new Float32Array(sr * 6);
+    for (let i = 0; i < x.length; i++) if ((i / sr) % 1 <= 0.8) x[i] = 0.3 * Math.sin(i / 5); // เงียบ 0.2 วิ ทุกวินาที
+    const r = C.cutRef(x, sr, 4);
+    expect(r.cut).toBe(true);
+    expect(r.pcm.length).toBeLessThanOrEqual(4 * sr);
+    expect(Math.abs(r.sec - 3.85)).toBeLessThan(0.02); // ช่วงเงียบ 3.8–4.0 → เสียงถึง 3.8 + เงียบ 50 ms
+    expect(Array.from(r.pcm.subarray(r.pcm.length - 1200)).every((v) => v === 0)).toBe(true);
+    expect(Array.from(r.pcm.subarray(0, 100))).toEqual(Array.from(x.subarray(0, 100)));
+    const r3 = C.cutRef(x, sr, 3);
+    expect(Math.abs(r3.sec - 2.85)).toBeLessThan(0.02);
+    expect(C.cutRef(x, sr, 0).pcm).toBe(x);
+    const short = new Float32Array(sr * 2);
+    expect(C.cutRef(short, sr, 4)).toEqual({ pcm: short, sec: 2, cut: false, at: null });
+  });
+
+  test('ตัวเลือกลดภาระ: ค่าเริ่มต้นคอม/iPhone · ค่าผิดกลับเป็นค่าเริ่มต้น · planText(max) ไม่เปลี่ยนค่าเดิม (100)', () => {
+    expect(C.cleanOpts(undefined, false)).toEqual({ cut: 0, max: 100, io: 'gpu' });
+    expect(C.cleanOpts(undefined, true)).toEqual({ cut: 4, max: 60, io: 'gpu' });
+    expect(C.cleanOpts({ cut: 7, max: 60, io: 'x' }, false)).toEqual({ cut: 0, max: 60, io: 'gpu' });
+    expect(C.cleanOpts({ cut: 0, max: 100, io: 'cpu' }, true)).toEqual({ cut: 0, max: 100, io: 'cpu' });
+    const text = FX.cases.map((c) => c.input).join('\n\n');
+    expect(C.planText(text, Norm)).toEqual(C.planText(text, Norm, 100));
+    for (const max of [60, 40]) {
+      const items = C.planText(text, Norm, max);
+      expect(items.length).toBeGreaterThan(C.planText(text, Norm).length);
+      expect(items.every((x) => Array.from(x.norm).length <= max)).toBe(true);
+      const flat = (xs) => xs.map((x) => x.norm).join('').replace(/ /g, '');
+      expect(flat(items)).toBe(flat(C.planText(text, Norm))); // ข้อความครบเหมือนเดิม แค่แบ่งท่อนถี่ขึ้น
+    }
+  });
+
+  test('crumb: ua สั้น · สรุป 1 บรรทัดมีแต่ตัวเลข/รหัส', () => {
+    expect(C.shortUa('Mozilla/5.0 (iPhone; CPU iPhone OS 26_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1')).toBe('iPhone 26.6.2 · Safari 26.6');
+    expect(C.shortUa('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36 Edg/140.0.0.0')).toBe('Windows 10.0 · Edge 140');
+    expect(C.crumbSummary({ stage: 'step', k: 5, of: 32, i: 0, n: 2, T: 1234, idsLen: 180, refFrames: 602, refSec: 4, cut: 4, max: 60, variant: 'q4', device: 'webgpu', where: 'worker', ioGpu: true, mem: 4, ua: 'iPhone 26.6.2 · Safari 26.6' }))
+      .toBe('stage=step step=5/32 chunk=1/2 T=1234 ids=180 refFrames=602 ref=4.0s cut=4 max=60 v=q4 dev=webgpu where=worker io=gpu mem=4 ua=iPhone 26.6.2 · Safari 26.6');
+  });
+
   test('URL โมเดล = huggingface.co (คีย์แคช) · ขนาด', () => {
     expect(C.modelUrl('q4', 'F5_Transformer.onnx')).toBe('https://huggingface.co/Tanotfin/f5-tts-thai-v1-onnx/resolve/main/q4/F5_Transformer.onnx');
     expect(C.variantMb('q4')).toBe(323);
@@ -127,6 +166,7 @@ const FAKE_ORT = `
 const md = (n, t) => ({ name: n, isTensor: true, type: t, shape: [] });
 export const env = { wasm: {}, webgpu: {} };
 const live = new Set(); // tensor บน "GPU" ที่ยังไม่ dispose
+const stats = { pre: 0, tr: 0, dec: 0, lastAudio: 0, lastIds: 0, locs: {} };
 export class Tensor {
   constructor(type, data, dims) { this.type = type; this.data = data; this.dims = dims; this.location = 'cpu'; }
   async getData() { return this.data; }
@@ -140,7 +180,7 @@ function out(sess, name, type, data, dims) {
   if (loc === 'gpu-buffer') live.add(t);
   return t;
 }
-const gpu = (s) => s.opts.executionProviders[0] === 'webgpu';
+const gpu = (s) => s.opts.executionProviders[0] === 'webgpu' && !!s.opts.preferredOutputLocation; // tensor อยู่บน GPU เฉพาะเมื่อขอ gpu-buffer
 const sessions = {
   pre: { inputNames: ['audio', 'text_ids', 'max_duration'],
     outputNames: ['noise', 'rope_cos', 'rope_sin', 'cat_mel_text', 'cat_mel_text_drop', 'ref_signal_len', 'rms_scale', 'ref_mel_tail'],
@@ -150,6 +190,7 @@ const sessions = {
       need(f.text_ids.data instanceof Int32Array && f.text_ids.dims[0] === 1 && f.text_ids.dims[1] === f.text_ids.data.length, 'text_ids int32 [1,len]');
       need(f.max_duration.data instanceof BigInt64Array && f.max_duration.dims[0] === 1, 'max_duration int64 [1]');
       T = Number(f.max_duration.data[0]); REF = Math.floor(f.audio.data.length / 256); step = 0;
+      stats.pre++; stats.lastAudio = f.audio.data.length; stats.lastIds = f.text_ids.data.length;
       need(T <= 4096 && T > REF, 'max_duration range');
       need(live.size === 0, 'gpu tensors of the previous chunk were not disposed: ' + live.size);
       const o = (n, t, d, dims) => out(this, n, t, d, dims);
@@ -162,6 +203,8 @@ const sessions = {
     inputMetadata: [md('noise', 'float32'), md('time_step', 'int32')],
     async run(f) {
       need(f.time_step.data instanceof Int32Array && f.time_step.data[0] === step, 'time_step ' + step);
+      if (globalThis.__F5_HANG && step + 1 === globalThis.__F5_HANG) await new Promise(() => {}); // จำลอง GPU ค้าง/แท็บตายกลาง step
+      stats.tr++;
       for (const k of ['rope_cos', 'rope_sin', 'cat_mel_text', 'cat_mel_text_drop']) need(f[k] && f[k].dims[0], k);
       need(f.noise.dims[1] === T, 'noise T');
       if (gpu(this)) need(f.noise.location === 'gpu-buffer' && f.cat_mel_text.location === 'gpu-buffer' && live.has(f.noise), 'step input not on gpu / disposed too early');
@@ -171,6 +214,7 @@ const sessions = {
   dec: { inputNames: ['denoised', 'ref_signal_len', 'rms_scale', 'ref_mel_tail'], outputNames: ['output_audio'], inputMetadata: [],
     async run(f) {
       need(step === 32, 'nfe 32 got ' + step);
+      stats.dec++;
       need(f.denoised.dims[1] === T && f.ref_signal_len.type === 'int64' && f.ref_mel_tail.dims[2] === 100, 'decode inputs');
       if (gpu(this)) need(f.denoised.location === 'gpu-buffer' && f.ref_signal_len.location === 'cpu', 'decode input locations');
       const n = (T - REF) * 256, a = new Float32Array(n);
@@ -178,12 +222,17 @@ const sessions = {
       return { output_audio: out(this, 'output_audio', 'float32', a, [1, 1, n]) };
     } }
 };
+let inited = false; // ORT ต้องใช้ wasmBinary แค่ตอนเริ่ม WASM (session แรก) — หลังจากนั้นหน้าล้างทิ้งได้
 export const InferenceSession = { async create(bytes, opts) {
-  need(env.wasm.wasmBinary && env.wasm.wasmBinary.length > 0, 'wasmBinary set');
+  if (!inited) need(env.wasm.wasmBinary && env.wasm.wasmBinary.length > 0, 'wasmBinary set');
+  inited = true;
+  globalThis.__fakeOrt = { binaryAfterInit: () => env.wasm.wasmBinary, live: () => live.size, stats };
   need(opts.executionProviders && opts.executionProviders.length === 1, 'EP');
   const kind = new TextDecoder().decode(bytes).trim();
   const s = sessions[kind]; need(s, 'model bytes ' + kind);
-  if (opts.executionProviders[0] === 'webgpu') need(kind === 'dec' ? opts.preferredOutputLocation === 'cpu' : kind === 'tr' ? opts.preferredOutputLocation === 'gpu-buffer' : opts.preferredOutputLocation.noise === 'gpu-buffer', 'preferredOutputLocation ' + kind);
+  const pl = opts.preferredOutputLocation;
+  stats.locs[kind] = pl ? (typeof pl === 'string' ? pl : pl.noise) : null;
+  if (opts.executionProviders[0] === 'webgpu' && pl) need(kind === 'dec' ? opts.preferredOutputLocation === 'cpu' : kind === 'tr' ? opts.preferredOutputLocation === 'gpu-buffer' : opts.preferredOutputLocation.noise === 'gpu-buffer', 'preferredOutputLocation ' + kind);
   else need(!opts.preferredOutputLocation, 'cpu EP has no gpu outputs');
   return Object.assign({ async release() {}, opts }, s);
 } };
@@ -192,14 +241,19 @@ export default { env, Tensor, InferenceSession };`;
 const VOCAB = [' ', ...'กขคฆงจฉชซฌญฎฏฐฑฒณดตถทธนบปผฝพฟภมยรลวศษสหฬอฮะัาำิีึืุูเแโใไ็่้๊๋์.'].join('\n') + '\n';
 const BODIES = { 'F5_Preprocess.onnx': 'pre', 'F5_Transformer.onnx': 'tr', 'F5_Decode.onnx': 'dec', 'vocab.txt': VOCAB };
 
-function refWav() {
-  const sr = 24000, x = new Float32Array(Math.round(sr * 3.6));
-  for (let i = Math.round(sr * 0.3); i < Math.round(sr * 3.3); i++) x[i] = 0.3 * Math.sin(2 * Math.PI * 220 * i / sr);
+function refWav(sec = 3) {
+  // เสียง sec วิ (เงียบหัว-ท้าย 0.3 วิ) · ยาวกว่า 3 วิ = มีช่วงเงียบ 0.2 วิ ทุก 1 วิ ให้ตัดเสียงตัวอย่างหาจุดตัดได้
+  const sr = 24000, x = new Float32Array(Math.round(sr * (sec + 0.6)));
+  for (let i = Math.round(sr * 0.3); i < Math.round(sr * (sec + 0.3)); i++) {
+    const t = i / sr - 0.3;
+    if (sec > 3 && t % 1 > 0.8) continue;
+    x[i] = 0.3 * Math.sin(2 * Math.PI * 220 * i / sr);
+  }
   return Buffer.from(C.encodeWav(x, sr));
 }
 
 const FAKE_GPU = "{ requestAdapter: async () => ({ features: new Set(['shader-f16']), isFallbackAdapter: false, info: { vendor: 'fakevendor', architecture: 'fake-arch' } }) }";
-async function setup(context, page, { hf = 200, worker = true, gpu = false } = {}) {
+async function setup(context, page, { hf = 200, worker = true, gpu = false, hang = 0 } = {}) {
   const errors = [], hfReq = [], direct = [], wasm = [];
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => { if (process.env.F5_DEBUG) console.log('console', m.type(), m.text()); if (m.type() === 'error' && !/Failed to load resource/.test(m.text())) errors.push(m.text()); });
@@ -208,7 +262,7 @@ async function setup(context, page, { hf = 200, worker = true, gpu = false } = {
     const u = new URL(r.request().url());
     if (/\/vendor\/transformers\/ort\.webgpu\.bundle\.min\.mjs$/.test(u.pathname)) return r.fulfill({ contentType: 'text/javascript', body: FAKE_ORT });
     // CI ไม่มี WebGPU — ทำให้แน่นอนใน Worker ด้วย (หน้าใช้ addInitScript)
-    if (u.pathname === '/f5-worker.js') return r.fulfill({ contentType: 'text/javascript', body: "Object.defineProperty(WorkerNavigator.prototype, 'gpu', { get() { return " + (gpu ? FAKE_GPU : 'undefined') + "; } });\n" + workerSrc });
+    if (u.pathname === '/f5-worker.js') return r.fulfill({ contentType: 'text/javascript', body: "Object.defineProperty(WorkerNavigator.prototype, 'gpu', { get() { return " + (gpu ? FAKE_GPU : 'undefined') + "; } });\n" + (hang ? 'self.__F5_HANG = ' + hang + ';\n' : '') + workerSrc });
     if (u.hostname === 'cdn.jsdelivr.net' && /ort-wasm-simd-threaded\.asyncify\.wasm$/.test(u.pathname)) { wasm.push(u.href); return r.fulfill({ contentType: 'application/wasm', body: 'fake-wasm' }); }
     if (u.hostname === PAGES_HOST && u.pathname.startsWith('/api/hf/')) {
       const h = await r.request().allHeaders();
@@ -224,12 +278,17 @@ async function setup(context, page, { hf = 200, worker = true, gpu = false } = {
     return r.abort('internetdisconnected');
   });
   await context.addCookies([{ name: 'CF_Authorization', value: 'test-jwt', url: BASE }]);
-  await page.addInitScript(({ w, g }) => {
+  await page.addInitScript(({ w, g, h }) => {
     try { localStorage.setItem('ome:theme', 'light'); } catch (e) {}
+    if (h) globalThis.__F5_HANG = h;
+    // บันทึกทุก crumb ที่หน้าเขียน (ตรวจลำดับขั้น/ว่าไม่มีข้อความผู้ใช้)
+    window.__crumbs = [];
+    const set0 = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) { if (k === 'tanot:f5lab:crumb') window.__crumbs.push(JSON.parse(v)); return set0.apply(this, arguments); };
     const fake = g ? (0, eval)('(' + g + ')') : undefined;
     Object.defineProperty(Navigator.prototype, 'gpu', { get() { return fake; } });
     if (!w) delete window.Worker;
-  }, { w: worker, g: gpu ? FAKE_GPU : null });
+  }, { w: worker, g: gpu ? FAKE_GPU : null, h: hang });
   return { errors, hfReq, direct, wasm };
 }
 
@@ -242,9 +301,9 @@ async function useCpu(page) {
   await expect(page.locator('#envText')).toContainText('กำลังใช้ CPU');
 }
 
-async function addVoice(page) {
+async function addVoice(page, sec) {
   await page.click('#addVoice > summary');
-  await page.setInputFiles('#vFile', { name: 'ref.wav', mimeType: 'audio/wav', buffer: refWav() });
+  await page.setInputFiles('#vFile', { name: 'ref.wav', mimeType: 'audio/wav', buffer: refWav(sec) });
   await page.fill('#vName', 'เสียงทดสอบ');
   await page.fill('#vText', FX.ref_text_raw);
   await page.click('#vSave');
@@ -342,6 +401,12 @@ test.describe('B) หน้า f5-lab.html', () => {
     await expect(page.locator('#genStatus')).toContainText('เสร็จ 3 ท่อน');
     const stats = await page.locator('#stats').innerText();
     for (const s of ['webgpu', 'fakevendor', 'อยู่บน GPU', 'Worker']) expect(stats).toContain(s);
+    // ค่าเริ่มต้นบนคอม: ไม่ตัดเสียงตัวอย่าง · ท่อน 100 · tensor บน GPU · fp16 เลือกได้
+    expect(await page.locator('#variant [data-v="fp16"]').isDisabled()).toBe(false);
+    await page.click('#optBox > summary');
+    await expect(page.locator('#cutSeg [aria-pressed="true"]')).toHaveText('ไม่ตัด');
+    await expect(page.locator('#maxSeg [aria-pressed="true"]')).toHaveText('100');
+    await expect(page.locator('#ioSeg [aria-pressed="true"]')).toHaveText('GPU');
     expect(hfReq.length).toBe(4);
     expect(errors).toEqual([]);
   });
@@ -363,6 +428,210 @@ test.describe('B) หน้า f5-lab.html', () => {
       expect(errors).toEqual([]);
     });
   }
+});
+
+/* ═══════════════ D) iPhone: แท็บถูกปิดกลางทาง (breadcrumb) + ตัวเลือกลดภาระ ═══════════════ */
+const CRUMB = 'tanot:f5lab:crumb';
+const THAI_RE = /[฀-๿]/;
+const readCrumbs = (page) => page.evaluate(() => window.__crumbs || []);
+const lsJson = (page, k) => page.evaluate((key) => JSON.parse(localStorage.getItem(key) || 'null'), k);
+
+test.describe('D) breadcrumb + ตัวเลือกลดภาระ', () => {
+  test('crumb ค้าง (ไม่ done) → กล่องเตือน + บันทึกปัญหา crash ครั้งเดียว + แถวในผลวัด/คัดลอก · EN · ใช้ตัวเลือกเบาที่สุด', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { gpu: true });
+    await page.addInitScript((key) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem(key, JSON.stringify({ v: 1, at: Date.now() - 5000, stage: 'step', done: false, variant: 'q4', device: 'webgpu', where: 'worker', ioGpu: true,
+        cut: 0, max: 100, k: 5, of: 32, i: 0, n: 2, T: 1234, idsLen: 180, refFrames: 602, refSec: 6.2, ua: 'iPhone 26.6.2 · Safari 26.6', mem: null, adapter: 'apple' }));
+    }, CRUMB);
+    await page.goto(BASE + '/f5-lab.html');
+    await expect(page.locator('#crashBox')).toBeVisible();
+    await expect(page.locator('#crashText')).toContainText('หยุดที่ transformer step 5/32 · ท่อน 1/2');
+    await expect(page.locator('#crashText')).toContainText('ตัดเสียงตัวอย่าง 3 วิ');
+    const c = await lsJson(page, CRUMB);
+    expect(c.done).toBe(true); expect(c.crashed).toBe(true); expect(c.result).toBe('crash');
+    let log = (await lsJson(page, 'tanot:media:log')).filter((r) => r.kind === 'f5');
+    expect(log.length).toBe(1);
+    expect(log[0]).toMatchObject({ code: 'crash', stage: 'crash-step', model: 'f5-q4', device: 'webgpu' });
+    expect(log[0].msg).toContain('stage=step step=5/32 chunk=1/2 T=1234 ids=180 refFrames=602');
+    await expect(page.locator('#stats')).toContainText('รอบก่อนแท็บถูกปิด');
+    await expect(page.locator('#stats')).toContainText('transformer step 5/32');
+    // คัดลอก (จากกล่องเตือน) มีบรรทัด crumb
+    await page.evaluate(() => { window.__copied = ''; navigator.clipboard.writeText = (t) => { window.__copied = t; return Promise.resolve(); }; });
+    await page.click('#crashCopy');
+    expect(await page.evaluate(() => window.__copied)).toContain('crumb: stage=step step=5/32 chunk=1/2 T=1234');
+    // สลับภาษาสด
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#crashText')).toContainText('stopped at transformer step 5/32 · chunk 1/2');
+    await page.evaluate(() => OME_LANG.set('th'));
+    // ปุ่มแนะนำ: ตัด 3 วิ + ท่อน 40 · กางตัวเลือก · จำไว้
+    await page.click('#crashLight');
+    await expect(page.locator('#crashBox')).toBeHidden();
+    await expect(page.locator('#optBox')).toHaveAttribute('open', '');
+    await expect(page.locator('#cutSeg [aria-pressed="true"]')).toHaveText('3 วิ');
+    await expect(page.locator('#maxSeg [aria-pressed="true"]')).toHaveText('40');
+    expect((await lsJson(page, 'tanot:f5lab:ui')).opts).toEqual({ cut: 3, max: 40, io: 'gpu' });
+    // เปิดใหม่: ไม่เตือนซ้ำ ไม่บันทึกซ้ำ แต่ผลวัดยังบอกรอบก่อน
+    await page.reload();
+    await expect(page.locator('#stats')).toContainText('transformer step 5/32');
+    await expect(page.locator('#crashBox')).toBeHidden();
+    log = (await lsJson(page, 'tanot:media:log')).filter((r) => r.kind === 'f5');
+    expect(log.length).toBe(1);
+    expect(errors).toEqual([]);
+  });
+
+  for (const worker of [true, false]) {
+    test(`แท็บตายกลาง step 7 (${worker ? 'Worker' : 'เธรดหลัก'} — renderer crash จริง ไม่มี pagehide) → เปิดใหม่รู้ว่าหยุดที่ไหน · crumb ไม่มีข้อความผู้ใช้`, async ({ context, page }) => {
+      await setup(context, page, { gpu: true, worker, hang: 7 });
+      await page.goto(BASE + '/f5-lab.html');
+      await addVoice(page);
+      await page.fill('#genText', 'ประโยคลับเฉพาะ ทดสอบหนึ่ง');
+      await page.click('#genBtn');
+      await page.waitForFunction((key) => { const c = JSON.parse(localStorage.getItem(key) || 'null'); return c && c.stage === 'step' && c.k === 7; }, CRUMB, { timeout: 30000 });
+      const trail = await readCrumbs(page);
+      const stages = trail.map((c) => c.stage + (c.part ? ':' + c.part : '') + (c.k ? ':' + c.k : ''));
+      expect(stages.slice(0, 5)).toEqual(['start', 'session:F5_Preprocess', 'session:F5_Transformer', 'session:F5_Decode', 'pre']);
+      expect(stages.slice(5)).toEqual([1, 2, 3, 4, 5, 6, 7].map((k) => 'step:' + k));
+      const last = trail[trail.length - 1];
+      expect(last).toMatchObject({ done: false, variant: 'q4', device: 'webgpu', where: worker ? 'worker' : 'page', ioGpu: true, of: 32, i: 0, n: 1, cut: 0, max: 100 });
+      for (const k of ['T', 'idsLen', 'refFrames', 'at', 'refSec']) expect(typeof last[k]).toBe('number');
+      expect(last.adapter).toContain('fakevendor');
+      expect(last.ua.length).toBeGreaterThan(3);
+      expect(THAI_RE.test(JSON.stringify(trail))).toBe(false); // ไม่มีข้อความผู้ใช้ (ข้อความ/ชื่อเสียงเป็นภาษาไทย)
+      // Safari ฆ่าแท็บ = renderer ตาย (ไม่มี pagehide/unload) — CDP Page.crash ไม่ทำให้ renderer ตายใน Chromium ของ CI
+      // (ไม่มี event 'crash') จึงจำลองด้วยการไม่ปิดแท็บเดิมเลย: ค้างอยู่ที่ step 7 ไม่มี pagehide → crumb ยังไม่ done
+      // เหมือนแท็บที่ถูกฆ่า แล้วเปิดหน้าใหม่ใน context เดียวกัน (localStorage ร่วมกัน)
+      const p2 = await context.newPage();
+      const errors = [];
+      p2.on('pageerror', (e) => errors.push(e.message));
+      await p2.goto(BASE + '/f5-lab.html');
+      await expect(p2.locator('#crashBox')).toBeVisible();
+      await expect(p2.locator('#crashText')).toContainText('transformer step 7/32 · ท่อน 1/1');
+      const log = (await lsJson(p2, 'tanot:media:log')).filter((r) => r.kind === 'f5' && r.code === 'crash');
+      expect(log.length).toBe(1);
+      expect(log[0].msg).toContain('where=' + (worker ? 'worker' : 'page'));
+      expect(JSON.stringify(log)).not.toContain('ประโยคลับ');
+      expect(errors).toEqual([]);
+    });
+  }
+
+  test('ออกจากหน้าเองระหว่างสร้าง (pagehide) ไม่นับเป็นแท็บถูกปิด', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { gpu: true, worker: false, hang: 3 });
+    await page.goto(BASE + '/f5-lab.html');
+    await addVoice(page);
+    await page.fill('#genText', 'ทดสอบหนึ่ง');
+    await page.click('#genBtn');
+    await page.waitForFunction((key) => { const c = JSON.parse(localStorage.getItem(key) || 'null'); return c && c.k === 3; }, CRUMB);
+    await page.goto(BASE + '/credits.html');
+    expect(await lsJson(page, CRUMB)).toMatchObject({ done: true, result: 'left' });
+    await page.goto(BASE + '/f5-lab.html');
+    await expect(page.locator('#genBtn')).toBeVisible();
+    await expect(page.locator('#crashBox')).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
+  test('เธรดหลัก: ตัดเสียงตัวอย่าง 4 วิ + แก้ข้อความ → ส่งให้โมเดลจริง · ท่อน 40 → plan · ทดสอบ 1 step · tensor ผ่าน CPU · บันทึกเป็นเสียงใหม่ · ล้าง wasmBinary · ไม่มี tensor GPU ค้าง', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { gpu: true, worker: false });
+    await page.goto(BASE + '/f5-lab.html');
+    await addVoice(page, 6);
+    await page.click('#optBox > summary');
+    await expect(page.locator('#cutBox')).toBeHidden();
+    await page.click('#cutSeg [data-cut="4"]');
+    await expect(page.locator('#cutBox')).toBeVisible();
+    await expect(page.locator('#cutMsg')).toContainText('ตัดเสียงตัวอย่างเหลือ 3.9 วิ');
+    await expect(page.locator('#cutText')).toHaveValue(FX.ref_text_raw);
+    await page.fill('#cutText', 'สวัสดีครับ');
+    await page.evaluate(() => { window.__maxes = []; const o = TanotTtsNorm.plan; TanotTtsNorm.plan = function (t, op) { window.__maxes.push(op && op.max); return o.apply(this, arguments); }; });
+    await page.click('#maxSeg [data-max="40"]');
+    const TEXT = 'ทดสอบหนึ่ง สอง สาม สี่ ห้า หก เจ็ด แปด เก้า สิบ สิบเอ็ด สิบสอง สิบสาม';
+    await page.fill('#genText', TEXT);
+    await page.click('#genBtn');
+    await expect(page.locator('#genStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    expect(await page.evaluate(() => window.__maxes)).toEqual([40]);
+    const items = C.planText(TEXT, Norm, 40);
+    await expect(page.locator('#genStatus')).toContainText('เสร็จ ' + items.length + ' ท่อน');
+    let fo = await page.evaluate(() => ({ s: globalThis.__fakeOrt.stats, live: globalThis.__fakeOrt.live(), bin: globalThis.__fakeOrt.binaryAfterInit() === undefined }));
+    expect(fo.s.lastAudio).toBeLessThanOrEqual(4 * 24000);
+    expect(fo.s.lastAudio).toBeGreaterThan(3 * 24000);
+    const fit = C.fitChunks(items, C.refText('สวัสดีครับ'), C.refFrames(fo.s.lastAudio));
+    expect(fo.s.lastIds).toBe(Array.from(fit[fit.length - 1].full).length); // ข้อความเสียงตัวอย่างที่แก้เอง
+    expect(fo.live).toBe(0);
+    expect(fo.bin).toBe(true); // ORT ใช้ binary แค่ตอนเริ่ม — หน้าไม่ถือ 26 MB ไว้
+    expect(fo.s.locs).toEqual({ pre: 'gpu-buffer', tr: 'gpu-buffer', dec: 'cpu' });
+    const stats = await page.locator('#stats').innerText();
+    expect(stats).toMatch(/ตัดเสียงตัวอย่าง\s+4 วิ/);
+    expect(stats).toMatch(/ความยาวท่อนสูงสุด\s+40/);
+    expect((await readCrumbs(page)).filter((c) => c.stage === 'step').length).toBe(32 * items.length);
+    expect(await lsJson(page, CRUMB)).toMatchObject({ done: true, result: 'done', cut: 4, max: 40 });
+    // ทดสอบ 1 step: preprocess + transformer 1 ครั้ง ไม่ decode · ไม่มี tensor ค้าง (รอบถัดไปผ่าน)
+    const before = fo.s;
+    await page.click('#probeBtn');
+    await expect(page.locator('#genStatus')).toHaveClass(/ok/);
+    await expect(page.locator('#genStatus')).toContainText('ทดสอบผ่าน');
+    fo = await page.evaluate(() => ({ s: globalThis.__fakeOrt.stats, live: globalThis.__fakeOrt.live() }));
+    expect([fo.s.pre - before.pre, fo.s.tr - before.tr, fo.s.dec - before.dec]).toEqual([1, 1, 0]);
+    expect(fo.live).toBe(0);
+    expect(await lsJson(page, CRUMB)).toMatchObject({ done: true, result: 'probe', probe: true });
+    expect((await lsJson(page, 'tanot:media:log')).some((r) => r.kind === 'f5' && r.stage === 'probe' && /step1=\d+ms T=\d+/.test(r.msg))).toBe(true);
+    // tensor ระหว่าง step ผ่าน CPU → สร้าง session ใหม่โดยไม่มี preferredOutputLocation
+    await page.click('#ioSeg [data-io="cpu"]');
+    await page.click('#genBtn');
+    await expect(page.locator('#genStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    fo = await page.evaluate(() => globalThis.__fakeOrt.stats);
+    expect(fo.locs).toEqual({ pre: null, tr: null, dec: null });
+    await expect(page.locator('#stats')).toContainText('คัดลอกผ่าน CPU');
+    // บันทึกส่วนที่เหลือเป็นเสียงใหม่ (ข้อความที่แก้) → ใช้เสียงนั้น · ไม่ต้องตัดแล้ว
+    await page.click('#cutSave');
+    await expect(page.locator('#voiceList .list-row')).toHaveCount(2);
+    await expect(page.locator('#voiceList .list-row').nth(1)).toContainText('สวัสดีครับ');
+    await expect(page.locator('#voiceList .list-row').nth(1).locator('.btn.sm')).toHaveText('ใช้อยู่');
+    await expect(page.locator('#cutBox')).toBeHidden();
+    const log = await lsJson(page, 'tanot:media:log');
+    expect(JSON.stringify(log)).not.toContain('สวัสดีครับ');
+    expect(JSON.stringify(log)).not.toContain('ทดสอบหนึ่ง');
+    expect(errors).toEqual([]);
+  });
+
+  test('อุปกรณ์ CPU เลือกเองได้แม้มี WebGPU (ถามก่อน) · ปุ่ม WebGPU ปิดเมื่อไม่มี WebGPU', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { gpu: true, worker: false });
+    await page.goto(BASE + '/f5-lab.html');
+    await page.click('#optBox > summary');
+    await expect(page.locator('#devSeg [aria-pressed="true"]')).toHaveText('WebGPU');
+    await page.click('#devSeg [data-d="wasm"]');
+    await page.locator('dialog[open]').getByRole('button', { name: 'ใช้ CPU' }).click();
+    await expect(page.locator('#devSeg [aria-pressed="true"]')).toHaveText('CPU (ช้ามาก)');
+    await expect(page.locator('#ioSeg button').first()).toBeDisabled();
+    await addVoice(page);
+    await page.fill('#genText', 'ทดสอบหนึ่ง');
+    await page.click('#genBtn');
+    await expect(page.locator('#genStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    await expect(page.locator('#stats')).toContainText('wasm');
+    await page.click('#devSeg [data-d="webgpu"]');
+    await expect(page.locator('#devSeg [aria-pressed="true"]')).toHaveText('WebGPU');
+    expect(errors).toEqual([]);
+  });
+});
+
+test.describe('E) iPhone/iPad', () => {
+  test.use({ userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 26_6_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.6 Mobile/15E148 Safari/604.1' });
+  test('ค่าเริ่มต้น: ตัดเสียงตัวอย่าง 4 วิ + ท่อน 60 · fp16 ปิดพร้อมเหตุผล (รุ่นที่เคยเลือกไว้กลับเป็น q4) · เปลี่ยนเองได้และจำไว้', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { gpu: true });
+    await page.addInitScript(() => { if (!sessionStorage.getItem('s')) { sessionStorage.setItem('s', '1'); localStorage.setItem('tanot:f5lab:ui', JSON.stringify({ variant: 'fp16' })); } });
+    await page.goto(BASE + '/f5-lab.html');
+    await expect(page.locator('#variant [aria-pressed="true"]')).toContainText('q4');
+    await expect(page.locator('#variant [data-v="fp16"]')).toBeDisabled();
+    await expect(page.locator('#envText')).toContainText('ปิดรุ่น fp16');
+    await page.click('#optBox > summary');
+    await expect(page.locator('#cutSeg [aria-pressed="true"]')).toHaveText('4 วิ');
+    await expect(page.locator('#maxSeg [aria-pressed="true"]')).toHaveText('60');
+    await page.click('#cutSeg [data-cut="0"]');
+    await page.reload();
+    await page.click('#optBox > summary');
+    await expect(page.locator('#cutSeg [aria-pressed="true"]')).toHaveText('ไม่ตัด');
+    await expect(page.locator('#maxSeg [aria-pressed="true"]')).toHaveText('60');
+    expect(errors).toEqual([]);
+  });
 });
 
 /* ═══════════════ C) ตัวตรวจธีม/ภาษา/มือถือตอนมีข้อมูล (เป้า = 0 ทุกตัวชี้วัด) ═══════════════ */
@@ -414,8 +683,15 @@ test.describe('C) f5-lab.html ตอนมีข้อมูล — ตัวต
         if (process.env.F5_SHOTS) await page.screenshot({ path: path.join(process.env.F5_SHOTS, `f5-${width}-${theme}.png`), fullPage: true }); // ดูด้วยตา
         // กล่องเพิ่มเสียงกางอยู่ + เตือนเสียงยาว · ข้อความ WebGPU ใช้ไม่ได้ + ปุ่ม CPU/Colab
         await page.click('#addVoice > summary');
-        await page.evaluate(() => { const s = document.getElementById('vStatus'); s.className = 'status warn'; s.textContent = 'x'; document.getElementById('envMsg').hidden = false; document.getElementById('envText').textContent = 'x'; document.getElementById('cpuBtn').hidden = false; document.getElementById('colabLink').hidden = false; });
+        await page.click('#optBox > summary');
+        await page.evaluate(() => {
+          const s = document.getElementById('vStatus'); s.className = 'status warn'; s.textContent = 'x';
+          document.getElementById('envMsg').hidden = false; document.getElementById('envText').textContent = 'x'; document.getElementById('cpuBtn').hidden = false; document.getElementById('colabLink').hidden = false;
+          document.getElementById('crashBox').hidden = false; document.getElementById('crashText').textContent = 'x';
+          document.getElementById('cutBox').hidden = false; document.getElementById('cutMsg').textContent = 'x';
+        });
         bad.form = await measure(page, width);
+        if (process.env.F5_SHOTS) await page.screenshot({ path: path.join(process.env.F5_SHOTS, `f5-${width}-${theme}-form.png`), fullPage: true });
         // กล่องยืนยันลบโมเดล
         await page.click('#clearBtn');
         await page.addStyleTag({ content: 'body > *:not(dialog[open]){visibility:hidden !important}' });

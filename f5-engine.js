@@ -9,10 +9,14 @@
    • ไฟล์โมเดล: repo บน Hugging Face เป็น private → โหลดผ่าน /api/hf/ เท่านั้น (TanotMediaModels.hfFetch: same-origin + คุกกี้, redirect:'manual',
      เซสชัน Access หมดอายุ = SessionError) · ไม่มี /api/hf/ (ไม่ใช่ *.pages.dev) = error code 'noproxy' — ไม่โหลดจาก huggingface.co ตรง
    • แคช: Cache Storage 'tanot-f5-models-v1' (sw.js ไม่ลบตอน bump CACHE) คีย์ = URL ของ huggingface.co (ไม่ขึ้นกับ origin/เซสชัน) → เปิดครั้งต่อไปไม่โหลดจากเน็ต
-     โหลดแบบ stream ลงบัฟเฟอร์ขนาด Content-Length ครั้งเดียว (ไม่จองซ้ำ) · หลุดกลางทาง = ต่อด้วย Range: bytes=<ที่ได้แล้ว>- (≤ 3 ครั้ง) · ไม่ครบ = ไม่ลงแคช
-   • ระหว่าง step tensor อยู่บน GPU (preferredOutputLocation 'gpu-buffer') — ไม่คัดลอกกลับ CPU ทุก step · สร้าง session ไม่ได้ด้วยตัวเลือกนี้ = สร้างใหม่แบบ CPU (ioGpu false)
-   ข้อความ (msg.cmd): init {hfProxy} · status {variant} · load {variant, device:'webgpu'|'wasm'} · synth {id, ref:{pcm, frames}, items:[{full, frames, gap}]} · cancel · clear · dispose
-   ตอบ (type): caps · cache · progress · loaded · chunk · done · cancelled · cleared · error {stage, name, message, code} — ไม่มีข้อความ/เสียงของผู้ใช้ใน error */
+     หน่วยความจำ (iPhone ถูก Safari ปิดแท็บ): โหลดแบบ stream ตรงลงแคช (cache.put ของ ReadableStream — JS ถือทีละก้อน ไม่ถือทั้งไฟล์ + สำเนา) ·
+     หลุดกลางทาง = ต่อด้วย Range: bytes=<ที่ได้แล้ว>- ในสตรีมเดิม (≤ 3 ครั้ง) · ไม่ครบ = ไม่ลงแคช · ตอนสร้าง session อ่านจากแคชทีละไฟล์ แล้วทิ้งทันทีหลัง create ·
+     ไม่มี Cache Storage / ลงแคชไม่ได้ (พื้นที่เต็ม) = โหลดลงหน่วยความจำแบบเดิม · .wasm ของ ORT ถือไว้แค่จนสร้าง session แรกสำเร็จ (env.wasm.wasmBinary ถูกล้าง)
+   • ระหว่าง step tensor อยู่บน GPU (preferredOutputLocation 'gpu-buffer') — ไม่คัดลอกกลับ CPU ทุก step · ปิดได้ (load {io:'cpu'}) · สร้าง session ไม่ได้ด้วยตัวเลือกนี้ = สร้างใหม่แบบ CPU (ioGpu false)
+     tensor GPU ทุกตัว (ผลของ Preprocess, noise ของ step ก่อน) ถูก dispose ทันทีที่เลิกใช้ รวมตอนยกเลิก/ล้ม · time_step ใช้ tensor เดียวทุก step
+   • crumb: ส่ง {type:'crumb', stage:'session'|'pre'|'step'|'dec'|'chunk', …ตัวเลข} ก่อนทุก run — หน้าเขียน localStorage ทันที (แท็บถูกปิดกลางทางก็ยังรู้ว่าไปถึงไหน)
+   ข้อความ (msg.cmd): init {hfProxy} · status {variant} · load {variant, device:'webgpu'|'wasm', io:'gpu'|'cpu'} · synth {id, ref:{pcm}, items:[{full, frames}], probe?} · cancel · clear · dispose
+   ตอบ (type): caps · cache · progress · loaded · crumb · step · chunk · probe · done · cancelled · cleared · error {stage, name, message, code} — ไม่มีข้อความ/เสียงของผู้ใช้ใน error */
 (function (g) {
   'use strict';
   var ORT_PATH = 'vendor/transformers/ort.webgpu.bundle.min.mjs';
@@ -27,7 +31,7 @@
 
   function create(post) {
     var C = g.TanotF5Calc, M = g.TanotMediaModels;
-    var st = { ort: null, wasmSet: false, variant: null, device: null, sess: null, vocab: null, ioGpu: true, cancel: false, busy: false };
+    var st = { ort: null, wasmSet: false, variant: null, device: null, sess: null, vocab: null, ioGpu: true, ioWant: true, cancel: false, busy: false };
 
     function models() { M = M || g.TanotMediaModels; return M; }
     function proxyOn() { var m = models(); return !!(m && m.hfProxyActive && m.hfProxyActive()); }
@@ -55,12 +59,14 @@
       if (!hit) return 0;
       return +(hit.headers.get('X-Tanot-Size') || hit.headers.get('Content-Length') || 1) || 1;
     }
+    function fetcherFor(isHf) {
+      if (!isHf) return g.fetch.bind(g);
+      if (!proxyOn()) throw err('noproxy', 'model proxy (/api/hf/) is only available on the main site');
+      return models().hfFetch(g.fetch.bind(g));
+    }
+    /* ทางสำรอง (ไม่มีแคช/ลงแคชไม่ได้): โหลดลงบัฟเฟอร์ขนาด Content-Length ครั้งเดียว */
     async function download(key, isHf, onProg) {
-      var m = models(), fetcher;
-      if (isHf) {
-        if (!proxyOn()) throw err('noproxy', 'model proxy (/api/hf/) is only available on the main site');
-        fetcher = m.hfFetch(g.fetch.bind(g));
-      } else fetcher = g.fetch.bind(g);
+      var fetcher = fetcherFor(isHf);
       var got = 0, total = 0, buf = null, chunks = null, tries = 0;
       for (;;) {
         if (st.cancel) throw abortErr();
@@ -106,28 +112,96 @@
       for (var i = 0; i < chunks.length; i++) { out.set(chunks[i], at); at += chunks[i].length; }
       return out;
     }
-    /* แคช → ไม่มีก็โหลด (แล้วลงแคช) · คืน { bytes, fromCache, ms } */
-    async function getFile(key, isHf, label, part) {
+    /* stream ลงแคชโดยตรง — JS ถือทีละก้อน · หลุดกลางทางต่อด้วย Range ในสตรีมเดิม · คืนจำนวนไบต์ */
+    async function streamToCache(cache, key, isHf, onProg) {
+      var fetcher = fetcherFor(isHf), got = 0, total = 0, tries = 0, reader = null, failure = null;
+      async function open() {
+        for (;;) {
+          if (st.cancel) throw abortErr();
+          var headers = {};
+          if (got > 0) headers.Range = 'bytes=' + got + '-';
+          var res;
+          try { res = await fetcher(key, { headers: headers, cache: 'no-store' }); }
+          catch (e) {
+            if (isSession(e) || ++tries > RETRIES) throw e;
+            await sleep(1500 * tries); continue;
+          }
+          if (got > 0 && res.status !== 206) throw err('norange', 'HTTP ' + res.status + ' on resume'); // เขียนลงแคชไปแล้วบางส่วน เริ่มใหม่ในสตรีมเดิมไม่ได้
+          if (got === 0 && !res.ok) throw err('http', 'HTTP ' + res.status);
+          if (got === 0) { var cr = /\/(\d+)\s*$/.exec(res.headers.get('Content-Range') || ''); total = cr ? +cr[1] : (+res.headers.get('Content-Length') || 0); }
+          reader = res.body.getReader();
+          return;
+        }
+      }
+      await open();
+      var body = new ReadableStream({
+        pull: async function (ctrl) {
+          try {
+            for (;;) {
+              if (st.cancel) throw abortErr();
+              var r;
+              try { r = await reader.read(); }
+              catch (e) { if (++tries > RETRIES) throw e; await sleep(1500 * tries); await open(); continue; }
+              if (r.done) {
+                if (total > 0 && got < total) { if (++tries > RETRIES) throw err('incomplete', 'incomplete download ' + got + '/' + total); await open(); continue; }
+                ctrl.close(); return;
+              }
+              got += r.value.length;
+              if (total > 0 && got > total) total = 0; // ขนาดไม่ตรง Content-Length (ถูกบีบอัดระหว่างทาง) → ไม่ตรวจความครบจากขนาด
+              onProg(got, total);
+              ctrl.enqueue(r.value);
+              return;
+            }
+          } catch (e) {
+            failure = e;
+            try { reader.cancel(); } catch (x) {}
+            ctrl.error(e);
+          }
+        },
+        cancel: function () { try { reader.cancel(); } catch (e) {} }
+      });
+      var h = { 'Content-Type': 'application/octet-stream' };
+      if (total > 0) h['X-Tanot-Size'] = String(total);
+      try { await cache.put(key, new Response(body, { headers: h })); }
+      catch (e) {
+        if (failure) throw failure;
+        try { reader.cancel(); } catch (x) {}
+        e.putFailed = true; throw e;
+      }
+      if (failure) { try { await cache.delete(key); } catch (x) {} throw failure; }
+      return got;
+    }
+    /* ให้ไฟล์อยู่ในแคช (ไม่อ่านเข้าหน่วยความจำ) · ไม่มีแคช/ลงแคชไม่ได้ = คืน bytes ที่โหลดลงหน่วยความจำ · คืน { fromCache, ms, bytes? } */
+    async function ensureFile(key, isHf, label, part) {
       var t0 = now(), cache = await cacheOpen();
       var hit = cache && await cache.match(key);
       if (hit) {
-        var b = new Uint8Array(await hit.arrayBuffer());
-        post({ type: 'progress', file: label, loaded: b.length, total: b.length, part: part, fromCache: true });
-        return { bytes: b, fromCache: true, ms: now() - t0 };
+        var n = +(hit.headers.get('X-Tanot-Size') || 0) || 0;
+        post({ type: 'progress', file: label, loaded: n, total: n, part: part, fromCache: true });
+        return { fromCache: true, ms: now() - t0 };
       }
       var last = 0;
-      var bytes = await download(key, isHf, function (got, total) {
+      function prog(got, total) {
         var t = now();
         if (t - last < 150 && got !== total) return;
         last = t;
         post({ type: 'progress', file: label, loaded: got, total: total, part: part });
-      });
-      if (cache) {
-        try {
-          await cache.put(key, new Response(bytes, { headers: { 'Content-Type': 'application/octet-stream', 'X-Tanot-Size': String(bytes.length) } }));
-        } catch (e) { post({ type: 'warn', code: 'cacheFull', name: e && e.name || '', message: String(e && e.message || e).slice(0, 160) }); }
       }
-      return { bytes: bytes, fromCache: false, ms: now() - t0 };
+      if (cache) {
+        try { await streamToCache(cache, key, isHf, prog); return { fromCache: false, ms: now() - t0 }; }
+        catch (e) {
+          if (!(e && (e.putFailed || e.code === 'norange'))) throw e;
+          if (e.putFailed) post({ type: 'warn', code: 'cacheFull', name: e && e.name || '', message: String(e && e.message || e).slice(0, 160) });
+        }
+      }
+      return { fromCache: false, ms: now() - t0, bytes: await download(key, isHf, prog) };
+    }
+    /* อ่านไฟล์เข้าหน่วยความจำตอนจะใช้จริง (ทีละไฟล์) */
+    async function bytesOf(key, r) {
+      if (r && r.bytes) { var b = r.bytes; r.bytes = null; return b; }
+      var cache = await cacheOpen(), hit = cache && await cache.match(key);
+      if (!hit) throw err('evicted', 'model file missing from cache');
+      return new Uint8Array(await hit.arrayBuffer());
     }
 
     async function status(variant) {
@@ -169,43 +243,59 @@
     }
     function isMem(e) { return /out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|Array buffer allocation failed/i.test(String(e && e.message || e)); }
 
-    async function load(variant, device) {
+    async function load(variant, device, io) {
       if (!C.VARIANTS[variant]) throw err('bad', 'unknown variant');
       device = device === 'wasm' ? 'wasm' : 'webgpu';
-      if (st.sess && st.variant === variant && st.device === device) { post({ type: 'loaded', variant: variant, device: device, reused: true, ioGpu: st.ioGpu }); return; }
+      var wantGpu = device === 'webgpu' && io !== 'cpu';
+      if (st.sess && st.variant === variant && st.device === device && st.ioWant === wantGpu) { post({ type: 'loaded', variant: variant, device: device, reused: true, ioGpu: st.ioGpu }); return; }
       await release();
-      st.cancel = false; st.ioGpu = true;
-      var tLoad = now(), O = await ort(), fromCache = true, files = C.FILES.length + 1, dlMs = 0;
+      st.cancel = false; st.ioGpu = wantGpu; st.ioWant = wantGpu;
+      var tLoad = now(), O = await ort(), fromCache = true, files = C.FILES.length + 1, dlMs = 0, wasmFile = null;
       if (!st.wasmSet) {
-        var w = await getFile(C.ORT_WASM_URL, false, 'ort-wasm', 0);
-        if (!w.fromCache) fromCache = false;
-        dlMs += w.ms;
-        O.env.wasm.wasmBinary = w.bytes;
+        wasmFile = await ensureFile(C.ORT_WASM_URL, false, 'ort-wasm', 0);
+        if (!wasmFile.fromCache) fromCache = false;
+        dlMs += wasmFile.ms;
+      }
+      var got = {};
+      for (var i = 0; i < C.FILES.length; i++) {
+        var f = C.FILES[i], r = await ensureFile(C.modelUrl(variant, f), true, f, i + 1);
+        if (!r.fromCache) fromCache = false;
+        dlMs += r.ms; got[f] = r;
+      }
+      if (st.cancel) throw abortErr();
+      if (wasmFile) {
+        O.env.wasm.wasmBinary = await bytesOf(C.ORT_WASM_URL, wasmFile);
         O.env.wasm.wasmPaths = { mjs: absUrl(ORT_MJS), wasm: C.ORT_WASM_URL };
         O.env.wasm.numThreads = 1;
         O.env.wasm.proxy = false;
         if (O.env.webgpu) O.env.webgpu.powerPreference = 'high-performance'; // โน้ตบุ๊กที่มี GPU 2 ตัว: เลือกตัวแรง
-        st.wasmSet = true;
       }
-      var bytes = {};
-      for (var i = 0; i < C.FILES.length; i++) {
-        var f = C.FILES[i], r = await getFile(C.modelUrl(variant, f), true, f, i + 1);
-        if (!r.fromCache) fromCache = false;
-        dlMs += r.ms; bytes[f] = r.bytes;
-      }
-      if (st.cancel) throw abortErr();
-      st.vocab = C.parseVocab(new TextDecoder().decode(bytes['vocab.txt']));
+      st.vocab = C.parseVocab(new TextDecoder().decode(await bytesOf(C.modelUrl(variant, 'vocab.txt'), got['vocab.txt'])));
       var ms = { files: dlMs }, sess = {};
       post({ type: 'progress', stage: 'session', part: files });
-      var t = now();
-      sess.pre = await makeSession(O, bytes['F5_Preprocess.onnx'], device, {
-        noise: 'gpu-buffer', rope_cos: 'gpu-buffer', rope_sin: 'gpu-buffer', cat_mel_text: 'gpu-buffer', cat_mel_text_drop: 'gpu-buffer',
-        ref_mel_tail: 'gpu-buffer', ref_signal_len: 'cpu', rms_scale: 'cpu' });
-      bytes['F5_Preprocess.onnx'] = null; ms.pre = now() - t; t = now();
-      sess.tr = await makeSession(O, bytes['F5_Transformer.onnx'], device, 'gpu-buffer');
-      bytes['F5_Transformer.onnx'] = null; ms.tr = now() - t; t = now();
-      sess.dec = await makeSession(O, bytes['F5_Decode.onnx'], device, 'cpu');
-      bytes['F5_Decode.onnx'] = null; ms.dec = now() - t;
+      /* ทีละไฟล์: อ่านจากแคช → create → ทิ้ง bytes (ORT คัดลอกเข้า heap ของ WASM แล้ว) */
+      async function one(key, file, loc) {
+        post({ type: 'crumb', stage: 'session', part: file.replace(/\.onnx$/, '') });
+        var b = await bytesOf(C.modelUrl(variant, file), got[file]);
+        got[file] = null;
+        var t = now(), s2 = await makeSession(O, b, device, loc);
+        b = null;
+        if (!st.wasmSet) { O.env.wasm.wasmBinary = undefined; st.wasmSet = true; } // ORT เริ่ม WASM แล้ว ไม่ต้องใช้ binary อีก
+        sess[key] = s2;
+        return now() - t;
+      }
+      try {
+        ms.pre = await one('pre', 'F5_Preprocess.onnx', {
+          noise: 'gpu-buffer', rope_cos: 'gpu-buffer', rope_sin: 'gpu-buffer', cat_mel_text: 'gpu-buffer', cat_mel_text_drop: 'gpu-buffer',
+          ref_mel_tail: 'gpu-buffer', ref_signal_len: 'cpu', rms_scale: 'cpu' });
+        if (st.cancel) throw abortErr();
+        ms.tr = await one('tr', 'F5_Transformer.onnx', 'gpu-buffer');
+        if (st.cancel) throw abortErr();
+        ms.dec = await one('dec', 'F5_Decode.onnx', 'cpu');
+      } catch (e) {
+        for (var k in sess) { try { await sess[k].release(); } catch (x) {} }
+        throw e;
+      }
       ms.session = ms.pre + ms.tr + ms.dec;
       ms.total = now() - tLoad;
       st.sess = sess; st.variant = variant; st.device = device;
@@ -234,6 +324,8 @@
     }
     function dispose(t) { try { if (t && t.dispose && t.location && t.location !== 'cpu') t.dispose(); } catch (e) {} }
 
+    function setStep(t, k) { t.data[0] = t.type === 'int64' ? BigInt(k) : k; }
+
     async function synth(job) {
       if (!st.sess) throw err('notLoaded', 'model not loaded');
       st.cancel = false;
@@ -242,40 +334,61 @@
       var stepType = typeOf(s.tr, 'time_step', 'int32');
       var audioT = audioTensor(O, aType, refPcm);
       var refFrames = C2.refFrames(refPcm.length);
-      for (var i = 0; i < job.items.length; i++) {
+      var tsT = intTensor(O, stepType, [0], [1]); // tensor เดียวทุก step (ORT คัดลอกค่าจาก CPU ตอน run)
+      var items = job.probe ? job.items.slice(0, 1) : job.items, nItems = items.length;
+      for (var i = 0; i < nItems; i++) {
         if (st.cancel) { post({ type: 'cancelled', id: job.id, i: i }); return; }
-        var it = job.items[i], ids = C2.textIds(it.full, st.vocab);
+        var it = items[i], ids = C2.textIds(it.full, st.vocab);
         var maxDur = C2.maxDuration(ids.length, refFrames, it.frames);
         if (maxDur > C2.MAX_SIGNAL) throw err('tooLong', 'max_duration ' + maxDur);
-        var t0 = now();
-        var pre = await s.pre.run({ audio: audioT, text_ids: intTensor(O, idType, ids, [1, ids.length]), max_duration: intTensor(O, durType, [maxDur], [1]) });
-        var t1 = now(), noise = pre.noise, stepMs = [];
-        for (var k = 0; k < C2.NFE; k++) {
-          if (st.cancel) break;
-          var feeds = {}, names = s.tr.inputNames;
-          for (var n = 0; n < names.length; n++) {
-            var nm = names[n];
-            feeds[nm] = nm === 'time_step' ? intTensor(O, stepType, [k], [1]) : nm === 'noise' ? noise : pre[nm];
+        var at = { id: job.id, i: i, n: nItems, T: maxDur, idsLen: ids.length, refFrames: refFrames };
+        var pre = null, noise = null, dec = null;
+        try {
+          post(Object.assign({ type: 'crumb', stage: 'pre' }, at));
+          var t0 = now();
+          pre = await s.pre.run({ audio: audioT, text_ids: intTensor(O, idType, ids, [1, ids.length]), max_duration: intTensor(O, durType, [maxDur], [1]) });
+          var t1 = now(), stepMs = [], nfe = job.probe ? 1 : C2.NFE;
+          noise = pre.noise;
+          var names = s.tr.inputNames, feeds = {};
+          for (var n = 0; n < names.length; n++) if (names[n] !== 'time_step' && names[n] !== 'noise') feeds[names[n]] = pre[names[n]];
+          for (var k = 0; k < nfe; k++) {
+            if (st.cancel) break;
+            setStep(tsT, k);
+            feeds.time_step = tsT; feeds.noise = noise;
+            post(Object.assign({ type: 'crumb', stage: 'step', k: k + 1, of: C2.NFE }, at));
+            var ts = now(), out = await s.tr.run(feeds);
+            stepMs.push(now() - ts);
+            post({ type: 'step', id: job.id, i: i, n: nItems, k: k + 1, of: C2.NFE });
+            if (noise !== pre.noise) dispose(noise);
+            noise = out[s.tr.outputNames[0]];
           }
-          var ts = now(), out = await s.tr.run(feeds);
-          stepMs.push(now() - ts);
-          post({ type: 'step', id: job.id, i: i, n: job.items.length, k: k + 1, of: C2.NFE });
-          if (noise !== pre.noise) dispose(noise);
-          noise = out[s.tr.outputNames[0]];
+          if (st.cancel) { post({ type: 'cancelled', id: job.id, i: i }); return; }
+          if (job.probe) { post({ type: 'probe', id: job.id, T: maxDur, idsLen: ids.length, refFrames: refFrames, ms: { pre: t1 - t0, step: stepMs[0] || 0 } }); return; }
+          var t2 = now(), dfeeds = {}, dn = s.dec.inputNames;
+          for (var d = 0; d < dn.length; d++) dfeeds[dn[d]] = (dn[d] === 'denoised' || !pre[dn[d]]) ? noise : pre[dn[d]];
+          post(Object.assign({ type: 'crumb', stage: 'dec' }, at));
+          dec = await s.dec.run(dfeeds);
+          var raw = await toFloat32(dec[s.dec.outputNames[0]]);
+          var t3 = now();
+          // ปล่อย tensor GPU ของท่อนนี้ก่อนทำงาน CPU ต่อ
+          dispose(noise); noise = null;
+          for (var q in pre) dispose(pre[q]);
+          pre = null;
+          for (var o in dec) dispose(dec[o]);
+          dec = null;
+          var audio = C2.trimOut(raw, C2.SR);
+          if (audio === raw) audio = raw.slice(); // สำเนาของตัวเอง → ส่งแบบ transfer ได้ (trimOut คืน slice อยู่แล้วเมื่อตัด)
+          raw = null;
+          var sum = 0; for (var z = 0; z < stepMs.length; z++) sum += stepMs[z];
+          post({ type: 'chunk', id: job.id, i: i, n: nItems, audio: audio, sr: C2.SR, samples: audio.length,
+            ms: { pre: t1 - t0, steps: t2 - t1, step: stepMs.length ? sum / stepMs.length : 0, dec: t3 - t2, total: t3 - t0, sinceStart: t3 - tJob } }, [audio.buffer]);
+          post(Object.assign({ type: 'crumb', stage: 'chunk' }, at));
+        } finally {
+          // ยกเลิก/ล้ม/probe: ไม่ทิ้ง tensor GPU ค้าง (dispose ซ้ำได้)
+          if (noise) dispose(noise);
+          if (pre) for (var p in pre) dispose(pre[p]);
+          if (dec) for (var p2 in dec) dispose(dec[p2]);
         }
-        if (st.cancel) { dispose(noise); for (var p in pre) dispose(pre[p]); post({ type: 'cancelled', id: job.id, i: i }); return; }
-        var t2 = now(), dfeeds = {}, dn = s.dec.inputNames;
-        for (var d = 0; d < dn.length; d++) dfeeds[dn[d]] = (dn[d] === 'denoised' || !pre[dn[d]]) ? noise : pre[dn[d]];
-        var dec = await s.dec.run(dfeeds);
-        var raw = await toFloat32(dec[s.dec.outputNames[0]]);
-        var t3 = now();
-        dispose(noise);
-        for (var q in pre) if (pre[q] !== noise) dispose(pre[q]);
-        var audio = C2.trimOut(raw, C2.SR);
-        audio = new Float32Array(audio); // สำเนาของตัวเอง → ส่งแบบ transfer ได้
-        var sum = 0; for (var z = 0; z < stepMs.length; z++) sum += stepMs[z];
-        post({ type: 'chunk', id: job.id, i: i, n: job.items.length, audio: audio, sr: C2.SR, rawSamples: raw.length,
-          ms: { pre: t1 - t0, steps: t2 - t1, step: stepMs.length ? sum / stepMs.length : 0, dec: t3 - t2, total: t3 - t0, sinceStart: t3 - tJob } }, [audio.buffer]);
       }
       post({ type: 'done', id: job.id, ms: now() - tJob });
     }
@@ -301,7 +414,7 @@
           caps.type = 'caps'; caps.proxy = proxyOn(); caps.caches = !!g.caches;
           post(caps);
         } else if (msg.cmd === 'status') post(await status(msg.variant));
-        else if (msg.cmd === 'load') { st.busy = true; await load(msg.variant, msg.device); }
+        else if (msg.cmd === 'load') { st.busy = true; await load(msg.variant, msg.device, msg.io); }
         else if (msg.cmd === 'synth') { st.busy = true; await synth(msg); }
         else if (msg.cmd === 'clear') await clear();
         else if (msg.cmd === 'dispose') await release();
