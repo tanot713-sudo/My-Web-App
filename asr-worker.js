@@ -65,8 +65,10 @@ function loadPipeline(plan, onProgress, jobId) {
   if (pipelinePromise && loadedKey !== key) disposePipeline();
   if (!pipelinePromise) {
     loadedKey = key;
-    pipelinePromise = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
+    pipelinePromise = Promise.all([import('./vendor/transformers/transformers.web.min.js'), getModels()]).then(function (r) {
+      var mod = r[0];
       configureOnnxWasmPaths(mod.env);
+      if (r[1]) r[1].useHfProxy(mod.env); // โมเดลของ Tanotfin (Thonburian) โหลดผ่าน /api/hf/ (media-models.js)
       var o = { progress_callback: onProgress };
       if (plan.device === 'webgpu') o.device = 'webgpu';
       if (plan.dtype) o.dtype = plan.dtype;
@@ -136,6 +138,8 @@ self.onmessage = function (e) {
       return transcribeWith(tr, plan, models).then(function (r) { return { r: r, plan: plan }; }, function (err) { err.asrStage = 'run'; throw err; });
     }, function (err) { err.asrStage = 'load'; throw err; }).catch(function (err) {
       if (currentJob !== jobId) throw err;
+      /* เซสชันหมดอายุ (/api/hf/ ของ Tanotfin) — ไม่ลองซ้ำ ไม่ถอย WASM/รุ่นเดิม ให้หน้าบอกให้เข้าสู่ระบบใหม่ */
+      if (models && models.isSessionError && models.isSessionError(err)) throw err;
       /* เครือข่ายสะดุดตอนโหลด → รอแล้วลองแผนเดิมซ้ำ 1 ครั้ง ก่อนเข้าทางถอยด้านล่าง */
       if (err && err.asrStage === 'load' && !plan.netRetried && models && models.isNetworkError && models.isNetworkError(err)) {
         return wait(models.NET_RETRY_MS || 1500).then(function () {

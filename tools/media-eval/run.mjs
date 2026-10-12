@@ -40,6 +40,7 @@ const CLOUD_COOKIE = process.env.MEDIA_EVAL_COOKIE || '';
 const CLOUD_OK = !!(CLOUD_URL && CLOUD_COOKIE);
 const ALLOW_PAID = process.env.MEDIA_EVAL_ALLOW_PAID === '1';
 const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิมพ์/บันทึกลงผลลัพธ์
+const HF_TOKEN = process.env.HF_TOKEN || ''; // โมเดลของ Tanotfin (private) — แนบให้เฉพาะคำขอไป huggingface.co/…Tanotfin/… ห้ามพิมพ์/บันทึก
 const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
 let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
 const TTS_ENGINES = { 'tts:wasm-60': { max: 60, gpu: false }, 'tts:wasm-100': { max: 100, gpu: false }, 'tts:webgpu-100': { max: 100, gpu: true } };
@@ -209,7 +210,21 @@ const pct = (x) => (x == null ? '—' : (x * 100).toFixed(1) + '%');
 let gpuBrowser = null;
 async function gpuContext() {
   if (!gpuBrowser) gpuBrowser = await chromium.launch({ channel: 'chromium', headless: !HEADED, args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan,WebGPU', '--ignore-gpu-blocklist'] });
-  return gpuBrowser.newContext();
+  return localContext(gpuBrowser);
+}
+/* เซิร์ฟเวอร์ static ในเครื่อง (127.0.0.1) ไม่มี /api/hf/ → หน้าโหลดโมเดลของ Tanotfin ตรงจาก huggingface.co (media-models.js ใช้ /api/hf/ เฉพาะ *.pages.dev)
+   repo เป็น private แล้วต้องมี HF_TOKEN: แนบ Authorization ให้คำขอไป https://huggingface.co ที่ path มี Tanotfin/ เท่านั้น
+   (Playwright ไม่ใส่ header ที่แก้นี้ให้ redirect ต่อ → ปลายทาง CDN/xet ไม่เห็นโทเคน) · repo อื่น/โฮสต์อื่นไม่แตะ */
+async function localContext(b) {
+  const ctx = await b.newContext();
+  if (HF_TOKEN) {
+    await ctx.route('https://huggingface.co/**', (route) => {
+      const u = new URL(route.request().url());
+      if (!/(^|\/)Tanotfin\//.test(u.pathname)) return route.continue();
+      return route.continue({ headers: { ...route.request().headers(), authorization: 'Bearer ' + HF_TOKEN } });
+    });
+  }
+  return ctx;
 }
 
 async function main() {
@@ -249,7 +264,7 @@ async function main() {
           for (const f of asrFiles) record('asr', engine, f, await asrViaPage(page, f.path, GPU_MODEL_OF[engine], { expectGpu: true }));
           await ctx.close();
         } else if (MODEL_OF[engine]) {
-          const ctx = await browser.newContext();
+          const ctx = await localContext(browser);
           const page = await openTts(ctx, base, 'local');
           console.log(engine + ': อุ่นเครื่อง (ครั้งแรกดาวน์โหลดโมเดลจาก Hugging Face)…');
           await asrViaPage(page, silentWav(), MODEL_OF[engine]);
@@ -259,7 +274,7 @@ async function main() {
       }
       if (engine in TTS_ENGINES && ttsFiles.length) {
         const cfg = TTS_ENGINES[engine];
-        const ctx = cfg.gpu ? await gpuContext() : await browser.newContext();
+        const ctx = cfg.gpu ? await gpuContext() : await localContext(browser);
         const page = await ctx.newPage();
         await page.addInitScript((c) => {
           try { localStorage.setItem('tanot:tts:opts', JSON.stringify({ skipParen: true, split: false, gpu: c.gpu })); localStorage.setItem('tanot:asr:lang', 'auto'); } catch (x) {}
@@ -277,7 +292,7 @@ async function main() {
         await ctx.close();
       }
       if (engine === 'ocr:tesseract' && ocrFiles.length) {
-        const ctx = await browser.newContext();
+        const ctx = await localContext(browser);
         const page = await openTts(ctx, base, 'local');
         await page.check('#importOcrChk');
         for (const f of ocrFiles) record('ocr', engine, f, await ocrTesseract(page, f.path));

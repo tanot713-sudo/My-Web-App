@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v643';
+const CACHE = 'ome-v644';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -402,6 +402,7 @@ self.addEventListener('fetch', (e) => {
   }
 
   // API (Pages Functions) และหน้าล็อกอินของ Cloudflare Access ต้องไปถึงเครือข่ายเสมอ ห้ามแคช
+  // (รวม /api/hf/ — ไฟล์โมเดลของ Tanotfin หลายร้อย MB: transformers.js เก็บสำเนาใน 'transformers-cache' เอง ห้ามลงแคชหลัก)
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/cdn-cgi/')) return;
 
   // ลิงก์ "เข้าสู่ระบบใหม่" จากแถบเซสชันหมดอายุ / ทางเลี่ยงของ session-guard.js — ปล่อยให้เบราว์เซอร์ตาม redirect เอง
