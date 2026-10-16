@@ -41,7 +41,8 @@
     { key: 'tanot:asr:domain', kind: 'local' }, // ประเภทเนื้อหาของคำศัพท์เฉพาะ (general|law|engineering|invest)
     { key: 'tanot:tts:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ของเสียงพูด (MMS-TTS) ล้มล่าสุดบนเครื่องนี้ (media-core.js) — วินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:tts:lexicon', kind: 'sync' }, // "คำอ่านของฉัน" ของเสียงพูด — blob {v:1, text:"คำ = คำอ่าน\n…"} (เฉพาะแถวที่ผ่านตรวจ vocab) ใช้ร่วมหน้า text-to-speech + วิดเจ็ตแชททุกหน้า · ซิงก์/สำรอง/ย้ายเหมือนข้อมูลอื่น (ฉบับที่แพ้อยู่ใน history ที่ data.html)
-    { key: 'tanot:tts:opts', kind: 'local' }, // ตัวเลือกสร้างไฟล์เสียงของเครื่องนี้ (text-to-speech.js): ข้ามอังกฤษในวงเล็บ · แบ่งไฟล์ตามตอน · ใช้ WebGPU · ลดเสียงแหลม (lowpass: มีเฉพาะเมื่อผู้ใช้ติ๊กเอง)
+    { key: 'tanot:tts:misread', kind: 'sync', mode: 'map' }, // "บันทึกคำอ่านผิด" ของเสียงไทย (tts-misread.js) — 1 คำ = 1 doc {word,type:'skip'|'report',reading,count,first,last,voice,examples≤3} เพดาน 500 คำ · ซิงก์หลายเครื่องได้โดยไม่ทับกัน · ห้ามอยู่ใน problem log
+    { key: 'tanot:tts:opts', kind: 'local' }, // ตัวเลือกสร้างไฟล์เสียงของเครื่องนี้ (text-to-speech.js): ข้ามอังกฤษในวงเล็บ · แบ่งไฟล์ตามตอน · ใช้ WebGPU · ลดเสียงแหลม (lowpass: มีเฉพาะเมื่อผู้ใช้ติ๊กเอง) · บันทึกคำอ่านผิดอัตโนมัติ (misread)
     { key: 'tanot:asr:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ล้มล่าสุดบนเครื่องนี้ (media-core.js) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:asrcloud:neuronUsage', kind: 'local' },
     { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย

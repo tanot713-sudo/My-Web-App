@@ -53,6 +53,14 @@
       lexRejFormat: 'บรรทัด {line}: ต้องเขียนเป็น "คำ = คำอ่าน" — ไม่บันทึกแถวนี้', lexRejVocab: 'บรรทัด {line}: คำอ่านมีตัวอักษรที่เสียงไทยอ่านไม่ได้ ({chars}) — ไม่บันทึกแถวนี้',
       lexRejLong: 'บรรทัด {line}: ยาวเกินไป — ไม่บันทึกแถวนี้', lexRejLimit: 'บรรทัด {line}: เกิน {max} คำ — ไม่บันทึกแถวนี้', lexRejMore: '…และอีก {n} แถว',
       lexMid: 'ไม่แทน {n} จุดที่อยู่กลางคำอื่น',
+      mrReport: 'แจ้งคำอ่านผิด', mrTitle: 'บันทึกคำอ่านผิด', optMisread: 'บันทึกคำที่อ่านไม่ได้อัตโนมัติ',
+      mrExportTxt: 'ส่งออกสำหรับฝึก', mrExportJson: 'ส่งออก JSON', mrClear: 'ล้างทั้งหมด', mrEmpty: 'ยังไม่มีคำที่บันทึกไว้',
+      mrWord: 'คำ / วลี', mrReading: 'คำอ่านที่ถูก (ไม่บังคับ)', mrAddLex: 'เพิ่มเข้าคำอ่านของฉันด้วย', mrCancel: 'ยกเลิก', mrSave: 'บันทึก',
+      mrNeedWord: 'ใส่คำหรือวลีก่อน (ไม่เกิน {max} ตัวอักษร)', mrNeedReading: 'ใส่คำอ่านที่ถูกก่อน จึงจะเพิ่มเข้าคำอ่านของฉันได้',
+      mrReadingBad: 'คำอ่านมีตัวอักษรที่เสียงไทยอ่านไม่ได้ ({chars})', mrReadingFormat: 'คำหรือคำอ่านเขียนเป็นคำอ่านของฉันไม่ได้ (ห้ามมี = หรือขึ้นบรรทัดใหม่)',
+      mrSaved: 'บันทึกคำอ่านผิดแล้ว', mrTypeSkip: 'ข้ามอัตโนมัติ', mrTypeReport: 'แจ้งเอง', mrTimes: '{n} ครั้ง', mrReadingOf: 'อ่านว่า {r}',
+      mrHasReading: 'มีคำอ่านแล้ว', mrAddRow: 'เพิ่มคำอ่าน', mrDel: 'ลบ', mrClearConfirm: 'ล้างบันทึกคำอ่านผิดทั้งหมด {n} คำ?', mrShown: 'แสดง {a} จาก {n} คำ',
+      mrExported: 'ส่งออกแล้ว {n} ประโยค', mrExpPending: 'อีก {n} ประโยคที่ยังมีคำที่ไม่มีคำอ่านอยู่ในไฟล์ที่สอง', mrExpNone: 'ยังไม่มีประโยคตัวอย่างให้ส่งออก', mrJsonDone: 'ส่งออก JSON แล้ว {n} คำ',
       optParen: 'ข้ามอังกฤษในวงเล็บหลังคำไทย', optSplit: 'แบ่งไฟล์ตามตอน', optGpu: 'ใช้การ์ดจอ (WebGPU)', optLowpass: 'ลดเสียงแหลม',
       skipTimes: '{n} ครั้ง', addReading: 'เพิ่มคำอ่าน',
       keepNote: 'ระหว่างสร้างไฟล์เสียง อย่าสลับแท็บหรือปิดหน้าจอ — จะช้าลงมาก', keepNoteHidden: 'เคยสลับแท็บระหว่างสร้าง — ช่วงนั้นช้าลง เปิดหน้านี้ค้างไว้จะเร็วกว่า',
@@ -113,6 +121,14 @@
       lexRejFormat: 'Line {line}: write it as "word = reading" — this row is not saved', lexRejVocab: 'Line {line}: the reading has characters the Thai voice cannot say ({chars}) — this row is not saved',
       lexRejLong: 'Line {line}: too long — this row is not saved', lexRejLimit: 'Line {line}: more than {max} entries — this row is not saved', lexRejMore: '…and {n} more rows',
       lexMid: 'Not replaced at {n} places inside other words',
+      mrReport: 'Report a misreading', mrTitle: 'Misread words log', optMisread: 'Log unreadable words automatically',
+      mrExportTxt: 'Export for training', mrExportJson: 'Export JSON', mrClear: 'Clear all', mrEmpty: 'No words logged yet',
+      mrWord: 'Word / phrase', mrReading: 'Correct reading (optional)', mrAddLex: 'Also add to My pronunciations', mrCancel: 'Cancel', mrSave: 'Save',
+      mrNeedWord: 'Enter a word or phrase first (up to {max} characters)', mrNeedReading: 'Enter the correct reading first to add it to My pronunciations',
+      mrReadingBad: 'The reading has characters the Thai voice cannot say ({chars})', mrReadingFormat: 'The word or reading cannot be written as a pronunciation row (no "=" or line breaks)',
+      mrSaved: 'Misread word logged', mrTypeSkip: 'Auto-skipped', mrTypeReport: 'Reported', mrTimes: '{n} times', mrReadingOf: 'read as {r}',
+      mrHasReading: 'Has reading', mrAddRow: 'Add reading', mrDel: 'Delete', mrClearConfirm: 'Clear all {n} logged words?', mrShown: 'Showing {a} of {n} words',
+      mrExported: 'Exported {n} sentences', mrExpPending: '{n} more sentences that still contain words without a reading are in the second file', mrExpNone: 'No example sentences to export yet', mrJsonDone: 'Exported JSON with {n} words',
       optParen: 'Skip English in brackets after Thai words', optSplit: 'Split into files by chapter', optGpu: 'Use the graphics card (WebGPU)', optLowpass: 'Reduce shrill treble',
       skipTimes: '{n} times', addReading: 'Add reading',
       keepNote: 'While the audio is being made, do not switch tabs or turn the screen off — it gets much slower', keepNoteHidden: 'You switched tabs while it was running — it was slower then. Keep this page open for the fastest result',
@@ -690,11 +706,11 @@
     /* gpu ค่าเริ่มต้นปิด: WebGPU ใช้ Worker เดียว ส่วน WASM รันหลาย Worker ขนาน — ยังไม่ได้วัดว่าเร็วกว่าจริง (tools/media-eval tts:webgpu-100) และรอบก่อนเคยช้ากว่า
        เปิดเป็นค่าเริ่มต้นได้หลังผลวัดยืนยัน */
     /* lowpass: true/false = ผู้ใช้ตั้งเอง · ไม่มี (null) = ตามค่าเริ่มต้นของเสียงที่เลือก (media-models.js TTS_LOWPASS_DEFAULT: หญิง ทั่วไป เปิด) */
-    return { skipParen: o.skipParen !== false, split: o.split === true, gpu: o.gpu === true, lowpass: typeof o.lowpass === 'boolean' ? o.lowpass : null };
+    return { skipParen: o.skipParen !== false, misread: o.misread !== false, split: o.split === true, gpu: o.gpu === true, lowpass: typeof o.lowpass === 'boolean' ? o.lowpass : null };
   }
   var lowpassUser = null; // ผู้ใช้ติ๊กเองแล้วหรือยัง (null = ใช้ค่าเริ่มต้นของเสียง)
   function saveOpts() {
-    var o = { skipParen: $('optParen').checked, split: $('optSplit').checked, gpu: $('optGpu').checked };
+    var o = { skipParen: $('optParen').checked, misread: $('optMisread').checked, split: $('optSplit').checked, gpu: $('optGpu').checked };
     if (lowpassUser !== null) o.lowpass = lowpassUser;
     try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)); } catch (e) {}
   }
@@ -750,6 +766,7 @@
     lexStore(res.rows.map(function (r) { return r.from + ' = ' + r.to; }).join('\n'));
     renderLexStatus();
     schedulePreviews();
+    if (window.TanotTtsMisread) renderMisread();
   }
   /* จุดที่คำอ่านของฉัน "ไม่แทน" เพราะอยู่กลางคำอื่น (Norm.lexiconSkips) — คำนวณเฉพาะตอนกางช่องคำอ่านอยู่ (ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์) */
   var LEX_MID_SHOW = 5;
@@ -778,14 +795,151 @@
     if (window.TANOT_TTS && window.TANOT_TTS.maxChunk > 0) o.max = window.TANOT_TTS.maxChunk; // เฉพาะวัดผล (tools/media-eval tts:wasm-60) — ใช้งานจริงใช้ Norm.MAX_CHUNK ค่าเดียว
     return o;
   }
-  function lexAddWord(word) { // ปุ่ม "เพิ่มคำอ่าน" ในรายการคำที่ถูกข้าม → ใส่ "คำ = " ให้ในช่อง
+  function lexRowKey(w) { return w.replace(/\s+/g, ' ').trim().toLowerCase(); }
+  function lexHasRow(word) {
+    var k = lexRowKey(word);
+    return $('lexText').value.split('\n').some(function (l) { var i = l.search(/[=＝]/); return i > 0 && lexRowKey(l.slice(0, i)) === k; });
+  }
+  function lexSetRow(word, reading) { // ใส่/แทนแถว "คำ = คำอ่าน" ในช่องแล้วตรวจ+บันทึก (ใช้ lexCommit เดิม)
+    var ta = $('lexText'), k = lexRowKey(word), done = false;
+    var lines = ta.value.split('\n').map(function (l) {
+      var i = l.search(/[=＝]/);
+      if (i > 0 && lexRowKey(l.slice(0, i)) === k) { done = true; return word + ' = ' + reading; }
+      return l;
+    });
+    ta.value = done ? lines.join('\n') : ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + word + ' = ' + reading;
+    lexCommit();
+  }
+  function lexAddWord(word, reading) { // ปุ่ม "เพิ่มคำอ่าน" ในรายการคำที่ถูกข้าม → ใส่ "คำ = " ให้ในช่อง (มีคำอ่านจากบันทึกคำอ่านผิดแล้ว = ใส่ครบเลย)
     var ta = $('lexText'), box = $('lexBox');
     box.open = true;
-    var have = ta.value.split('\n').some(function (l) { var i = l.search(/[=＝]/); return i > 0 && l.slice(0, i).replace(/\s+/g, ' ').trim().toLowerCase() === word.toLowerCase(); });
-    if (!have) ta.value = ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + word + ' = ';
+    if (reading) { lexSetRow(word, reading); return; }
+    if (!lexHasRow(word)) ta.value = ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + word + ' = ';
     ta.focus();
     ta.setSelectionRange(ta.value.length, ta.value.length);
     lexSchedule();
+  }
+
+  /* ══════════════════ บันทึกคำอ่านผิด (tts-misread.js) ══════════════════
+     เก็บใน tanot:tts:misread = sync map (1 คำ = 1 doc) · อ่าน TanotData.read / เขียน TanotData.update (ไม่นับว่าหน้านี้ถือคีย์ → ไม่เด้งแถบรีโหลด) แล้ววาดรายการใหม่เองตอน TanotData.onChange
+     type 'skip' = บันทึกอัตโนมัติหลังสร้างไฟล์เสียงไทยสำเร็จ (Norm.skippedWords ตัวเดียวกับรายการ "คำที่ถูกข้าม") · type 'report' = ผู้ใช้แจ้งเอง
+     ห้ามส่งเข้า problem log (มีเนื้อหาผู้ใช้) */
+  var MR = window.TanotTtsMisread, MR_KEY = 'tanot:tts:misread', MR_SHOW = 100;
+  function mrRead() {
+    var v = null;
+    try { v = window.TanotData ? TanotData.read(MR_KEY, null) : JSON.parse(localStorage.getItem(MR_KEY) || 'null'); } catch (e) { v = null; }
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  }
+  function mrUpdate(fn) {
+    try {
+      if (window.TanotData && TanotData.update) TanotData.update(MR_KEY, function (cur) { return fn(cur && typeof cur === 'object' && !Array.isArray(cur) ? cur : {}); });
+      else localStorage.setItem(MR_KEY, JSON.stringify(fn(mrRead())));
+    } catch (e) {}
+  }
+  function mrVoice() { return ttsMigrate($('dlVoice').value) || ''; }
+  function mrAutoCapture(rawText, nopts, voice) { // หลังสร้างไฟล์เสียงไทยสำเร็จ (เลื่อนไปหลัง UI เสร็จ — ข้อความยาวไม่ให้ค้าง)
+    setTimeout(function () {
+      try {
+        var skipped = Norm.skippedWords(rawText, nopts);
+        if (!skipped.length) return;
+        var items = MR.skipItems(rawText, skipped), now = Date.now();
+        mrUpdate(function (cur) { return MR.apply(cur, items, { now: now, voice: voice }); });
+        renderMisread();
+      } catch (e) {}
+    }, 0);
+  }
+  function mrDownload(name, text, mime) {
+    var url = URL.createObjectURL(new Blob([text], { type: mime + ';charset=utf-8' })), a = document.createElement('a');
+    a.href = url; a.download = name; a.hidden = true;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function renderMisread() {
+    if (!MR || !$('mrBox')) return;
+    var all = MR.list(mrRead()), badge = $('mrCount');
+    badge.hidden = !all.length; badge.textContent = all.length ? OME_I18N.number(all.length) : '';
+    var box = $('mrList');
+    box.textContent = '';
+    if (!$('mrBox').open) { $('mrEmpty').hidden = true; return; }
+    $('mrEmpty').hidden = all.length > 0;
+    var lexRows = Norm.parseLexicon($('lexText').value).rows;
+    all.slice(0, MR_SHOW).forEach(function (e) {
+      var row = document.createElement('div'), grow = document.createElement('div'), end = document.createElement('div');
+      row.className = 'list-row'; grow.className = 'grow'; end.className = 'end';
+      var title = document.createElement('div'); title.className = 'title'; title.setAttribute('data-i18n-skip', ''); title.textContent = e.word; title.title = e.examples.join('\n') || e.word;
+      var meta = document.createElement('div'); meta.className = 'meta';
+      var parts = [T(e.type === 'report' ? 'mrTypeReport' : 'mrTypeSkip'), T('mrTimes', { n: OME_I18N.number(e.count) })];
+      meta.textContent = parts.join(' · ');
+      if (e.reading) { var rd = document.createElement('span'); rd.setAttribute('data-i18n-skip', ''); rd.textContent = ' · ' + T('mrReadingOf', { r: e.reading }); meta.appendChild(rd); }
+      if (MR.inLexicon(lexRows, e.word)) {
+        var badge2 = document.createElement('span'); badge2.className = 'badge ok'; badge2.setAttribute('data-mr', 'has'); badge2.textContent = T('mrHasReading'); end.appendChild(badge2);
+      } else {
+        var add = document.createElement('button'); add.type = 'button'; add.className = 'btn sm'; add.setAttribute('data-mr', 'add'); add.textContent = T('mrAddRow');
+        add.addEventListener('click', function () { lexAddWord(e.word, e.reading); });
+        end.appendChild(add);
+      }
+      var del = document.createElement('button'); del.type = 'button'; del.className = 'btn sm'; del.setAttribute('data-mr', 'del'); del.textContent = T('mrDel');
+      del.addEventListener('click', function () { mrUpdate(function (cur) { delete cur[MR.key(e.word)]; return cur; }); renderMisread(); });
+      end.appendChild(del);
+      grow.appendChild(title); grow.appendChild(meta); row.appendChild(grow); row.appendChild(end); box.appendChild(row);
+    });
+    if (all.length > MR_SHOW) {
+      var more = document.createElement('div'); more.className = 'status';
+      OME_I18N.live(more, function () { return T('mrShown', { a: OME_I18N.number(MR_SHOW), n: OME_I18N.number(all.length) }); });
+      box.appendChild(more);
+    }
+  }
+  function mrExportTraining() {
+    var map = mrRead(), tt = MR.trainingTexts(map), names = MR.fileNames(Date.now());
+    if (!tt.main && !tt.pending) { st('mrStatus', function () { return T('mrExpNone'); }, 'err'); return; }
+    if (tt.main) mrDownload(names.txt, tt.main, 'text/plain');
+    if (tt.pending) setTimeout(function () { mrDownload(names.pending, tt.pending, 'text/plain'); }, tt.main ? 400 : 0);
+    st('mrStatus', function () { return T('mrExported', { n: tt.mainCount + tt.pendingCount }) + (tt.main && tt.pending ? ' · ' + T('mrExpPending', { n: tt.pendingCount }) : ''); }, 'ok');
+  }
+  function mrExportJson() {
+    var map = mrRead(), n = MR.list(map).length;
+    mrDownload(MR.fileNames(Date.now()).json, MR.exportJson(map), 'application/json');
+    st('mrStatus', function () { return T('mrJsonDone', { n: n }); }, 'ok');
+  }
+  function mrClearAll() {
+    var n = MR.list(mrRead()).length;
+    if (!n) return;
+    Promise.resolve(window.tanotConfirm ? tanotConfirm(T('mrClearConfirm', { n: n }), { danger: true }) : true).then(function (yes) {
+      if (!yes) return;
+      mrUpdate(function () { return {}; });
+      st('mrStatus', null, ''); renderMisread();
+    });
+  }
+  function mrOpenReport() {
+    var ta = $('ttsText'), sel = ta.value.slice(ta.selectionStart || 0, ta.selectionEnd || 0).trim();
+    $('mrWord').value = sel && !/[\r\n]/.test(sel) ? MR.cleanWord(sel) : '';
+    $('mrReading').value = ''; $('mrAddLex').checked = false; $('mrMsg').textContent = '';
+    OME_I18N.live($('mrMsg'), null);
+    var d = $('mrDialog');
+    if (typeof d.showModal === 'function') d.showModal(); else d.setAttribute('open', '');
+    $('mrWord').focus();
+  }
+  function mrCloseReport() { var d = $('mrDialog'); if (d.close) d.close(); else d.removeAttribute('open'); }
+  function mrFormMsg(fn) { var el = $('mrMsg'); OME_I18N.live(el, fn); }
+  function mrSubmit(ev) {
+    ev.preventDefault();
+    var word = MR.cleanWord($('mrWord').value), reading = MR.cleanReading($('mrReading').value), addLex = $('mrAddLex').checked;
+    if (!word) { mrFormMsg(function () { return T('mrNeedWord', { max: MR.MAX_WORD_LEN }); }); return; }
+    if (addLex) {
+      if (!reading) { mrFormMsg(function () { return T('mrNeedReading'); }); return; }
+      var pr = Norm.parseLexicon(word + ' = ' + reading);
+      if (!pr.rows.length) {
+        var rj = pr.rejected[0] || {};
+        mrFormMsg(rj.why === 'vocab' ? function () { return T('mrReadingBad', { chars: (rj.bad || []).join(' ') }); } : function () { return T('mrReadingFormat'); });
+        return;
+      }
+    }
+    var item = MR.reportItem($('ttsText').value, word, reading), voice = mrVoice(), now = Date.now();
+    mrUpdate(function (cur) { return MR.apply(cur, [item], { now: now, voice: voice }); });
+    if (addLex) lexSetRow(word, reading);
+    mrCloseReport();
+    if (window.tanotToast) tanotToast(T('mrSaved'), 'ok');
+    renderMisread();
   }
 
   /* ══════════════════ Screen Wake Lock + เตือนอย่าสลับแท็บ (งานยาวหลายชั่วโมง) ══════════════════
@@ -860,6 +1014,7 @@
     var nopts = normOpts(lang);
     var lowpass = wantLowpass(); // ลดเสียงแหลมของไฟล์นี้ (อ่านตอนกดสร้าง — ติ๊กระหว่างสร้างไม่มีผลกับงานที่เริ่มแล้ว)
     var wantSplit = $('optSplit').checked;
+    var wantMisread = th && !!MR && $('optMisread').checked; // อ่านตอนกดสร้าง (เหมือน lowpass)
     var chapters = wantSplit && Long ? Long.splitChapters(rawText) : null;
     /* แปลงก่อน แล้วค่อยตัดท่อน ≤ MAX_CHUNK (+ รวมบรรทัดในย่อหน้าเดียวกัน) · โหมดตามตอน: วางแผนทีละตอนแล้วต่อกัน */
     var chunks = [], gaps = [], paras = [], ends = null, partNames = [], usedNames = {}, mode = 'single';
@@ -964,6 +1119,7 @@
     }).then(function () {
       if (encodeError) throw encodeError;
       logStats(false);
+      if (wantMisread) mrAutoCapture(rawText, nopts, modelId);
       $('dlStatus').className = 'status ok';
       st('dlStatus', function () { return mode === 'single' ? T('made') : T('madeParts', { n: run.parts }); });
     }).catch(function (e) {
@@ -1658,7 +1814,7 @@
   function init() {
     window.OME_PAGE_LIVE_LANG = true;
     /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
-    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); renderF5(); });
+    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); renderF5(); renderMisread(); });
     $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); if ($('f5Box').open) scheduleF5(); });
     $('f5Box').addEventListener('toggle', updateF5);
     $('f5TxtBtn').addEventListener('click', saveF5Txt);
@@ -1685,9 +1841,9 @@
 
     /* คำอ่านของฉัน + ตัวเลือกสร้างไฟล์ + WebGPU */
     var o = readOpts();
-    $('optParen').checked = o.skipParen; $('optSplit').checked = o.split; $('optGpu').checked = o.gpu;
+    $('optParen').checked = o.skipParen; $('optMisread').checked = o.misread; $('optSplit').checked = o.split; $('optGpu').checked = o.gpu;
     lowpassUser = o.lowpass; syncLowpass();
-    ['optParen', 'optSplit', 'optGpu'].forEach(function (id) { $(id).addEventListener('change', function () { saveOpts(); schedulePreviews(); }); });
+    ['optParen', 'optMisread', 'optSplit', 'optGpu'].forEach(function (id) { $(id).addEventListener('change', function () { saveOpts(); schedulePreviews(); }); });
     $('optLowpass').addEventListener('change', function () { lowpassUser = $('optLowpass').checked; saveOpts(); });
     $('dlVoice').addEventListener('change', syncLowpass);
     $('lexText').value = lexStored();
@@ -1697,12 +1853,22 @@
     $('lexText').addEventListener('change', lexCommit);
     if (window.TanotData && TanotData.onChange) {
       TanotData.onChange(function (keys) { // เครื่องอื่นแก้คำอ่าน → ช่องรับค่าใหม่ (ไม่ทับถ้ากำลังพิมพ์อยู่)
+        if (keys.indexOf(MR_KEY) >= 0 && !$('mrDialog').open) renderMisread();
         if (keys.indexOf(LEX_KEY) < 0 || document.activeElement === $('lexText') || lexTimer) return;
         $('lexText').value = lexStored();
         lexParse = Norm.parseLexicon($('lexText').value);
         renderLexStatus(); schedulePreviews();
       });
     }
+    /* บันทึกคำอ่านผิด */
+    $('mrReportBtn').addEventListener('click', mrOpenReport);
+    $('mrForm').addEventListener('submit', mrSubmit);
+    $('mrCancel').addEventListener('click', mrCloseReport);
+    $('mrBox').addEventListener('toggle', renderMisread);
+    $('mrExportTxt').addEventListener('click', mrExportTraining);
+    $('mrExportJson').addEventListener('click', mrExportJson);
+    $('mrClear').addEventListener('click', mrClearAll);
+    renderMisread();
     if (window.TanotMedia && TanotMedia.ttsGpuPlan) {
       TanotMedia.ttsGpuPlan().then(function (p) { gpuPlan = p; $('optGpuWrap').hidden = !p.ok; }, function () {});
     }

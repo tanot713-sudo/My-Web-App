@@ -664,7 +664,7 @@ test.describe('D) ลดเสียงแหลม — หน้า text-to-spe
     await page.selectOption('#dlVoice', S2.fm); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพฤติกรรมของหญิง (ทั่วไป)
     await page.check('#optSplit');
     const o = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:tts:opts')));
-    expect(o).toEqual({ skipParen: true, split: true, gpu: false });
+    expect(o).toEqual({ skipParen: true, misread: true, split: true, gpu: false });
   });
 
   test('โมเดล 16 kHz ไม่ถูกกรองแม้ติ๊กตัวเลือกไว้ (7 kHz เท่าเดิม ไม่ใช่ −3 dB)', async ({ context, page }) => {

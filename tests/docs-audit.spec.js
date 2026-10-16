@@ -162,6 +162,12 @@ const TARGETS = [
       ['quotes-confirm', async (p) => { await dom(p, '[data-rmbid]'); await settle(p, 300); }]
     ] },
   { page: 'text-to-speech.html', init: 'window.TANOT_AI = { enabled: true };',
+    // บันทึกคำอ่านผิด: ชนิด skip/report · มีคำอ่าน/ไม่มี · คำยาว (ทดสอบแถวบน 360px) · "Origin Blood" จะขึ้น "มีคำอ่านแล้ว" หลังสถานะ lexicon
+    seed: { 'tanot:tts:misread': {
+      'origin blood': { word: 'Origin Blood', type: 'skip', reading: '', count: 12, first: NOW - 9e6, last: NOW - 1e6, voice: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', examples: ['มี Origin Blood ในประโยคนี้'] },
+      zed: { word: 'Zed', type: 'report', reading: 'เซด', count: 2, first: NOW - 8e6, last: NOW - 2e6, voice: 'v', examples: ['Zed มาถึงแล้ว'] },
+      'a very long english phrase that keeps going and going': { word: 'A very long english phrase that keeps going and going', type: 'skip', reading: '', count: 1234, first: NOW - 7e6, last: NOW - 3e6, voice: 'v', examples: [] }
+    } },
     states: [
       ['base', async () => {}],
       ['text', async (p) => { await p.fill('#ttsText', 'Hello world. สวัสดีครับ นี่คือข้อความทดสอบสำหรับแปลงเป็นเสียง'); await settle(p, 200); }],
@@ -171,6 +177,8 @@ const TARGETS = [
       ['preview-skipped', async (p) => { await dom(p, '#pvMmsBox > summary'); await settle(p, 600); }],
       ['gpu-option-parts', async (p) => { await p.evaluate(() => { document.getElementById('optGpuWrap').hidden = false; window.__tts.demoParts(); document.getElementById('dlStatus').className = 'status ok'; document.getElementById('dlStatus').textContent = 'x'; }); await settle(p, 300); }],
       ['keep-note', async (p) => { await p.evaluate(() => window.__tts.demoRun(true, true)); await settle(p, 300); }],
+      ['misread-log', async (p) => { await dom(p, '#mrBox > summary'); await settle(p, 300); }],
+      ['misread-dialog', async (p) => { await dom(p, '#mrReportBtn'); await p.fill('#mrWord', 'Zorp'); await settle(p, 300); }],
       // หนังสือเสียงคุณภาพสูง (Google Colab): กางกล่อง + ส่วนประเมิน (ข้อความมีหัวตอน) + สถานะหลังกดบันทึก .txt
       ['f5-open', async (p) => { await p.evaluate(() => window.__tts.demoRun(false)); await p.fill('#ttsText', '1. Chapter one\n\n' + 'ข้อความภาษาไทยสำหรับประเมินเวลา '.repeat(20) + '\n\n2. Chapter two\n\n' + 'ย่อหน้าที่สอง '.repeat(20)); await dom(p, '#f5Box > summary'); await p.waitForSelector('#f5Est:not([hidden])', { timeout: 5000 }).catch(() => {}); await dom(p, '#f5TxtBtn'); await settle(p, 300); }],
       ['live-status', async (p) => { await p.evaluate(() => { const s = document.getElementById('wsStatus'); s.className = 'status err'; s.textContent = 'x'; }); await dom(p, '#wsPlayBtn'); await settle(p, 300); }],
