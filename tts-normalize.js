@@ -21,6 +21,10 @@
    → วันที่ตัวเลข → เวลา → ตัวย่อ (มาตรา vs มัธยม)
    → เบอร์โทร → เลขคั่นขีด (บัตรประชาชน/รหัส) → ช่วงเลข (ถึง) → ติดลบ/บวก → จำนวน (เงิน/ทศนิยม/%/หน่วย/ล้านซ้อน/อ่านทีละตัว)
    → ๆ ซ้ำคำ (ข้ามช่องว่างหน้า ๆ; หลังตัวแทนคำอ่านของฉัน = ซ้ำตัวแทนทั้งตัว) / ฯ ตัดทิ้ง → คืนคำอ่านของฉันแทนตัวแทน → อังกฤษปน (ทับศัพท์/สะกดตัวอักษร/ตัดทิ้ง) → กรอง vocab
+   พจนานุกรมทับศัพท์ EN_DICT (~540 คำ: ธุรกิจ/ออฟฟิศ/ไอที/วิศวกรรม/เอกสาร/ชีวิตประจำวัน/แบรนด์) — คีย์ = ตัวพิมพ์เล็ก คำเดียว (ขีดกลางได้: check-in, wi-fi) เพราะ english() ประมวลผลทีละโทเคน
+   ค้นก่อนการสะกดตัวย่อ (LETTER) เสมอ จึง **ห้ามใส่คำที่ชนกับตัวย่อที่ต้องสะกดทีละตัว/คำกำกวม** (it us am pm as is no ฯลฯ — tests/tts-normalize.spec.js มีรายการห้าม) · คำอ่านต้องอยู่ใน vocab ทุกตัว (เทสต์ตรวจ)
+   พหูพจน์: โทเคนลงท้าย s ตัวเล็กที่ตัวฐาน (ตัด s / es / ies→y) อยู่ใน EN_DICT ใช้คำอ่านของตัวฐาน (meetings → มีตติ้ง, APIs → เอพีไอ) · ตัวใหญ่ล้วน (AIS) ไม่นับ · ตัวฐานไม่อยู่ใน dict = กฎเดิม (ATMs ยังสะกดทีละตัว)
+
    ⚠️ ไม่ใช้ lookbehind ใน regex (Safari < 16.4 พาร์สไม่ได้ → ทั้งไฟล์พัง) · \p{…} ห่อ try/catch */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -127,7 +131,86 @@
     'kw': 'กิโลวัตต์', 'kwh': 'กิโลวัตต์ชั่วโมง', 'kva': 'กิโลโวลต์แอมป์', 'hz': 'เฮิรตซ์', 'mhz': 'เมกะเฮิรตซ์', 'ghz': 'จิกะเฮิรตซ์',
     'mb': 'เมกะไบต์', 'gb': 'จิกะไบต์', 'tb': 'เทราไบต์', 'kb': 'กิโลไบต์', 'hp': 'แรงม้า', 'rpm': 'รอบต่อนาที', 'km': 'กิโลเมตร', 'cm': 'เซนติเมตร',
     'mm': 'มิลลิเมตร', 'kg': 'กิโลกรัม',
-    'vs': 'ปะทะ', 'god': 'ก็อด', 'ep': 'อีพี', 'part': 'พาร์ท' // vs ติดกับอักษรไทยได้ ("ริมุรุvsเวลดานาวา") · EP3 → อีพี + สาม (ตัวเลขถูกแปลงก่อนขั้นอังกฤษ)
+    'vs': 'ปะทะ', 'god': 'ก็อด', 'ep': 'อีพี', 'part': 'พาร์ท', // vs ติดกับอักษรไทยได้ ("ริมุรุvsเวลดานาวา") · EP3 → อีพี + สาม (ตัวเลขถูกแปลงก่อนขั้นอังกฤษ)
+    /* ธุรกิจ/การเงิน */
+    'marketing': 'มาร์เก็ตติ้ง', 'market': 'มาร์เก็ต', 'sales': 'เซลส์', 'sale': 'เซล', 'budget': 'บัดเจ็ต', 'cost': 'คอสต์', 'profit': 'โปรฟิต',
+    'invoice': 'อินวอยซ์', 'quotation': 'โควเทชัน', 'payment': 'เพย์เมนต์', 'pay': 'เพย์', 'credit': 'เครดิต', 'debit': 'เดบิต', 'cash': 'แคช',
+    'cashback': 'แคชแบ็ก', 'bonus': 'โบนัส', 'commission': 'คอมมิชชัน', 'kpi': 'เคพีไอ', 'roi': 'อาร์โอไอ', 'tax': 'แท็กซ์', 'margin': 'มาร์จิน',
+    'stock': 'สต็อก', 'inventory': 'อินเวนทอรี', 'supplier': 'ซัพพลายเออร์', 'customer': 'คัสตอมเมอร์', 'client': 'ไคลเอนต์', 'vendor': 'เวนเดอร์',
+    'brand': 'แบรนด์', 'business': 'บิซิเนส', 'startup': 'สตาร์ตอัป', 'fund': 'ฟันด์', 'share': 'แชร์', 'loan': 'โลน', 'transfer': 'ทรานสเฟอร์',
+    'wallet': 'วอลเล็ต', 'bank': 'แบงก์', 'price': 'ไพรซ์', 'discount': 'ดิสเคานต์', 'coupon': 'คูปอง', 'refund': 'รีฟันด์', 'receipt': 'รีซีต',
+    'bill': 'บิล', 'fee': 'ฟี', 'limit': 'ลิมิต', 'target': 'ทาร์เก็ต', 'partner': 'พาร์ตเนอร์', 'product': 'โปรดักต์',
+    'service': 'เซอร์วิส', 'premium': 'พรีเมียม', 'package': 'แพ็กเกจ', 'promotion': 'โปรโมชัน', 'campaign': 'แคมเปญ', 'ad': 'แอด', 'seo': 'เอสอีโอ',
+    'content': 'คอนเทนต์', 'influencer': 'อินฟลูเอนเซอร์', 'follower': 'ฟอลโลเวอร์', 'like': 'ไลก์', 'post': 'โพสต์', 'live': 'ไลฟ์', 'shop': 'ช็อป',
+    'shopping': 'ช็อปปิ้ง', 'store': 'สโตร์', 'broker': 'โบรกเกอร์', 'crypto': 'คริปโต', 'bitcoin': 'บิตคอยน์', 'forex': 'ฟอเร็กซ์', 'trade': 'เทรด',
+    'portfolio': 'พอร์ตโฟลิโอ', 'deal': 'ดีล', 'order': 'ออเดอร์', 'booking': 'บุ๊กกิ้ง',
+    /* ประชุม/ออฟฟิศ */
+    'meeting': 'มีตติ้ง', 'agenda': 'อเจนดา', 'deadline': 'เดดไลน์', 'project': 'โปรเจกต์', 'report': 'รีพอร์ต', 'present': 'พรีเซนต์',
+    'presentation': 'พรีเซนเตชัน', 'update': 'อัปเดต', 'feedback': 'ฟีดแบ็ก', 'brief': 'บรีฟ', 'team': 'ทีม', 'manager': 'แมเนเจอร์', 'ceo': 'ซีอีโอ',
+    'hr': 'เอชอาร์', 'office': 'ออฟฟิศ', 'schedule': 'สเกดูล', 'check': 'เช็ก', 'confirm': 'คอนเฟิร์ม', 'approve': 'แอปพรูฟ', 'reject': 'รีเจกต์',
+    'leader': 'ลีดเดอร์', 'staff': 'สตาฟ', 'boss': 'บอส', 'freelance': 'ฟรีแลนซ์', 'part-time': 'พาร์ตไทม์', 'full-time': 'ฟูลไทม์', 'time': 'ไทม์',
+    'work': 'เวิร์ก', 'workshop': 'เวิร์กช็อป', 'training': 'เทรนนิ่ง', 'conference': 'คอนเฟอเรนซ์', 'event': 'อีเวนต์', 'room': 'รูม', 'call': 'คอล',
+    'fax': 'แฟกซ์', 'memo': 'เมโม', 'note': 'โน้ต', 'template': 'เทมเพลต', 'format': 'ฟอร์แมต', 'draft': 'ดราฟต์', 'final': 'ไฟนอล',
+    'version': 'เวอร์ชัน', 'review': 'รีวิว', 'edit': 'เอดิต', 'print': 'พริ้นต์', 'task': 'ทาสก์', 'follow': 'ฟอลโล', 'follow-up': 'ฟอลโลอัป',
+    'urgent': 'เออร์เจนต์', 'sync': 'ซิงก์', 'request': 'รีเควสต์', 'status': 'สเตตัส', 'progress': 'โปรเกรส', 'issue': 'อิชชู', 'action': 'แอคชัน',
+    'goal': 'โกล', 'process': 'โปรเซส', 'quality': 'ควอลิตี', 'checklist': 'เช็กลิสต์',
+    /* ไอที/ซอฟต์แวร์ */
+    'software': 'ซอฟต์แวร์', 'hardware': 'ฮาร์ดแวร์', 'laptop': 'แล็ปท็อป', 'notebook': 'โน้ตบุ๊ก', 'keyboard': 'คีย์บอร์ด', 'mouse': 'เมาส์',
+    'printer': 'พริ้นเตอร์', 'scan': 'สแกน', 'scanner': 'สแกนเนอร์', 'monitor': 'มอนิเตอร์', 'screen': 'สกรีน', 'tablet': 'แท็บเล็ต',
+    'backup': 'แบ็กอัป', 'bug': 'บั๊ก', 'error': 'เออเรอร์', 'system': 'ซิสเต็ม', 'network': 'เน็ตเวิร์ก', 'router': 'เราเตอร์',
+    'account': 'แอคเคานต์', 'qr': 'คิวอาร์', 'otp': 'โอทีพี', 'api': 'เอพีไอ', 'ram': 'แรม', 'sim': 'ซิม', 'pin': 'พิน', 'lan': 'แลน',
+    'program': 'โปรแกรม', 'browser': 'เบราว์เซอร์', 'chrome': 'โครม', 'safari': 'ซาฟารี', 'drive': 'ไดรฟ์', 'folder': 'โฟลเดอร์', 'icon': 'ไอคอน',
+    'menu': 'เมนู', 'button': 'บัตตัน', 'setting': 'เซ็ตติ้ง', 'install': 'อินสตอล', 'reset': 'รีเซ็ต', 'restart': 'รีสตาร์ต', 'save': 'เซฟ',
+    'delete': 'ดีลีต', 'search': 'เสิร์ช', 'filter': 'ฟิลเตอร์', 'export': 'เอ็กซ์พอร์ต', 'import': 'อิมพอร์ต', 'home': 'โฮม', 'page': 'เพจ',
+    'blog': 'บล็อก', 'comment': 'คอมเมนต์', 'tag': 'แท็ก', 'streaming': 'สตรีมมิ่ง', 'podcast': 'พอดแคสต์', 'video': 'วิดีโอ', 'camera': 'แคเมอรา',
+    'microphone': 'ไมโครโฟน', 'mic': 'ไมค์', 'speaker': 'สปีกเกอร์', 'headphone': 'เฮดโฟน', 'charger': 'ชาร์จเจอร์', 'charge': 'ชาร์จ',
+    'battery': 'แบตเตอรี', 'powerbank': 'พาวเวอร์แบงก์', 'smartphone': 'สมาร์ตโฟน', 'phone': 'โฟน', 'mobile': 'โมบายล์', 'smart': 'สมาร์ต',
+    'watch': 'วอตช์', 'tv': 'ทีวี', 'robot': 'โรบอต', 'bot': 'บอต', 'chatbot': 'แชตบอต', 'gemini': 'เจมินี', 'openai': 'โอเพนเอไอ',
+    'prompt': 'พรอมต์', 'model': 'โมเดล', 'token': 'โทเคน', 'hotspot': 'ฮอตสปอต', 'domain': 'โดเมน', 'hacker': 'แฮกเกอร์', 'virus': 'ไวรัส',
+    'spam': 'สแปม', 'phishing': 'ฟิชชิง', 'security': 'ซีเคียวริตี', 'profile': 'โปรไฟล์', 'member': 'เมมเบอร์', 'upgrade': 'อัปเกรด', 'demo': 'เดโม',
+    'free': 'ฟรี', 'pro': 'โปร', 'plus': 'พลัส', 'slide': 'สไลด์', 'map': 'แมป', 'copy': 'ก๊อปปี้', 'paste': 'เพสต์', 'plugin': 'ปลั๊กอิน',
+    'cache': 'แคช', 'cookie': 'คุกกี้', 'sticker': 'สติกเกอร์', 'meme': 'มีม',
+    /* วิศวกรรม/ไฟฟ้า/เครื่องกล */
+    'motor': 'มอเตอร์', 'pump': 'ปั๊ม', 'sensor': 'เซ็นเซอร์', 'inverter': 'อินเวอร์เตอร์', 'breaker': 'เบรกเกอร์', 'panel': 'แพเนล',
+    'cable': 'เคเบิล', 'valve': 'วาล์ว', 'compressor': 'คอมเพรสเซอร์', 'maintenance': 'เมนเทแนนซ์', 'spec': 'สเปก', 'drawing': 'ดรอว์วิง',
+    'safety': 'เซฟตี', 'transformer': 'ทรานส์ฟอร์เมอร์', 'generator': 'เจนเนอเรเตอร์', 'relay': 'รีเลย์', 'switch': 'สวิตช์', 'socket': 'ซ็อกเก็ต',
+    'plug': 'ปลั๊ก', 'fuse': 'ฟิวส์', 'load': 'โหลด', 'voltage': 'โวลเทจ', 'current': 'เคอร์เรนต์', 'watt': 'วัตต์',
+    'volt': 'โวลต์', 'amp': 'แอมป์', 'phase': 'เฟส', 'frequency': 'ฟรีเควนซี', 'circuit': 'เซอร์กิต', 'lamp': 'แลมป์', 'light': 'ไลต์',
+    'solar': 'โซลาร์', 'boiler': 'บอยเลอร์', 'chiller': 'ชิลเลอร์', 'fan': 'แฟน', 'pipe': 'ไปป์', 'tank': 'แท็งก์', 'bearing': 'แบริ่ง',
+    'gear': 'เกียร์', 'shaft': 'ชาฟต์', 'belt': 'เบลต์', 'seal': 'ซีล', 'bolt': 'โบลต์', 'nut': 'นัต', 'screw': 'สกรู', 'weld': 'เวลด์',
+    'steel': 'สตีล', 'stainless': 'สเตนเลส', 'autocad': 'ออโตแคด', 'layout': 'เลย์เอาต์', 'diagram': 'ไดอะแกรม', 'wiring': 'ไวริ่ง',
+    'installation': 'อินสตอลเลชัน', 'testing': 'เทสติ้ง', 'calibration': 'คาลิเบรชัน', 'overhaul': 'โอเวอร์ฮอล', 'repair': 'รีแพร์', 'spare': 'สแปร์',
+    'tool': 'ทูล', 'torque': 'ทอร์ก', 'pressure': 'เพรสเชอร์', 'temperature': 'เทมเพอเรเจอร์', 'flow': 'โฟลว์', 'level': 'เลเวล', 'alarm': 'อะลาร์ม',
+    'trip': 'ทริป', 'auto': 'ออโต้', 'manual': 'แมนวล', 'standby': 'สแตนด์บาย', 'run': 'รัน', 'stop': 'สต็อป', 'start': 'สตาร์ต',
+    'emergency': 'อีเมอร์เจนซี', 'engine': 'เอนจิน', 'engineer': 'เอนจิเนียร์', 'machine': 'แมชชีน', 'meter': 'มิเตอร์', 'gauge': 'เกจ',
+    'controller': 'คอนโทรลเลอร์', 'unit': 'ยูนิต', 'module': 'โมดูล',
+    /* กฎหมาย/เอกสาร */
+    'contract': 'คอนแทรกต์', 'form': 'ฟอร์ม', 'sign': 'ไซน์', 'stamp': 'สแตมป์', 'nda': 'เอ็นดีเอ', 'mou': 'เอ็มโอยู', 'original': 'ออริจินัล',
+    'document': 'ด็อกคิวเมนต์', 'doc': 'ด็อก', 'attachment': 'แอตแทชเมนต์', 'thanks': 'แธงก์ส', 'thank': 'แธงก์', 'please': 'พลีส', 'sorry': 'ซอร์รี',
+    'license': 'ไลเซนส์', 'certificate': 'เซอร์ทิฟิเคต', 'passport': 'พาสปอร์ต', 'visa': 'วีซ่า', 'id': 'ไอดี', 'card': 'การ์ด',
+    'signature': 'ซิกเนเจอร์', 'agreement': 'อะกรีเมนต์',
+    /* ชีวิตประจำวัน */
+    'delivery': 'เดลิเวอรี', 'coffee': 'คอฟฟี', 'cafe': 'คาเฟ่', 'size': 'ไซซ์', 'condo': 'คอนโด', 'parking': 'พาร์กกิ้ง', 'gym': 'ยิม',
+    'fitness': 'ฟิตเนส', 'hotel': 'โฮเทล', 'resort': 'รีสอร์ต', 'airport': 'แอร์พอร์ต', 'taxi': 'แท็กซี่', 'ticket': 'ทิกเก็ต', 'check-in': 'เช็กอิน',
+    'check-out': 'เช็กเอาต์', 'buffet': 'บุฟเฟต์', 'pizza': 'พิซซ่า', 'burger': 'เบอร์เกอร์', 'cake': 'เค้ก', 'latte': 'ลาเต้',
+    'espresso': 'เอสเปรสโซ', 'snack': 'สแนค', 'food': 'ฟู้ด', 'diet': 'ไดเอต', 'vitamin': 'วิตามิน', 'protein': 'โปรตีน', 'yoga': 'โยคะ',
+    'running': 'รันนิ่ง', 'bike': 'ไบค์', 'golf': 'กอล์ฟ', 'spa': 'สปา', 'massage': 'มาสสาจ', 'skincare': 'สกินแคร์', 'fashion': 'แฟชั่น',
+    'style': 'สไตล์', 'rider': 'ไรเดอร์', 'driver': 'ไดรเวอร์', 'motorcycle': 'มอเตอร์ไซค์', 'party': 'ปาร์ตี้', 'concert': 'คอนเสิร์ต',
+    'movie': 'มูฟวี่', 'series': 'ซีรีส์', 'game': 'เกม', 'anime': 'อนิเมะ', 'manga': 'มังงะ', 'novel': 'โนเวล', 'idol': 'ไอดอล',
+    'playlist': 'เพลย์ลิสต์', 'selfie': 'เซลฟี', 'vlog': 'วล็อก', 'vlogger': 'วล็อกเกอร์', 'workout': 'เวิร์กเอาต์', 'trainer': 'เทรนเนอร์',
+    'coach': 'โค้ช',
+    /* แบรนด์/แอป */
+    'zoom': 'ซูม', 'teams': 'ทีมส์', 'shopee': 'ช้อปปี้', 'lazada': 'ลาซาด้า', 'grab': 'แกร็บ', 'netflix': 'เน็ตฟลิกซ์', 'spotify': 'สปอติฟาย',
+    'canva': 'แคนวา', 'notion': 'โนชัน', 'samsung': 'ซัมซุง', 'toyota': 'โตโยต้า', 'honda': 'ฮอนด้า', 'nissan': 'นิสสัน', 'mazda': 'มาสด้า',
+    'isuzu': 'อีซูซุ', 'mitsubishi': 'มิตซูบิชิ', 'suzuki': 'ซูซูกิ', 'ford': 'ฟอร์ด', 'benz': 'เบนซ์', 'mercedes': 'เมอร์เซเดส', 'tesla': 'เทสลา',
+    'apple': 'แอปเปิล', 'microsoft': 'ไมโครซอฟต์', 'amazon': 'อเมซอน', 'whatsapp': 'วอตส์แอป', 'telegram': 'เทเลแกรม', 'discord': 'ดิสคอร์ด',
+    'skype': 'สไกป์', 'linkedin': 'ลิงก์ดิน', 'uber': 'อูเบอร์', 'foodpanda': 'ฟู้ดแพนด้า', 'lineman': 'ไลน์แมน', 'mcdonald': 'แมคโดนัลด์',
+    'starbucks': 'สตาร์บัคส์', 'makro': 'แมคโคร', 'ikea': 'อิเกีย', 'uniqlo': 'ยูนิโคล่', 'nike': 'ไนกี้', 'adidas': 'อาดิดาส', 'huawei': 'หัวเว่ย',
+    'xiaomi': 'เสียวหมี่', 'oppo': 'ออปโป้', 'sony': 'โซนี่', 'panasonic': 'พานาโซนิค', 'daikin': 'ไดกิ้น', 'siemens': 'ซีเมนส์',
+    'schneider': 'ชไนเดอร์', 'intel': 'อินเทล', 'nvidia': 'เอ็นวิเดีย', 'asus': 'เอซุส', 'lenovo': 'เลอโนโว', 'canon': 'แคนอน', 'epson': 'เอปสัน',
+    'meta': 'เมตา', 'paypal': 'เพย์พาล', 'mastercard': 'มาสเตอร์การ์ด', 'truemoney': 'ทรูมันนี่', 'airasia': 'แอร์เอเชีย', 'agoda': 'อโกด้า',
+    'photoshop': 'โฟโตชอป', 'capcut': 'แคปคัท', 'figma': 'ฟิกมา', 'adobe': 'อะโดบี', 'steam': 'สตีม', 'playstation': 'เพลย์สเตชัน',
+    'nintendo': 'นินเทนโด', 'disney': 'ดิสนีย์'
   };
   var LETTER = { A: 'เอ', B: 'บี', C: 'ซี', D: 'ดี', E: 'อี', F: 'เอฟ', G: 'จี', H: 'เอช', I: 'ไอ', J: 'เจ', K: 'เค', L: 'แอล', M: 'เอ็ม', N: 'เอ็น', O: 'โอ', P: 'พี', Q: 'คิว', R: 'อาร์', S: 'เอส', T: 'ที', U: 'ยู', V: 'วี', W: 'ดับเบิลยู', X: 'เอ็กซ์', Y: 'วาย', Z: 'แซด' };
 
@@ -342,11 +425,25 @@
   }
 
   /* ══════════════ 6) อังกฤษปน (เฉพาะ MMS) ══════════════ */
+  /* พหูพจน์: คำลงท้าย s ตัวเล็ก (meetings, boxes, policies) ที่ตัวฐานอยู่ใน EN_DICT ใช้คำอ่านของตัวฐาน
+     ตัวใหญ่ล้วนไม่นับ ("AIS" = เอ ไอ เอส ไม่ใช่ AI พหูพจน์) · ตัวเล็กล้วนต้องมีตัวฐาน ≥ 3 ตัวอักษร · ตัวฐานที่ไม่อยู่ใน EN_DICT ไม่แตะ (ATMs ยังสะกดทีละตัวด้านล่าง) */
+  function pluralBase(tok, lower) {
+    if (!/s$/.test(tok) || /ss$/.test(lower)) return '';
+    var mixed = tok !== lower, cands = [lower.slice(0, -1), lower.slice(0, -2)];
+    if (/ies$/.test(lower)) cands.push(lower.slice(0, -3) + 'y');
+    for (var i = 0; i < cands.length; i++) {
+      var c = cands[i];
+      if (c.length >= (mixed ? 2 : 3) && EN_DICT.hasOwnProperty(c)) return c;
+    }
+    return '';
+  }
   function transliterate(tok) {
     var lower = tok.toLowerCase();
     if (EN_DICT.hasOwnProperty(lower)) return EN_DICT[lower];
     var base = lower.replace(/['’]s$/, '');
     if (base !== lower && EN_DICT.hasOwnProperty(base)) return EN_DICT[base];
+    var sg = pluralBase(tok, lower);
+    if (sg) return EN_DICT[sg];
     if (/^[A-Z]{1,5}$/.test(tok)) return tok.split('').map(function (c) { return LETTER[c]; }).join(' ');
     if (/^[A-Z]{2,5}s$/.test(tok)) return transliterate(tok.slice(0, -1));
     if (/^[A-Z]{1,5}['’]s$/.test(tok)) return transliterate(tok.slice(0, -2));

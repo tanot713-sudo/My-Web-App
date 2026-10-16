@@ -110,7 +110,7 @@ test.describe('A) forMms — known-answer ทุกกฎ', () => {
     T.DIGIT.forEach((w) => words.push(w)); T.MONTHS.forEach((w) => words.push(w)); T.ABBR.forEach((e) => words.push(e[1]));
     Object.values(T.UNITS).forEach((w) => words.push(w)); Object.values(T.EN_DICT).forEach((w) => words.push(w)); Object.values(T.LETTER).forEach((w) => words.push(w));
     T.FIXED.forEach((w) => words.push(w));
-    expect(Object.keys(T.EN_DICT).length).toBeGreaterThanOrEqual(80);
+    expect(Object.keys(T.EN_DICT).length).toBeGreaterThanOrEqual(500);
     for (const w of words) {
       const clean = w.replace(/ๆ/g, '').replace(/ำ/g, 'ํา').replace(/ +/g, ' ').trim();
       expect(N.filterVocab(w.replace(/ๆ/g, '')), w).toBe(clean);
@@ -122,6 +122,112 @@ test.describe('A) forMms — known-answer ทุกกฎ', () => {
     for (const [n, w] of Object.entries(cases)) expect(N.numberToWords(n)).toBe(w);
     expect(N.numberToWords('1' + '0'.repeat(18))).toBe('หนึ่งสองศูนย์'.slice(0, 0) + '1000000000000000000'.split('').map((c) => N.TABLES.DIGIT[+c]).join(''));
     expect(N.numberToWords('1' + '0'.repeat(12))).toBe('หนึ่งล้านล้าน');
+  });
+});
+
+/* ── พจนานุกรมทับศัพท์ EN_DICT ขยาย (~540 คำ) + พหูพจน์ ── */
+const fs = require('fs');
+const OLD_DICT = { // รายการเดิมก่อนขยาย — ต้องอ่านเหมือนเดิมทุกคำ
+  ai: 'เอไอ', ok: 'โอเค', okay: 'โอเค', pdf: 'พีดีเอฟ', excel: 'เอ็กเซล', word: 'เวิร์ด', powerpoint: 'พาวเวอร์พอยต์', google: 'กูเกิล', line: 'ไลน์', facebook: 'เฟซบุ๊ก', youtube: 'ยูทูบ',
+  tiktok: 'ติ๊กต็อก', instagram: 'อินสตาแกรม', twitter: 'ทวิตเตอร์', email: 'อีเมล', 'e-mail': 'อีเมล', mail: 'เมล', gmail: 'จีเมล', app: 'แอป', application: 'แอปพลิเคชัน', file: 'ไฟล์', online: 'ออนไลน์',
+  offline: 'ออฟไลน์', set: 'เซ็ต', plc: 'พีแอลซี', wifi: 'ไวไฟ', 'wi-fi': 'ไวไฟ', bluetooth: 'บลูทูธ', internet: 'อินเทอร์เน็ต', website: 'เว็บไซต์', web: 'เว็บ', link: 'ลิงก์', click: 'คลิก',
+  download: 'ดาวน์โหลด', upload: 'อัปโหลด', login: 'ล็อกอิน', logout: 'ล็อกเอาต์', password: 'พาสเวิร์ด', user: 'ยูสเซอร์', admin: 'แอดมิน', chat: 'แชต', chatgpt: 'แชตจีพีที', claude: 'คล็อด',
+  cloud: 'คลาวด์', cloudflare: 'คลาวด์แฟลร์', github: 'กิตฮับ', server: 'เซิร์ฟเวอร์', database: 'ดาต้าเบส', data: 'ดาต้า', code: 'โค้ด', test: 'เทสต์', python: 'ไพธอน', javascript: 'จาวาสคริปต์',
+  iphone: 'ไอโฟน', ipad: 'ไอแพด', android: 'แอนดรอยด์', windows: 'วินโดวส์', mac: 'แมค', macos: 'แมคโอเอส', ios: 'ไอโอเอส', linux: 'ลินุกซ์', vat: 'แวต', scada: 'สคาดา', excel365: 'เอ็กเซล',
+  kw: 'กิโลวัตต์', kwh: 'กิโลวัตต์ชั่วโมง', kva: 'กิโลโวลต์แอมป์', hz: 'เฮิรตซ์', mhz: 'เมกะเฮิรตซ์', ghz: 'จิกะเฮิรตซ์', mb: 'เมกะไบต์', gb: 'จิกะไบต์', tb: 'เทราไบต์', kb: 'กิโลไบต์',
+  hp: 'แรงม้า', rpm: 'รอบต่อนาที', km: 'กิโลเมตร', cm: 'เซนติเมตร', mm: 'มิลลิเมตร', kg: 'กิโลกรัม', vs: 'ปะทะ', god: 'ก็อด', ep: 'อีพี', part: 'พาร์ท'
+};
+/* คำกำกวม/ตัวย่อที่ต้องสะกดทีละตัว — dict ค้นก่อน LETTER จึงห้ามเป็นคีย์ */
+const FORBIDDEN_KEYS = ['it', 'us', 'am', 'pm', 'as', 'is', 'no', 'to', 'or', 'in', 'on', 'at', 'be', 'by', 'do', 'go', 'he', 'me', 'my', 'we', 'up', 'if', 'an', 'a', 'i', 'so', 'of',
+  'atm', 'usb', 'cpu', 'gpu', 'led', 'cctv', 'gps', 'sms', 'dvd', 'ssd', 'hdd', 'pc', 'dj', 'vip', 'sql', 'html', 'css', 'cnc', 'ups', 'iot', 'vpn', 'bts', 'mrt', 'scb', 'kfc', 'bmw', 'lg', 'abb', 'cad', 'cam', 'hello', 'world'];
+function dictSourceKeys() {
+  const src = fs.readFileSync(require('path').join(__dirname, '..', 'tts-normalize.js'), 'utf8');
+  const a = src.indexOf('var EN_DICT = {'), b = src.indexOf('\n  };', a);
+  const body = src.slice(a + 'var EN_DICT = {'.length, b).replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '');
+  const keys = []; const re = /'([^']+)'\s*:\s*'[^']*'/g; let m;
+  while ((m = re.exec(body))) keys.push(m[1]);
+  return keys;
+}
+test.describe('A2) EN_DICT ขยาย — ทับศัพท์ + พหูพจน์', () => {
+  const D = N.TABLES.EN_DICT;
+  test('ขนาด 500–700 คำ · ทุกค่าผ่าน vocab โดยไม่ถูกตัดตัวอักษร · คีย์ตัวพิมพ์เล็กคำเดียว (ขีดกลางได้) · ไม่มีคีย์ซ้ำในซอร์ส · ไม่มีคีย์ต้องห้าม', () => {
+    const keys = dictSourceKeys();
+    expect(keys.length).toBe(Object.keys(D).length); // object literal ซ้ำ JS ไม่ฟ้อง → เทียบจำนวนคีย์ในซอร์สกับจำนวนคีย์ใน object
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys.length).toBeGreaterThanOrEqual(500);
+    expect(keys.length).toBeLessThanOrEqual(700);
+    for (const [k, v] of Object.entries(D)) {
+      if (k !== 'excel365') expect(/^[a-z]+(-[a-z]+)*$/.test(k), 'คีย์ ' + k).toBe(true); // excel365 = คีย์เดิมที่มีเลข (ตัวเลขถูกแปลงก่อนขั้นอังกฤษ จึงไม่เคยถูกใช้)
+      expect(N.filterVocab(v), k + ' = ' + v).toBe(v.replace(/ำ/g, 'ํา').replace(/ +/g, ' ').trim());
+      expect(v.trim(), k).not.toBe('');
+    }
+    for (const k of FORBIDDEN_KEYS) expect(Object.prototype.hasOwnProperty.call(D, k), 'ห้ามมีคีย์ ' + k).toBe(false);
+  });
+
+  test('คำเดิมทั้งหมดยังอ่านเหมือนเดิม', () => {
+    for (const [k, v] of Object.entries(OLD_DICT)) {
+      expect(D[k], k).toBe(v);
+      if (k !== 'excel365') expect(N.forMms(k), k).toBe(v); // excel365: ตัวเลขถูกแปลงก่อนขั้นอังกฤษ (พฤติกรรมเดิม)
+    }
+  });
+
+  /* ประโยคตัวอย่างแต่งขึ้นเอง หลายหมวด: ไม่มีคำถูกข้าม + ได้คำอ่านตามคาด */
+  const SENTENCES = [
+    ['พรุ่งนี้มี meeting กับ CEO และ HR เรื่อง deadline ของ project ใหม่', 'พรุ่งนี้มี มีตติ้ง กับ ซีอีโอ และ เอชอาร์ เรื่อง เดดไลน์ ของ โปรเจกต์ ใหม่'],
+    ['ส่ง report และ update ให้ manager ก่อน confirm กับ team', 'ส่ง รีพอร์ต และ อัปเดต ให้ แมเนเจอร์ ก่อน คอนเฟิร์ม กับ ทีม'],
+    ['ลูกค้าจ่ายผ่าน QR code หรือ OTP แล้วส่ง invoice และ quotation', 'ลูกค้าจ่ายผ่าน คิวอาร์ โค้ด หรือ โอทีพี แล้วส่ง อินวอยซ์ และ โควเทชัน'],
+    ['ตั้ง budget และดู cost กับ profit ของ marketing', 'ตั้ง บัดเจ็ต และดู คอสต์ กับ โปรฟิต ของ มาร์เก็ตติ้ง'],
+    ['ติดตั้ง inverter และ breaker ที่ panel ตรวจ sensor ของ motor กับ pump', 'ติดตั้ง อินเวอร์เตอร์ และ เบรกเกอร์ ที่ แพเนล ตรวจ เซ็นเซอร์ ของ มอเตอร์ กับ ปั๊ม'],
+    ['เปิด valve ของ compressor ตาม spec และ drawing เพื่อ safety', 'เปิด วาล์ว ของ คอมเพรสเซอร์ ตาม สเปก และ ดรอว์วิง เพื่อ เซฟตี'],
+    ['ทำ maintenance ตาม schedule แล้ว check ทุกอาทิตย์', 'ทำ เมนเทแนนซ์ ตาม สเกดูล แล้ว เช็ก ทุกอาทิตย์'],
+    ['อัปเดต software บน laptop แล้ว backup ไป cloud', 'อัปเดต ซอฟต์แวร์ บน แล็ปท็อป แล้ว แบ็กอัป ไป คลาวด์'],
+    ['ถ้า bug หรือ error ให้ restart router แล้ว login account ใหม่', 'ถ้า บั๊ก หรือ เออเรอร์ ให้ รีสตาร์ต เราเตอร์ แล้ว ล็อกอิน แอคเคานต์ ใหม่'],
+    ['เซ็น contract พร้อม NDA และ MOU แล้วประทับ stamp', 'เซ็น คอนแทรกต์ พร้อม เอ็นดีเอ และ เอ็มโอยู แล้วประทับ สแตมป์'],
+    ['กรอก form แล้ว sign เอกสาร', 'กรอก ฟอร์ม แล้ว ไซน์ เอกสาร'],
+    ['สั่ง coffee ที่ cafe แล้ว order delivery ได้ promotion ลด 10%', 'สั่ง คอฟฟี ที่ คาเฟ่ แล้ว ออเดอร์ เดลิเวอรี ได้ โปรโมชัน ลด สิบเปอร์เซ็นต์'],
+    ['ไป gym ที่ condo แล้ว shopping ต่อ ใส่ size M', 'ไป ยิม ที่ คอนโด แล้ว ช็อปปิ้ง ต่อ ใส่ ไซซ์ เอ็ม'],
+    ['คุยผ่าน Zoom และ Teams สั่งของใน Shopee กับ Lazada เรียก Grab', 'คุยผ่าน ซูม และ ทีมส์ สั่งของใน ช้อปปี้ กับ ลาซาด้า เรียก แกร็บ'],
+    ['ดู Netflix ฟัง Spotify ทำงานใน Canva และ Notion ด้วย Gemini', 'ดู เน็ตฟลิกซ์ ฟัง สปอติฟาย ทำงานใน แคนวา และ โนชัน ด้วย เจมินี'],
+    ['รถ Toyota Honda และมือถือ Samsung', 'รถ โตโยต้า ฮอนด้า และมือถือ ซัมซุง']
+  ];
+  test(`ประโยคตัวอย่าง ${SENTENCES.length} หมวด: skippedWords ว่าง · plan() ได้คำอ่านตามคาด · ทุกตัวอักษรอยู่ใน vocab`, () => {
+    for (const [input, want] of SENTENCES) {
+      expect(N.skippedWords(input), input).toEqual([]);
+      const got = N.forMms(input).replace(/ +/g, ' '), wantV = want.replace(/ำ/g, 'ํา'); // ำ → ํา ตามตัวกรอง vocab
+      expect(got, input).toBe(wantV);
+      expect(bad(got), input).toEqual([]);
+      const p = N.plan(input);
+      expect(p.chunks.join(' ').replace(/ +/g, ' '), input).toBe(wantV);
+    }
+  });
+
+  test('คำอังกฤษนอกพจนานุกรมยังถูกข้ามและรายงานใน skippedWords เหมือนเดิม', () => {
+    expect(N.skippedWords('Origin Blood และ hello world')).toEqual([{ word: 'Origin Blood', count: 1 }, { word: 'hello world', count: 1 }]);
+    expect(N.forMms('Hello')).toBe(''); expect(N.forMms('hello world')).toBe('');
+  });
+
+  test('พหูพจน์: s/es/ies ที่ตัวฐานอยู่ใน dict ใช้คำอ่านตัวฐาน · ตัวย่อยังสะกดทีละตัว', () => {
+    const plural = [['meetings', 'มีตติ้ง'], ['Meetings', 'มีตติ้ง'], ['reports', 'รีพอร์ต'], ['boxes', ''], ['apps', 'แอป'], ['PDFs', 'พีดีเอฟ'], ['APIs', 'เอพีไอ'], ['AIs', 'เอไอ'],
+      ['bonuses', 'โบนัส'], ['companies', ''], ['policies', ''], ['users', 'ยูสเซอร์'], ['files', 'ไฟล์'], ['sensors', 'เซ็นเซอร์'], ['IDs', 'ไอดี'], ['PLCs', 'พีแอลซี'], ['gods', 'ก็อด']];
+    for (const [input, want] of plural) expect(N.forMms(input).trim(), input).toBe(want);
+    // ตัวฐานไม่อยู่ใน dict / ตัวใหญ่ล้วน / ไม่ใช่พหูพจน์ → กฎเดิม
+    expect(N.forMms('ATM')).toBe('เอ ที เอ็ม');
+    expect(N.forMms('ATMs')).toBe('เอ ที เอ็ม');
+    expect(N.forMms('USBs')).toBe('ยู เอส บี');
+    expect(N.forMms('AIS')).toBe('เอ ไอ เอส');   // ไม่ใช่ AI + พหูพจน์
+    expect(N.forMms('USB')).toBe('ยู เอส บี');
+    expect(N.forMms('GPS')).toBe('จี พี เอส');
+    expect(N.forMms('IT')).toBe('ไอ ที'); expect(N.forMms('US')).toBe('ยู เอส'); expect(N.forMms('PM')).toBe('พี เอ็ม');
+    expect(N.forMms('class')).toBe(''); expect(N.forMms('bus')).toBe(''); // ss / ฐานไม่อยู่ใน dict
+    expect(N.skippedWords('meetings boxes')).toEqual([{ word: 'boxes', count: 1 }]);
+    expect(N.forMms("meeting's")).toBe('มีตติ้ง'); // กรรมสิทธิ์เดิมยังทำงาน
+  });
+
+  test('วลีหลายคำ/ขีดกลาง: ทีละโทเคน · check-in · part-time · wi-fi · e-mail', () => {
+    expect(N.forMms('check-in')).toBe('เช็กอิน');
+    expect(N.forMms('part-time')).toBe('พาร์ตไทม์');
+    expect(N.forMms('wi-fi')).toBe('ไวไฟ');
+    expect(N.forMms('QR code')).toBe('คิวอาร์ โค้ด');
   });
 });
 
