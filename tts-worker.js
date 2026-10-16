@@ -27,7 +27,7 @@
 var pipelinePromiseByModel = {}; // key = modelId + '|' + device
 var gpuFailed = false;          // WebGPU ล้มแล้วใน Worker นี้ → ท่อนที่เหลือใช้ WASM เลย
 
-/* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" ต้อง fp32 เพราะไม่มีไฟล์ quantized) อ่านจาก media-models.js — ตารางกลางที่
+/* dtype ต่อโมเดล (เช่น Jori/Riko ต้อง fp32 เพราะไม่มีไฟล์ quantized) + revision (commit ที่ล็อกไว้) อ่านจาก media-models.js — ตารางกลางที่
    text-to-speech.js ใช้ด้วย (2026-10: เดิมมีตารางซ้ำ 2 ชุดในไฟล์นี้กับ text-to-speech.js แล้วเคยลืมแก้คู่กันจน Worker
    บังคับ fp32 เกินจำเป็น → แรมพุ่ง แท็บแครช — ดูประวัติเต็มในหัวไฟล์ media-models.js) */
 var modelsPromise = null;
@@ -37,6 +37,9 @@ function ttsPipelineOpts(modelId, device, onProgress) {
     var opts = { progress_callback: onProgress };
     var dtype = M && (device === 'webgpu' ? M.ttsGpuDtype(modelId) : M.ttsDtype(modelId));
     if (dtype) opts.dtype = dtype;
+    /* ล็อกรุ่นด้วย commit ของ Hugging Face (TTS_REVISION ใน media-models.js) → URL …/resolve/<sha>/… = คีย์แคชใหม่เมื่อเปลี่ยนรุ่น */
+    var rev = M && M.ttsRevision ? M.ttsRevision(modelId) : 'main';
+    if (rev && rev !== 'main') opts.revision = rev;
     if (device === 'webgpu') opts.device = 'webgpu';
     return opts;
   });
@@ -101,7 +104,7 @@ function disposeGpuPipelines() {
   });
 }
 
-/* ทางถอยโมเดล (ไล่ทีละขั้น ขั้นละ 1 ครั้ง): stable2 → stable → ต้นฉบับ (media-models.js ttsLegacy = "ขั้นถัดไป" ของ id นั้น)
+/* ทางถอยโมเดล (ไล่ทีละขั้น ขั้นละ 1 ครั้ง): Jori → FM stable2 → stable → ต้นฉบับ · Riko → M stable2 → stable → ต้นฉบับ (media-models.js ttsLegacy = "ขั้นถัดไป" ของ id นั้น)
    โหลดไม่ได้ (404/เครือข่ายที่ลองซ้ำแล้วยังล้ม — ไม่ใช่เรื่องหน่วยความจำ) บน WASM → ใช้ขั้นถัดไปแทน จำไว้ใน modelRedirect (ต่อ Worker) + แจ้งหน้าลง problem log ทุกขั้น
    modelRedirect[ที่ขอ] = id ที่ใช้อยู่จริง · เครือข่ายสะดุดตอนโหลด → รอ NET_RETRY_MS แล้วลองโหลด id เดิมซ้ำ 1 ครั้ง (ส่ง {type:'retry'} ให้หน้าบันทึก) ก่อนเข้าทางถอย */
 var modelRedirect = {};

@@ -37,7 +37,6 @@ const { menuPages, prepare } = require('./helpers');
 
 const PAGES = menuPages();
 if (!PAGES.includes('doc-check-file.html')) PAGES.push('doc-check-file.html'); // หน้าลูกของ doc-check (ไม่อยู่ในเมนู) — รอบ 5
-if (!PAGES.includes('f5-lab.html')) PAGES.push('f5-lab.html'); // หน้าทดลอง F5 ในเบราว์เซอร์ (ลิงก์จากการ์ด F5 ของ text-to-speech ไม่อยู่ในเมนู)
 // ความกว้างมือถือที่ตรวจทุกหน้า: 360 (Android เล็ก) · 390 (iPhone) — รอบ 9 ทุกหน้าตรวจครบทั้งสองขนาด (เดิมเลือกเฉพาะหน้าที่แก้ในรอบนั้น)
 // เพิ่ม 412 (Android ทั่วไป) / 430 (iPhone Pro Max): THEME_AUDIT_WIDTHS=412,430 npx playwright test theme-audit.spec.js
 // (ผลลงรายงาน/baseline ด้วยคีย์ <หน้า>|<ความกว้าง>|<ธีม> เหมือนกัน — ค่า baseline ของความกว้างใหม่ = 0)

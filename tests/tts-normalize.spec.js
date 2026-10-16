@@ -468,7 +468,7 @@ test.describe('C) วิดเจ็ตแชท — พูดคำตอบไ
     await expect(page.locator('.ome-ai-row.bot .ome-ai-bubble')).toContainText('ขอบคุณมากๆ', { timeout: 15000 });
     await expect.poll(() => page.evaluate(() => window.__batches.length), { timeout: 10000 }).toBe(1);
     const b = (await page.evaluate(() => window.__batches))[0];
-    expect(b.model).toBe('Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx');
+    expect(b.model).toBe('Tanotfin/mms-thai-jori-f5-onnx');
     expect(b.items.length).toBeGreaterThanOrEqual(2);
     for (const t of b.items) { expect(bad(t), t).toEqual([]); expect(t.length).toBeLessThanOrEqual(N.MAX_CHUNK); expect(t).not.toMatch(/\d/); }
     expect(b.items[0]).toBe('ราคา สามพันห้าร้อยเก้าสิบเก้า บาท ลด สิบห้าเปอร์เซ็นต์');
@@ -588,21 +588,22 @@ test.describe('C) หน้า text-to-speech', () => {
     expect(errors).toEqual([]);
   });
 
-  test('ดูข้อความที่จะอ่านจริง: forMms ตามภาษาที่เลือก + forNative สำหรับฟังทันที · อัปเดตตามที่พิมพ์ · ไม่ล้นจอมือถือ', async ({ browser }) => {
+  test('ดูข้อความที่จะอ่านจริง: forMms ตามภาษาของข้อความ (มีอักษรไทย = ไทย · ไม่มี = อังกฤษอัตโนมัติ) · อัปเดตตามที่พิมพ์ · ไม่ล้นจอมือถือ', async ({ browser }) => {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await ctx.newPage();
     const errors = await setup(ctx, page);
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', 'ราคา 3,599 บาท **ลด 15%** 😊\n\nย่อหน้าสอง');
+    await page.locator('#moreBox > summary').click();
     await page.locator('#pvMmsBox > summary').click();
     await expect(page.locator('#pvMms')).toHaveValue('ราคา สามพันห้าร้อยเก้าสิบเก้า บาท ลด สิบห้าเปอร์เซ็นต์\n\nย่อหน้าสอง');
-    await page.locator('#pvNativeBox > summary').click();
-    await expect(page.locator('#pvNative')).toHaveValue('ราคา 3,599 บาท ลด 15%\nย่อหน้าสอง');
     await page.fill('#ttsText', 'ยอดรวม ๒๕๐ บาท');
     await expect(page.locator('#pvMms')).toHaveValue('ยอดรวม สองร้อยห้าสิบ บาท');
-    await expect(page.locator('#pvNative')).toHaveValue('ยอดรวม 250 บาท');
     await page.fill('#ttsText', 'Hello 25 world');
-    await page.selectOption('#dlLang', 'en');
+    await expect(page.locator('#pvMms')).toHaveValue('hello twenty five world');
+    await page.locator('#moreBox > summary').click();                 // พับส่วนนอก → ไม่คำนวณ
+    await page.fill('#ttsText', 'ข้อความใหม่');
+    await page.waitForTimeout(400);
     await expect(page.locator('#pvMms')).toHaveValue('hello twenty five world');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     expect(await page.locator('#pvMms').evaluate((el) => parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(16);
@@ -615,10 +616,10 @@ test.describe('C) หน้า text-to-speech', () => {
     await page.addInitScript(() => localStorage.setItem('ome:lang', 'en'));
     await page.goto('/text-to-speech.html');
     await expect(page.locator('#pvMmsBox > summary')).toHaveText('See the text that will be read');
-    await expect(page.locator('#pvNativeBox > summary')).toHaveText('See the text that will be read');
     await expect(page.locator('#pvMms')).toHaveAttribute('aria-label', 'Text that will be read aloud');
+    await page.locator('#moreBox > summary').click();
     await page.locator('#pvMmsBox > summary').click();
-    const thai = await page.evaluate(() => [...document.querySelectorAll('#pvMmsBox summary, #pvNativeBox summary')].filter((e) => /[฀-๿]/.test(e.textContent)).length);
+    const thai = await page.evaluate(() => [...document.querySelectorAll('#moreBox summary')].filter((e) => /[฀-๿]/.test(e.textContent)).length);
     expect(thai).toBe(0);
   });
 });

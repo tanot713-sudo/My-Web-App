@@ -314,7 +314,9 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
     const errors = await setup(context, page, { cfg: { tts: { loadMs: 300, busyMs: 120 } }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
     await page.evaluate(() => window.__tts.TTS_IDLE_MS(800));
-    await generate(page, 'Tanotfin/mms-tts-2081-FM-stable2-onnx'); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพูลหลาย Worker
+    // เสียงที่เลือกได้ (Jori/Riko) เป็น fp32 = 1 Worker — เทสต์นี้ตรวจกลไกพูลหลาย Worker จึงจำลองเสียง q8 (เอา dtype override ของ Jori ออกจากตารางฝั่งหน้า)
+    await page.evaluate(() => { delete window.TanotMediaModels.TTS_DTYPE_OVERRIDES['Tanotfin/mms-thai-jori-f5-onnx']; });
+    await generate(page);
     const tts = await workers(page, /tts-worker/);
     expect(tts.length).toBe(4);
     for (let k = 1; k < tts.length; k++) {
@@ -340,12 +342,14 @@ test.describe('สร้างไฟล์เสียง (พูล tts-worker.
     expect(errors).toEqual([]);
   });
 
-  test('โมเดล fp32 (หญิง โทนพอดแคสต์) = Worker เดียวแม้เครื่องแรง', async ({ context, page }) => {
-    await setup(context, page, { cfg: { tts: { busyMs: 20 } }, init: BIG_DEVICE });
-    await page.goto('/text-to-speech.html');
-    await generate(page, 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx');
-    expect((await workers(page, /tts-worker/)).length).toBe(1);
-  });
+  for (const [name, voice] of [['หญิง Jori', 'Tanotfin/mms-thai-jori-f5-onnx'], ['ชาย Riko', 'Tanotfin/mms-thai-riko-f5-onnx']]) {
+    test('โมเดล fp32 (' + name + ') = Worker เดียวแม้เครื่องแรง', async ({ context, page }) => {
+      await setup(context, page, { cfg: { tts: { busyMs: 20 } }, init: BIG_DEVICE });
+      await page.goto('/text-to-speech.html');
+      await generate(page, voice);
+      expect((await workers(page, /tts-worker/)).length).toBe(1);
+    });
+  }
 
   test('iPhone = Worker เดียวเสมอ', async ({ browser }) => {
     const ctx = await browser.newContext({ userAgent: IOS_UA });

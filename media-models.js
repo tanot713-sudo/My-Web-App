@@ -9,52 +9,57 @@
    หน่วยความจำพุ่งตอนรันหลาย Worker ขนาน แท็บแครช "หน้ารีเฟรชเอง") — ย้ายมาไว้ที่นี่ที่เดียวแล้ว
    ทั้งสองฝั่งอ่านจากไฟล์นี้ แก้ตารางนี้ที่เดียวพอ
 
-   ทำไมโมเดล "หญิง (โทนพอดแคสต์)" ต้องบังคับ fp32: transformers.js เลือกไฟล์ ONNX ตาม dtype เริ่มต้นของ
-   backend (wasm = 'q8' → onnx/model_quantized.onnx) — phlebotomy1996/mms-thai-female-podcast-spk0 ไม่มี
-   ไฟล์ quantized (มีแค่ model.onnx กับ model_fp16.onnx) ปล่อยดีฟอลต์จะ 404 · เลือก fp32 ไม่ใช่ fp16 เพราะ
-   fp32 รองรับบน wasm ครบทุกเบราว์เซอร์แน่นอนกว่า · Tanotfin/mms-tts-2081-FM-onnx / M-onnx เคยต้อง fp32
-   แต่แก้ต้นตอ (export ONNX ใหม่ด้วย torch.where shape คงที่) แล้ว ใช้ q8 ได้ตามปกติ — ห้ามเติมกลับ
-   ไฟล์ fp32 ใหญ่กว่า q8 หลายเท่า → media-core.js ให้โมเดล fp32 รันได้ Worker เดียวเสมอทุกเครื่อง */
+   ทำไม Jori / Riko ต้องบังคับ fp32: transformers.js เลือกไฟล์ ONNX ตาม dtype เริ่มต้นของ backend
+   (wasm = 'q8' → onnx/model_quantized.onnx) — สอง repo นี้มีแค่ onnx/model.onnx ปล่อยดีฟอลต์จะ 404 ·
+   Tanotfin/mms-tts-2081-FM-onnx / M-onnx (ทางถอย) เคยต้อง fp32 แต่แก้ต้นตอ (export ONNX ใหม่ด้วย
+   torch.where shape คงที่) แล้ว ใช้ q8 ได้ตามปกติ — ห้ามเติมกลับ
+   ไฟล์ fp32 ใหญ่กว่า q8 หลายเท่า → text-to-speech.js ให้โมเดล fp32 รันได้ Worker เดียวเสมอทุกเครื่อง */
 (function (g) {
   'use strict';
   var TTS_DTYPE_OVERRIDES = {
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
-    /* ชุด stable / stable2 (2026-10) — dtype ที่มีให้เหมือนต้นฉบับทุกประการ: พอดแคสต์ fp32 เท่านั้น, FM/M ใช้ q8 ตามค่าเริ่มต้น */
-    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'fp32',
-    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'fp32',
-    /* หญิง (Jori) — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized */
-    'Tanotfin/mms-thai-jori-f5-onnx': 'fp32'
+    /* Jori / Riko — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized · ทางถอย (FM/M stable2/stable/ต้นฉบับ) ใช้ q8 ตามค่าเริ่มต้น */
+    'Tanotfin/mms-thai-jori-f5-onnx': 'fp32',
+    'Tanotfin/mms-thai-riko-f5-onnx': 'fp32'
   };
-  /* เสียงไทย (2026-10): VITS ฝังความสุ่มไว้ใน ONNX (noise_scale_duration 0.8 / noise_scale 0.667) → อาการ "ยานตอนต้นคำ / สั่นตอนท้ายคำ"
-     • stable  = noise_scale_duration 0.3 / noise_scale 0.333 (น้ำหนักเดิม) — ชุดรอบก่อน
-     • stable2 = noise_scale 0.1 / noise_scale_duration 0.0 (น้ำหนักเดิม, เว้นขอบท่อนเหมือนเดิม) — เจ้าของฟังเทียบ 4 ระดับความสุ่มแล้วเลือก "G"; ค่าเริ่มต้นตอนนี้
-     ทางถอยเมื่อโหลดชุดใหม่ไม่ได้ (404/เครือข่ายหลังลองซ้ำแล้ว) ไล่ทีละขั้น ขั้นละ 1 ครั้ง: stable2 → stable → ต้นฉบับ (TTS_LEGACY = "ขั้นถัดไปของ id นั้น")
-     id เดิมทั้ง 4 (รวม "ค่าเริ่มต้น" Tanotfin/mms-tts-2081-onnx ที่เอาออกจากรายการเพราะฟังไม่รู้เรื่อง) และชุด stable ที่เคยเลือกไว้ แปลงเป็น stable2 ด้วย ttsMigrate */
-  /* ค่าเริ่มต้น (2026-10) = หญิง (โทนพอดแคสต์): วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด (ระดับเสียงเปลี่ยน ≥ 5 เซมิโทนฉับพลัน) ~6–8 ครั้ง/นาที เป็นธรรมชาติของโมเดล
-     พอดแคสต์ ~1.5 · ชาย 0 — เจ้าของเลือกพอดแคสต์ · มีผลเฉพาะคนที่ยังไม่เคยเลือก: id เดิมของหญิง ทั่วไป แปลงไป FM stable2 (TTS_FEMALE) ไม่ใช่ค่าเริ่มต้น */
-  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx';
-  var TTS_FEMALE = 'Tanotfin/mms-tts-2081-FM-stable2-onnx';
+  /* เสียงไทย (2026-10): เหลือ 2 ตัว — หญิง (Jori) ค่าเริ่มต้น · ชาย (Riko)
+     ทั้งคู่ fine-tune จาก VIZINTZOR MMS-TTS-THAI-FEMALEV2 / MALEV2 ด้วยเสียงที่สังเคราะห์โดย F5-TTS-THAI แล้วตั้งความสุ่มต่ำแบบ stable2
+     (VITS ฝังความสุ่มไว้ใน ONNX: ต้นฉบับ noise_scale 0.667 / noise_scale_duration 0.8 → อาการ "ยานต้นคำ / สั่นท้ายคำ"
+      • stable  = 0.333 / 0.3 · stable2 = 0.1 / 0.0 (น้ำหนักเดิม) — เจ้าของฟังเทียบแล้วเลือก stable2)
+     ทางถอยเมื่อโหลดไม่ได้ (404/เครือข่ายหลังลองซ้ำแล้ว) ไล่ทีละขั้น ขั้นละ 1 ครั้ง (TTS_LEGACY = "ขั้นถัดไปของ id นั้น"):
+       Jori → FM stable2 → FM stable → FM ต้นฉบับ · Riko → M stable2 → M stable → M ต้นฉบับ — เสียงถอยไม่อยู่ในรายการของหน้า
+     id ที่เคยเลือกไว้ทุกตัว (พอดแคสต์/หญิง ทั่วไป/ชาย ทั่วไป ทุกชุด) แปลงเป็น Jori/Riko ด้วย ttsMigrate · ค่าที่ไม่รู้จัก → Jori */
+  var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-jori-f5-onnx';
+  var TTS_MALE = 'Tanotfin/mms-thai-riko-f5-onnx';
+  var TTS_VOICE_IDS = [TTS_DEFAULT_VOICE, TTS_MALE];
   var TTS_LEGACY = {
-    /* Jori fine-tune จากหญิง ทั่วไป (VIZINTZOR FEMALEV2) → โหลดไม่ได้ถอยไป FM stable2 → stable → ต้นฉบับ */
     'Tanotfin/mms-thai-jori-f5-onnx': 'Tanotfin/mms-tts-2081-FM-stable2-onnx',
     'Tanotfin/mms-tts-2081-FM-stable2-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
-    'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
-    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx',
     'Tanotfin/mms-tts-2081-FM-stable-onnx': 'Tanotfin/mms-tts-2081-FM-onnx',
-    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-onnx',
-    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'phlebotomy1996/mms-thai-female-podcast-spk0'
+    'Tanotfin/mms-thai-riko-f5-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
+    'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
+    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-onnx'
   };
   var TTS_MIGRATE = {
-    'Tanotfin/mms-tts-2081-onnx': TTS_FEMALE,
-    'Tanotfin/mms-tts-2081-FM-onnx': TTS_FEMALE,
-    'Tanotfin/mms-tts-2081-M-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
-    'phlebotomy1996/mms-thai-female-podcast-spk0': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx',
-    'Tanotfin/mms-tts-2081-FM-stable-onnx': TTS_FEMALE,
-    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
-    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx'
+    'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-FM-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-FM-stable-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-FM-stable2-onnx': TTS_DEFAULT_VOICE,
+    'phlebotomy1996/mms-thai-female-podcast-spk0': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': TTS_DEFAULT_VOICE,
+    'Tanotfin/mms-tts-2081-M-onnx': TTS_MALE,
+    'Tanotfin/mms-tts-2081-M-stable-onnx': TTS_MALE,
+    'Tanotfin/mms-tts-2081-M-stable2-onnx': TTS_MALE
+  };
+  /* ล็อกรุ่นโมเดลด้วย commit ของ Hugging Face (ไม่ใช้ 'main'): transformers.js ใส่ revision ลง URL (…/resolve/<sha>/…) และใช้ URL นั้นเป็นคีย์แคช
+     → เครื่องที่เคยโหลดรุ่นเก่าไว้จะโหลดรุ่นใหม่เองเมื่อเลขเปลี่ยน · /api/hf/ รับ commit 40 hex และตอบ Cache-Control immutable (functions/_lib/hf.js)
+     ‼️ ฝึกรุ่นใหม่ → อัปโหลดขึ้น Hugging Face → เปลี่ยนเลข commit ตรงนี้ (ไม่มีในตาราง = 'main' — ทางถอยทั้งหมดใช้ main) */
+  var TTS_REVISION = {
+    'Tanotfin/mms-thai-jori-f5-onnx': '9a95f85be1cf9440723d9ad085c5ea7137f59af8',
+    'Tanotfin/mms-thai-riko-f5-onnx': '55d6042e45801f5a716d53dd62161ced49640759'
   };
   /* "ลดเสียงแหลม" (ตัวกรอง low-pass 2nd-order biquad Q 0.707 ที่ TTS_LOWPASS_HZ — audio-gain.js): หญิง ทั่วไป (22.05 kHz) มีเสียงแหลมจนมีเสียงรบกวนเล็กน้อย (เจ้าของฟังจริง)
-     ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
+     ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ (Jori/Riko ไม่เปิด — ผู้ใช้ติ๊กเองได้) · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
   var TTS_LOWPASS_HZ = 7000;
   var TTS_LOWPASS_DEFAULT = {
     'Tanotfin/mms-tts-2081-FM-stable2-onnx': true,
@@ -75,7 +80,7 @@
   /* ── โมเดลของ Tanotfin โหลดผ่าน /api/hf/ เท่านั้น (2026-10: เตรียมตั้ง repo บน Hugging Face เป็น private) ──
      functions/api/hf/[[path]].js อยู่หลัง Cloudflare Access (+ _middleware.js) แล้วส่งต่อไป huggingface.co พร้อม HF_TOKEN (Secret)
      useHfProxy(env) ตั้ง env.fetch ของ transformers.js: เปลี่ยนเฉพาะ https://huggingface.co/Tanotfin/… → <origin>/api/hf/Tanotfin/… (same-origin + คุกกี้)
-     repo อื่น (onnx-community, Xenova, phlebotomy1996 …) และไฟล์อื่น (jsDelivr) โหลดตรงเหมือนเดิม
+     repo อื่น (onnx-community, Xenova …) และไฟล์อื่น (jsDelivr) โหลดตรงเหมือนเดิม
      • ทำงานเฉพาะ *.pages.dev (มี /api/*) หรือเมื่อเทสต์ตั้ง self.TANOT_HF_PROXY = { enabled: true } · ที่อื่น = โหลดตรง (ใช้ได้เฉพาะตอน repo ยัง public)
      • แคชของ transformers.js (Cache Storage 'transformers-cache') ใช้ URL ของ huggingface.co เป็นคีย์ ไม่ใช่ URL ที่ fetch จริง → แคชเดิมในเครื่องใช้ต่อได้ ไม่ต้องโหลดใหม่
      • เซสชัน Access หมดอายุ (opaqueredirect ไปหน้าล็อกอิน / 401 / 403 จาก _middleware.js) → โยน SessionError (code 'session') — ไม่ใช่ "เครือข่ายสะดุด"
@@ -176,12 +181,19 @@
     ASR_MODELS: ASR_MODELS,
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
     TTS_DEFAULT_VOICE: TTS_DEFAULT_VOICE,
+    TTS_VOICE_IDS: TTS_VOICE_IDS,
     TTS_LEGACY: TTS_LEGACY,
-    /* id เสียงที่เคยเลือกไว้ (ต้นฉบับ/stable) → ตัว stable2 คู่กัน · id อื่น/ใหม่แล้ว = คืนค่าเดิม */
-    ttsMigrate: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_MIGRATE, modelId) ? TTS_MIGRATE[modelId] : modelId; },
-    /* ทางถอย "ขั้นถัดไป" ของ id นั้น: stable2 → stable → ต้นฉบับ → null (ไม่มี) · ผู้เรียกถอยทีละขั้น ขั้นละ 1 ครั้ง */
+    TTS_REVISION: TTS_REVISION,
+    /* id เสียงที่เคยเลือกไว้ → Jori/Riko (ฝั่งหญิงทุกตัว → Jori · ฝั่งชาย → Riko) · Jori/Riko คืนค่าเดิม · ค่าที่ไม่รู้จัก/ว่าง → Jori */
+    ttsMigrate: function (modelId) {
+      if (TTS_VOICE_IDS.indexOf(modelId) >= 0) return modelId;
+      return Object.prototype.hasOwnProperty.call(TTS_MIGRATE, modelId) ? TTS_MIGRATE[modelId] : TTS_DEFAULT_VOICE;
+    },
+    /* commit ของ Hugging Face ที่ล็อกไว้ (ไม่มีในตาราง = 'main') — ส่งเป็น option revision ของ pipeline() ทุกทาง */
+    ttsRevision: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_REVISION, modelId) ? TTS_REVISION[modelId] : 'main'; },
+    /* ทางถอย "ขั้นถัดไป" ของ id นั้น: Jori → FM stable2 → FM stable → FM ต้นฉบับ → null (ไม่มี) · ผู้เรียกถอยทีละขั้น ขั้นละ 1 ครั้ง */
     ttsLegacy: function (modelId) { return TTS_LEGACY[modelId] || null; },
-    /* ห่วงโซ่ทางถอยทั้งหมดของ id (ไม่รวมตัวมันเอง) เช่น stable2 → [stable, ต้นฉบับ] */
+    /* ห่วงโซ่ทางถอยทั้งหมดของ id (ไม่รวมตัวมันเอง) เช่น Jori → [FM stable2, FM stable, FM ต้นฉบับ] */
     ttsLegacyChain: function (modelId) { var out = [], id = modelId, guard = 0; while (TTS_LEGACY[id] && guard++ < 8) { id = TTS_LEGACY[id]; out.push(id); } return out; },
     TTS_LOWPASS_HZ: TTS_LOWPASS_HZ,
     /* ธงเริ่มต้นของ "ลดเสียงแหลม" ต่อเสียง (ผู้ใช้ override ได้ที่ tanot:tts:opts.lowpass) */

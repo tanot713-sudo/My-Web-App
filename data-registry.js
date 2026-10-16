@@ -46,8 +46,6 @@
     { key: 'tanot:asr:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ล้มล่าสุดบนเครื่องนี้ (media-core.js) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:asrcloud:neuronUsage', kind: 'local' },
     { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
-    { key: 'tanot:f5lab:ui', kind: 'cache' }, // หน้าทดลอง F5 ในเบราว์เซอร์ (f5-lab.js): รุ่นที่เลือก (q4/fp16) + เสียงตัวอย่างที่เลือก — ค่าเฉพาะเครื่อง (เสียงตัวอย่างอยู่ใน IndexedDB tanot-f5-lab ที่ไม่อยู่ใน registry ตั้งใจ: ห้ามออกนอกเครื่อง)
-    { key: 'tanot:f5lab:crumb', kind: 'cache' }, // หน้าทดลอง F5: จุดที่การสร้างเสียงไปถึงล่าสุด (ตัวเลข/รหัสเท่านั้น) — เปิดหน้าใหม่แล้วไม่ done = แท็บถูกปิดกลางทาง · เฉพาะเครื่อง
     { key: 'tanot:ocrengine', kind: 'local' },
     { key: 'tanot:market:live-config:v1', kind: 'local' }, // มี API key ที่ UI บอกว่าเก็บในเครื่องเท่านั้น — ห้ามส่งขึ้นเซิร์ฟเวอร์
     { key: 'tanot:barprep:ttsvoice', kind: 'local' },

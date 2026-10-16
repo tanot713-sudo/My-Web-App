@@ -86,12 +86,8 @@ jobs:
         run: npx playwright test tts-long.spec.js
       - name: tts-misread (บันทึกคำอ่านผิด — sync map 1 คำ = 1 doc, บันทึกอัตโนมัติหลังสร้างเสียงไทยสำเร็จ + นับซ้ำ + ตัวอย่าง ≤ 3, เพดาน 500 คำ, ปิดสวิตช์แล้วไม่บันทึก, แจ้งเอง + เพิ่มเข้าคำอ่านของฉัน, ส่งออก .txt แทนคำอ่านถูก + ไฟล์ที่สอง, JSON, ล้างทั้งหมดต้องยืนยัน, ไม่เข้า problem log — transformers ตัวหลอก ข้อความตัวอย่างแต่งเอง)
         run: npx playwright test tts-misread.spec.js
-      - name: colab (หนังสือเสียง F5-TTS-THAI บน Google Colab — notebook ตรงกับ .py ทุกตัวอักษร, ประเมินความยาวเสียง/เวลาสร้าง/จำนวนตอน, การ์ดในหน้า text-to-speech + ดาวน์โหลด .txt + ลิงก์ Colab + ไทย/อังกฤษ + 360px)
-        run: npx playwright test colab.spec.js
       - name: hf (โมเดลของ Tanotfin ผ่าน /api/hf/ — Function ปฏิเสธ path/method อื่น, ไม่มี HF_TOKEN → 503, token ไป huggingface.co เท่านั้นไม่ตามไป CDN, Range + stream ไม่ buffer, env.fetch เปลี่ยนเฉพาะ URL ของ Tanotfin, เซสชันหมดอายุ → เข้าสู่ระบบใหม่ ไม่ถอยรุ่น — upstream/transformers ตัวหลอก)
         run: npx playwright test hf.spec.js
-      - name: f5 (หน้าทดลอง F5 ในเบราว์เซอร์ — f5-calc.js ตรงกับ Colab ทุกขั้น, โมเดลผ่าน /api/hf/ เท่านั้น + แคช + ลบได้, เสียงตัวอย่างอยู่ในเครื่อง, 32 step tensor อยู่บน GPU, ไม่มี WebGPU → ข้อความ + ปุ่ม CPU, เซสชันหมดอายุ → เข้าสู่ระบบใหม่, ธีม/มือถือ/ภาษา = 0 — onnxruntime-web ตัวหลอก)
-        run: npx playwright test f5.spec.js
       - name: electrical (สูตรเครื่องคำนวณไฟฟ้าเทียบตัวอย่างที่รู้คำตอบ + หน้า electrical.html)
         run: npx playwright test electrical.spec.js
       - name: tax (กฎภาษีแยกปี + สูตรลดหย่อน/เพดานกลุ่มเกษียณ/บำนาญ เทียบตัวเลขคิดมือ + หน้า tax.html)

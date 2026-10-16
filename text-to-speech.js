@@ -1,8 +1,9 @@
 /* ══════════════════════════════════════════════════════════════════
-   แปลงข้อความเป็นเสียง — 2 โหมด:
-   1) ฟังทันที: Web Speech API ของเบราว์เซอร์ (เล่นสดเท่านั้น ดาวน์โหลดไม่ได้)
-   2) สร้างไฟล์เสียง: eSpeak NG (WASM, ฝังในเว็บเอง) → .wav ตรงๆ จาก virtual FS
-      แล้วเข้ารหัสเป็น .mp3 ด้วย lamejs ฝั่งเบราว์เซอร์ล้วนๆ ไม่มีเซิร์ฟเวอร์
+   แปลงข้อความเป็นเสียง — ขั้นตอนเดียว (2026-10): ใส่ข้อความ → เลือกเสียง → สร้าง → ฟัง/ดาวน์โหลด
+   MMS-TTS (transformers.js) ในพูล Web Worker → .wav + .mp3 (audio-encode-worker.js) ในเบราว์เซอร์ล้วนๆ ไม่มีเซิร์ฟเวอร์
+   เสียงไทย 2 ตัว (Jori / Riko — media-models.js) · ข้อความไม่มีอักษรไทยเลย = เสียงอังกฤษอัตโนมัติ (กฎเดียวกับ ai-chat-widget.js)
+   ตัวเลือกที่เหลือทั้งหมดอยู่ในส่วนพับ "ตัวเลือกเพิ่มเติม" (#moreBox)
+   + การ์ด "เสียง/วิดีโอ → ข้อความ" (Whisper) แยกต่างหาก
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -12,19 +13,18 @@
   var T = OME_I18N.scope('tts', {
     th: {
       title: 'แปลงเสียง ↔ ข้อความ | Tanot', crumbHome: 'หน้าหลัก', crumb: 'แปลงข้อความเป็นเสียง', h1: 'แปลงเสียง ↔ ข้อความ',
-      cardText: 'ข้อความ', attach: 'แนบไฟล์', useOcr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)',
+      attach: 'แนบไฟล์', useOcr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน (ช้ากว่าปกติ)',
       textPh: 'พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน', textLabel: 'ข้อความ',
-      cardLive: 'ฟังทันที (เสียงจากเบราว์เซอร์)', voice: 'เสียง', rate: 'ความเร็ว', play: 'เล่น', pause: 'หยุดชั่วคราว', stop: 'หยุด',
-      cardMake: 'สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)', badgeAi: 'เสียง AI (MMS-TTS)', lang: 'ภาษา', langTh: 'ไทย', langEn: 'อังกฤษ', make: 'สร้างไฟล์เสียง', dlWav: 'ดาวน์โหลด .wav', dlMp3: 'ดาวน์โหลด .mp3',
+      voice: 'เสียง', enAuto: 'ข้อความภาษาอังกฤษล้วนจะใช้เสียงอังกฤษให้อัตโนมัติ', more: 'ตัวเลือกเพิ่มเติม',
+      cardMake: 'ข้อความ → เสียง', badgeAi: 'เสียง AI (MMS-TTS)', lang: 'ภาษา', langTh: 'ไทย', langEn: 'อังกฤษ', make: 'สร้างไฟล์เสียง', dlWav: 'ดาวน์โหลด .wav', dlMp3: 'ดาวน์โหลด .mp3',
       cardAsr: 'เสียง/วิดีโอ → ข้อความ', asrFile: 'ไฟล์เสียง/วิดีโอ', asrAuto: 'ตรวจจับอัตโนมัติ', modelSize: 'ขนาดโมเดล',
       mTiny: 'เล็ก (เร็ว, ~75MB)', mBase: 'กลาง (แม่นขึ้น, ~145MB)', mSmall: 'ใหญ่ (แม่นขึ้นมาก, ~250MB, โหลด/รันช้ากว่า)', mMedium: 'ใหญ่มาก (แม่นสุด, ~750MB-1GB, โหลด/รันช้ามาก อาจหนักเกินไปสำหรับมือถือ/เครื่องสเปกต่ำ)',
       engineLabel: 'ถอดเสียงด้วย', engineLocal: 'ในเบราว์เซอร์ (ฟรี)', engineCloud: 'คลาวด์ (แม่นกว่า)', asrGo: 'ถอดเสียงเป็นข้อความ', copy: 'คัดลอกข้อความ', sumMeeting: 'สรุปประชุมด้วย AI', dlDocx: 'ดาวน์โหลดเป็น Word (.docx)',
       chars: '{n} ตัวอักษร', reading: 'กำลังอ่านไฟล์…', readingOcr: 'กำลังอ่านด้วย OCR หน้า/รูป {page}/{total} (อาจใช้เวลาสักครู่ต่อหน้า)…', readingPdf: 'กำลังอ่าน PDF หน้า {page}/{total}…',
       noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', readingFile: 'กำลังอ่านไฟล์ {name}…', noText: 'ไม่พบข้อความในไฟล์นี้',
       imported: 'นำเข้าข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
-      noWebSpeech: '(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)', noVoices: '(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองรอสักครู่)', defaultVoice: ' — ค่าเริ่มต้น',
-      typeFirst: 'พิมพ์ข้อความก่อน', playing: 'กำลังเล่น…', played: 'เล่นจบแล้ว', playFail: 'เล่นไม่สำเร็จ: {msg}', paused: 'หยุดชั่วคราว',
-      v_default: 'ค่าเริ่มต้น', v_podcast: 'หญิง (โทนพอดแคสต์)', v_jori: 'หญิง (Jori)', v_female: 'หญิง (ทั่วไป)', v_male: 'ชาย (ทั่วไป)',
+      typeFirst: 'พิมพ์ข้อความก่อน',
+      v_jori: 'หญิง (Jori)', v_riko: 'ชาย (Riko)',
       etaFew: 'อีกไม่กี่วินาที', etaSec: 'อีกประมาณ {s} วินาที', etaMin: 'อีกประมาณ {m} นาที', etaMinSec: 'อีกประมาณ {m} นาที {s} วินาที',
       emptyAfterFilter: 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู',
       prepTh: 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…',
@@ -67,32 +67,22 @@
       workersInfo: 'Worker {n} ตัว · ~{s} วิ/ท่อน', gpuInfo: 'WebGPU · ~{s} วิ/ท่อน', gpuWasm: 'WebGPU ใช้ไม่ได้กับเสียงนี้ — สลับไปใช้ WASM แล้ว',
       etaHr: 'อีกประมาณ {h} ชั่วโมง', etaHrMin: 'อีกประมาณ {h} ชั่วโมง {m} นาที',
       madeParts: 'สร้างเสร็จ {n} ไฟล์ — ดาวน์โหลดแต่ละไฟล์ด้านล่าง', cancelPartial: 'ยกเลิกแล้ว — ได้ไฟล์เสร็จแล้ว {n} ไฟล์ (ดาวน์โหลดด้านล่าง)', partsKept: 'ได้ไฟล์เสร็จแล้ว {n} ไฟล์ — ดาวน์โหลดด้านล่าง',
-      partMeta: '{dur} · ท่อน {from}–{to}',
-      f5Title: 'หนังสือเสียงคุณภาพสูง (Google Colab)', f5Summary: 'ประเมินเวลาและเปิดใน Colab', f5How: 'วิธีใช้และข้อควรรู้',
-      f5Lead: 'อ่านไทยแม่นกว่าเสียงในเบราว์เซอร์ราว 2–3 เท่า (วัดจากการถอดเสียงกลับ) แต่ต้องใช้ Google Colab + GPU ใช้เวลานาน และไฟล์ไปอยู่ใน Google Drive',
-      f5Chars: 'ตัวอักษรหลังแปลง', f5Audio: 'ความยาวเสียง (ต่อ 1 เสียง)', f5Gen: 'เวลาสร้างบน L4 (ต่อ 1 เสียง)', f5Chapters: 'จำนวนตอน', f5TimeParts: 'จำนวนไฟล์ (ไม่พบหัวตอน — แบ่งทุก ~30 นาที)',
-      f5Min: '~{m} นาที', f5Hr: '~{h} ชม.', f5HrMin: '~{h} ชม. {m} นาที',
-      f5Txt: 'บันทึกข้อความเป็น .txt', f5Open: 'เปิดใน Colab', f5Lab: 'ลองในเบราว์เซอร์ (ทดลอง)', f5Saved: 'บันทึก {name} แล้ว',
-      f5Step1: 'ใน Colab: Runtime → Change runtime type → เลือก L4 GPU → Save', f5Step2: 'กด Run ที่ cell โค้ด', f5Step3: 'อนุญาตให้เข้าถึง Google Drive',
-      f5Step4: 'อัปโหลดไฟล์ .txt — ครั้งแรกเลือก ref-F-C.wav และ ref-M-C.wav ไปพร้อมกัน (ครั้งต่อไปใช้ที่เก็บไว้ใน Drive)',
-      f5Step5: 'เปิดแท็บ Colab ค้างไว้จนเสร็จ — หลุดแล้วกด Run ใหม่ ทำต่อจากตอนที่ค้าง · ไฟล์ MP3 อยู่ที่',
-      f5NoteLex: '"คำอ่านของฉัน" ไม่ถูกใช้กับเสียงนี้', f5NoteRef: 'เสียงตัวอย่างยาว 6–8 วินาที พร้อมข้อความกำกับที่ตรงทุกคำ — ใช้เสียงที่สร้างเองหรือได้รับอนุญาตเท่านั้น'
+      partMeta: '{dur} · ท่อน {from}–{to}'
     },
     en: {
       title: 'Speech ↔ text | Tanot', crumbHome: 'Home', crumb: 'Text to speech', h1: 'Speech ↔ text',
-      cardText: 'Text', attach: 'Attach file', useOcr: 'Use OCR on scanned pages/images (slower)',
+      attach: 'Attach file', useOcr: 'Use OCR on scanned pages/images (slower)',
       textPh: 'Type or paste text here (Thai or English), or use Attach file above', textLabel: 'Text',
-      cardLive: 'Listen now (browser voice)', voice: 'Voice', rate: 'Speed', play: 'Play', pause: 'Pause', stop: 'Stop',
-      cardMake: 'Create a downloadable audio file (.wav / .mp3)', badgeAi: 'AI voice (MMS-TTS)', lang: 'Language', langTh: 'Thai', langEn: 'English', make: 'Create audio file', dlWav: 'Download .wav', dlMp3: 'Download .mp3',
+      voice: 'Voice', enAuto: 'English-only text uses an English voice automatically', more: 'More options',
+      cardMake: 'Text → speech', badgeAi: 'AI voice (MMS-TTS)', lang: 'Language', langTh: 'Thai', langEn: 'English', make: 'Create audio file', dlWav: 'Download .wav', dlMp3: 'Download .mp3',
       cardAsr: 'Audio/video → text', asrFile: 'Audio/video file', asrAuto: 'Auto-detect', modelSize: 'Model size',
       mTiny: 'Small (fast, ~75MB)', mBase: 'Medium (more accurate, ~145MB)', mSmall: 'Large (much more accurate, ~250MB, slower to load/run)', mMedium: 'Extra large (most accurate, ~750MB-1GB, very slow to load/run — may be too heavy for phones/low-end devices)',
       engineLabel: 'Transcribe with', engineLocal: 'In browser (free)', engineCloud: 'Cloud (more accurate)', asrGo: 'Transcribe to text', copy: 'Copy text', sumMeeting: 'Summarize meeting with AI', dlDocx: 'Download as Word (.docx)',
       chars: '{n} characters', reading: 'Reading file…', readingOcr: 'Reading with OCR, page/image {page}/{total} (may take a moment per page)…', readingPdf: 'Reading PDF page {page}/{total}…',
       noReader: 'Could not load the file reader (slow or blocked network?). Try reloading the page', readingFile: 'Reading {name}…', noText: 'No text found in this file',
       imported: 'Imported text from {name} ({n} characters) — review it before pressing "Create audio file"', readFail: 'Could not read the file: {msg}',
-      noWebSpeech: '(This browser does not support the Web Speech API)', noVoices: '(No voices found yet — some browsers load slowly, wait a moment)', defaultVoice: ' — default',
-      typeFirst: 'Type some text first', playing: 'Playing…', played: 'Finished playing', playFail: 'Playback failed: {msg}', paused: 'Paused',
-      v_default: 'Default', v_podcast: 'Female (podcast tone)', v_jori: 'Female (Jori)', v_female: 'Female (general)', v_male: 'Male (general)',
+      typeFirst: 'Type some text first',
+      v_jori: 'Female (Jori)', v_riko: 'Male (Riko)',
       etaFew: 'a few seconds left', etaSec: 'about {s} seconds left', etaMin: 'about {m} min left', etaMinSec: 'about {m} min {s} s left',
       emptyAfterFilter: 'Nothing is left after removing characters the model does not know. Try typing in Thai',
       prepTh: 'Preparing the voice model (the first time it downloads from Hugging Face — later runs are faster because it is cached)…',
@@ -135,16 +125,7 @@
       workersInfo: '{n} workers · ~{s} s/segment', gpuInfo: 'WebGPU · ~{s} s/segment', gpuWasm: 'WebGPU does not work with this voice — switched to WASM',
       etaHr: 'about {h} h left', etaHrMin: 'about {h} h {m} min left',
       madeParts: '{n} files ready — download each file below', cancelPartial: 'Cancelled — {n} files were already finished (download below)', partsKept: '{n} files were already finished — download below',
-      partMeta: '{dur} · segments {from}–{to}',
-      f5Title: 'High-quality audiobook (Google Colab)', f5Summary: 'Estimate and open in Colab', f5How: 'How to use and notes',
-      f5Lead: 'Reads Thai about 2–3× more accurately than the browser voice (measured by transcribing it back), but it needs Google Colab + a GPU, takes a long time, and the files go to Google Drive',
-      f5Chars: 'Characters after conversion', f5Audio: 'Audio length (per voice)', f5Gen: 'Time to make on an L4 (per voice)', f5Chapters: 'Chapters', f5TimeParts: 'Files (no chapter headings — split every ~30 min)',
-      f5Min: '~{m} min', f5Hr: '~{h} h', f5HrMin: '~{h} h {m} min',
-      f5Txt: 'Save text as .txt', f5Open: 'Open in Colab', f5Lab: 'Try in the browser (lab)', f5Saved: 'Saved {name}',
-      f5Step1: 'In Colab: Runtime → Change runtime type → pick L4 GPU → Save', f5Step2: 'Press Run on the code cell', f5Step3: 'Allow access to Google Drive',
-      f5Step4: 'Upload the .txt file — the first time, also pick ref-F-C.wav and ref-M-C.wav (later runs reuse the copies kept in Drive)',
-      f5Step5: 'Keep the Colab tab open until it finishes — if it disconnects, press Run again to continue where it stopped · the MP3 files are in',
-      f5NoteLex: '"My pronunciations" are not used for this voice', f5NoteRef: 'Reference voice clips are 6–8 seconds with a transcript that matches every word — only use voices you made yourself or have permission to use'
+      partMeta: '{dur} · segments {from}–{to}'
     }
   });
   /* บรรทัดสถานะ: st(id, fn, cls?) — fn คืนข้อความตามภาษาปัจจุบัน (วาดซ้ำเองตอนสลับภาษา) · fn=null ล้างข้อความ */
@@ -225,9 +206,8 @@
         return;
       }
       $('ttsText').value = text;
-      importedName = file.name || '';
       updateCharCount();
-      scheduleF5();
+      schedulePreviews();
       $('importStatus').className = 'status ok';
       st('importStatus', function () { return T('imported', { name: file.name, n: text.length }); });
     }).catch(function (err) {
@@ -238,79 +218,21 @@
     });
   }
 
-  /* ══════════════════ โหมด 1: Web Speech API (เล่นสด) ══════════════════ */
-  var wsVoices = [];
-  function loadWsVoices() {
-    wsVoices = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
-    renderWsVoiceOptions();
-  }
-  function renderWsVoiceOptions() {
-    var sel = $('wsVoice');
-    var keep = sel.value;
-    if (!window.speechSynthesis) {
-      sel.innerHTML = '<option value="">' + T('noWebSpeech') + '</option>';
-      $('wsPlayBtn').disabled = true;
-      return;
-    }
-    if (!wsVoices.length) {
-      sel.innerHTML = '<option value="">' + T('noVoices') + '</option>';
-      return;
-    }
-    sel.innerHTML = wsVoices.map(function (v, i) {
-      return '<option value="' + i + '">' + v.name + ' (' + v.lang + ')' + (v.default ? T('defaultVoice') : '') + '</option>';
-    }).join('');
-    var defaultIdx = wsVoices.findIndex(function (v) { return v.default; });
-    if (keep !== '' && wsVoices[+keep]) sel.value = keep;
-    else if (defaultIdx >= 0) sel.value = String(defaultIdx);
-  }
-  function wsPlay() {
-    var text = $('ttsText').value;
-    if (!text.trim()) { $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('typeFirst'); }); return; }
-    if (!window.speechSynthesis) return;
-    var spoken = Norm.forNative(text); // ล้าง markdown/อีโมจิ/URL + ขยายตัวย่อ (ไม่แปลงตัวเลข — เอนจินของระบบอ่านเอง)
-    if (!spoken) { $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('typeFirst'); }); return; }
-    window.speechSynthesis.cancel();
-    var u = new SpeechSynthesisUtterance(spoken);
-    var idx = parseInt($('wsVoice').value, 10);
-    if (wsVoices[idx]) { u.voice = wsVoices[idx]; u.lang = wsVoices[idx].lang; }
-    u.rate = parseFloat($('wsRate').value) || 1;
-    u.onstart = function () { $('wsStatus').className = 'status ok'; st('wsStatus', function () { return T('playing'); }); };
-    u.onend = function () { $('wsStatus').className = 'status'; st('wsStatus', function () { return T('played'); }); };
-    u.onerror = function (e) {
-      if (e && e.error === 'interrupted') return; // ผู้ใช้กดหยุด/เล่นใหม่เอง ไม่ใช่ข้อผิดพลาดจริง
-      $('wsStatus').className = 'status err'; st('wsStatus', function () { return T('playFail', { msg: e && e.error }); });
-    };
-    window.speechSynthesis.speak(u);
-  }
-  function wsPauseToggle() {
-    if (!window.speechSynthesis) return;
-    if (window.speechSynthesis.speaking && !window.speechSynthesis.paused) {
-      window.speechSynthesis.pause();
-      $('wsStatus').className = 'status'; st('wsStatus', function () { return T('paused'); });
-    } else if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-      $('wsStatus').className = 'status ok'; st('wsStatus', function () { return T('playing'); });
-    }
-  }
-  function wsStop() {
-    if (window.speechSynthesis) window.speechSynthesis.cancel();
-    $('wsStatus').className = 'status'; st('wsStatus', null);
-  }
-
-  /* ══════════════════ โหมด 2: สร้างไฟล์เสียง (MMS-TTS ผ่าน transformers.js → wav → mp3) ══════════════════
+  /* ══════════════════ สร้างไฟล์เสียง (MMS-TTS ผ่าน transformers.js → wav → mp3) ══════════════════
      เดิมใช้ eSpeak NG แต่พบว่าโมดูลแปลภาษาไทยเป็นหน่วยเสียงของ eSpeak NG (ทั้งรุ่นที่ฝังไว้และรุ่นล่าสุด
      ที่คอมไพล์จากซอร์สทางการเองสดๆ) แปลผิดตั้งแต่ต้นทาง ฟังไม่รู้เรื่อง — เป็นข้อจำกัดของตัวเอนจินเอง
      ไม่ใช่เรื่องความเร็ว/พิทช์ จึงเปลี่ยนมาใช้ MMS-TTS (โมเดล AI จาก Meta รองรับ 1,100+ ภาษา) ผ่าน
      transformers.js แทน — เป็นโมเดลเสียงประสาทเทียมจริง (เสียงเป็นธรรมชาติกว่ามาก) แต่ละภาษาเป็นคนละ
      โมเดล ต้องดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกเหมือนโหมดถอดเสียงเป็นข้อความ */
   var ttsPipelinePromiseByModel = {};
-  /* dtype ต่อโมเดล (เช่น "หญิง (โทนพอดแคสต์)" = fp32 เพราะไม่มีไฟล์ quantized) อยู่ใน media-models.js ที่เดียว —
+  /* dtype ต่อโมเดล (Jori/Riko = fp32 เพราะไม่มีไฟล์ quantized) + revision (commit ที่ล็อกไว้) อยู่ใน media-models.js ที่เดียว —
      tts-worker.js อ่านไฟล์เดียวกัน (เดิมตารางซ้ำ 2 ชุดแล้วเคยลืมแก้คู่กันจนเกิดบั๊กแรมพุ่ง — ประวัติเต็มที่หัวไฟล์ media-models.js) */
   function ttsMigrate(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsMigrate(modelId) : modelId; }
   function ttsLegacy(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsLegacy(modelId) : null; }
-  /* เว้นขอบท่อน: ทุกท่อนที่เข้าโมเดล MMS ไทยขึ้นต้น/ลงท้ายด้วยช่องว่าง 1 ตัว (ฟังแล้วดีสุด คู่กับ noise ต่ำของชุด stable) · อังกฤษไม่ทำ */
+  /* เว้นขอบท่อน: ทุกท่อนที่เข้าโมเดล MMS ไทยขึ้นต้น/ลงท้ายด้วยช่องว่าง 1 ตัว (ฟังแล้วดีสุด คู่กับ noise ต่ำแบบ stable2) · อังกฤษไม่ทำ */
   function padMms(modelId, text) { return /mms-tts-eng/.test(modelId) ? text : (Norm && Norm.padMms ? Norm.padMms(text) : ' ' + text + ' '); }
   function ttsDtype(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsDtype(modelId) : null; }
+  function ttsRevision(modelId) { return window.TanotMediaModels && TanotMediaModels.ttsRevision ? TanotMediaModels.ttsRevision(modelId) : 'main'; }
   function loadTtsPipeline(modelId, onProgress) {
     if (!ttsPipelinePromiseByModel[modelId]) {
       ttsPipelinePromiseByModel[modelId] = import('./vendor/transformers/transformers.web.min.js').then(function (mod) {
@@ -319,12 +241,13 @@
         if (window.TanotMediaModels) TanotMediaModels.useHfProxy(env); // โมเดลของ Tanotfin โหลดผ่าน /api/hf/ (media-models.js)
         var opts = { progress_callback: onProgress };
         if (ttsDtype(modelId)) opts.dtype = ttsDtype(modelId);
+        if (ttsRevision(modelId) !== 'main') opts.revision = ttsRevision(modelId); // ล็อกรุ่น → URL …/resolve/<sha>/… (เหมือน tts-worker.js)
         return mod.pipeline('text-to-speech', modelId, opts);
       });
     }
     return ttsPipelinePromiseByModel[modelId];
   }
-  /* ทางถอย (เธรดหลัก): โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ขั้นถัดไปของเสียงนั้น ทีละขั้น ขั้นละ 1 ครั้ง (stable2 → stable → ต้นฉบับ) + problem log ทุกขั้น · Worker ทำแบบเดียวกันใน tts-worker.js
+  /* ทางถอย (เธรดหลัก): โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ขั้นถัดไปของเสียงนั้น ทีละขั้น ขั้นละ 1 ครั้ง (Jori → FM stable2 → stable → ต้นฉบับ · Riko → M …) + problem log ทุกขั้น · Worker ทำแบบเดียวกันใน tts-worker.js
      เครือข่ายสะดุดตอนโหลด (TypeError: network error ฯลฯ ไม่ใช่ 404) → รอ ~1.5 วิ ลองโหลดซ้ำ 1 ครั้งก่อนเข้าทางถอย + บันทึกว่าลองซ้ำแล้ว */
   var ttsRedirect = {}, modelFallbackLogged = {};
   function sleepMs(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
@@ -658,29 +581,25 @@
     $('dlWavLink').href = wavUrl;
     $('dlMp3Link').href = mp3Url;
   }
-  var TTS_VOICES = {
-    th: [
-      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น (select เลือกตัวแรกเอง) = โทนพอดแคสต์ — Jori วางต่อจากนั้น (วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด ≥ 5 เซมิโทน ~6–8 ครั้ง/นาที, พอดแคสต์ ~1.5, ชาย 0 — เจ้าของเลือกพอดแคสต์) · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) */
-      { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' },
-      { id: 'Tanotfin/mms-thai-jori-f5-onnx', label: 'หญิง (Jori)', k: 'v_jori' },
-      { id: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
-      { id: 'Tanotfin/mms-tts-2081-M-stable2-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' }
-    ],
-    en: [
-      { id: 'Xenova/mms-tts-eng', label: 'ค่าเริ่มต้น', k: 'v_default' }
-    ]
-  };
+  /* เสียงไทย 2 ตัว (ตัวแรก = ค่าเริ่มต้น TTS_DEFAULT_VOICE) · ทางถอย/dtype/revision อยู่ที่ media-models.js · เสียงอังกฤษไม่อยู่ในรายการ — ใช้อัตโนมัติเมื่อข้อความไม่มีอักษรไทยเลย */
+  var TTS_VOICES = [
+    { id: 'Tanotfin/mms-thai-jori-f5-onnx', k: 'v_jori' },
+    { id: 'Tanotfin/mms-thai-riko-f5-onnx', k: 'v_riko' }
+  ];
+  var EN_VOICE = 'Xenova/mms-tts-eng';
+  /* ภาษาของข้อความ = ภาษาของเสียง: มีอักษรไทยอย่างน้อย 1 ตัว → ไทย ไม่งั้นอังกฤษ (กฎเดียวกับ ai-chat-widget.js pickTtsModel) */
+  function textLang(text) { return /[\u0E00-\u0E7F]/.test(text || '') ? 'th' : 'en'; }
+  function ttsLang() { return textLang($('ttsText').value); }
   function renderVoiceOptions() {
-    var lang = $('dlLang').value, keep = ttsMigrate($('dlVoice').value); // ค่าที่เคยเลือกไว้ (ต้นฉบับ/stable) → ตัว stable2 คู่กัน
-    var voices = TTS_VOICES[lang] || TTS_VOICES.th;
-    $('dlVoice').innerHTML = voices.map(function (v) { return '<option value="' + v.id + '">' + T(v.k) + '</option>'; }).join('');
-    if (keep && voices.some(function (v) { return v.id === keep; })) $('dlVoice').value = keep; // ไม่มีในรายการภาษานี้ = ตัวแรก (เดิมตั้งค่าที่ไม่มีอยู่ → select ว่าง → modelId '')
+    var keep = ttsMigrate($('dlVoice').value); // ค่าที่เคยเลือกไว้ → Jori/Riko (ไม่รู้จัก = Jori)
+    $('dlVoice').innerHTML = TTS_VOICES.map(function (v) { return '<option value="' + v.id + '">' + T(v.k) + '</option>'; }).join('');
+    if (keep && TTS_VOICES.some(function (v) { return v.id === keep; })) $('dlVoice').value = keep;
   }
 
-  /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย (Tanotfin/mms-tts-2081-onnx) ══════════════════
+  /* ══════════════════ ปรับข้อความก่อนส่งเข้าโมเดลเสียงไทย ══════════════════
      ย้ายไป tts-normalize.js (window.TanotTtsNorm — ใช้ร่วมกับวิดเจ็ตแชท) · เหตุผลที่ต้องแปลงเลขเป็นคำ/กรอง vocab:
      โมเดลนี้เทรนด้วยอักษรไทยล้วน (vocab 72 ตัว) เลขอารบิกมีแค่ 0,1,2,4 — ตัวอักษรนอก vocab ทำให้พังกลางคัน
-     (ONNX Runtime: Gather node index out of bounds) · หน้านี้ใช้ plan()/forMms()/forNative() เท่านั้น */
+     (ONNX Runtime: Gather node index out of bounds) · หน้านี้ใช้ plan()/forMms() เท่านั้น */
   var Norm = window.TanotTtsNorm;
 
   /* แปลงวินาทีเป็นข้อความอ่านง่าย ใช้โชว์เวลาที่เหลือโดยประมาณ (ETA) ระหว่างสร้างเสียง */
@@ -714,14 +633,14 @@
     if (lowpassUser !== null) o.lowpass = lowpassUser;
     try { localStorage.setItem(OPTS_KEY, JSON.stringify(o)); } catch (e) {}
   }
-  /* ติ๊ก "ลดเสียงแหลม" ตามเสียงที่เลือก (ถ้าผู้ใช้ยังไม่เคยตั้งเอง) · ซ่อนเมื่อเสียงอังกฤษ (16 kHz ไม่มีย่านให้กรอง) */
+  /* ติ๊ก "ลดเสียงแหลม" ตามเสียงที่เลือก (ถ้าผู้ใช้ยังไม่เคยตั้งเอง — Jori/Riko ค่าเริ่มต้นปิด) · มีผลเฉพาะข้อความไทย (เสียงอังกฤษ 16 kHz ไม่มีย่านให้กรอง) */
   function lowpassFor(modelId) { return window.TanotMediaModels && TanotMediaModels.ttsLowpassDefault ? TanotMediaModels.ttsLowpassDefault(modelId) : false; }
   function syncLowpass() {
-    var th = $('dlLang').value === 'th';
-    $('optLowpassWrap').hidden = !th;
     $('optLowpass').checked = lowpassUser !== null ? lowpassUser : lowpassFor(ttsMigrate($('dlVoice').value));
   }
-  function wantLowpass() { return $('dlLang').value === 'th' && $('optLowpass').checked; }
+  function wantLowpass(lang) { return lang === 'th' && $('optLowpass').checked; }
+  /* ส่วนย่อยใน "ตัวเลือกเพิ่มเติม" มองเห็นจริงไหม (กางทั้งส่วนนอกและตัวมันเอง) — คำนวณตัวอย่าง/รายการเฉพาะตอนเห็น */
+  function shown(id) { var el = $(id), more = $('moreBox'); return !!(el && el.open && (!more || more.open)); }
 
   /* ══════════════════ คำอ่านของฉัน (lexicon) ══════════════════
      เก็บเป็น blob {v:1, text:"คำ = คำอ่าน\n…"} ใน tanot:tts:lexicon (sync — data-registry.js) เฉพาะแถวที่ผ่านตรวจ vocab · ใช้ใน forMms/plan ผ่าน opts.lexicon (tts-normalize.js)
@@ -773,7 +692,7 @@
   function renderLexMid() {
     var el = $('lexMid');
     if (!el) return;
-    var res = $('lexBox').open ? Norm.lexiconSkips($('ttsText').value, normOpts('th')) : { count: 0, words: [] };
+    var res = shown('lexBox') ? Norm.lexiconSkips($('ttsText').value, normOpts('th')) : { count: 0, words: [] };
     el.textContent = '';
     el.hidden = !res.count;
     if (!res.count) return;
@@ -812,6 +731,7 @@
   }
   function lexAddWord(word, reading) { // ปุ่ม "เพิ่มคำอ่าน" ในรายการคำที่ถูกข้าม → ใส่ "คำ = " ให้ในช่อง (มีคำอ่านจากบันทึกคำอ่านผิดแล้ว = ใส่ครบเลย)
     var ta = $('lexText'), box = $('lexBox');
+    if ($('moreBox')) $('moreBox').open = true;
     box.open = true;
     if (reading) { lexSetRow(word, reading); return; }
     if (!lexHasRow(word)) ta.value = ta.value.replace(/\s+$/, '') + (ta.value.trim() ? '\n' : '') + word + ' = ';
@@ -860,7 +780,7 @@
     badge.hidden = !all.length; badge.textContent = all.length ? OME_I18N.number(all.length) : '';
     var box = $('mrList');
     box.textContent = '';
-    if (!$('mrBox').open) { $('mrEmpty').hidden = true; return; }
+    if (!shown('mrBox')) { $('mrEmpty').hidden = true; return; }
     $('mrEmpty').hidden = all.length > 0;
     var lexRows = Norm.parseLexicon($('lexText').value).rows;
     all.slice(0, MR_SHOW).forEach(function (e) {
@@ -1009,10 +929,10 @@
     var rawText = $('ttsText').value;
     if (!rawText.trim()) { $('dlStatus').className = 'status err'; st('dlStatus', function () { return T('typeFirst'); }); return; }
     lexFlush();
-    var lang = $('dlLang').value, th = lang === 'th';
-    var modelId = ttsMigrate($('dlVoice').value);
+    var lang = textLang(rawText), th = lang === 'th'; // ไม่มีอักษรไทยเลย = เสียงอังกฤษอัตโนมัติ
+    var modelId = th ? ttsMigrate($('dlVoice').value) : EN_VOICE;
     var nopts = normOpts(lang);
-    var lowpass = wantLowpass(); // ลดเสียงแหลมของไฟล์นี้ (อ่านตอนกดสร้าง — ติ๊กระหว่างสร้างไม่มีผลกับงานที่เริ่มแล้ว)
+    var lowpass = wantLowpass(lang); // ลดเสียงแหลมของไฟล์นี้ (อ่านตอนกดสร้าง — ติ๊กระหว่างสร้างไม่มีผลกับงานที่เริ่มแล้ว)
     var wantSplit = $('optSplit').checked;
     var wantMisread = th && !!MR && $('optMisread').checked; // อ่านตอนกดสร้าง (เหมือน lowpass)
     var chapters = wantSplit && Long ? Long.splitChapters(rawText) : null;
@@ -1714,11 +1634,10 @@
   }
 
   /* ══════════════════ ดูข้อความที่จะอ่านจริง (ช่วยตรวจการอ่าน) ══════════════════
-     ฟังทันที = forNative (ที่ส่งเข้า speechSynthesis) · สร้างไฟล์เสียง = ท่อนที่ส่งเข้าโมเดล MMS ตามภาษาที่เลือก (บรรทัดละท่อน, เว้นบรรทัดเมื่อขึ้นย่อหน้าใหม่) */
-  function previewText(kind) {
+     ท่อนที่ส่งเข้าโมเดล MMS ตามภาษาของข้อความ (บรรทัดละท่อน, เว้นบรรทัดเมื่อขึ้นย่อหน้าใหม่) */
+  function previewText() {
     var text = $('ttsText').value;
-    if (kind === 'native') return Norm.forNative(text);
-    var plan = Norm.plan(text, normOpts($('dlLang').value));
+    var plan = Norm.plan(text, normOpts(textLang(text)));
     var out = [];
     plan.chunks.forEach(function (c, i) { if (i && plan.paras[i] !== plan.paras[i - 1]) out.push(''); out.push(c); });
     return out.join('\n');
@@ -1729,7 +1648,7 @@
     var box = $('pvSkipped');
     if (!box) return;
     box.textContent = '';
-    if ($('dlLang').value !== 'th' || !$('pvMmsBox').open) { box.hidden = true; return; }
+    if (ttsLang() !== 'th' || !shown('pvMmsBox')) { box.hidden = true; return; }
     var list = Norm.skippedWords($('ttsText').value, normOpts('th')).slice(0, SKIPPED_SHOW);
     box.hidden = !list.length;
     list.forEach(function (w) {
@@ -1745,58 +1664,11 @@
   }
   var previewTimer = null;
   function updatePreviews() {
-    [['pvNativeBox', 'pvNative', 'native'], ['pvMmsBox', 'pvMms', 'mms']].forEach(function (e) {
-      var box = $(e[0]), area = $(e[1]);
-      if (box && area && box.open) area.value = previewText(e[2]); // ทำเฉพาะตอนกางอยู่ — ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์
-    });
+    if (shown('pvMmsBox')) $('pvMms').value = previewText(); // ทำเฉพาะตอนกางอยู่ — ข้อความยาวไม่ต้องคำนวณทุกครั้งที่พิมพ์
     renderSkipped();
     renderLexMid();
   }
   function schedulePreviews() { clearTimeout(previewTimer); previewTimer = setTimeout(updatePreviews, 200); }
-
-  /* ══════════════════ หนังสือเสียงคุณภาพสูง (F5-TTS-THAI บน Google Colab — tools/colab/) ══════════════════
-     ประเมินด้วย TanotTtsLong.f5Estimate (ตัวเลขวัดจริงอยู่ที่นั่นที่เดียว) เฉพาะตอนกางกล่องอยู่ · ข้อความยาวไม่คำนวณทุกครั้งที่พิมพ์ (debounce)
-     ปุ่ม .txt สร้างไฟล์ในเครื่องจากกล่องข้อความ (Blob) — ไม่ส่งข้อความไปเซิร์ฟเวอร์ใดๆ · ผู้ใช้อัปโหลดไฟล์นั้นใน Colab เอง */
-  var importedName = '', f5Est = null, f5Timer = null;
-  function f5Dur(sec) {
-    var m = Math.max(1, Math.round(sec / 60)), h = Math.floor(m / 60);
-    if (m < 60) return T('f5Min', { m: OME_I18N.number(m) });
-    return m % 60 ? T('f5HrMin', { h: OME_I18N.number(h), m: OME_I18N.number(m % 60) }) : T('f5Hr', { h: OME_I18N.number(h) });
-  }
-  function renderF5() {
-    var box = $('f5Est');
-    if (!box) return;
-    box.hidden = !(f5Est && f5Est.chars > 0);
-    if (box.hidden) return;
-    $('f5EstChars').textContent = OME_I18N.number(f5Est.chars);
-    $('f5EstAudio').textContent = f5Dur(f5Est.audioSec);
-    $('f5EstGen').textContent = f5Dur(f5Est.genSec);
-    $('f5EstPartsK').textContent = T(f5Est.chapters ? 'f5Chapters' : 'f5TimeParts');
-    $('f5EstParts').textContent = OME_I18N.number(f5Est.parts);
-  }
-  function updateF5() {
-    clearTimeout(f5Timer); f5Timer = null;
-    if (!$('f5Box') || !$('f5Box').open) return;
-    var text = $('ttsText').value;
-    f5Est = /\S/.test(text) && Long && Norm ? Long.f5Estimate(text, Norm) : null;
-    renderF5();
-  }
-  function scheduleF5() { clearTimeout(f5Timer); f5Timer = setTimeout(updateF5, 400); }
-  /* ชื่อไฟล์ = ชื่อไฟล์ที่ผู้ใช้แนบมา (เปลี่ยนนามสกุลเป็น .txt) ไม่มี = tanot-text.txt — สคริปต์ Colab ใช้ชื่อนี้เป็นชื่อเรื่อง/โฟลเดอร์ใน Drive */
-  function f5TxtName() {
-    var base = importedName.replace(/\.[^.]*$/, '').replace(/[\\/:*?"<>|\u0000-\u001F]/g, ' ').replace(/\s+/g, ' ').trim();
-    return (base || 'tanot-text') + '.txt';
-  }
-  function saveF5Txt() {
-    var text = $('ttsText').value;
-    if (!/\S/.test(text)) { st('f5Status', function () { return T('typeFirst'); }, 'err'); return; }
-    var name = f5TxtName(), url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' }));
-    var a = document.createElement('a');
-    a.href = url; a.download = name; a.hidden = true;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
-    st('f5Status', function () { return T('f5Saved', { name: name }); }, 'ok');
-  }
 
   /* ══════════════════ ภาษาของการถอดเสียง — ค่าเริ่มต้น "ไทย" และจำที่ผู้ใช้เลือก ══════════════════
      ใช้ค่าเดียวกันทั้งโหมดคลาวด์และในเบราว์เซอร์ (runAsr อ่านจาก #asrLang) · ค่าเริ่มต้นไทยบนคอม → Thonburian small ตามกลไก asrDefaultModel เดิม */
@@ -1813,29 +1685,16 @@
   /* ══════════════════ init ══════════════════ */
   function init() {
     window.OME_PAGE_LIVE_LANG = true;
-    /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียง/ถอดเสียง (ไทย/อังกฤษ) เป็นตัวเลือกเนื้อหา ไม่เกี่ยวกับภาษา UI */
-    OME_LANG.onChange(function () { renderVoiceOptions(); renderWsVoiceOptions(); renderSkipped(); updateKeepNote(); renderF5(); renderMisread(); });
-    $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); if ($('f5Box').open) scheduleF5(); });
-    $('f5Box').addEventListener('toggle', updateF5);
-    $('f5TxtBtn').addEventListener('click', saveF5Txt);
+    /* สลับภาษาสด: ข้อความใน HTML แปลผ่าน data-i18n · บรรทัดสถานะผ่าน OME_I18N.live · เหลือส่วนที่ JS สร้างเอง (ตัวเลือกเสียง) — ภาษาของเสียงมาจากข้อความ ไม่เกี่ยวกับภาษา UI */
+    OME_LANG.onChange(function () { renderVoiceOptions(); renderSkipped(); updateKeepNote(); renderMisread(); });
+    $('ttsText').addEventListener('input', function () { updateCharCount(); schedulePreviews(); });
     updateCharCount();
-    ['pvNativeBox', 'pvMmsBox', 'lexBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
+    ['moreBox', 'pvMmsBox', 'lexBox'].forEach(function (id) { if ($(id)) $(id).addEventListener('toggle', updatePreviews); });
+    $('moreBox').addEventListener('toggle', renderMisread);
     $('importFileBtn').addEventListener('click', function () { $('importFileInput').click(); });
     $('importFileInput').addEventListener('change', importFileChange);
 
-    if (window.speechSynthesis) {
-      window.speechSynthesis.onvoiceschanged = loadWsVoices;
-      loadWsVoices();
-    } else {
-      renderWsVoiceOptions();
-    }
-    $('wsPlayBtn').addEventListener('click', wsPlay);
-    $('wsPauseBtn').addEventListener('click', wsPauseToggle);
-    $('wsStopBtn').addEventListener('click', wsStop);
-    $('wsRate').addEventListener('input', function () { $('wsRateVal').textContent = parseFloat($('wsRate').value).toFixed(1) + 'x'; });
-
     renderVoiceOptions();
-    $('dlLang').addEventListener('change', function () { renderVoiceOptions(); syncLowpass(); updatePreviews(); });
     $('dlGenerateBtn').addEventListener('click', generateDownloadable);
     $('dlCancelBtn').addEventListener('click', cancelGenerate);
 
@@ -1935,7 +1794,7 @@
     synthesizeMmsTtsChunksInWorkerPool: synthesizeMmsTtsChunksInWorkerPool,
     synthesizeMmsTtsChunksResponsive: synthesizeMmsTtsChunksResponsive,
     chunkText: chunkText, buildMeetingDocxBlob: buildMeetingDocxBlob, isIOS: isIOS,
-    wake: wake, genRun: function () { return genRun; }, lexCommit: lexCommit, f5Estimate: function () { return f5Est; },
+    wake: wake, genRun: function () { return genRun; }, lexCommit: lexCommit, textLang: textLang,
     /* ตัวช่วยตรวจ UI (docs-audit.spec.js): วาดรายการไฟล์ตัวอย่าง / กล่องเตือนระหว่างสร้างโดยไม่ต้องรันโมเดล */
     demoParts: function () {
       clearParts();

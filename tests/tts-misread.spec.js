@@ -138,6 +138,7 @@ async function setup(context, page, init) {
   return errors;
 }
 const ok = (page) => expect(page.locator('#dlStatus')).toHaveClass(/ok/, { timeout: 30000 });
+const more = (page) => page.evaluate(() => { document.getElementById('moreBox').open = true; }); // บันทึกคำอ่านผิด/ตัวเลือก อยู่ในส่วนพับ "ตัวเลือกเพิ่มเติม"
 const stored = (page) => page.evaluate((k) => JSON.parse(localStorage.getItem(k) || '{}'), KEY);
 const generate = async (page, text) => { await page.fill('#ttsText', text); await page.click('#dlGenerateBtn'); await ok(page); };
 const SAMPLE = 'อสุรา (Asura) หมุน Zorp Blood แล้วเขาเรียก zorp blood อีกครั้ง.\nบรรทัดที่สองมี Qux อยู่ด้วย';
@@ -178,6 +179,7 @@ test.describe('B) บันทึกอัตโนมัติ (type skip)', ()
   test('ปิดสวิตช์ → ไม่บันทึก · จำสวิตช์ใน tanot:tts:opts · เสียงภาษาอังกฤษไม่บันทึก · คำที่อยู่ใน "คำอ่านของฉัน" ไม่ถูกข้าม ไม่บันทึก', async ({ context, page }) => {
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
+    await more(page);
     await expect(page.locator('#optMisread')).toBeChecked();
     await page.uncheck('#optMisread');
     await generate(page, 'ประโยคมี Zorp อยู่');
@@ -185,15 +187,14 @@ test.describe('B) บันทึกอัตโนมัติ (type skip)', ()
     expect(await stored(page)).toEqual({});
     expect(JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:tts:opts')))).toMatchObject({ misread: false });
     await page.reload();
+    await more(page);
     await expect(page.locator('#optMisread')).not.toBeChecked();
     await page.check('#optMisread');
-    // อังกฤษ
-    await page.selectOption('#dlLang', 'en');
+    // อังกฤษล้วน (ไม่มีอักษรไทย) = เสียงอังกฤษอัตโนมัติ → ไม่บันทึก
     await generate(page, 'Zorp is here');
     await page.waitForTimeout(300);
     expect(await stored(page)).toEqual({});
     // คำอ่านของฉัน
-    await page.selectOption('#dlLang', 'th');
     await page.click('#lexBox > summary');
     await page.fill('#lexText', 'Zorp = ซอร์ป');
     await page.locator('#lexText').blur();
@@ -267,6 +268,7 @@ test.describe('B) หน้าดู log + ส่งออก', () => {
     const errors = await setup(context, page, init);
     await page.goto('/text-to-speech.html');
     await expect(page.locator('#mrCount')).toHaveText('3');
+    await more(page);
     await page.click('#mrBox > summary');
     const rows = page.locator('#mrList .list-row');
     await expect(rows).toHaveCount(3);
@@ -300,6 +302,7 @@ test.describe('B) หน้าดู log + ส่งออก', () => {
   test('ส่งออกสำหรับฝึก: .txt แทนคำอ่านที่ถูก · หนึ่งประโยคต่อย่อหน้า · ประโยคที่ยังมีคำไม่มีคำอ่านอยู่ไฟล์ที่สอง · ชื่อไฟล์มีวันที่', async ({ context, page }) => {
     const errors = await setup(context, page, init);
     await page.goto('/text-to-speech.html');
+    await more(page);
     await page.click('#mrBox > summary');
     const got = []; page.on('download', (d) => got.push(d));
     await page.click('#mrExportTxt');
@@ -317,6 +320,7 @@ test.describe('B) หน้าดู log + ส่งออก', () => {
   test('ส่งออก JSON = ข้อมูลดิบทั้งหมด · ล้างทั้งหมดต้องยืนยันก่อน (ยกเลิก = ยังอยู่)', async ({ context, page }) => {
     const errors = await setup(context, page, init);
     await page.goto('/text-to-speech.html');
+    await more(page);
     await page.click('#mrBox > summary');
     const dl = page.waitForEvent('download');
     await page.click('#mrExportJson');
@@ -356,6 +360,7 @@ test.describe('B) หน้าดู log + ส่งออก', () => {
     const errors = await setup(context, page, init);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/text-to-speech.html');
+    await more(page);
     await page.click('#mrBox > summary');
     await page.click('#mrReportBtn');
     const dlg = await page.locator('#mrDialog').boundingBox();

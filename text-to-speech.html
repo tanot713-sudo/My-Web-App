@@ -25,22 +25,17 @@
 .tts-page .card > .frow + .frow{margin-top:var(--ome-sp-3)}
 .tts-page .frow.center{align-items:center}
 .tts-page .status{margin-top:var(--ome-sp-2)}
-.tts-page .field input[type=range]{height:auto;padding:0;border:0;background:transparent;accent-color:var(--ome-accent)}
+.tts-page #importStatus:empty,.tts-page #dlStatus:empty{display:none}
 .tts-page .field input:focus-visible{outline-offset:2px}
 .tts-page .field input[type=file]{height:auto;padding:6px 8px}
 .tts-page .check{display:flex;align-items:center;gap:6px;cursor:pointer}
 .tts-page .check input{width:auto;flex:none;accent-color:var(--ome-accent)}
+.tts-page #dlVoiceNote{margin-top:4px}
 .tts-page .char-count{font-size:var(--ome-fs-xs);color:var(--ome-text-2);text-align:right;margin-top:4px}
-.tts-page .range-val{margin-left:6px;color:var(--ome-accent-strong);font-weight:700}
 .tts-page .textarea[readonly]{background:var(--ome-surface-2)}
 .tts-page .form-msg{white-space:pre-line}
 .tts-page #dlParts{margin-top:var(--ome-sp-3)}
 .tts-page details.disclosure > .disclosure-body{padding-top:var(--ome-sp-3)}
-.tts-page .f5-lead{margin:0}
-.tts-page #f5Status:empty{display:none}
-.tts-page .f5-steps{margin:0;padding-left:1.4em}
-.tts-page .f5-steps li + li{margin-top:var(--ome-sp-1)}
-.tts-page .f5-steps code{font-size:inherit;overflow-wrap:anywhere}
 
 .tts-player{display:none;padding:14px;background:var(--ome-surface-2);border-radius:var(--ome-radius-lg)}
 .tts-player audio{width:100%;margin-bottom:10px}
@@ -60,8 +55,8 @@
 <div class="page-head"><h1 data-i18n="tts.h1">แปลงเสียง ↔ ข้อความ</h1></div>
 
 <div class="stack">
-<div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-file-text"/></svg><span data-i18n="tts.cardText">ข้อความ</span></h2>
+<div class="card" id="ttsCard">
+  <h2><svg class="ome-icon"><use href="icons.svg#i-headphones"/></svg><span data-i18n="tts.cardMake">ข้อความ → เสียง</span><span class="badge" data-i18n="tts.badgeAi">เสียง AI (MMS-TTS)</span></h2>
   <div class="frow center">
     <button class="btn sm" id="importFileBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-upload"/></svg><span data-i18n="tts.attach">แนบไฟล์</span></button>
     <input type="file" id="importFileInput" accept=".txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp" style="display:none">
@@ -73,84 +68,15 @@
   <div class="status" id="importStatus"></div>
   <textarea class="textarea" id="ttsText" rows="6" data-i18n-attr="placeholder:tts.textPh,aria-label:tts.textLabel" aria-label="ข้อความ" placeholder="พิมพ์หรือวางข้อความที่นี่ (ไทยหรืออังกฤษก็ได้) หรือกด แนบไฟล์ด้านบน"></textarea>
   <div class="char-count" id="ttsCharCount"></div>
-</div>
-
-<div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg><span data-i18n="tts.cardLive">ฟังทันที (เสียงจากเบราว์เซอร์)</span></h2>
-  <div class="frow">
-    <div class="field" style="flex:2 1 220px"><label for="wsVoice" data-i18n="tts.voice">เสียง</label>
-      <select id="wsVoice"></select>
-    </div>
-    <div class="field"><label for="wsRate"><span data-i18n="tts.rate">ความเร็ว</span> <span class="range-val" id="wsRateVal">1.0x</span></label>
-      <input type="range" id="wsRate" min="0.5" max="2" step="0.1" value="1">
-    </div>
-  </div>
-  <div class="frow">
-    <button class="btn primary sm" id="wsPlayBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-play"/></svg><span data-i18n="tts.play">เล่น</span></button>
-    <button class="btn sm" id="wsPauseBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-pause"/></svg><span data-i18n="tts.pause">หยุดชั่วคราว</span></button>
-    <button class="btn sm" id="wsStopBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.stop">หยุด</span></button>
-  </div>
-  <details class="disclosure" id="pvNativeBox">
-    <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
-    <div class="disclosure-body"><textarea class="textarea" id="pvNative" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea></div>
-  </details>
-  <div class="status" id="wsStatus"></div>
-</div>
-
-<div class="card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-headphones"/></svg><span data-i18n="tts.cardMake">สร้างไฟล์เสียงดาวน์โหลดได้ (.wav / .mp3)</span><span class="badge" data-i18n="tts.badgeAi">เสียง AI (MMS-TTS)</span></h2>
-  <div class="frow">
-    <div class="field"><label for="dlLang" data-i18n="tts.lang">ภาษา</label>
-      <select id="dlLang">
-        <option value="th" data-i18n="tts.langTh">ไทย</option>
-        <option value="en" data-i18n="tts.langEn">อังกฤษ</option>
-      </select>
-    </div>
-    <div class="field"><label for="dlVoice" data-i18n="tts.voice">เสียง</label>
-      <select id="dlVoice"></select>
-    </div>
-  </div>
-  <details class="disclosure" id="lexBox">
-    <summary data-i18n="tts.lexTitle">คำอ่านของฉัน</summary>
-    <div class="disclosure-body stack">
-      <textarea class="textarea" id="lexText" rows="5" spellcheck="false" autocomplete="off" autocapitalize="off" data-i18n-attr="placeholder:tts.lexPh,aria-label:tts.lexTitle" aria-label="คำอ่านของฉัน" placeholder="คำ = คำอ่าน"></textarea>
-      <div class="form-msg" id="lexMsg" role="alert"></div>
-      <div class="status" id="lexStatus"></div>
-      <div class="status" id="lexMid" hidden></div>
-    </div>
-  </details>
-  <details class="disclosure" id="mrBox">
-    <summary><span data-i18n="tts.mrTitle">บันทึกคำอ่านผิด</span> <span class="badge" id="mrCount" hidden></span></summary>
-    <div class="disclosure-body stack">
-      <div class="frow">
-        <button class="btn sm" id="mrExportTxt" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportTxt">ส่งออกสำหรับฝึก</span></button>
-        <button class="btn sm" id="mrExportJson" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportJson">ส่งออก JSON</span></button>
-        <button class="btn sm danger" id="mrClear" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="tts.mrClear">ล้างทั้งหมด</span></button>
-      </div>
-      <div class="status" id="mrStatus"></div>
-      <div class="empty compact" id="mrEmpty" hidden data-i18n="tts.mrEmpty">ยังไม่มีคำที่บันทึกไว้</div>
-      <div class="list plain" id="mrList"></div>
-    </div>
-  </details>
-  <div class="frow">
-    <label class="check"><input type="checkbox" id="optParen" checked><span data-i18n="tts.optParen">ข้ามอังกฤษในวงเล็บหลังคำไทย</span></label>
-    <label class="check"><input type="checkbox" id="optSplit"><span data-i18n="tts.optSplit">แบ่งไฟล์ตามตอน</span></label>
-    <label class="check" id="optLowpassWrap"><input type="checkbox" id="optLowpass"><span data-i18n="tts.optLowpass">ลดเสียงแหลม</span></label>
-    <label class="check"><input type="checkbox" id="optMisread" checked><span data-i18n="tts.optMisread">บันทึกคำที่อ่านไม่ได้อัตโนมัติ</span></label>
-    <label class="check" id="optGpuWrap" hidden><input type="checkbox" id="optGpu"><span data-i18n="tts.optGpu">ใช้การ์ดจอ (WebGPU)</span></label>
+  <div class="field"><label for="dlVoice" data-i18n="tts.voice">เสียง</label>
+    <select id="dlVoice"></select>
+    <div class="mini" id="dlVoiceNote" data-i18n="tts.enAuto">ข้อความภาษาอังกฤษล้วนจะใช้เสียงอังกฤษให้อัตโนมัติ</div>
   </div>
   <div class="frow">
     <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.make">สร้างไฟล์เสียง</span></button>
     <button class="btn sm" id="dlCancelBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.asrCancel">ยกเลิก</span></button>
     <button class="btn sm" id="mrReportBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-flag"/></svg><span data-i18n="tts.mrReport">แจ้งคำอ่านผิด</span></button>
   </div>
-  <details class="disclosure" id="pvMmsBox">
-    <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
-    <div class="disclosure-body stack">
-      <textarea class="textarea" id="pvMms" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea>
-      <div class="list plain" id="pvSkipped" hidden></div>
-    </div>
-  </details>
   <div class="callout warn" id="dlKeepNote" hidden role="status"><span id="dlKeepText"></span></div>
   <div class="status" id="dlStatus"></div>
   <div class="list plain" id="dlParts" hidden></div>
@@ -161,43 +87,43 @@
       <a class="btn sm" id="dlMp3Link" download="tts-output.mp3"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.dlMp3">ดาวน์โหลด .mp3</span></a>
     </div>
   </div>
-</div>
-
-<div class="card" id="f5Card">
-  <h2><svg class="ome-icon"><use href="icons.svg#i-book-open"/></svg><span data-i18n="tts.f5Title">หนังสือเสียงคุณภาพสูง (Google Colab)</span><span class="badge" data-i18n-skip>F5-TTS-THAI</span></h2>
-  <details class="disclosure" id="f5Box">
-    <summary data-i18n="tts.f5Summary">ประเมินเวลาและเปิดใน Colab</summary>
+  <details class="disclosure" id="moreBox">
+    <summary data-i18n="tts.more">ตัวเลือกเพิ่มเติม</summary>
     <div class="disclosure-body stack">
-      <div class="kv" id="f5Est" hidden>
-        <span class="k" data-i18n="tts.f5Chars">ตัวอักษรหลังแปลง</span><span class="v" id="f5EstChars"></span>
-        <span class="k" data-i18n="tts.f5Audio">ความยาวเสียง (ต่อ 1 เสียง)</span><span class="v" id="f5EstAudio"></span>
-        <span class="k" data-i18n="tts.f5Gen">เวลาสร้างบน L4 (ต่อ 1 เสียง)</span><span class="v" id="f5EstGen"></span>
-        <span class="k" id="f5EstPartsK"></span><span class="v" id="f5EstParts"></span>
-      </div>
       <div class="frow">
-        <button class="btn sm" id="f5TxtBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.f5Txt">บันทึกข้อความเป็น .txt</span></button>
-        <a class="btn primary sm" id="f5ColabLink" href="https://colab.research.google.com/github/tanot713-sudo/My-Web-App/blob/main/tools/colab/tanot-audiobook-f5.ipynb" target="_blank" rel="noopener"><svg class="ome-icon"><use href="icons.svg#i-external-link"/></svg><span data-i18n="tts.f5Open">เปิดใน Colab</span></a>
-        <a class="btn sm" id="f5LabLink" href="f5-lab.html"><svg class="ome-icon"><use href="icons.svg#i-cpu"/></svg><span data-i18n="tts.f5Lab">ลองในเบราว์เซอร์ (ทดลอง)</span></a>
+        <label class="check"><input type="checkbox" id="optParen" checked><span data-i18n="tts.optParen">ข้ามอังกฤษในวงเล็บหลังคำไทย</span></label>
+        <label class="check"><input type="checkbox" id="optSplit"><span data-i18n="tts.optSplit">แบ่งไฟล์ตามตอน</span></label>
+        <label class="check" id="optLowpassWrap"><input type="checkbox" id="optLowpass"><span data-i18n="tts.optLowpass">ลดเสียงแหลม</span></label>
+        <label class="check"><input type="checkbox" id="optMisread" checked><span data-i18n="tts.optMisread">บันทึกคำที่อ่านไม่ได้อัตโนมัติ</span></label>
+        <label class="check" id="optGpuWrap" hidden><input type="checkbox" id="optGpu"><span data-i18n="tts.optGpu">ใช้การ์ดจอ (WebGPU)</span></label>
       </div>
-      <div class="status" id="f5Status"></div>
-      <!-- คำอธิบายทั้งหมดพับไว้อีกชั้น (เจ้าของขอ: ไม่กดดูก็ไม่รกหน้าจอ) -->
-      <details class="disclosure" id="f5HowBox">
-        <summary data-i18n="tts.f5How">วิธีใช้และข้อควรรู้</summary>
+      <details class="disclosure" id="pvMmsBox">
+        <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
         <div class="disclosure-body stack">
-          <p class="f5-lead" data-i18n="tts.f5Lead">อ่านไทยแม่นกว่าเสียงในเบราว์เซอร์ราว 2–3 เท่า (วัดจากการถอดเสียงกลับ) แต่ต้องใช้ Google Colab + GPU ใช้เวลานาน และไฟล์ไปอยู่ใน Google Drive</p>
-          <ol class="f5-steps">
-            <li data-i18n="tts.f5Step1">ใน Colab: Runtime → Change runtime type → เลือก L4 GPU → Save</li>
-            <li data-i18n="tts.f5Step2">กด Run ที่ cell โค้ด</li>
-            <li data-i18n="tts.f5Step3">อนุญาตให้เข้าถึง Google Drive</li>
-            <li data-i18n="tts.f5Step4">อัปโหลดไฟล์ .txt — ครั้งแรกเลือก ref-F-C.wav และ ref-M-C.wav ไปพร้อมกัน (ครั้งต่อไปใช้ที่เก็บไว้ใน Drive)</li>
-            <li><span data-i18n="tts.f5Step5">เปิดแท็บ Colab ค้างไว้จนเสร็จ — หลุดแล้วกด Run ใหม่ ทำต่อจากตอนที่ค้าง · ไฟล์ MP3 อยู่ที่</span> <code data-i18n-skip>My Drive/Tanot หนังสือเสียง</code></li>
-          </ol>
-          <div class="callout info">
-            <div class="stack">
-              <span data-i18n="tts.f5NoteLex">"คำอ่านของฉัน" ไม่ถูกใช้กับเสียงนี้</span>
-              <span data-i18n="tts.f5NoteRef">เสียงตัวอย่างยาว 6–8 วินาที พร้อมข้อความกำกับที่ตรงทุกคำ — ใช้เสียงที่สร้างเองหรือได้รับอนุญาตเท่านั้น</span>
-            </div>
+          <textarea class="textarea" id="pvMms" rows="5" readonly data-i18n-attr="aria-label:tts.previewLabel" aria-label="ข้อความที่จะอ่านจริง"></textarea>
+          <div class="list plain" id="pvSkipped" hidden></div>
+        </div>
+      </details>
+      <details class="disclosure" id="lexBox">
+        <summary data-i18n="tts.lexTitle">คำอ่านของฉัน</summary>
+        <div class="disclosure-body stack">
+          <textarea class="textarea" id="lexText" rows="5" spellcheck="false" autocomplete="off" autocapitalize="off" data-i18n-attr="placeholder:tts.lexPh,aria-label:tts.lexTitle" aria-label="คำอ่านของฉัน" placeholder="คำ = คำอ่าน"></textarea>
+          <div class="form-msg" id="lexMsg" role="alert"></div>
+          <div class="status" id="lexStatus"></div>
+          <div class="status" id="lexMid" hidden></div>
+        </div>
+      </details>
+      <details class="disclosure" id="mrBox">
+        <summary><span data-i18n="tts.mrTitle">บันทึกคำอ่านผิด</span> <span class="badge" id="mrCount" hidden></span></summary>
+        <div class="disclosure-body stack">
+          <div class="frow">
+            <button class="btn sm" id="mrExportTxt" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportTxt">ส่งออกสำหรับฝึก</span></button>
+            <button class="btn sm" id="mrExportJson" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportJson">ส่งออก JSON</span></button>
+            <button class="btn sm danger" id="mrClear" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="tts.mrClear">ล้างทั้งหมด</span></button>
           </div>
+          <div class="status" id="mrStatus"></div>
+          <div class="empty compact" id="mrEmpty" hidden data-i18n="tts.mrEmpty">ยังไม่มีคำที่บันทึกไว้</div>
+          <div class="list plain" id="mrList"></div>
         </div>
       </details>
     </div>

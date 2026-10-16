@@ -352,7 +352,10 @@ async function setup(context, page, { cfg, init, route } = {}) {
 }
 const logRows = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:media:log') || '[]'));
 const ok = (page) => expect(page.locator('#dlStatus')).toHaveClass(/ok/, { timeout: 30000 });
-const openLex = async (page) => { await page.click('#lexBox > summary'); };
+const more = (page) => page.evaluate(() => { document.getElementById('moreBox').open = true; }); // ตัวเลือก/คำอ่านของฉัน/ดูข้อความอยู่ในส่วนพับ "ตัวเลือกเพิ่มเติม"
+const openLex = async (page) => { await more(page); await page.click('#lexBox > summary'); };
+/* เสียงที่เลือกได้ (Jori/Riko) เป็น fp32 = พูล 1 Worker เสมอ — เทสต์กลไกพูลหลาย Worker จำลองเสียง q8 โดยเอา dtype override ของ Jori ออกจากตารางฝั่งหน้า (ttsPoolSize อ่านที่นี่) */
+const asQ8 = (page) => page.evaluate(() => { delete window.TanotMediaModels.TTS_DTYPE_OVERRIDES['Tanotfin/mms-thai-jori-f5-onnx']; });
 const sentences = (n, tag = '') => Array.from({ length: n }, (_, i) => 'ประโยคทดสอบ' + tag + ' ' + (i + 1) + ' สร้างเสียงพูดภาษาไทย').join('\n\n');
 
 test.describe('B) คำอ่านของฉัน — ช่องในการ์ดสร้างไฟล์เสียง', () => {
@@ -361,7 +364,7 @@ test.describe('B) คำอ่านของฉัน — ช่องในก
     await page.goto('/text-to-speech.html');
     expect(await page.evaluate(() => ['tanot:tts:lexicon', 'tanot:tts:opts', 'tanot:tts:gpubad'].map((k) => TanotRegistry.classify(k)))).toEqual([
       expect.objectContaining({ kind: 'sync' }), expect.objectContaining({ kind: 'local' }), expect.objectContaining({ kind: 'cache' })]);
-    await page.click('#lexBox > summary');
+    await openLex(page);
     await page.fill('#lexText', 'Origin Blood = ออริจิน บลัด\nHero = hero\nริมุรุ = ริมุรุ\nไม่มีเท่ากับ');
     await page.locator('#lexText').blur();
     await expect(page.locator('#lexMsg')).toContainText('บรรทัด 2');
@@ -443,6 +446,7 @@ test.describe('B) คำอ่านของฉัน — ช่องในก
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', 'อสุรา (Asura) แล้วเขาหมุน Origin Blood และ origin blood อีกครั้ง ฟินิกซ์ (Phoenix) Zed ริมุรุvsเวลดานาวา');
+    await more(page);
     await page.click('#pvMmsBox > summary');
     const rows = page.locator('#pvSkipped .list-row');
     await expect(rows).toHaveCount(2);
@@ -518,7 +522,7 @@ test.describe('B) งานยาวไม่หาย', () => {
   test('สร้างไฟล์ซ้ำติดกัน (พูลยังไม่ปิด) ใช้ Worker เดิมที่อุ่นแล้ว · ไม่ค้าง · ไม่สร้าง Worker เพิ่ม', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { busyMs: 20 }, init: BIG_DEVICE });
     await page.goto('/text-to-speech.html');
-    await page.selectOption('#dlVoice', 'Tanotfin/mms-tts-2081-FM-stable2-onnx');
+    await asQ8(page);
     await page.fill('#ttsText', sentences(12));
     await page.click('#dlGenerateBtn'); await ok(page);
     const n1 = await page.evaluate(() => window.__workers.filter((u) => /tts-worker/.test(u)).length);
@@ -546,6 +550,7 @@ test.describe('B) งานยาวไม่หาย', () => {
     await page.goto('/text-to-speech.html');
     const book = ['คำนำ', '', '1. ต้นเรื่อง', 'ประโยคแรกของตอนหนึ่ง', 'ประโยคสองของตอนหนึ่ง', '', '2) การเดินทาง', 'เนื้อหาตอนสอง', '', '๓ . ตอนจบ: ปิดฉาก?', 'เนื้อหาตอนสาม'].join('\n');
     await page.fill('#ttsText', book);
+    await more(page);
     await page.check('#optSplit');
     await page.click('#dlGenerateBtn'); await ok(page);
     await expect(page.locator('#dlStatus')).toContainText('4 ไฟล์');
@@ -576,6 +581,7 @@ test.describe('B) งานยาวไม่หาย', () => {
     const errors = await setup(context, page, { init: BIG_DEVICE + 'window.TANOT_TTS = { timeSplitSec: 0.55 };' });
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', sentences(12));       // ท่อนละ 0.1 วิ + ช่องว่างย่อหน้า 0.4 → ตัดเมื่อเกิน 0.55 วิ ที่ขอบย่อหน้า
+    await more(page);
     await page.check('#optSplit');
     await page.click('#dlGenerateBtn'); await ok(page);
     const names = await page.locator('#dlParts .title').allTextContents();
@@ -591,6 +597,7 @@ test.describe('B) งานยาวไม่หาย', () => {
     await page.goto('/text-to-speech.html');
     const book = Array.from({ length: 6 }, (_, i) => (i + 1) + '. ตอนสมมติ\n' + sentences(8, 'ตอน' + (i + 1))).join('\n\n');
     await page.fill('#ttsText', book);
+    await more(page);
     await page.check('#optSplit');
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlParts .list-row')).not.toHaveCount(0, { timeout: 30000 });
@@ -641,7 +648,8 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
   const gpuText = () => sentences(6);
   async function run(page, text) {
     await page.goto('/text-to-speech.html');
-    await page.selectOption('#dlVoice', 'Tanotfin/mms-tts-2081-FM-stable2-onnx'); // ค่าเริ่มต้นเป็นพอดแคสต์ (fp32 = 1 Worker) — เทสต์นี้ตรวจพูล/WebGPU ของโมเดล q8
+    await asQ8(page); // Jori/Riko = fp32 (1 Worker) — เทสต์นี้ตรวจพูล/WebGPU ของโมเดล q8
+    await more(page);
     await page.fill('#ttsText', text || gpuText());
     await page.click('#dlGenerateBtn'); await ok(page);
   }
@@ -653,7 +661,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     const b = await page.evaluate(() => ({ batches: window.__batches, msgs: window.__wmsgs, workers: window.__workers.filter((u) => /tts-worker/.test(u)).length }));
     expect(b.workers).toBe(1);
     expect(b.batches.every((x) => x.device === 'webgpu')).toBe(true);
-    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', device: 'webgpu', dtype: 'fp32' }]);
+    expect(b.msgs.filter((m) => m.type === 'fake-pipeline')).toEqual([{ type: 'fake-pipeline', model: 'Tanotfin/mms-thai-jori-f5-onnx', device: 'webgpu', dtype: 'fp32' }]);
     expect(b.msgs.filter((m) => m.type === 'fallback')).toEqual([]);
     expect((await logRows(page)).filter((r) => r.code !== 'info')).toEqual([]);
     await expect(page.locator('#dlStatus')).toContainText('สร้างไฟล์เสียงเสร็จแล้ว');
@@ -669,6 +677,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     await page.check('#optGpu');
     expect(JSON.parse(await page.evaluate(() => localStorage.getItem('tanot:tts:opts')))).toMatchObject({ gpu: true });
     await page.reload();
+    await more(page);
     await expect(page.locator('#optGpu')).toBeChecked();
     expect(errors).toEqual([]);
   });
@@ -682,6 +691,8 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
     const p2 = await ctx2.newPage();
     await setup(ctx2, p2, { cfg: { gpu: 'ok' }, init: BIG_DEVICE + GPU_OK + GPU_ON });
     await p2.goto('/text-to-speech.html');
+    await asQ8(p2);
+    await more(p2);
     await expect(p2.locator('#optGpuWrap')).toBeVisible();
     await p2.uncheck('#optGpu');
     await p2.fill('#ttsText', gpuText());
@@ -705,7 +716,7 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
       const log = await logRows(page);
       const row = log.find((r) => r.stage === 'webgpu-' + stage);
       expect(row, JSON.stringify(log)).toBeTruthy();
-      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-tts-2081-FM-stable2-onnx' });
+      expect(row).toMatchObject({ kind: 'tts', engine: 'local', device: 'webgpu', model: 'Tanotfin/mms-thai-jori-f5-onnx' });
       expect(JSON.stringify(log)).not.toContain('ลับ');
       expect(await page.evaluate(() => +localStorage.getItem('tanot:tts:gpubad'))).toBeGreaterThan(0);
       // ไฟล์ปลายทางถูกต้อง: ทุกท่อนมีเสียง (ไม่ใช่ NaN/เงียบ)
@@ -714,6 +725,8 @@ test.describe('B) WebGPU ของเสียงพูด (MMS-TTS) + ถอย
       expect(pcm.some((v) => Math.abs(v) > 1000)).toBe(true);
       // ครั้งต่อไป (โหลดหน้าใหม่) ไม่เสนอ WebGPU เพราะเพิ่งล้ม
       await page.reload();
+      await more(page);
+      await page.waitForTimeout(300); // รอ ttsGpuPlan ตัดสิน (ไม่เสนอ)
       await expect(page.locator('#optGpuWrap')).toBeHidden();
       expect(errors).toEqual([]);
     });
