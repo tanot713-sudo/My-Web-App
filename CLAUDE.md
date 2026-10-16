@@ -281,6 +281,17 @@ Client-side file text-extraction already exists here and is the template to reus
 ### 3D tooling (`sim-objects.js`)
 Self-hosted Three.js (`vendor/three/`, including a `jsm/` mirror of the addons ESM modules) + GSAP + `three-mesh-bvh`/`three-bvh-csg` (vendored UMD builds) for boolean mesh operations. Personal model library persists to IndexedDB, not localStorage (binary model data).
 
+## Skills
+
+Skill ของ repo อยู่ใน `.claude/skills/`: ของเว็บเอง (`tanot-design`, `tanot-voice-training`, `tanot-pr-review`) และที่คัดลอกจากภายนอกแบบล็อก commit (ดู `SOURCE.md` + `LICENSE` ในแต่ละโฟลเดอร์ — ไม่แก้ไฟล์ต้นฉบับ): `transformers-js`, `workers-best-practices`, `wrangler`, `accessibility`, `performance`, `security-and-hardening`, `humanizer`.
+
+ลำดับความสำคัญ — **กฎของเว็บ (CLAUDE.md, `tanot-design`, `tanot-pr-review`) ชนะ skill ภายนอกเสมอ**:
+- cloudflare skills (`workers-best-practices`, `wrangler`): ใช้กับ Pages Functions/wrangler/D1 ที่มีอยู่ · ห้ามเสนอย้ายจาก Pages ไป Workers หรือเปลี่ยนไปใช้ `cf` CLI
+- `transformers-js`: ใช้ความรู้เรื่อง dtype/cache/device ได้ · ห้ามเปลี่ยนไปโหลดไลบรารีจาก CDN (เว็บ vendor ไว้เอง) และโมเดล Tanotfin ต้องผ่าน `/api/hf/`
+- `accessibility` / `performance` / `security-and-hardening`: ใช้เป็นเช็กลิสต์ตรวจ · ห้ามเปลี่ยนธีมหรือโครงสร้างเพื่อทำตามโดยไม่ได้ถามเจ้าของ
+- `humanizer`: ใช้กับข้อความภาษาอังกฤษ (คำอธิบาย PR ฯลฯ) ไม่ใช้กับข้อความไทยใน UI
+- `tools/voice-training/` = สคริปต์ Colab ฝึกเสียง Jori/Riko (ไม่รันใน CI · Pages deploy ทั้ง repo จึงเปิดอ่านได้จากเว็บ แต่ไม่มีหน้าไหนเรียกใช้ — ห้ามใส่ secret/ข้อความนิยาย) — ขั้นตอนอยู่ใน `tanot-voice-training`
+
 ## Response style
 
 When you finish a task in this repo, **do not close with a heavy formatted summary** — no `## สรุป...` heading, no bold-labeled bullet recap of everything you touched. The user said explicitly (Sept 2026) not to do this going forward. Just say plainly, in a line or two of plain text, what changed and that it's deployed; if there's something the user actually needs to decide or check, say that directly instead of wrapping it in a report structure. This applies to routine "I made the changes, tested them, shipped them" replies — it doesn't forbid genuinely explaining something complicated when asked, or answering a question that requires structure to answer clearly.
