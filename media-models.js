@@ -21,7 +21,9 @@
     'phlebotomy1996/mms-thai-female-podcast-spk0': 'fp32',
     /* ชุด stable / stable2 (2026-10) — dtype ที่มีให้เหมือนต้นฉบับทุกประการ: พอดแคสต์ fp32 เท่านั้น, FM/M ใช้ q8 ตามค่าเริ่มต้น */
     'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx': 'fp32',
-    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'fp32'
+    'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'fp32',
+    /* หญิง (Jori) — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized */
+    'Tanotfin/mms-thai-jori-f5-onnx': 'fp32'
   };
   /* เสียงไทย (2026-10): VITS ฝังความสุ่มไว้ใน ONNX (noise_scale_duration 0.8 / noise_scale 0.667) → อาการ "ยานตอนต้นคำ / สั่นตอนท้ายคำ"
      • stable  = noise_scale_duration 0.3 / noise_scale 0.333 (น้ำหนักเดิม) — ชุดรอบก่อน
@@ -33,6 +35,8 @@
   var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx';
   var TTS_FEMALE = 'Tanotfin/mms-tts-2081-FM-stable2-onnx';
   var TTS_LEGACY = {
+    /* Jori fine-tune จากหญิง ทั่วไป (VIZINTZOR FEMALEV2) → โหลดไม่ได้ถอยไป FM stable2 → stable → ต้นฉบับ */
+    'Tanotfin/mms-thai-jori-f5-onnx': 'Tanotfin/mms-tts-2081-FM-stable2-onnx',
     'Tanotfin/mms-tts-2081-FM-stable2-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
     'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
     'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx': 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx',

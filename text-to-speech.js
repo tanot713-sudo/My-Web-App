@@ -24,7 +24,7 @@
       imported: 'นำเข้าข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
       noWebSpeech: '(เบราว์เซอร์นี้ไม่รองรับ Web Speech API)', noVoices: '(ยังไม่พบเสียง — บางเบราว์เซอร์โหลดช้า ลองรอสักครู่)', defaultVoice: ' — ค่าเริ่มต้น',
       typeFirst: 'พิมพ์ข้อความก่อน', playing: 'กำลังเล่น…', played: 'เล่นจบแล้ว', playFail: 'เล่นไม่สำเร็จ: {msg}', paused: 'หยุดชั่วคราว',
-      v_default: 'ค่าเริ่มต้น', v_podcast: 'หญิง (โทนพอดแคสต์)', v_female: 'หญิง (ทั่วไป)', v_male: 'ชาย (ทั่วไป)',
+      v_default: 'ค่าเริ่มต้น', v_podcast: 'หญิง (โทนพอดแคสต์)', v_jori: 'หญิง (Jori)', v_female: 'หญิง (ทั่วไป)', v_male: 'ชาย (ทั่วไป)',
       etaFew: 'อีกไม่กี่วินาที', etaSec: 'อีกประมาณ {s} วินาที', etaMin: 'อีกประมาณ {m} นาที', etaMinSec: 'อีกประมาณ {m} นาที {s} วินาที',
       emptyAfterFilter: 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู',
       prepTh: 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…',
@@ -84,7 +84,7 @@
       imported: 'Imported text from {name} ({n} characters) — review it before pressing "Create audio file"', readFail: 'Could not read the file: {msg}',
       noWebSpeech: '(This browser does not support the Web Speech API)', noVoices: '(No voices found yet — some browsers load slowly, wait a moment)', defaultVoice: ' — default',
       typeFirst: 'Type some text first', playing: 'Playing…', played: 'Finished playing', playFail: 'Playback failed: {msg}', paused: 'Paused',
-      v_default: 'Default', v_podcast: 'Female (podcast tone)', v_female: 'Female (general)', v_male: 'Male (general)',
+      v_default: 'Default', v_podcast: 'Female (podcast tone)', v_jori: 'Female (Jori)', v_female: 'Female (general)', v_male: 'Male (general)',
       etaFew: 'a few seconds left', etaSec: 'about {s} seconds left', etaMin: 'about {m} min left', etaMinSec: 'about {m} min {s} s left',
       emptyAfterFilter: 'Nothing is left after removing characters the model does not know. Try typing in Thai',
       prepTh: 'Preparing the voice model (the first time it downloads from Hugging Face — later runs are faster because it is cached)…',
@@ -644,8 +644,9 @@
   }
   var TTS_VOICES = {
     th: [
-      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น = โทนพอดแคสต์ (วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด ≥ 5 เซมิโทน ~6–8 ครั้ง/นาที, พอดแคสต์ ~1.5, ชาย 0 — เจ้าของเลือกพอดแคสต์) · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) */
+      /* ชุด stable2 (noise_scale 0.1 / noise_scale_duration 0.0) · ตัวแรก = ค่าเริ่มต้น (select เลือกตัวแรกเอง) = โทนพอดแคสต์ — Jori วางต่อจากนั้น (วัดแล้ว "หญิง ทั่วไป" มีเสียงกระโดด ≥ 5 เซมิโทน ~6–8 ครั้ง/นาที, พอดแคสต์ ~1.5, ชาย 0 — เจ้าของเลือกพอดแคสต์) · ทางถอย stable2 → stable → ต้นฉบับ อยู่ที่ media-models.js (TTS_LEGACY) */
       { id: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx', label: 'หญิง (โทนพอดแคสต์)', k: 'v_podcast' },
+      { id: 'Tanotfin/mms-thai-jori-f5-onnx', label: 'หญิง (Jori)', k: 'v_jori' },
       { id: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', label: 'หญิง (ทั่วไป)', k: 'v_female' },
       { id: 'Tanotfin/mms-tts-2081-M-stable2-onnx', label: 'ชาย (ทั่วไป)', k: 'v_male' }
     ],

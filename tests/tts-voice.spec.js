@@ -93,6 +93,12 @@ test.describe('A) media-models.js — เสียงไทยชุด stable2'
     }
     expect(M.ttsLegacy('Xenova/mms-tts-eng')).toBe(null);
   });
+  test('Jori: dtype fp32 + ทางถอยขึ้นต้น FM stable2 → stable → ต้นฉบับ + ไม่ใช่ค่าเริ่มต้น/ไม่เปิด low-pass เอง', () => {
+    const J = 'Tanotfin/mms-thai-jori-f5-onnx';
+    expect(M.ttsDtype(J)).toBe('fp32'); expect(M.ttsGpuDtype(J)).toBe('fp32');
+    expect(M.ttsLegacyChain(J)).toEqual([S2.fm, STABLE.fm, OLD.fm]);
+    expect(M.ttsMigrate(J)).toBe(J); expect(M.TTS_DEFAULT_VOICE).not.toBe(J); expect(M.ttsLowpassDefault(J)).toBe(false);
+  });
   test('dtype ต่อ id: พอดแคสต์ (stable2 + stable + เดิม) fp32 · FM/M stable2 และ stable = ค่าเริ่มต้น (q8) · WebGPU fp32 ทุกตัว', () => {
     for (const id of [S2.pod, STABLE.pod, OLD.pod]) expect(M.ttsDtype(id)).toBe('fp32');
     for (const id of [S2.fm, S2.m, STABLE.fm, STABLE.m]) expect(M.ttsDtype(id)).toBe(null);
@@ -275,11 +281,11 @@ const wavStats = (page, sel, seg) => page.evaluate(async ([s, sg]) => {
 }, [sel, seg || null]);
 
 test.describe('B) รายการเสียงไทย + ทางถอย', () => {
-  test('รายการ: 3 เสียง stable2 ไม่มี "ค่าเริ่มต้น" · ค่าเริ่มต้น = หญิง (โทนพอดแคสต์) stable2 · EN มีตัวเดียวเหมือนเดิม', async ({ context, page }) => {
+  test('รายการ: 3 เสียง stable2 + Jori ไม่มี "ค่าเริ่มต้น" · ค่าเริ่มต้น = หญิง (โทนพอดแคสต์) stable2 · EN มีตัวเดียวเหมือนเดิม', async ({ context, page }) => {
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
     const opts = await page.$$eval('#dlVoice option', (os) => os.map((o) => [o.value, o.textContent]));
-    expect(opts).toEqual([[S2.pod, 'หญิง (โทนพอดแคสต์)'], [S2.fm, 'หญิง (ทั่วไป)'], [S2.m, 'ชาย (ทั่วไป)']]);
+    expect(opts).toEqual([[S2.pod, 'หญิง (โทนพอดแคสต์)'], ['Tanotfin/mms-thai-jori-f5-onnx', 'หญิง (Jori)'], [S2.fm, 'หญิง (ทั่วไป)'], [S2.m, 'ชาย (ทั่วไป)']]);
     expect(opts.some(([v, t]) => v === OLD.def || t === 'ค่าเริ่มต้น')).toBe(false);
     expect(await page.inputValue('#dlVoice')).toBe(S2.pod); // ค่าเริ่มต้นใหม่ = โทนพอดแคสต์
     await page.selectOption('#dlLang', 'en');
