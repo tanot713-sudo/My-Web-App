@@ -290,7 +290,7 @@ Skill ของ repo อยู่ใน `.claude/skills/`: ของเว็บ
 - `transformers-js`: ใช้ความรู้เรื่อง dtype/cache/device ได้ · ห้ามเปลี่ยนไปโหลดไลบรารีจาก CDN (เว็บ vendor ไว้เอง) และโมเดล Tanotfin ต้องผ่าน `/api/hf/`
 - `accessibility` / `performance` / `security-and-hardening`: ใช้เป็นเช็กลิสต์ตรวจ · ห้ามเปลี่ยนธีมหรือโครงสร้างเพื่อทำตามโดยไม่ได้ถามเจ้าของ
 - `humanizer`: ใช้กับข้อความภาษาอังกฤษ (คำอธิบาย PR ฯลฯ) ไม่ใช้กับข้อความไทยใน UI
-- `tools/voice-training/` = สคริปต์ Colab ฝึกเสียง Jori/Riko (ไม่ deploy, ไม่รันใน CI) — ขั้นตอนอยู่ใน `tanot-voice-training`
+- `tools/voice-training/` = สคริปต์ Colab ฝึกเสียง Jori/Riko (ไม่รันใน CI · Pages deploy ทั้ง repo จึงเปิดอ่านได้จากเว็บ แต่ไม่มีหน้าไหนเรียกใช้ — ห้ามใส่ secret/ข้อความนิยาย) — ขั้นตอนอยู่ใน `tanot-voice-training`
 
 ## Response style
 

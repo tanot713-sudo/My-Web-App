@@ -31,7 +31,7 @@ description: เช็กลิสต์ก่อนเปิดหรือร�
 ## เทสต์
 - [ ] `node repo-guards.mjs` ผ่าน (ใน `tests/`) และ spec ของส่วนที่แตะผ่าน
 - [ ] เทสต์ห้ามโหลดโมเดลจริง (ใช้ transformers.js หลอก)
-- [ ] visual baseline เปลี่ยน → ติดป้าย `update-snapshots` ให้บอท commit ภาพ แล้ว push commit ใหม่ (ไม่ใช่ commit เปล่า) เพื่อให้ CI รันใหม่
+- [ ] visual baseline เปลี่ยน → ติดป้าย `update-snapshots` → **รอให้บอท commit ภาพเสร็จก่อน** แล้วค่อย push commit (commit เปล่าก็ได้) เพื่อให้ CI รันใหม่ — commit ของบอทไม่ทำให้ CI รันเอง · push ก่อนบอทเสร็จจะชนกับ commit ของบอท
 
 ## PR
 - [ ] คำอธิบาย PR ตรงกับสิ่งที่แก้จริง บอกสิ่งที่ผู้ใช้ต้องตรวจเองหลัง deploy
