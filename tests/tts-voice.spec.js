@@ -1,4 +1,4 @@
-// เสียงพูดไทย (MMS-TTS) 2 ตัว: หญิง (Jori) / ชาย (Riko) — ล็อกรุ่นด้วย commit · ทางถอย Jori → FM stable2 → stable → ต้นฉบับ / Riko → M … · ภาษาอังกฤษอัตโนมัติ
+// เสียงพูดไทย (MMS-TTS) 2 ตัว: หญิง (Jori) / ชาย (Riko) — ล็อกรุ่นด้วย commit · ไม่มีทางถอยไปเสียงอื่น (โหลดไม่ได้ = error แล้วหยุด) · ภาษาอังกฤษอัตโนมัติ
 // + เว้นขอบท่อน + ปรับความดังอัตโนมัติ + ลดเสียงแหลม (low-pass) + ลองโหลดใหม่เมื่อเครือข่ายสะดุด (2026-10)
 // A) ตรรกะล้วน (Node: audio-gain.js, media-models.js) · B) หน้า text-to-speech จริงใน Chromium + C) วิดเจ็ตแชท (transformers.js หลอก — CI ไม่โหลดโมเดลจริง)
 // ข้อความตัวอย่างทุกชุดแต่งขึ้นเอง
@@ -91,18 +91,18 @@ test.describe('A) media-models.js — เสียงไทย Jori / Riko', () 
     expect(M.TTS_DEFAULT_VOICE).toBe(J);
     expect(Array.from(M.TTS_VOICE_IDS)).toEqual([J, R]);
   });
-  test('ทางถอย = "ขั้นถัดไป": Jori → FM stable2 → stable → ต้นฉบับ → null · Riko → M stable2 → stable → ต้นฉบับ → null · พอดแคสต์ไม่อยู่ในสายแล้ว', () => {
-    expect(Array.from(M.ttsLegacyChain(J))).toEqual([S2.fm, STABLE.fm, OLD.fm]);
-    expect(Array.from(M.ttsLegacyChain(R))).toEqual([S2.m, STABLE.m, OLD.m]);
-    expect(M.ttsLegacy(J)).toBe(S2.fm); expect(M.ttsLegacy(R)).toBe(S2.m);
-    for (const k of ['fm', 'm']) { expect(M.ttsLegacy(S2[k])).toBe(STABLE[k]); expect(M.ttsLegacy(STABLE[k])).toBe(OLD[k]); expect(M.ttsLegacy(OLD[k])).toBe(null); }
-    for (const id of [S2.pod, STABLE.pod, OLD.pod, EN]) expect(M.ttsLegacy(id)).toBe(null);
+  test('ไม่มีทางถอย: ตาราง/ฟังก์ชัน legacy ถูกลบ · ชื่อเสียง + ตัวจำแนก 404/403', () => {
+    expect(M.TTS_LEGACY).toBeUndefined(); expect(M.ttsLegacy).toBeUndefined(); expect(M.ttsLegacyChain).toBeUndefined();
+    expect(M.ttsVoiceLabel(J)).toBe('หญิง (Jori)'); expect(M.ttsVoiceLabel(R, 'en')).toBe('Male (Riko)');
+    for (const m of ['Could not locate file: "https://x/y" (404)', 'HTTP 403 forbidden', 'Error: 404 Not Found']) expect(M.isNotFoundError(new Error(m)), m).toBe(true);
+    for (const m of ['network error', 'Failed to fetch', 'out of memory']) expect(M.isNotFoundError(new Error(m)), m).toBe(false);
+    expect(M.isNotFoundError(Object.assign(new Error('tanot-session: sign-in expired (403)'), { code: 'session' }))).toBe(false);
   });
-  test('dtype: Jori/Riko = fp32 (มีแต่ onnx/model.onnx) · ทางถอย FM/M = ค่าเริ่มต้น (q8) · WebGPU fp32 ทุกตัว', () => {
+  test('dtype: Jori/Riko = fp32 (มีแต่ onnx/model.onnx) · id เก่า (ไม่โหลดแล้ว) = ค่าเริ่มต้น · WebGPU fp32 ทุกตัว', () => {
     for (const id of [J, R]) { expect(M.ttsDtype(id)).toBe('fp32'); expect(M.ttsGpuDtype(id)).toBe('fp32'); }
     for (const id of [S2.fm, S2.m, STABLE.fm, STABLE.m, OLD.fm, OLD.m]) expect(M.ttsDtype(id)).toBe(null);
   });
-  test('revision: Jori/Riko ล็อกด้วย commit 40 hex ของ Hugging Face · ตัวอื่น (ทางถอย/อังกฤษ) = main', () => {
+  test('revision: Jori/Riko ล็อกด้วย commit 40 hex ของ Hugging Face · ตัวอื่น (อังกฤษ/ไม่รู้จัก) = main', () => {
     expect(M.ttsRevision(J)).toBe(REV[J]); expect(M.ttsRevision(R)).toBe(REV[R]);
     for (const id of [J, R]) expect(M.ttsRevision(id)).toMatch(/^[0-9a-f]{40}$/);
     for (const id of [S2.fm, S2.m, STABLE.fm, OLD.m, EN, 'x/y']) expect(M.ttsRevision(id)).toBe('main');
@@ -372,58 +372,86 @@ test.describe('B) รายการเสียงไทย + ภาษาอ�
   const fallbacks = (page) => page.evaluate(() => window.__wmsgs.filter((m) => m.type === 'fallback'));
   const errRows = async (page) => (await logRows(page)).filter((r) => r.kind === 'tts' && r.code !== 'info');
 
-  test('ทางถอยขั้นที่ 1 (Riko): โหลดไม่ได้ (404) → M stable2 1 ครั้ง (revision main) + problem log (ไม่มีเนื้อหาผู้ใช้) · ไฟล์ยังสร้างได้ · สร้างซ้ำไม่ลอง Riko อีก', async ({ context, page }) => {
+  /* ไม่มีคำขอ/การโหลดไปโมเดลอื่นเลย: ดักทั้ง URL (คำขอเครือข่าย) และรายชื่อ pipeline ที่ Worker โหลด */
+  const spyUrls = (page) => { const urls = []; page.on('request', (r) => urls.push(r.url())); return urls; };
+  const noOtherModel = (urls) => expect(urls.filter((u) => /mms-tts-2081|podcast|phlebotomy|mms-tts-tha|huggingface\.co|\/api\/hf\//.test(u))).toEqual([]);
+
+  test('โหลด Riko ไม่ได้ (404) → แจ้ง "ไม่พบไฟล์เสียง ชาย (Riko) บนเซิร์ฟเวอร์" แล้วหยุด · ไม่มีไฟล์ · ไม่โหลดโมเดลอื่น · log 1 แถว ไม่มีเนื้อหาผู้ใช้', async ({ context, page }) => {
     const errors = await setup(context, page, { cfg: { missing: [R] } });
+    const urls = spyUrls(page);
     await page.goto('/text-to-speech.html');
     await page.selectOption('#dlVoice', R);
     await page.fill('#ttsText', TEXT);
-    await page.click('#dlGenerateBtn'); await ok(page);
-    const msgs = await page.evaluate(() => window.__wmsgs);
-    const fb = msgs.filter((m) => m.type === 'fallback');
-    expect(fb.length).toBe(1);
-    expect(fb[0]).toMatchObject({ what: 'model', from: R, to: S2.m, stage: 'load', retried: false });
-    const pipes = msgs.filter((m) => m.type === 'fake-pipeline');
-    expect(pipes.map((m) => [m.model, m.revision])).toEqual([[R, REV[R]], [S2.m, null]]); // ไม่แตะขั้นถัดไป · ทางถอยใช้ main
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
+    await expect(page.locator('#dlStatus')).toHaveText('ไม่พบไฟล์เสียง ชาย (Riko) บนเซิร์ฟเวอร์');
+    expect(await pipelines(page)).toEqual([R]);
+    expect(await fallbacks(page)).toEqual([]);
+    noOtherModel(urls);
+    await expect(page.locator('#dlParts')).toBeHidden();
+    expect(await page.evaluate(() => document.getElementById('dlAudio').getAttribute('src'))).toBeFalsy();
     const rows = await errRows(page);
     expect(rows.length).toBe(1);
-    expect(rows[0]).toMatchObject({ engine: 'local', stage: 'model-load', model: R });
+    expect(rows[0]).toMatchObject({ engine: 'local', stage: 'model-load', model: R, code: 'ttsMissing' });
     expect(JSON.stringify(rows)).not.toContain('ประโยคทดสอบ');
-    const n1 = pipes.length;
-    await page.click('#dlGenerateBtn'); await ok(page);
-    expect((await page.evaluate(() => window.__wmsgs)).filter((m) => m.type === 'fake-pipeline').length).toBe(n1);
     expect(errors).toEqual([]);
   });
 
-  test('ทางถอย 2 ขั้น (Jori): Jori และ FM stable2 โหลดไม่ได้ → FM stable · ขั้นละ 1 ครั้ง · problem log 2 แถว', async ({ context, page }) => {
-    const errors = await setup(context, page, { cfg: { missing: [J, S2.fm] } });
+  test('EN: ข้อความ error เป็นอังกฤษ (Female (Jori)) · สลับภาษาสดแล้วข้อความเปลี่ยนตาม', async ({ context, page }) => {
+    await setup(context, page, { cfg: { missing: [J] } });
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', ONE);
-    await page.click('#dlGenerateBtn'); await ok(page);
-    expect(await pipelines(page)).toEqual([J, S2.fm, STABLE.fm]);
-    expect((await fallbacks(page)).map((m) => [m.from, m.to])).toEqual([[J, S2.fm], [S2.fm, STABLE.fm]]);
-    const rows = await errRows(page);
-    expect(rows.map((r) => [r.stage, r.model])).toEqual([['model-load', J], ['model-load', S2.fm]]);
-    expect(JSON.stringify(rows)).not.toContain('ประโยคเดียว');
-    expect(errors).toEqual([]);
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveText('ไม่พบไฟล์เสียง หญิง (Jori) บนเซิร์ฟเวอร์', { timeout: 30000 });
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#dlStatus')).toHaveText('The voice files for Female (Jori) were not found on the server');
   });
 
-  test('ทางถอยถึงต้นฉบับ (Riko): Riko + M stable2 + M stable โหลดไม่ได้ → M ต้นฉบับ แล้วสร้างไฟล์ได้', async ({ context, page }) => {
-    const errors = await setup(context, page, { cfg: { missing: [R, S2.m, STABLE.m] } });
-    await page.goto('/text-to-speech.html');
-    await page.selectOption('#dlVoice', R);
-    await page.fill('#ttsText', ONE);
-    await page.click('#dlGenerateBtn'); await ok(page);
-    expect(await pipelines(page)).toEqual([R, S2.m, STABLE.m, OLD.m]);
-    expect(errors).toEqual([]);
-  });
-
-  test('ทางถอยหมดห่วงโซ่ (Jori + ทั้ง 3 ตัวถอย โหลดไม่ได้) → แจ้ง error ไม่วนซ้ำ ไม่ลองเกิน 4 ตัว', async ({ context, page }) => {
-    await setup(context, page, { cfg: { missing: [J, S2.fm, STABLE.fm, OLD.fm] } });
+  test('เครือข่ายล้มซ้ำหลังลองใหม่แล้ว → "โหลดเสียง หญิง (Jori) ไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่" · โหลด Jori 2 ครั้ง (ลองซ้ำ 1) แล้วหยุด ไม่โหลดโมเดลอื่น', async ({ context, page }) => {
+    const errors = await setup(context, page, { cfg: { netFail: { [J]: 2 } } });
+    const urls = spyUrls(page);
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', ONE);
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
-    expect(await pipelines(page)).toEqual([J, S2.fm, STABLE.fm, OLD.fm]);
+    await expect(page.locator('#dlStatus')).toHaveText('โหลดเสียง หญิง (Jori) ไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่');
+    expect(await pipelines(page)).toEqual([J, J]);
+    expect(await fallbacks(page)).toEqual([]);
+    noOtherModel(urls);
+    const rows = (await logRows(page)).filter((r) => r.kind === 'tts' && r.stage !== 'stats');
+    expect(rows.map((r) => [r.code, r.stage, r.model])).toEqual([['info', 'load-retry', J], ['ttsLoad', 'model-load', J]]);
+    expect(JSON.stringify(rows)).not.toContain('ประโยคเดียว');
+    expect(errors).toEqual([]);
+  });
+
+  test('หลังล้มแล้วกดสร้างใหม่ = ลองโหลดเสียงเดิมอีกรอบ (ไม่ติดสถานะล้ม) และไม่ไปโมเดลอื่นเลย', async ({ context, page }) => {
+    await setup(context, page, { cfg: { netFail: { [J]: 2 } } }); // ตัวนับล้มอยู่ต่อ Worker — Worker ใหม่ล้มรอบแรก+ลองซ้ำเหมือนเดิม
+    await page.goto('/text-to-speech.html');
+    await page.fill('#ttsText', ONE);
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
+    await page.click('#dlGenerateBtn');
+    await expect.poll(async () => (await pipelines(page)).length, { timeout: 30000 }).toBe(4);
+    await expect(page.locator('#dlStatus')).toHaveClass(/err/);
+    expect((await pipelines(page)).every((m) => m === J)).toBe(true);
+    expect(await fallbacks(page)).toEqual([]);
+  });
+
+  test('เธรดหลัก (ไม่มี Worker): โหลด Jori ไม่ได้ (404) → ข้อความเดียวกัน · ไม่โหลดโมเดลอื่น', async ({ context, page }) => {
+    await setup(context, page, { cfg: { missing: [J] } });
+    await page.addInitScript(() => {
+      delete window.Worker;
+      window.__mainPipes = [];
+      const mp = window.postMessage;
+      window.postMessage = function (m) { if (m && m.type === 'fake-pipeline') { window.__mainPipes.push(m); return; } return mp.apply(this, arguments); };
+    });
+    await page.goto('/text-to-speech.html');
+    await page.fill('#ttsText', ONE);
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveText('ไม่พบไฟล์เสียง หญิง (Jori) บนเซิร์ฟเวอร์', { timeout: 30000 });
+    expect((await page.evaluate(() => window.__mainPipes)).map((m) => m.model)).toEqual([J]);
+    const rows = await errRows(page);
+    expect(rows.map((r) => [r.stage, r.model, r.code])).toEqual([['model-load', J, 'ttsMissing']]);
   });
 
   test('หน่วยความจำไม่พอ ≠ 404 → ไม่ถอยไปชุดอื่น (แจ้ง error ตามปกติ)', async ({ context, page }) => {
@@ -454,25 +482,13 @@ test.describe('B) รายการเสียงไทย + ภาษาอ�
     expect(errors).toEqual([]);
   });
 
-  test('เครือข่ายสะดุดซ้ำหลังลองใหม่แล้ว → เข้าทางถอยขั้นถัดไป (FM stable2) · fallback ระบุ retried · log: ลองซ้ำ 1 + ถอย 1', async ({ context, page }) => {
-    await setup(context, page, { cfg: { netFail: { [J]: 2 } } });
-    await page.goto('/text-to-speech.html');
-    await page.fill('#ttsText', ONE);
-    await page.click('#dlGenerateBtn'); await ok(page);
-    expect(await pipelines(page)).toEqual([J, J, S2.fm]);
-    const fb = await fallbacks(page);
-    expect(fb.length).toBe(1);
-    expect(fb[0]).toMatchObject({ what: 'model', from: J, to: S2.fm, retried: true });
-    const rows = (await logRows(page)).filter((r) => r.kind === 'tts' && r.stage !== 'stats');
-    expect(rows.map((r) => [r.code === 'info' ? 'info' : 'err', r.stage])).toEqual([['info', 'load-retry'], ['err', 'model-load']]);
-  });
-
-  test('404 ไม่ลองซ้ำ (ไปทางถอยทันที) — แต่ละ id ถูกโหลดครั้งเดียว ไม่มีแถว load-retry', async ({ context, page }) => {
+  test('404 ไม่ลองซ้ำ (แจ้ง error ทันที) — id ถูกโหลดครั้งเดียว ไม่มีแถว load-retry', async ({ context, page }) => {
     await setup(context, page, { cfg: { missing: [J] } });
     await page.goto('/text-to-speech.html');
     await page.fill('#ttsText', ONE);
-    await page.click('#dlGenerateBtn'); await ok(page);
-    expect(await pipelines(page)).toEqual([J, S2.fm]);
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
+    expect(await pipelines(page)).toEqual([J]);
     expect((await page.evaluate(() => window.__wmsgs)).filter((m) => m.type === 'retry')).toEqual([]);
     expect((await logRows(page)).filter((r) => r.stage === 'load-retry')).toEqual([]);
   });
@@ -594,22 +610,29 @@ test.describe('C) วิดเจ็ตแชท', () => {
     expect(errors).toEqual([]);
     await ctx.close();
   });
-  test('โหลด Jori ไม่ได้ (404) → วิดเจ็ตถอยไป FM stable2 (1 ขั้น) พูดต่อได้', async ({ browser }) => {
-    const { ctx, page } = await widgetPage(browser, { missing: [J], chat: ['สวัสดีครับ ทดสอบเสียงพูด'] });
+  test('โหลด Jori ไม่ได้ (404) → วิดเจ็ตแจ้ง error ชื่อเสียง แล้วหยุด · ไม่โหลดโมเดลอื่น · log 1 แถว', async ({ browser }) => {
+    const { ctx, page, errors } = await widgetPage(browser, { missing: [J], chat: ['สวัสดีครับ ทดสอบเสียงพูด'] });
+    const urls = []; page.on('request', (r) => urls.push(r.url()));
     await ask(page, 'ทดสอบ');
-    await expect.poll(() => page.evaluate(() => window.__played.length), { timeout: 15000 }).toBeGreaterThan(0);
+    await expect(page.locator('.ome-ai-status, [class*="status"]').filter({ hasText: 'ไม่พบไฟล์เสียง หญิง (Jori) บนเซิร์ฟเวอร์' }).first()).toBeVisible({ timeout: 15000 });
     const msgs = await page.evaluate(() => window.__wmsgs);
-    expect(msgs.filter((m) => m.type === 'fake-pipeline').map((m) => m.model)).toEqual([J, S2.fm]);
-    expect(msgs.filter((m) => m.type === 'fallback')[0]).toMatchObject({ what: 'model', from: J, to: S2.fm });
+    expect(msgs.filter((m) => m.type === 'fake-pipeline').map((m) => m.model)).toEqual([J]);
+    expect(msgs.filter((m) => m.type === 'fallback')).toEqual([]);
+    expect(await page.evaluate(() => window.__played.length)).toBe(0);
+    expect(urls.filter((u) => /mms-tts-2081|podcast|phlebotomy|huggingface\.co/.test(u))).toEqual([]);
+    const rows = (await logRows(page)).filter((r) => r.kind === 'tts' && r.code !== 'info');
+    expect(rows.map((r) => [r.stage, r.model, r.code])).toEqual([['model-load', J, 'ttsMissing']]);
+    expect(errors).toEqual([]);
     await ctx.close();
   });
-  test('Jori และ FM stable2 โหลดไม่ได้ → วิดเจ็ตถอยทีละขั้นถึง FM stable แล้วพูดได้', async ({ browser }) => {
-    const { ctx, page } = await widgetPage(browser, { missing: [J, S2.fm], chat: ['สวัสดีครับ ทดสอบเสียงพูด'] });
+  test('เครือข่ายล้มซ้ำหลังลองใหม่ → วิดเจ็ตแจ้ง "โหลดเสียง … ไม่สำเร็จ" แล้วหยุด ไม่ถอย', async ({ browser }) => {
+    const { ctx, page } = await widgetPage(browser, { netFail: { [J]: 2 }, chat: ['สวัสดีครับ ทดสอบเสียงพูด'] });
     await ask(page, 'ทดสอบ');
-    await expect.poll(() => page.evaluate(() => window.__played.length), { timeout: 15000 }).toBeGreaterThan(0);
+    await expect(page.locator('.ome-ai-status, [class*="status"]').filter({ hasText: 'โหลดเสียง หญิง (Jori) ไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่' }).first()).toBeVisible({ timeout: 15000 });
     const msgs = await page.evaluate(() => window.__wmsgs);
-    expect(msgs.filter((m) => m.type === 'fake-pipeline').map((m) => m.model)).toEqual([J, S2.fm, STABLE.fm]);
-    expect(msgs.filter((m) => m.type === 'fallback').map((m) => [m.from, m.to])).toEqual([[J, S2.fm], [S2.fm, STABLE.fm]]);
+    expect(msgs.filter((m) => m.type === 'fake-pipeline').map((m) => m.model)).toEqual([J, J]);
+    expect(msgs.filter((m) => m.type === 'fallback')).toEqual([]);
+    expect(msgs.filter((m) => m.type === 'retry').length).toBe(1);
     await ctx.close();
   });
   test('เครือข่ายสะดุดตอนโหลดเสียงของวิดเจ็ต 1 ครั้ง → ลองใหม่แล้วพูดได้ ไม่ถอย', async ({ browser }) => {

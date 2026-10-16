@@ -1,4 +1,4 @@
-// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js (Xenova, onnx-community และ Thonburian ของ Tanotfin) และของเสียงพูด MMS-TTS ทุกเสียงใน text-to-speech.js (Section 5: ไฟล์ fp32 สำหรับ WebGPU + ไฟล์ของ WASM) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
+// ตรวจกับ Hugging Face จริงว่า repo/ไฟล์ dtype ของ Whisper ทุกรายการใน media-models.js ที่เป็นของ Tanotfin (Thonburian small/medium) และเสียงพูด Jori/Riko (ไฟล์ fp32 สำหรับ WebGPU + WASM ที่ commit ที่ล็อกไว้) มีครบ — รันในเครื่องเจ้าของที่ออกเน็ตได้
 // (sandbox ที่เขียนโค้ดรอบ Section 3 เข้า huggingface.co ไม่ได้ จึงตรวจเองไม่ได้ → ต้องรันสคริปต์นี้ก่อนเชื่อว่ารายการใช้ได้จริง)
 //   node tools/media-eval/check-models.mjs            → ตาราง repo × (ไฟล์ที่ต้องใช้) · exit 1 ถ้ามีอะไรขาด
 //   HF_TOKEN=hf_xxx node …                           → จำเป็นเมื่อ repo ของ Tanotfin เป็น private (token แบบ Read) + กัน rate limit · ห้ามเขียนโทเคนลงไฟล์
@@ -14,7 +14,8 @@ const CONFIGS = ['config.json', 'generation_config.json', 'preprocessor_config.j
 
 const sandbox = { self: {} };
 vm.runInNewContext(await readFile(join(ROOT, 'media-models.js'), 'utf8'), sandbox);
-const models = sandbox.self.TanotMediaModels.ASR_MODELS;
+/* ตรวจเฉพาะโมเดลที่เว็บยังโหลดจริงของ Tanotfin: Thonburian small/medium + เสียงพูด Jori/Riko (ไม่มีทางถอยไปเสียงเก่าแล้ว) */
+const models = sandbox.self.TanotMediaModels.ASR_MODELS.filter((m) => /^Tanotfin\/distill-whisper-th-(small|medium)-onnx$/.test(m.id));
 const headers = process.env.HF_TOKEN ? { Authorization: 'Bearer ' + process.env.HF_TOKEN } : {};
 
 async function files(repo, rev = 'main') {
@@ -43,14 +44,12 @@ for (const m of models) {
   if (!have) { console.log('✗  ' + m.id + ' — ไม่พบ repo นี้บน Hugging Face'); bad++; continue; }
   const missing = [...new Set(need)].filter((f) => !have.has(f));
   if (missing.length) { console.log('✗  ' + m.id + ' — ขาด: ' + missing.join(', ')); bad++; }
-  else console.log('✓  ' + m.id + ' (' + [...new Set(need)].length + ' ไฟล์ครบ' + (m.legacy ? ', ถอยไป ' + m.legacy : '') + ')');
+  else console.log('✓  ' + m.id + ' (' + [...new Set(need)].length + ' ไฟล์ครบ' + ')');
 }
 /* เสียงพูด MMS-TTS (Section 5): WASM ใช้ dtype ตาม TTS_DTYPE_OVERRIDES (ไม่มี = q8 → model_quantized.onnx) · WebGPU ใช้ ttsGpuDtype (fp32 → model.onnx) — ไฟล์ fp32 ของแต่ละ repo ยังไม่เคยตรวจจริง */
-const tts = await readFile(join(ROOT, 'text-to-speech.js'), 'utf8');
 const M = sandbox.self.TanotMediaModels;
-/* เสียงไทย 2 ตัวในรายการของหน้า (Jori / Riko — fp32 เท่านั้น ที่ commit ใน TTS_REVISION) + ทุก repo ในห่วงโซ่ทางถอย FM/M stable2 → stable → ต้นฉบับ
-   (ค่าทั้งหมดของ TTS_LEGACY ที่ revision main — FM/M มี model_quantized.onnx + model.onnx) */
-const voices = [...new Set([...tts.matchAll(/id: '([\w.-]+\/[\w.-]*mms[\w.-]*)'/g)].map((m) => m[1]).concat(Object.values(M.TTS_LEGACY)))];
+/* เสียงไทย 2 ตัว (Jori / Riko — fp32 เท่านั้น ที่ commit ใน TTS_REVISION) */
+const voices = [...M.TTS_VOICE_IDS];
 for (const id of voices) {
   const need = ['config.json'];
   for (const d of [M.ttsDtype(id) || 'q8', M.ttsGpuDtype(id)]) need.push('onnx/model' + SUFFIX[d] + '.onnx');
