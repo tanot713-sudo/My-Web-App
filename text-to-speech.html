@@ -119,15 +119,30 @@
       <div class="status" id="lexMid" hidden></div>
     </div>
   </details>
+  <details class="disclosure" id="mrBox">
+    <summary><span data-i18n="tts.mrTitle">บันทึกคำอ่านผิด</span> <span class="badge" id="mrCount" hidden></span></summary>
+    <div class="disclosure-body stack">
+      <div class="frow">
+        <button class="btn sm" id="mrExportTxt" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportTxt">ส่งออกสำหรับฝึก</span></button>
+        <button class="btn sm" id="mrExportJson" type="button"><svg class="ome-icon"><use href="icons.svg#i-download"/></svg><span data-i18n="tts.mrExportJson">ส่งออก JSON</span></button>
+        <button class="btn sm danger" id="mrClear" type="button"><svg class="ome-icon"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="tts.mrClear">ล้างทั้งหมด</span></button>
+      </div>
+      <div class="status" id="mrStatus"></div>
+      <div class="empty compact" id="mrEmpty" hidden data-i18n="tts.mrEmpty">ยังไม่มีคำที่บันทึกไว้</div>
+      <div class="list plain" id="mrList"></div>
+    </div>
+  </details>
   <div class="frow">
     <label class="check"><input type="checkbox" id="optParen" checked><span data-i18n="tts.optParen">ข้ามอังกฤษในวงเล็บหลังคำไทย</span></label>
     <label class="check"><input type="checkbox" id="optSplit"><span data-i18n="tts.optSplit">แบ่งไฟล์ตามตอน</span></label>
     <label class="check" id="optLowpassWrap"><input type="checkbox" id="optLowpass"><span data-i18n="tts.optLowpass">ลดเสียงแหลม</span></label>
+    <label class="check"><input type="checkbox" id="optMisread" checked><span data-i18n="tts.optMisread">บันทึกคำที่อ่านไม่ได้อัตโนมัติ</span></label>
     <label class="check" id="optGpuWrap" hidden><input type="checkbox" id="optGpu"><span data-i18n="tts.optGpu">ใช้การ์ดจอ (WebGPU)</span></label>
   </div>
   <div class="frow">
     <button class="btn primary sm" id="dlGenerateBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.make">สร้างไฟล์เสียง</span></button>
     <button class="btn sm" id="dlCancelBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-square"/></svg><span data-i18n="tts.asrCancel">ยกเลิก</span></button>
+    <button class="btn sm" id="mrReportBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-flag"/></svg><span data-i18n="tts.mrReport">แจ้งคำอ่านผิด</span></button>
   </div>
   <details class="disclosure" id="pvMmsBox">
     <summary data-i18n="tts.previewTitle">ดูข้อความที่จะอ่านจริง</summary>
@@ -293,6 +308,22 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="tts-normalize.js"></script>
 <script src="audio-gain.js"></script>
 <script src="tts-long.js"></script>
+<script src="tts-misread.js"></script>
 <script src="text-to-speech.js" defer></script>
+<dialog class="dialog dialog-form" id="mrDialog" aria-labelledby="mrDlgTitle">
+  <form method="dialog" id="mrForm" novalidate>
+    <div class="dialog-head"><h2 id="mrDlgTitle" data-i18n="tts.mrReport">แจ้งคำอ่านผิด</h2></div>
+    <div class="dialog-body">
+      <div class="field"><label for="mrWord" data-i18n="tts.mrWord">คำ / วลี</label><input id="mrWord" type="text" maxlength="80" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <div class="field"><label for="mrReading" data-i18n="tts.mrReading">คำอ่านที่ถูก (ไม่บังคับ)</label><input id="mrReading" type="text" maxlength="100" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
+      <label class="check"><input type="checkbox" id="mrAddLex"><span data-i18n="tts.mrAddLex">เพิ่มเข้าคำอ่านของฉันด้วย</span></label>
+      <p class="form-msg" id="mrMsg" role="alert"></p>
+    </div>
+    <div class="dialog-foot">
+      <button class="btn" type="button" id="mrCancel" data-i18n="tts.mrCancel">ยกเลิก</button>
+      <button class="btn primary" type="submit" id="mrSave" data-i18n="tts.mrSave">บันทึก</button>
+    </div>
+  </form>
+</dialog>
 </body>
 </html>
