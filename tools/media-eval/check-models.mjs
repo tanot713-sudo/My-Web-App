@@ -17,9 +17,9 @@ vm.runInNewContext(await readFile(join(ROOT, 'media-models.js'), 'utf8'), sandbo
 const models = sandbox.self.TanotMediaModels.ASR_MODELS;
 const headers = process.env.HF_TOKEN ? { Authorization: 'Bearer ' + process.env.HF_TOKEN } : {};
 
-async function files(repo) {
+async function files(repo, rev = 'main') {
   const list = async (path) => {
-    const res = await fetch('https://huggingface.co/api/models/' + repo + '/tree/main' + (path ? '/' + path : ''), { headers });
+    const res = await fetch('https://huggingface.co/api/models/' + repo + '/tree/' + encodeURIComponent(rev) + (path ? '/' + path : ''), { headers });
     if (res.status === 404) return null;
     if ((res.status === 401 || res.status === 403) && /^Tanotfin\//.test(repo)) throw new Error('HTTP ' + res.status + (process.env.HF_TOKEN ? ' — HF_TOKEN ไม่มีสิทธิ์อ่าน repo นี้' : ' — repo เป็น private: ตั้ง HF_TOKEN (token แบบ Read) ก่อนรัน'));
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -48,17 +48,18 @@ for (const m of models) {
 /* เสียงพูด MMS-TTS (Section 5): WASM ใช้ dtype ตาม TTS_DTYPE_OVERRIDES (ไม่มี = q8 → model_quantized.onnx) · WebGPU ใช้ ttsGpuDtype (fp32 → model.onnx) — ไฟล์ fp32 ของแต่ละ repo ยังไม่เคยตรวจจริง */
 const tts = await readFile(join(ROOT, 'text-to-speech.js'), 'utf8');
 const M = sandbox.self.TanotMediaModels;
-/* เสียงไทยชุด stable2 (2026-10: Tanotfin/mms-tts-2081-FM-stable2-onnx · …-M-stable2-onnx · mms-thai-female-podcast-spk0-stable2-onnx — noise_scale 0.1 / noise_scale_duration 0.0) อยู่ในรายการของหน้า
-   + ทุก repo ในห่วงโซ่ทางถอย stable2 → stable → ต้นฉบับ (ค่าทั้งหมดของ TTS_LEGACY) ตรวจด้วย — ไฟล์ onnx/ ต้องชุดเดียวกับต้นฉบับ (พอดแคสต์ fp32 เท่านั้น; FM/M มี model_quantized.onnx + model.onnx) */
+/* เสียงไทย 2 ตัวในรายการของหน้า (Jori / Riko — fp32 เท่านั้น ที่ commit ใน TTS_REVISION) + ทุก repo ในห่วงโซ่ทางถอย FM/M stable2 → stable → ต้นฉบับ
+   (ค่าทั้งหมดของ TTS_LEGACY ที่ revision main — FM/M มี model_quantized.onnx + model.onnx) */
 const voices = [...new Set([...tts.matchAll(/id: '([\w.-]+\/[\w.-]*mms[\w.-]*)'/g)].map((m) => m[1]).concat(Object.values(M.TTS_LEGACY)))];
 for (const id of voices) {
   const need = ['config.json'];
   for (const d of [M.ttsDtype(id) || 'q8', M.ttsGpuDtype(id)]) need.push('onnx/model' + SUFFIX[d] + '.onnx');
   let have;
-  try { have = await files(id); } catch (e) { console.log('?? ' + id + ' — ตรวจไม่ได้: ' + e.message); bad++; continue; }
-  if (!have) { console.log('✗  ' + id + ' — ไม่พบ repo นี้บน Hugging Face'); bad++; continue; }
+  const rev = M.ttsRevision ? M.ttsRevision(id) : 'main';
+  try { have = await files(id, rev); } catch (e) { console.log('?? ' + id + '@' + rev + ' — ตรวจไม่ได้: ' + e.message); bad++; continue; }
+  if (!have) { console.log('✗  ' + id + '@' + rev + ' — ไม่พบ repo/commit นี้บน Hugging Face'); bad++; continue; }
   const missing = [...new Set(need)].filter((f) => !have.has(f));
-  if (missing.length) { console.log('✗  ' + id + ' (เสียงพูด) — ขาด: ' + missing.join(', ') + (missing.some((f) => f === 'onnx/model.onnx') ? ' · ไม่มี fp32 = WebGPU ถอย WASM เสมอสำหรับเสียงนี้ (ไม่ใช่ข้อผิดพลาดร้ายแรง — ตั้ง TTS_GPU_DTYPE_OVERRIDES หรือยอมรับ)' : '')); bad++; }
+  if (missing.length) { console.log('✗  ' + id + '@' + rev + ' (เสียงพูด) — ขาด: ' + missing.join(', ') + (missing.some((f) => f === 'onnx/model.onnx') ? ' · ไม่มี fp32 = WebGPU ถอย WASM เสมอสำหรับเสียงนี้ (ไม่ใช่ข้อผิดพลาดร้ายแรง — ตั้ง TTS_GPU_DTYPE_OVERRIDES หรือยอมรับ)' : '')); bad++; }
   else console.log('✓  ' + id + ' (เสียงพูด ' + [...new Set(need)].length + ' ไฟล์ครบ)');
 }
 console.log(bad ? '\nมี ' + bad + ' รายการไม่ผ่าน — แก้ตารางใน media-models.js (หรือถอดตัวนั้นออกจากรายการ) ก่อนปล่อย' : '\nผ่านทั้งหมด');

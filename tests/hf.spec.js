@@ -345,13 +345,14 @@ test.describe('B) media-models.js — env.fetch กลาง', () => {
 const BASE = `http://${PAGES_HOST}:8123`;
 test.describe('C) หน้า text-to-speech บนโฮสต์ pages.dev — โมเดลของ Tanotfin ผ่าน /api/hf/', () => {
 
-  /* transformers.js หลอก: pipeline() ขอ config.json ผ่าน env.fetch (เหมือนตัวจริง) — ตอบ ≠ 200 = โยน error แบบ transformers.js */
+  /* transformers.js หลอก: pipeline() ขอ config.json ผ่าน env.fetch (เหมือนตัวจริง: …/resolve/<opts.revision ?? 'main'>/…) — ตอบ ≠ 200 = โยน error แบบ transformers.js */
   const FAKE = `
 export const env = { backends: { onnx: { wasm: {} } }, fetch: (...a) => fetch(...a) };
 export class TextStreamer { constructor(t, o) { this.o = o; } }
 export async function pipeline(task, model, opts) {
-  const r = await env.fetch('https://huggingface.co/' + model + '/resolve/main/config.json', { headers: new Headers() });
-  if (r.status !== 200) throw new Error('Could not locate file (' + r.status + '): "https://huggingface.co/' + model + '/resolve/main/config.json".');
+  const rev = encodeURIComponent((opts && opts.revision) || 'main');
+  const r = await env.fetch('https://huggingface.co/' + model + '/resolve/' + rev + '/config.json', { headers: new Headers() });
+  if (r.status !== 200) throw new Error('Could not locate file (' + r.status + '): "https://huggingface.co/' + model + '/resolve/' + rev + '/config.json".');
   await r.text();
   if (task === 'text-to-speech') return async (text) => { const a = new Float32Array(16000); for (let i = 0; i < a.length; i++) a[i] = Math.sin(i / 8) * 0.3; return { audio: a, sampling_rate: 16000 }; };
   return async () => ({ text: 'ทดสอบ', chunks: [{ timestamp: [0, 1], text: 'ทดสอบ' }] });
@@ -379,14 +380,20 @@ export async function pipeline(task, model, opts) {
     return { errors, hf, direct };
   }
   const TEXT = 'ประโยคทดสอบหนึ่ง สร้างเสียงพูดภาษาไทย';
+  /* เสียงไทยล็อกรุ่นด้วย commit (media-models.js TTS_REVISION) → URL /api/hf/…/resolve/<sha>/… ไม่ใช่ main */
+  const JORI_CFG = '/api/hf/Tanotfin/mms-thai-jori-f5-onnx/resolve/9a95f85be1cf9440723d9ad085c5ea7137f59af8/config.json';
+  const RIKO_CFG = '/api/hf/Tanotfin/mms-thai-riko-f5-onnx/resolve/55d6042e45801f5a716d53dd62161ced49640759/config.json';
 
-  test('สร้างไฟล์เสียง (tts-worker.js): config ของเสียง Tanotfin ขอผ่าน /api/hf/ พร้อมคุกกี้ Access · ไม่ขอ huggingface.co ตรง', async ({ context, page }) => {
+  test('สร้างไฟล์เสียง (tts-worker.js): config ของเสียง Tanotfin ขอผ่าน /api/hf/ ที่ commit ที่ล็อกไว้ (Jori แล้ว Riko) พร้อมคุกกี้ Access · ไม่ขอ huggingface.co ตรง · ไม่มี resolve/main', async ({ context, page }) => {
     const { errors, hf, direct } = await setup(context, page);
     await page.goto(BASE + '/text-to-speech.html');
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlStatus')).toHaveClass(/ok/, { timeout: 30000 });
-    expect(hf.map((h) => h.path)).toContain('/api/hf/Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx/resolve/main/config.json');
+    await page.selectOption('#dlVoice', 'Tanotfin/mms-thai-riko-f5-onnx');
+    await page.click('#dlGenerateBtn');
+    await expect(page.locator('#dlStatus')).toHaveClass(/ok/, { timeout: 30000 });
+    expect(hf.map((h) => h.path)).toEqual([JORI_CFG, RIKO_CFG]);
     expect(hf.every((h) => /CF_Authorization=test-jwt/.test(h.cookie))).toBe(true);
     expect(direct.filter((p) => /^\/Tanotfin\//.test(p))).toEqual([]);
     expect(errors).toEqual([]);
@@ -412,7 +419,7 @@ export async function pipeline(task, model, opts) {
     await page.fill('#ttsText', TEXT);
     await page.click('#dlGenerateBtn');
     await expect(page.locator('#dlStatus')).toHaveClass(/ok/, { timeout: 30000 });
-    expect(hf.map((h) => h.path)).toContain('/api/hf/Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx/resolve/main/config.json');
+    expect(hf.map((h) => h.path)).toEqual([JORI_CFG]);
     expect(errors).toEqual([]);
   });
 
@@ -424,8 +431,8 @@ export async function pipeline(task, model, opts) {
       await page.click('#dlGenerateBtn');
       await expect(page.locator('#dlStatus')).toHaveClass(/err/, { timeout: 30000 });
       await expect(page.locator('#dlStatus')).toContainText('เซสชันหมดอายุ — เข้าสู่ระบบใหม่แล้วลองอีกครั้ง');
-      // stable2 → stable → ต้นฉบับ ไม่ถูกลอง (เซสชันหมดอายุ รุ่นอื่นของ Tanotfin ก็โหลดไม่ได้) · ไม่ลองซ้ำแบบเครือข่ายสะดุด
-      expect(hf.map((h) => h.path)).toEqual(['/api/hf/Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx/resolve/main/config.json']);
+      // ทางถอย (FM stable2 → stable → ต้นฉบับ) ไม่ถูกลอง (เซสชันหมดอายุ รุ่นอื่นของ Tanotfin ก็โหลดไม่ได้) · ไม่ลองซ้ำแบบเครือข่ายสะดุด
+      expect(hf.map((h) => h.path)).toEqual([JORI_CFG]);
       const rows = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:media:log') || '[]'));
       expect(rows.filter((r) => r.code === 'session').length).toBe(1);
       expect(rows.some((r) => r.stage === 'model-load' || r.stage === 'load-retry')).toBe(false);

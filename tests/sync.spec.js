@@ -105,6 +105,7 @@ test('คำอ่านของฉัน (tanot:tts:lexicon) ซิงก์�
   expect(await get(B.page, 'tanot:tts:opts')).toBeNull();
   expect(await get(B.page, 'tanot:tts:gpubad')).toBeNull();
   await B.page.goto('/text-to-speech.html');
+  await B.page.evaluate(() => { document.getElementById('moreBox').open = true; }); // คำอ่านของฉันอยู่ในส่วนพับ "ตัวเลือกเพิ่มเติม"
   await B.page.click('#lexBox > summary');
   await expect(B.page.locator('#lexText')).toHaveValue(text);
   await expect(B.page.locator('#lexStatus')).toContainText('2');

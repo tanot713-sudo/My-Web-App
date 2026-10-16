@@ -42,7 +42,7 @@
      ("Tensor shape.Size() must be >= 0") — ต้องเลือกโมเดลเสียงตามภาษาจริงของข้อความที่จะพูด ไม่ใช่ตายตัว
      ตัวเดียว เช็คแค่ "มีตัวอักษรไทยอยู่ไหม" ก็พอ (ระบบตอบเต็มประโยคเป็นภาษาเดียวเสมอ ไม่สลับภาษากลางคำตอบ) */
   function pickTtsModel(text) {
-    return /[฀-๿]/.test(text) ? ((window.TanotMediaModels && window.TanotMediaModels.TTS_DEFAULT_VOICE) || 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx') : 'Xenova/mms-tts-eng';
+    return /[฀-๿]/.test(text) ? ((window.TanotMediaModels && window.TanotMediaModels.TTS_DEFAULT_VOICE) || 'Tanotfin/mms-thai-jori-f5-onnx') : 'Xenova/mms-tts-eng';
   }
   /* ⚠️ 2026-08-10: มีรายงานยืนยันจริงจากผู้ใช้ (iPhone 14 Pro Max, Safari) ว่าพิมพ์ถามแค่คำเดียว
      ("สวัสดี") แล้วหน้าเว็บรีเฟรชเองระหว่างที่โมเดลแชทยังโหลดไม่ถึงครึ่ง (เห็น progress ~11% ค้าง
