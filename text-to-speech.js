@@ -228,7 +228,6 @@
   /* dtype ต่อโมเดล (Jori/Riko = fp32 เพราะไม่มีไฟล์ quantized) + revision (commit ที่ล็อกไว้) อยู่ใน media-models.js ที่เดียว —
      tts-worker.js อ่านไฟล์เดียวกัน (เดิมตารางซ้ำ 2 ชุดแล้วเคยลืมแก้คู่กันจนเกิดบั๊กแรมพุ่ง — ประวัติเต็มที่หัวไฟล์ media-models.js) */
   function ttsMigrate(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsMigrate(modelId) : modelId; }
-  function ttsLegacy(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsLegacy(modelId) : null; }
   /* เว้นขอบท่อน: ทุกท่อนที่เข้าโมเดล MMS ไทยขึ้นต้น/ลงท้ายด้วยช่องว่าง 1 ตัว (ฟังแล้วดีสุด คู่กับ noise ต่ำแบบ stable2) · อังกฤษไม่ทำ */
   function padMms(modelId, text) { return /mms-tts-eng/.test(modelId) ? text : (Norm && Norm.padMms ? Norm.padMms(text) : ' ' + text + ' '); }
   function ttsDtype(modelId) { return window.TanotMediaModels ? TanotMediaModels.ttsDtype(modelId) : null; }
@@ -247,9 +246,9 @@
     }
     return ttsPipelinePromiseByModel[modelId];
   }
-  /* ทางถอย (เธรดหลัก): โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ) → ขั้นถัดไปของเสียงนั้น ทีละขั้น ขั้นละ 1 ครั้ง (Jori → FM stable2 → stable → ต้นฉบับ · Riko → M …) + problem log ทุกขั้น · Worker ทำแบบเดียวกันใน tts-worker.js
-     เครือข่ายสะดุดตอนโหลด (TypeError: network error ฯลฯ ไม่ใช่ 404) → รอ ~1.5 วิ ลองโหลดซ้ำ 1 ครั้งก่อนเข้าทางถอย + บันทึกว่าลองซ้ำแล้ว */
-  var ttsRedirect = {}, modelFallbackLogged = {};
+  /* ไม่มีทางถอยไปเสียง/โมเดลอื่น (เสียงเก่าฟังไม่รู้เรื่อง): โหลดไม่ได้ (ไม่ใช่เรื่องหน่วยความจำ/เซสชัน) → error ที่บอกชื่อเสียง แล้วหยุดงาน
+     เครือข่ายสะดุดตอนโหลด (TypeError: network error ฯลฯ ไม่ใช่ 404) → รอ ~1.5 วิ ลองโหลดโมเดลเดิมซ้ำ 1 ครั้ง + บันทึกว่าลองซ้ำแล้ว */
+  var modelFallbackLogged = {};
   function sleepMs(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
   function loadTtsPipelineRetry(modelId, onProgress) {
     return loadTtsPipeline(modelId, onProgress).catch(function (err) {
@@ -262,16 +261,25 @@
       });
     });
   }
+  /* โหลดเสียงไม่ได้หลังลองซ้ำแล้ว → MediaError ('ttsLoad' | 'ttsMissing') ที่มีชื่อเสียง · ลง problem log 1 ครั้ง (ไม่มีเนื้อหาผู้ใช้) · เซสชันหมดอายุ/หน่วยความจำ = คงพฤติกรรมเดิม */
+  function ttsLoadFailure(err, modelId, kind) {
+    var M = window.TanotMediaModels, TM = window.TanotMedia;
+    if (!TM || !M || !kind) return err;
+    var e = TM.ttsLoadError(kind, modelId, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) });
+    var lk = 'load|' + modelId;
+    if (!modelFallbackLogged[lk]) { modelFallbackLogged[lk] = true; TM.logError('tts', e, { stage: 'model-load', engine: 'local', model: modelId }); }
+    e.mediaLogged = true;
+    return e;
+  }
+  function loadFailKind(err) {
+    var M = window.TanotMediaModels;
+    if (!M || (window.TanotMedia && TanotMedia.isMemoryError(err)) || M.isSessionError(err)) return null;
+    return M.isNotFoundError(err) ? 'missing' : 'network';
+  }
   function loadTtsPipelineSafe(modelId, onProgress) {
-    var eff = ttsRedirect[modelId] || modelId;
-    return loadTtsPipelineRetry(eff, onProgress).catch(function (err) {
-      var lg = ttsLegacy(eff);
-      if (!lg || (window.TanotMedia && TanotMedia.isMemoryError(err))) throw err;
-      if (window.TanotMediaModels && TanotMediaModels.isSessionError(err)) throw err; // เซสชันหมดอายุ — ไม่ถอยรุ่น
-      delete ttsPipelinePromiseByModel[eff];
-      ttsRedirect[modelId] = lg;
-      if (window.TanotMedia) TanotMedia.logError('tts', TanotMedia.error('model', null, { name: (err && err.name) || 'Error', message: (err && err.message) || String(err) }), { stage: 'model-load', engine: 'local', model: eff, to: lg });
-      return loadTtsPipelineSafe(modelId, onProgress);
+    return loadTtsPipelineRetry(modelId, onProgress).catch(function (err) {
+      delete ttsPipelinePromiseByModel[modelId]; // ลองใหม่ครั้งหน้าได้
+      throw ttsLoadFailure(err, modelId, loadFailKind(err));
     });
   }
   function synthesizeMmsTts(text, modelId, onProgress) {
@@ -433,11 +441,6 @@
             var rk = 'retry|' + (msg.modelId || modelId);
             if (!modelFallbackLogged[rk]) { modelFallbackLogged[rk] = true; TanotMedia.logNote('tts', { stage: 'load-retry', engine: 'local', model: msg.modelId || modelId, device: msg.device || 'wasm' }, 'retry=1 network'); }
           }
-          else if (msg.type === 'fallback' && msg.what === 'model') {
-            /* โหลดไม่ได้ → Worker ถอยไปขั้นถัดไปแล้ว (stable2 → stable → ต้นฉบับ ขั้นละ 1 ครั้งต่อ Worker) · ลง problem log ครั้งเดียวต่อขั้น (ไม่มีเนื้อหาผู้ใช้) */
-            var fk = (msg.from || modelId) + '>' + (msg.to || '');
-            if (!modelFallbackLogged[fk]) { modelFallbackLogged[fk] = true; TanotMedia.logError('tts', TanotMedia.error('model', null, { name: msg.name || 'Error', message: msg.message || '' }), { stage: 'model-load', engine: 'local', model: msg.from || modelId, to: msg.to, device: msg.device || 'wasm' }); }
-          }
           else if (msg.type === 'fallback') {
             /* WebGPU ล้ม/เสียงผิดปกติ → Worker ทำท่อนเดิมซ้ำบน WASM แล้ว · บันทึกลง problem log (ไม่มีเนื้อหาผู้ใช้) + จำว่าล้ม 3 วัน + ขยายพูลเป็นขนาดปกติ */
             var fe = TanotMedia.error('webgpu', null, { name: msg.name || 'Error', message: msg.message || '' });
@@ -460,7 +463,8 @@
             var cause = { name: msg.name || 'Error', message: msg.message || '' };
             var oom = TanotMedia.isMemoryError(cause);
             ttsPool.job = null; ttsPoolKill(); // หน่วยความจำของพูลอาจเสียแล้ว — ทิ้งทั้งชุด
-            fail(TanotMedia.error(oom ? 'oom' : 'tts', oom ? null : msg.message, cause));
+            if (msg.loadFail) fail(ttsLoadFailure(cause, msg.modelId || modelId, msg.loadFail)); // โหลดเสียงไม่ได้ — ไม่ถอยไปเสียงอื่น ยกเลิกงาน
+            else fail(TanotMedia.error(oom ? 'oom' : 'tts', oom ? null : msg.message, cause));
           }
         },
         onError: function (w, e) {
@@ -1052,13 +1056,14 @@
           return;
         }
         $('dlStatus').className = 'status err';
-        if (window.TanotMedia) TanotMedia.logError('tts', e, { stage: stage, engine: 'local', model: modelId, lang: lang, device: run.device });
+        if (window.TanotMedia && !(e && e.mediaLogged)) TanotMedia.logError('tts', e, { stage: stage, engine: 'local', model: modelId, lang: lang, device: run.device });
         /* ใส่ modelId + dtype ที่ใช้จริงต่อท้าย error เสมอ (เพิ่มเข้ามาเพื่อวินิจฉัยปัญหา cache เก่า
            ค้าง vs. ปัญหาโมเดลจริง — ถ้า error หน้าเว็บบอก dtype ไม่ตรงกับที่โค้ดล่าสุดควรใช้ แปลว่า
            browser/service worker ยังไม่ได้โหลดโค้ดใหม่จริง ไม่ใช่โมเดลพัง) */
         var usedDtype = ttsDtype(modelId);
         st('dlStatus', function () {
-          return T('makeFail', { msg: mediaErrText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') }) + (run.parts && mode !== 'single' ? ' · ' + T('partsKept', { n: run.parts }) : '');
+          var loadFail = e && (e.code === 'ttsLoad' || e.code === 'ttsMissing'); // โหลดเสียงไม่ได้ — ข้อความชัดๆ ไม่ต่อรายละเอียดโมเดล
+          return (loadFail ? mediaErrText(e) : T('makeFail', { msg: mediaErrText(e), model: modelId, dtype: usedDtype || T('dtypeDefault') })) + (run.parts && mode !== 'single' ? ' · ' + T('partsKept', { n: run.parts }) : '');
         });
       });
     }).then(release, release);

@@ -547,6 +547,12 @@
         } else if (msg.type === 'item-error') {
           cleanup(); speakJob = null;
           var cause = { name: msg.name || 'Error', message: msg.message || '' };
+          if (msg.loadFail && TM && TM.ttsLoadError) { // โหลดเสียงไม่ได้ — ไม่ถอยไปเสียงอื่น หยุดแล้วบอกชื่อเสียง
+            var le = TM.ttsLoadError(msg.loadFail, msg.modelId || modelId, cause);
+            logMedia('tts', le, { stage: 'model-load', engine: 'local', model: msg.modelId || modelId });
+            setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + TM.errorText(le), 'err');
+            return;
+          }
           logMedia('tts', cause, { stage: 'synth', engine: 'local', model: modelId });
           if (TM && TM.isMemoryError(cause)) { try { w.terminate(); } catch (e2) {} if (ttsWorker === w) ttsWorker = null; if (TM) TM.budget.release('tts-widget'); }
           setStatus(tx('speakFail', 'พูดคำตอบไม่สำเร็จ: ') + (TM && (TM.isMemoryError(cause) || TM.isSessionError(cause)) ? TM.errorText(cause) : msg.message), 'err');

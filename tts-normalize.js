@@ -3,7 +3,7 @@
    ใช้โดย text-to-speech.js (ฟังทันที + สร้างไฟล์เสียง) และ ai-chat-widget.js (วิดเจ็ตแชทพูดคำตอบ) — ที่เดียว ไม่มีสำเนา
 
    API
-   • forMms(text)    → ข้อความไทยล้วนพร้อมส่งโมเดล MMS (Tanotfin/mms-tts-2081*-onnx) — ตัวอักษรทุกตัวอยู่ใน vocab ของโมเดลเสมอ
+   • forMms(text)    → ข้อความไทยล้วนพร้อมส่งโมเดล MMS (เสียงไทย Jori/Riko — media-models.js) — ตัวอักษรทุกตัวอยู่ใน vocab ของโมเดลเสมอ
                        (ตัวกรอง VALID_CHARS เป็นขั้นสุดท้ายเสมอ — โมเดลมีเลขอารบิกแค่ 0,1,2,4 และไม่มี <unk> ที่ใช้ได้
                         เจอตัวอักษรนอก vocab = Gather index out of bounds) · ย่อหน้าต่อกันด้วยช่องว่าง
    • forNative(text) → สำหรับ Web Speech (speechSynthesis): ล้าง markdown/อีโมจิ/URL + ขยายตัวย่อ/วันที่/เวลา — ไม่กรอง vocab ไม่แปลงตัวเลขเป็นคำ

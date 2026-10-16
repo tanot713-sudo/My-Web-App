@@ -104,10 +104,8 @@ function disposeGpuPipelines() {
   });
 }
 
-/* ทางถอยโมเดล (ไล่ทีละขั้น ขั้นละ 1 ครั้ง): Jori → FM stable2 → stable → ต้นฉบับ · Riko → M stable2 → stable → ต้นฉบับ (media-models.js ttsLegacy = "ขั้นถัดไป" ของ id นั้น)
-   โหลดไม่ได้ (404/เครือข่ายที่ลองซ้ำแล้วยังล้ม — ไม่ใช่เรื่องหน่วยความจำ) บน WASM → ใช้ขั้นถัดไปแทน จำไว้ใน modelRedirect (ต่อ Worker) + แจ้งหน้าลง problem log ทุกขั้น
-   modelRedirect[ที่ขอ] = id ที่ใช้อยู่จริง · เครือข่ายสะดุดตอนโหลด → รอ NET_RETRY_MS แล้วลองโหลด id เดิมซ้ำ 1 ครั้ง (ส่ง {type:'retry'} ให้หน้าบันทึก) ก่อนเข้าทางถอย */
-var modelRedirect = {};
+/* ไม่มีทางถอยไปเสียง/โมเดลอื่น (เสียงเก่าฟังไม่รู้เรื่อง): โหลดไม่ได้หลังลองซ้ำแล้ว → item-error พร้อม loadFail ('missing' = 404/403, 'network' = อื่นๆ) แล้วหยุดงาน
+   เครือข่ายสะดุดตอนโหลด → รอ NET_RETRY_MS แล้วลองโหลดโมเดลเดิมซ้ำ 1 ครั้ง (loadPipelineRetry) · WebGPU ล้ม → ท่อนเดิมซ้ำบน WASM ด้วยโมเดลเดิม (synthesizeOneItem) */
 var MEM_RE = /out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
 function wait(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 function loadPipelineRetry(modelId, device, onProgress, jobId) {
@@ -122,19 +120,7 @@ function loadPipelineRetry(modelId, device, onProgress, jobId) {
   });
 }
 function synthesizeOnDevice(text, modelId, device, onProgress, jobId) {
-  var eff = modelRedirect[modelId] || modelId;
-  return synthesizeRaw(text, eff, device, onProgress, jobId).catch(function (err) {
-    return (modelsPromise || Promise.resolve(null)).then(function (M) {
-      var next = M && M.ttsLegacy ? M.ttsLegacy(eff) : null;
-      if (!next || device !== 'wasm' || (err && err.ttsStage) !== 'load' || MEM_RE.test(String(err && err.message ? err.message : err))) throw err;
-      if (M.isSessionError && M.isSessionError(err)) throw err; // เซสชันหมดอายุ — รุ่นถัดไปก็โหลดไม่ได้ ให้หน้าบอกให้เข้าสู่ระบบใหม่
-      modelRedirect[modelId] = next;
-      delete pipelinePromiseByModel[eff + '|' + device];
-      self.postMessage({ type: 'fallback', jobId: jobId, what: 'model', from: eff, to: next, stage: 'load', device: device, modelId: modelId, retried: !!(err && err.ttsRetried),
-        name: (err && err.name) || 'Error', message: String(err && err.message ? err.message : err).slice(0, 240) });
-      return synthesizeOnDevice(text, modelId, device, onProgress, jobId); // ขั้นถัดไป (ล้มอีก = ถอยต่อจนหมดห่วงโซ่)
-    });
-  });
+  return synthesizeRaw(text, modelId, device, onProgress, jobId);
 }
 function synthesizeRaw(text, modelId, device, onProgress, jobId) {
   return loadPipelineRetry(modelId, device, onProgress, jobId).then(function (synth) {
@@ -195,7 +181,9 @@ self.onmessage = function (e) {
         [output.audio.buffer]
       );
     }).catch(function (err) {
-      self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, name: (err && err.name) || 'Error', message: err && err.message ? err.message : String(err) });
+      var errMsg = err && err.message ? err.message : String(err), loadFail = null, M = self.TanotMediaModels;
+      if (err && err.ttsStage === 'load' && M && !MEM_RE.test(errMsg) && !(M.isSessionError && M.isSessionError(err))) loadFail = M.isNotFoundError && M.isNotFoundError(err) ? 'missing' : 'network';
+      self.postMessage({ type: 'item-error', jobId: jobId, i: item.i, name: (err && err.name) || 'Error', message: errMsg, loadFail: loadFail, modelId: modelId });
       throw err; // หยุดท่อนที่เหลือใน worker ตัวนี้ (งานทั้งก้อนถือว่าล้มเหลวอยู่แล้วฝั่งหน้าเว็บหลัก)
     });
   }, Promise.resolve()).catch(function () { /* error ถูกรายงานผ่าน postMessage ไปแล้ว ไม่ต้องทำอะไรเพิ่ม */ }).then(function () {

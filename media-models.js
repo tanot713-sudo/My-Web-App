@@ -11,13 +11,11 @@
 
    ทำไม Jori / Riko ต้องบังคับ fp32: transformers.js เลือกไฟล์ ONNX ตาม dtype เริ่มต้นของ backend
    (wasm = 'q8' → onnx/model_quantized.onnx) — สอง repo นี้มีแค่ onnx/model.onnx ปล่อยดีฟอลต์จะ 404 ·
-   Tanotfin/mms-tts-2081-FM-onnx / M-onnx (ทางถอย) เคยต้อง fp32 แต่แก้ต้นตอ (export ONNX ใหม่ด้วย
-   torch.where shape คงที่) แล้ว ใช้ q8 ได้ตามปกติ — ห้ามเติมกลับ
    ไฟล์ fp32 ใหญ่กว่า q8 หลายเท่า → text-to-speech.js ให้โมเดล fp32 รันได้ Worker เดียวเสมอทุกเครื่อง */
 (function (g) {
   'use strict';
   var TTS_DTYPE_OVERRIDES = {
-    /* Jori / Riko — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized · ทางถอย (FM/M stable2/stable/ต้นฉบับ) ใช้ q8 ตามค่าเริ่มต้น */
+    /* Jori / Riko — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized ·  */
     'Tanotfin/mms-thai-jori-f5-onnx': 'fp32',
     'Tanotfin/mms-thai-riko-f5-onnx': 'fp32'
   };
@@ -25,20 +23,11 @@
      ทั้งคู่ fine-tune จาก VIZINTZOR MMS-TTS-THAI-FEMALEV2 / MALEV2 ด้วยเสียงที่สังเคราะห์โดย F5-TTS-THAI แล้วตั้งความสุ่มต่ำแบบ stable2
      (VITS ฝังความสุ่มไว้ใน ONNX: ต้นฉบับ noise_scale 0.667 / noise_scale_duration 0.8 → อาการ "ยานต้นคำ / สั่นท้ายคำ"
       • stable  = 0.333 / 0.3 · stable2 = 0.1 / 0.0 (น้ำหนักเดิม) — เจ้าของฟังเทียบแล้วเลือก stable2)
-     ทางถอยเมื่อโหลดไม่ได้ (404/เครือข่ายหลังลองซ้ำแล้ว) ไล่ทีละขั้น ขั้นละ 1 ครั้ง (TTS_LEGACY = "ขั้นถัดไปของ id นั้น"):
-       Jori → FM stable2 → FM stable → FM ต้นฉบับ · Riko → M stable2 → M stable → M ต้นฉบับ — เสียงถอยไม่อยู่ในรายการของหน้า
+     ไม่มีทางถอยไปเสียง/โมเดลอื่น (2026-10: เสียงเก่าฟังไม่รู้เรื่อง) — โหลด Jori/Riko ไม่ได้ = แจ้ง error แล้วหยุด (tts-worker.js / text-to-speech.js)
      id ที่เคยเลือกไว้ทุกตัว (พอดแคสต์/หญิง ทั่วไป/ชาย ทั่วไป ทุกชุด) แปลงเป็น Jori/Riko ด้วย ttsMigrate · ค่าที่ไม่รู้จัก → Jori */
   var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-jori-f5-onnx';
   var TTS_MALE = 'Tanotfin/mms-thai-riko-f5-onnx';
   var TTS_VOICE_IDS = [TTS_DEFAULT_VOICE, TTS_MALE];
-  var TTS_LEGACY = {
-    'Tanotfin/mms-thai-jori-f5-onnx': 'Tanotfin/mms-tts-2081-FM-stable2-onnx',
-    'Tanotfin/mms-tts-2081-FM-stable2-onnx': 'Tanotfin/mms-tts-2081-FM-stable-onnx',
-    'Tanotfin/mms-tts-2081-FM-stable-onnx': 'Tanotfin/mms-tts-2081-FM-onnx',
-    'Tanotfin/mms-thai-riko-f5-onnx': 'Tanotfin/mms-tts-2081-M-stable2-onnx',
-    'Tanotfin/mms-tts-2081-M-stable2-onnx': 'Tanotfin/mms-tts-2081-M-stable-onnx',
-    'Tanotfin/mms-tts-2081-M-stable-onnx': 'Tanotfin/mms-tts-2081-M-onnx'
-  };
   var TTS_MIGRATE = {
     'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
     'Tanotfin/mms-tts-2081-FM-onnx': TTS_DEFAULT_VOICE,
@@ -61,14 +50,9 @@
   /* "ลดเสียงแหลม" (ตัวกรอง low-pass 2nd-order biquad Q 0.707 ที่ TTS_LOWPASS_HZ — audio-gain.js): หญิง ทั่วไป (22.05 kHz) มีเสียงแหลมจนมีเสียงรบกวนเล็กน้อย (เจ้าของฟังจริง)
      ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ (Jori/Riko ไม่เปิด — ผู้ใช้ติ๊กเองได้) · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
   var TTS_LOWPASS_HZ = 7000;
-  var TTS_LOWPASS_DEFAULT = {
-    'Tanotfin/mms-tts-2081-FM-stable2-onnx': true,
-    'Tanotfin/mms-tts-2081-FM-stable-onnx': true,
-    'Tanotfin/mms-tts-2081-FM-onnx': true,
-    'Tanotfin/mms-tts-2081-onnx': true
-  };
+  var TTS_LOWPASS_DEFAULT = {}; // ว่าง: Jori/Riko ไม่เปิดเป็นค่าเริ่มต้น (เสียงหญิง ทั่วไปที่เคยเปิดไม่ได้โหลดแล้ว) — ใส่ id ที่นี่ถ้าเสียงใหม่ต้องการ
   /* error ตอนโหลดโมเดลที่เป็นเครือข่ายสะดุด (เคยเจอ "TypeError: network error" ตอนโหลดโมเดลเสียงพอดแคสต์ 1 ครั้ง ครั้งต่อไปผ่าน) → tts-worker.js/asr-worker.js รอ NET_RETRY_MS แล้วลองโหลดใหม่ 1 ครั้งก่อนเข้าทางถอย
-     ไม่ใช่: 404/403/401/ไม่พบไฟล์ (ลองซ้ำไม่ช่วย → ทางถอยทันที) · หน่วยความจำไม่พอ (ลองซ้ำซ้ำเติม) */
+     ไม่ใช่: 404/403/401/ไม่พบไฟล์ (ลองซ้ำไม่ช่วย → แจ้ง error ทันที) · หน่วยความจำไม่พอ (ลองซ้ำซ้ำเติม) */
   var NET_RETRY_MS = 1500;
   var NET_ERR_RE = /network ?error|failed to fetch|load failed|fetch failed|networkerror when attempting|net::err_|err_(network|internet|connection|timed_out|name_not|empty_response)|econn(reset|refused)|etimedout|socket hang up|\btimed? ?out\b|the network connection was lost|connection (was )?(reset|closed|lost)/i;
   var NOT_NET_RE = /\b(40[0-9]|410|5\d\d)\b|could not locate|not found|unauthorized|forbidden|out of memory|bad_alloc|Aborted\(|memory access out of bounds|cannot allocate|failed to grow|could not allocate|WebAssembly\.Memory|Array buffer allocation failed|Invalid typed array length/i;
@@ -84,7 +68,7 @@
      • ทำงานเฉพาะ *.pages.dev (มี /api/*) หรือเมื่อเทสต์ตั้ง self.TANOT_HF_PROXY = { enabled: true } · ที่อื่น = โหลดตรง (ใช้ได้เฉพาะตอน repo ยัง public)
      • แคชของ transformers.js (Cache Storage 'transformers-cache') ใช้ URL ของ huggingface.co เป็นคีย์ ไม่ใช่ URL ที่ fetch จริง → แคชเดิมในเครื่องใช้ต่อได้ ไม่ต้องโหลดใหม่
      • เซสชัน Access หมดอายุ (opaqueredirect ไปหน้าล็อกอิน / 401 / 403 จาก _middleware.js) → โยน SessionError (code 'session') — ไม่ใช่ "เครือข่ายสะดุด"
-       (ไม่ลองซ้ำ) และไม่เข้าทางถอยโมเดล · media-core.js แสดง "เข้าสู่ระบบใหม่" · Function ตอบ 401/403 ของ HF เป็น 502 จึงไม่ปนกับเซสชัน */
+       (ไม่ลองซ้ำ) และไม่ถอยรุ่น · media-core.js แสดง "เข้าสู่ระบบใหม่" · Function ตอบ 401/403 ของ HF เป็น 502 จึงไม่ปนกับเซสชัน */
   var HF_OWNER = 'Tanotfin';
   var HF_DIRECT_RE = /^https:\/\/(?:huggingface\.co|hf\.co)\/Tanotfin\/([^?#]+)/;
   var SESSION_RE = /tanot-session/;
@@ -182,7 +166,6 @@
     ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
     TTS_DEFAULT_VOICE: TTS_DEFAULT_VOICE,
     TTS_VOICE_IDS: TTS_VOICE_IDS,
-    TTS_LEGACY: TTS_LEGACY,
     TTS_REVISION: TTS_REVISION,
     /* id เสียงที่เคยเลือกไว้ → Jori/Riko (ฝั่งหญิงทุกตัว → Jori · ฝั่งชาย → Riko) · Jori/Riko คืนค่าเดิม · ค่าที่ไม่รู้จัก/ว่าง → Jori */
     ttsMigrate: function (modelId) {
@@ -191,10 +174,19 @@
     },
     /* commit ของ Hugging Face ที่ล็อกไว้ (ไม่มีในตาราง = 'main') — ส่งเป็น option revision ของ pipeline() ทุกทาง */
     ttsRevision: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_REVISION, modelId) ? TTS_REVISION[modelId] : 'main'; },
-    /* ทางถอย "ขั้นถัดไป" ของ id นั้น: Jori → FM stable2 → FM stable → FM ต้นฉบับ → null (ไม่มี) · ผู้เรียกถอยทีละขั้น ขั้นละ 1 ครั้ง */
-    ttsLegacy: function (modelId) { return TTS_LEGACY[modelId] || null; },
-    /* ห่วงโซ่ทางถอยทั้งหมดของ id (ไม่รวมตัวมันเอง) เช่น Jori → [FM stable2, FM stable, FM ต้นฉบับ] */
-    ttsLegacyChain: function (modelId) { var out = [], id = modelId, guard = 0; while (TTS_LEGACY[id] && guard++ < 8) { id = TTS_LEGACY[id]; out.push(id); } return out; },
+    /* ชื่อเสียงที่ผู้ใช้เห็น (ใช้ในข้อความ error) · id อื่น = id เอง */
+    ttsVoiceLabel: function (modelId, lang) {
+      var en = lang === 'en';
+      if (modelId === TTS_DEFAULT_VOICE) return en ? 'Female (Jori)' : 'หญิง (Jori)';
+      if (modelId === TTS_MALE) return en ? 'Male (Riko)' : 'ชาย (Riko)';
+      return String(modelId || '');
+    },
+    /* ไฟล์โมเดลไม่อยู่บนเซิร์ฟเวอร์ (404/403 ฯลฯ ที่ไม่ใช่เซสชันหมดอายุ) */
+    isNotFoundError: function (err) {
+      if (isSessionError(err)) return false;
+      var m = err && err.message ? String(err.message) : String(err == null ? '' : err);
+      return /could not locate|not found|\b(404|403|410)\b/i.test(m);
+    },
     TTS_LOWPASS_HZ: TTS_LOWPASS_HZ,
     /* ธงเริ่มต้นของ "ลดเสียงแหลม" ต่อเสียง (ผู้ใช้ override ได้ที่ tanot:tts:opts.lowpass) */
     ttsLowpassDefault: function (modelId) { return TTS_LOWPASS_DEFAULT[modelId] === true; },

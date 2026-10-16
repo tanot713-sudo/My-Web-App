@@ -259,6 +259,27 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
   else ok('safe-area', `${pagesHtml.length} หน้ามี viewport-fit=cover และ element fixed ติดขอบมี safe-area`);
 }
 
+/* ── 13. โมเดล Tanotfin ที่โค้ดโหลดได้ ── */
+{
+  const ALLOWED = ['mms-thai-jori-f5-onnx', 'mms-thai-riko-f5-onnx', 'distill-whisper-th-small-onnx', 'distill-whisper-th-medium-onnx'];
+  const mm = read('media-models.js');
+  const mig = mm.match(/var TTS_MIGRATE = \{[\s\S]*?\n  \};/);
+  const bad = [];
+  if (!mig) fail('tanotfin-models', 'หา TTS_MIGRATE ใน media-models.js ไม่เจอ');
+  if (/TTS_LEGACY|ttsLegacy/.test(mm)) fail('tanotfin-models', 'media-models.js ยังมี TTS_LEGACY/ttsLegacy — ห้ามมีทางถอยไปเสียงอื่น');
+  const files = tracked.filter((f) => /\.(?:js|mjs|jsx|html|json)$/.test(f) && !/^(?:tests|tools|docs|vendor|local)\//.test(f) && !/(?:^|\/)package(?:-lock)?\.json$/.test(f) && !/\.compiled\.js$/.test(f));
+  for (const f of files) {
+    let src = read(f);
+    if (f === 'media-models.js' && mig) src = src.replace(mig[0], '');
+    for (const m of src.matchAll(/Tanotfin\/([A-Za-z0-9._-]+)/g)) {
+      const name = m[1];
+      if (!ALLOWED.some((a) => a === name || a.startsWith(name))) bad.push(f + ' → Tanotfin/' + name);
+    }
+  }
+  if (bad.length) fail('tanotfin-models', 'โมเดล Tanotfin นอกรายการที่อนุญาต (' + ALLOWED.join(', ') + '): ' + [...new Set(bad)].slice(0, 6).join('; '));
+  else ok('tanotfin-models', 'โมเดล Tanotfin ที่อ้างถึงมีแค่ 4 ตัว (+ ชื่อเก่าในตาราง TTS_MIGRATE)');
+}
+
 /* ── 1. bump CACHE ── */
 {
   const base = process.env.GUARD_BASE || 'origin/main';

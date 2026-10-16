@@ -36,6 +36,7 @@
       crash: 'ตัวประมวลผลในเบราว์เซอร์หยุดทำงานกลางทาง (มักเป็นเพราะหน่วยความจำไม่พอ) — ลองใหม่ด้วยโมเดลที่เล็กลง หรือใช้โหมดคลาวด์',
       abort: 'ยกเลิกแล้ว', evicted: 'หยุดแล้วเพื่อคืนหน่วยความจำให้งานอื่น', decode: 'ถอดรหัสไฟล์เสียงนี้ไม่ได้ — ลองไฟล์ชนิดอื่น (mp3/wav/mp4/webm)',
       noWorker: 'สร้าง Web Worker ไม่ได้',
+      ttsLoad: 'โหลดเสียง {voice} ไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่', ttsMissing: 'ไม่พบไฟล์เสียง {voice} บนเซิร์ฟเวอร์',
       webgpu: 'WebGPU ใช้ไม่ได้บนเครื่องนี้ — ถอยกลับไปใช้ WASM', modelFallback: 'โหลดโมเดลรุ่นใหม่ไม่ได้ — ใช้รุ่นเดิมแทน',
       session: 'เซสชันหมดอายุ — เข้าสู่ระบบใหม่แล้วลองอีกครั้ง', sessionAsk: 'เซสชันหมดอายุ จึงโหลดโมเดลไม่ได้ — เข้าสู่ระบบใหม่ตอนนี้ไหม?', relogin: 'เข้าสู่ระบบใหม่'
     },
@@ -44,6 +45,7 @@
       crash: 'The in-browser processor stopped part way (usually not enough memory) — try again with a smaller model, or use cloud mode',
       abort: 'Cancelled', evicted: 'Stopped to free memory for another task', decode: 'Could not decode this audio file — try another type (mp3/wav/mp4/webm)',
       noWorker: 'Could not create a Web Worker',
+      ttsLoad: 'Could not load the voice {voice} — check your internet connection and try again', ttsMissing: 'The voice files for {voice} were not found on the server',
       webgpu: 'WebGPU is not usable on this device — falling back to WASM', modelFallback: 'Could not load the newer model — using the previous one instead',
       session: 'Session expired — sign in again and retry', sessionAsk: 'Your session expired, so the model could not be loaded — sign in again now?', relogin: 'Sign in again'
     }
@@ -95,9 +97,21 @@
   function errorText(err) {
     var c = classify(err);
     if (c === 'oom' || c === 'crash' || c === 'abort' || c === 'evicted' || c === 'decode' || c === 'session') return T(c);
+    if (c === 'ttsLoad' || c === 'ttsMissing') {
+      var lang = window.OME_LANG && OME_LANG.get ? OME_LANG.get() : 'th';
+      var voice = window.TanotMediaModels && TanotMediaModels.ttsVoiceLabel ? TanotMediaModels.ttsVoiceLabel(err.voiceId, lang) : String(err.voiceId || '');
+      return String(T(c, { voice: voice })).replace('{voice}', voice);
+    }
     return (err && err.message) || String(err);
   }
   /* ควรแนะนำคลาวด์ไหม — ปัญหาที่เกิดจากเครื่อง (หน่วยความจำ/Worker พัง) */
+  /* โหลดเสียงพูดไม่ได้ (หลังลองซ้ำแล้ว ไม่มีทางถอยไปเสียงอื่น) → error ที่บอกชื่อเสียง · kind: 'missing' (404/403) | 'network' */
+  function ttsLoadError(kind, voiceId, cause) {
+    var e = mediaError(kind === 'missing' ? 'ttsMissing' : 'ttsLoad', null, cause);
+    e.voiceId = voiceId;
+    e.message = errorText(e);
+    return e;
+  }
   function isDeviceLimit(err) { var c = classify(err); return c === 'oom' || c === 'crash'; }
 
   /* ── บันทึกปัญหา ── */
@@ -530,7 +544,7 @@
   window.TanotMedia = {
     BASE: BASE, RATE: RATE, SEGMENT_SEC: SEGMENT_SEC,
     isIOS: isIOS, isAndroid: isAndroid, isMobile: isMobile, device: device,
-    error: mediaError, isMemoryError: isMemoryError, isSessionError: isSessionError, relogin: relogin, reloginUrl: reloginUrl, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
+    error: mediaError, ttsLoadError: ttsLoadError, isMemoryError: isMemoryError, isSessionError: isSessionError, relogin: relogin, reloginUrl: reloginUrl, isDeviceLimit: isDeviceLimit, classify: classify, errorText: errorText,
     LOG_KEY: LOG_KEY, logError: logError, logNote: logNote, readLog: readLog, clearLog: clearLog,
     budget: budget,
     decode16k: decode16k, fromPcm: wrapPcm, planSegments: planSegments, planAsrChunks: planAsrChunks, ASR_CHUNK: ASR_CHUNK, quietCut: quietCut, silentAt: silentAt, SILENT_SEC: SILENT_SEC, SILENT_DB: SILENT_DB,
