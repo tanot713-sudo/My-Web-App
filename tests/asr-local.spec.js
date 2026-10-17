@@ -39,7 +39,7 @@ export async function pipeline(task, model, opts) {
       cur.last = e; cur.n += (e - s); found.set(k, cur);
     }
     const sentences = [...found.entries()].filter(([, v]) => v.n >= 8000).sort((a, b) => a[1].first - b[1].first); // ครอบคลุม ≥ 0.5 วิ
-    self.postMessage({ type: 'fake-asr', n: pcm.length, keys: Object.keys(o || {}), ts: !!(o && o.return_timestamps), language: (o && o.language) || null, device, sentences: sentences.map(([k]) => k) });
+    self.postMessage({ type: 'fake-asr', n: pcm.length, keys: Object.keys(o || {}), ngram: o && o.no_repeat_ngram_size, rp: o && o.repetition_penalty, ts: !!(o && o.return_timestamps), language: (o && o.language) || null, device, sentences: sentences.map(([k]) => k) });
     const r = { text: sentences.map(([k]) => SENT(k)).join(' ') };
     if (o && o.return_timestamps) r.chunks = sentences.map(([k, v]) => ({ timestamp: [v.first / 16000, v.last / 16000], text: SENT(k) }));
     return r;
@@ -119,6 +119,7 @@ test.describe('ถอดเสียงในเบราว์เซอร์: 
       expect(c.n).toBeLessThanOrEqual(30 * 16000);
       expect(c.keys).not.toContain('chunk_length_s'); expect(c.keys).not.toContain('stride_length_s');
       expect(c.keys).toEqual(expect.arrayContaining(['task', 'no_repeat_ngram_size', 'return_timestamps']));
+      expect(c.ngram).toBe(4); expect(c.keys).not.toContain('repetition_penalty');
       expect(c.ts).toBe(true);
     }
     // ฉากที่ทดสอบจริง: ประโยคท้ายท่อนก่อน = ประโยคแรกของท่อนถัดไป (ซ้ำที่รอยต่อ) อย่างน้อย 2 รอยต่อ
