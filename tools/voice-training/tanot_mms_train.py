@@ -7,6 +7,7 @@
 #   3) ฝึกต่อด้วย run_vits_finetuning.py (ค่าเริ่มต้นตามตัวอย่าง finetune_mms.json ของ repo นั้น)
 #   4) วัดผลบนชุดทดสอบ + 7 ประโยคกลางๆ: Whisper (Thonburian) ฟังกลับ → CER ของ F5 (ต้นแบบ) / MMS ก่อนฝึก / MMS หลังฝึก
 #      + ไฟล์ให้ฟังเทียบ 10 ประโยค (ความสุ่มแบบ stable2: noise_scale 0.1 / noise_scale_duration 0.0 เหมือนเสียงในเว็บ)
+#      (ความเร็วพูด speaking_rate = SPEED ฝังใน config ก่อน save → ONNX ได้ความเร็วนี้เอง: หญิง 0.8 · ชาย 0.75)
 #   5) แปลงเป็น ONNX (optimum, fp32 → onnx/model.onnx) + tokenizer.json แบบเดียวกับเสียงเดิมในเว็บ → ทดลองรันด้วย onnxruntime
 #   6) (UPLOAD) อัปโหลดเป็น repo **private** บน Hugging Face — เว็บยังไม่ใช้จนกว่าจะมี PR เพิ่มเสียง
 #   ผล: My Drive/Tanot หนังสือเสียง/_ชุดฝึก-MMS/<เสียง>/ฝึกแล้ว-<RUN>/ (model/ · onnx-repo/ · ตัวอย่างฟัง/ · report.txt) — รอบแรกอยู่ใน ฝึกแล้ว/
@@ -19,9 +20,9 @@
 
 SPEAKER = "ชาย"            # "หญิง" = Jori · "ชาย" = Riko — ต้องตรงกับที่รันสคริปต์ 6
 P = {"หญิง": dict(VOICE="หญิง-F-C-22k", BASE=["VIZINTZOR/MMS-TTS-THAI-FEMALEV2", "VIZINTZOR/MMS-TTS-THAI-FEMALE", "facebook/mms-tts-tha"],
-                  TOK="Tanotfin/mms-thai-jori-f5-onnx", REPO="Tanotfin/mms-thai-jori-f5-onnx", RUN="รอบ2", R1_ROWS=1675, UP_BELOW=0.034, EPOCHS=25),
+                  TOK="Tanotfin/mms-thai-jori-f5-onnx", REPO="Tanotfin/mms-thai-jori-f5-onnx", RUN="รอบ2", R1_ROWS=1675, UP_BELOW=0.034, EPOCHS=25, SPEED=0.8),
      "ชาย": dict(VOICE="ชาย-M-C-22k", BASE=["VIZINTZOR/MMS-TTS-THAI-MALEV2", "facebook/mms-tts-tha"],
-                 TOK="Tanotfin/mms-thai-riko-f5-onnx", REPO="Tanotfin/mms-thai-riko-f5-onnx", RUN="รอบ2", R1_ROWS=None, UP_BELOW=0.048, EPOCHS=40)}[SPEAKER]
+                 TOK="Tanotfin/mms-thai-riko-f5-onnx", REPO="Tanotfin/mms-thai-riko-f5-onnx", RUN="รอบ2", R1_ROWS=None, UP_BELOW=0.048, EPOCHS=40, SPEED=0.75)}[SPEAKER]
 # ชาย รอบแรก 25 epoch: CER ทดสอบ 0.112 → 0.048 (F5 0.022) ยังห่าง → รอบสอง 40 epoch ชุดข้อมูลเดิม (ชุดทดสอบเดิมจาก test-ids.json)
 VOICE = P["VOICE"]        # โฟลเดอร์จากสคริปต์ 6 — อัตราเสียงของชุดข้อมูลต้องตรงกับจุดเริ่ม (เลือกให้อัตโนมัติ)
 BASE_CANDIDATES = P["BASE"]
@@ -32,6 +33,7 @@ TRAIN_MIN_TARGET = 180      # "auto" = เข้มสุดเท่าที�
 EPOCHS = P["EPOCHS"]        # หญิง 25 × ~3,000 ท่อน ≈ 4,800 step (~50 นาทีบน L4) · ชาย 40 × ~3,300 ท่อน ≈ 8,300 step (~85 นาที)
 BATCH = 16
 LR = 2e-5
+SPEED = P["SPEED"]          # speaking_rate ฝังใน ONNX (หญิง 0.8 · ชาย 0.75) — ฝึกใหม่แล้วไม่กลับไปเร็วเหมือนเดิม (ตรงกับสคริปต์ 9)
 NOISE = (0.1, 0.0)          # (noise_scale, noise_scale_duration) = ชุด stable2 ในเว็บ
 RUN = P["RUN"]             # ชื่อโฟลเดอร์ผลใน Drive (ไม่ทับรอบก่อน)
 R1_ROWS = P["R1_ROWS"]      # จำนวนท่อนในชุดข้อมูลรอบแรก (เสียงใหม่ = None) → สร้างชุดทดสอบเดิมซ้ำได้ (เทียบผลข้ามรอบตรงกัน) ถ้ายังไม่มี test-ids.json
@@ -244,6 +246,7 @@ def load(path):
     return m, VitsTokenizer.from_pretrained(path, token=tok)
 new, tk = load(c["new"])
 new.config.noise_scale, new.config.noise_scale_duration = c["noise"]
+new.config.speaking_rate = c["speed"]
 new.save_pretrained(c["save"]); tk.save_pretrained(c["save"])   # generator อย่างเดียว (ไม่มี discriminator)
 vocab = set(tk.get_vocab())
 miss = {}
@@ -272,7 +275,7 @@ neutral_mms = json.loads(r.stdout)
 texts = [x["text"] for x in test] + neutral_mms
 SAVE = W / "model"
 (W / "gen.json").write_text(json.dumps({"new": str(MODEL_OUT), "base": BASE_GEN, "save": str(SAVE), "out": str(EV), "texts": texts,
-                                        "noise": list(NOISE), "all_texts": [x["text"] for x in rows]}, ensure_ascii=False))
+                                        "noise": list(NOISE), "speed": SPEED, "all_texts": [x["text"] for x in rows]}, ensure_ascii=False))
 (W / "gen.py").write_text(GEN_PY)
 run(f"{TPY} {W}/gen.py {W}/gen.json", env=ENVV)
 # F5 ต้นแบบของชุดทดสอบ (มีในชุดข้อมูลอยู่แล้ว)

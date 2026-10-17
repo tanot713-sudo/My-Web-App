@@ -13,7 +13,7 @@ const S2 = { fm: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', m: 'Tanotfin/mms-tts-2
 const STABLE = { fm: 'Tanotfin/mms-tts-2081-FM-stable-onnx', m: 'Tanotfin/mms-tts-2081-M-stable-onnx', pod: 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx' };
 const OLD = { fm: 'Tanotfin/mms-tts-2081-FM-onnx', m: 'Tanotfin/mms-tts-2081-M-onnx', pod: 'phlebotomy1996/mms-thai-female-podcast-spk0', def: 'Tanotfin/mms-tts-2081-onnx' };
 const J = 'Tanotfin/mms-thai-jori-f5-onnx', R = 'Tanotfin/mms-thai-riko-f5-onnx';
-const REV = { [J]: '9a95f85be1cf9440723d9ad085c5ea7137f59af8', [R]: '55d6042e45801f5a716d53dd62161ced49640759' };
+const REV = { [J]: 'b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913', [R]: 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451' };
 const EN = 'Xenova/mms-tts-eng';
 /* ทุกค่าที่เคยเลือกได้ในอดีต → Jori (ฝั่งหญิง) / Riko (ฝั่งชาย) */
 const MIGRATE = [[OLD.def, J], [OLD.fm, J], [STABLE.fm, J], [S2.fm, J], [OLD.pod, J], [STABLE.pod, J], [S2.pod, J], [OLD.m, R], [STABLE.m, R], [S2.m, R]];

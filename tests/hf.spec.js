@@ -381,8 +381,8 @@ export async function pipeline(task, model, opts) {
   }
   const TEXT = 'ประโยคทดสอบหนึ่ง สร้างเสียงพูดภาษาไทย';
   /* เสียงไทยล็อกรุ่นด้วย commit (media-models.js TTS_REVISION) → URL /api/hf/…/resolve/<sha>/… ไม่ใช่ main */
-  const JORI_CFG = '/api/hf/Tanotfin/mms-thai-jori-f5-onnx/resolve/9a95f85be1cf9440723d9ad085c5ea7137f59af8/config.json';
-  const RIKO_CFG = '/api/hf/Tanotfin/mms-thai-riko-f5-onnx/resolve/55d6042e45801f5a716d53dd62161ced49640759/config.json';
+  const JORI_CFG = '/api/hf/Tanotfin/mms-thai-jori-f5-onnx/resolve/b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913/config.json';
+  const RIKO_CFG = '/api/hf/Tanotfin/mms-thai-riko-f5-onnx/resolve/d61cbf24ee518b31cbaa29c8a9eb8f251d5f4451/config.json';
 
   test('สร้างไฟล์เสียง (tts-worker.js): config ของเสียง Tanotfin ขอผ่าน /api/hf/ ที่ commit ที่ล็อกไว้ (Jori แล้ว Riko) พร้อมคุกกี้ Access · ไม่ขอ huggingface.co ตรง · ไม่มี resolve/main', async ({ context, page }) => {
     const { errors, hf, direct } = await setup(context, page);
