@@ -43,9 +43,10 @@
   /* ล็อกรุ่นโมเดลด้วย commit ของ Hugging Face (ไม่ใช้ 'main'): transformers.js ใส่ revision ลง URL (…/resolve/<sha>/…) และใช้ URL นั้นเป็นคีย์แคช
      → เครื่องที่เคยโหลดรุ่นเก่าไว้จะโหลดรุ่นใหม่เองเมื่อเลขเปลี่ยน · /api/hf/ รับ commit 40 hex และตอบ Cache-Control immutable (functions/_lib/hf.js)
      ‼️ ฝึกรุ่นใหม่ → อัปโหลดขึ้น Hugging Face → เปลี่ยนเลข commit ตรงนี้ (ไม่มีในตาราง = 'main' — ทางถอยทั้งหมดใช้ main) */
+  /* รุ่นนี้ฝัง speaking_rate ไว้ใน ONNX (Jori 0.8 / Riko 0.75) ด้วยสคริปต์ 9 (tools/voice-training/tanot_mms_speed.py) · รุ่นก่อนหน้า (ความเร็วเดิม) = 9a95f85… / 55d6042… */
   var TTS_REVISION = {
-    'Tanotfin/mms-thai-jori-f5-onnx': '9a95f85be1cf9440723d9ad085c5ea7137f59af8',
-    'Tanotfin/mms-thai-riko-f5-onnx': '55d6042e45801f5a716d53dd62161ced49640759'
+    'Tanotfin/mms-thai-jori-f5-onnx': 'b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913',
+    'Tanotfin/mms-thai-riko-f5-onnx': 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451'
   };
   /* "ลดเสียงแหลม" (ตัวกรอง low-pass 2nd-order biquad Q 0.707 ที่ TTS_LOWPASS_HZ — audio-gain.js): หญิง ทั่วไป (22.05 kHz) มีเสียงแหลมจนมีเสียงรบกวนเล็กน้อย (เจ้าของฟังจริง)
      ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ (Jori/Riko ไม่เปิด — ผู้ใช้ติ๊กเองได้) · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
