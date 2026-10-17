@@ -123,8 +123,12 @@ self.onmessage = function (e) {
   function transcribeWith(transcriber, plan, models) {
     /* ท่อนที่ส่งมา ≤ 30 วิเสมอ (หน้าตัดเอง — ดูหัวไฟล์) จึงไม่ส่ง chunk_length_s/stride_length_s ·
        no_repeat_ngram_size: กันแต่ละท่อนวนคำซ้ำ (โมเดลเล็ก/ภาษาไทย) — ห้ามเอาออก (ดูประวัติใน text-to-speech.js) ·
+         ใช้ 4 ไม่ใช่ 3: วัดกับคลิปประชุมจริงด้วย distill-whisper-th-medium ONNX ผ่าน transformers.js 4.2.0
+         (ตัวเลขคือสัดส่วนที่วัดได้ ยิ่งต่ำยิ่งดี) q8/q8 ไม่กัน 68.6% → n=4 62.6% · fp32/q4 78.1% → 66.4% ·
+         n=3 (ที่หน้าเว็บใช้เดิม) 77.7% และมีตัวอักษรเพี้ยน = ห้ามซ้ำ 3 ชิ้นเข้มเกินสำหรับภาษาไทย ·
+         ห้ามเพิ่ม repetition_penalty (1.15 แย่ลงเป็น 75.9%) ·
        return_timestamps: ขอเวลาของแต่ละช่วงคำพูด (แบ่งย่อหน้า/[hh:mm:ss]) เฉพาะเมื่อหน้าขอ */
-    var opts = { task: 'transcribe', no_repeat_ngram_size: 3 };
+    var opts = { task: 'transcribe', no_repeat_ngram_size: 4 };
     if (pcm && pcm.length > WINDOW_SAMPLES) { opts.chunk_length_s = 30; opts.stride_length_s = 5; } // ตาข่ายนิรภัยสำหรับผู้เรียกตรงที่ส่งเสียงยาว
     var language = models ? models.asrLanguage(plan.thaiOf || plan.modelId, lang) : (lang && lang !== 'auto' ? lang : undefined);
     if (language) opts.language = language;
