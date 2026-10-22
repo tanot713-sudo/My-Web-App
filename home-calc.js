@@ -73,6 +73,14 @@
     var hasBudget = Object.keys(bMap).some(function (k) { return num(bMap[k]) > 0; });
     return { income: s.income, expense: s.expense, balance: s.income - s.expense, cats: cats, any: s.any || hasBudget };
   }
+  /** งบรวมของเดือน = ผลรวมงบทุกหมวดที่ตั้งไว้ (> 0) เทียบรายจ่ายของหมวดเหล่านั้น → { spent, budget, pct } · ไม่มีหมวดที่ตั้งงบ = null
+      pct ปัดลงเหมือน budgetAlerts (ตัวเลขบนจอไม่เกินค่าจริง) */
+  function budgetTotal(records, budgets, mk) {
+    var s = monthSums(records, mk), bMap = (budgets && budgets[mk]) || {}, spent = 0, budget = 0;
+    Object.keys(bMap).forEach(function (id) { var b = num(bMap[id]); if (b > 0) { budget += b; spent += s.byCat[id] || 0; } });
+    if (!(budget > 0)) return null;
+    return { spent: spent, budget: budget, pct: Math.floor(spent / budget * 100 + 1e-9) };
+  }
   /** หมวดที่ตั้งงบไว้แล้วใช้ ≥ threshold (ค่าเริ่มต้น 0.9) — ≥ 100% = err, อื่นๆ = warn · เรียงสัดส่วนมากสุดก่อน */
   function budgetAlerts(records, budgets, mk, threshold) {
     var s = monthSums(records, mk), bMap = (budgets && budgets[mk]) || {}, th = threshold == null ? 0.9 : threshold, out = [];
@@ -246,6 +254,25 @@
   }
   function cacheFresh(c, now) { return !!c && isObj(c) && now - num(c.ts) < CACHE_TTL; }
 
+  /** แท่งนาทีออกกำลังกายรายสัปดาห์ (HealthCalc.workoutSummary().weeks) เทียบเป้า → { top, goalPct, goalSide, bars:[{start, minutes, pct, cur}] }
+      สเกลเริ่มที่ 0 · บนสุด = ค่ามากสุดของแท่ง/เป้า × 1.15 (เส้นเป้าไม่ชนขอบบน) · สัปดาห์สุดท้าย = สัปดาห์นี้ (cur)
+      goalSide = ฝั่งของป้ายเป้า (ป้ายอยู่เหนือเส้นเป้า): 'end' (ขวา) ปกติ · 'start' เมื่อแท่งขวาสุดเกินเส้นเป้า และแท่งซ้ายสุดต่ำกว่า — ป้ายไม่ทับแท่ง */
+  function weekBars(weeks, goal) {
+    var list = Array.isArray(weeks) ? weeks : [], g = num(goal), max = g;
+    list.forEach(function (w) { if (w && num(w.minutes) > max) max = num(w.minutes); });
+    var top = max > 0 ? max * 1.15 : 1, goalPct = g > 0 ? Math.round(g / top * 1000) / 10 : null;
+    var bars = list.map(function (w, i) { var m = num(w && w.minutes); return { start: w && w.start, minutes: m, pct: Math.round(m / top * 1000) / 10, cur: i === list.length - 1 }; });
+    var first = bars.length ? bars[0].pct : 0, last = bars.length ? bars[bars.length - 1].pct : 0;
+    return { top: top, goalPct: goalPct, goalSide: goalPct != null && last > goalPct && first < last ? 'start' : 'end', bars: bars };
+  }
+
+  /** สรุปรายการ "ต้องทำวันนี้" ตามความเร่ง → { total, err, warn, info } — ตัวเลขใหญ่ + บรรทัด finding ของกล่องแรก */
+  function todoSummary(items) {
+    var out = { total: 0, err: 0, warn: 0, info: 0 };
+    (items || []).forEach(function (t) { if (!t) return; out.total++; if (out.hasOwnProperty(t.urgency) && t.urgency !== 'total') out[t.urgency]++; });
+    return out;
+  }
+
   /* ── จัดหน้าแรก ── */
   var ROWS = ['todo', 'money-invest', 'learn', 'health-meals'];
   var BOXES = { todo: ['todo'], 'money-invest': ['money', 'invest'], learn: ['learn'], 'health-meals': ['health', 'meals'] };
@@ -299,7 +326,7 @@
   return {
     URG: URG, CACHE_TTL: CACHE_TTL, ROWS: ROWS, BOXES: BOXES, BOX_IDS: BOX_IDS,
     urgencyOfDays: urgencyOfDays, sortTodos: sortTodos, estMinutes: estMinutes, reviewTodos: reviewTodos,
-    monthSummary: monthSummary, budgetAlerts: budgetAlerts, medTodos: medTodos,
+    monthSummary: monthSummary, budgetTotal: budgetTotal, budgetAlerts: budgetAlerts, medTodos: medTodos, todoSummary: todoSummary, weekBars: weekBars,
     dayChange: dayChange, series30: series30, spark: spark, watchList: watchList,
     weekDots: weekDots, langRows: langRows, lbeRow: lbeRow, lawRow: lawRow, hobbyRow: hobbyRow, sortStudy: sortStudy,
     langMeta: langMeta, lbeTopics: lbeTopics, cacheFresh: cacheFresh,

@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    Tanot Design System v2 — ธีมกลางของทั้งเว็บ
    โหลดคู่กับ theme-boot.js (ใน <head> ไม่ defer) + shell.js ทุกหน้า
-   แกนตั้งค่า 4 แกนบน <html>: data-theme (light|dark) · data-accent (teal|blue|violet|orange|graphite)
+   แกนตั้งค่า 4 แกนบน <html>: data-theme (light|dark) · data-accent (teal|blue|violet|orange|graphite|olive|plum)
    · data-style (flat|soft|outline) · --ome-f (ฟอนต์) — theme-boot.js ตั้งให้ก่อนวาดจอ
 
    ลำดับชั้น (cascade layers):
@@ -105,7 +105,7 @@
   --ome-chart-5:#D55181; --ome-chart-6:#008300; --ome-chart-7:#9085E9; --ome-chart-8:#E66767;
 }
 
-/* ── สีเน้น 5 แบบ (ชุดคัดสรร) — teal คือ :root/[data-theme=dark] ด้านบน ไม่ต้องมีบล็อกของตัวเอง
+/* ── สีเน้น 7 แบบ (ชุดคัดสรร) — teal คือ :root/[data-theme=dark] ด้านบน ไม่ต้องมีบล็อกของตัวเอง
    คุมเฉพาะพื้นผิว/ตัวอักษร/แบรนด์ ไม่แตะสีความหมาย (ok/warn/err) เพื่อไม่ให้เขียว=ผ่าน แดง=ผิด เพี้ยน
    theme-boot.js แปลงค่าเดิม 9 สีมาเป็นชุดนี้อัตโนมัติ ── */
 [data-accent="blue"]{
@@ -151,6 +151,40 @@
   --ome-line:#37373E; --ome-brand:#A1A1AA; --ome-brand-dk:#E4E4E7; --ome-brand-sf:#2A2A2F;
   --ome-ctrl:#77777F; --ome-faint:#7B7B84;
   --ome-on-accent:#111113;
+}
+/* olive (เขียวมะกอก) + plum (ม่วงมังคุด) — ตัวเลือกเสริม ไม่ใช่ค่าเริ่มต้น · สีจากของไทย: ใบมะกอก/ใบชา และเปลือกมังคุด
+   (มังคุด hue ~329° อยู่นอกช่วงม่วง/คราม 244–295° ที่ taste-skill ห้าม · พื้นสว่างของทั้งคู่ไม่ใช่โทนครีม)
+   คอนทราสต์ (WCAG, คำนวณ color-mix แบบเดียวกับเบราว์เซอร์) สว่าง / มืด:
+     olive  muted บนการ์ด/พื้น/surface-2 6.53/5.68/5.96 · 6.35/7.97/7.48 · on-accent บน accent 6.13 · 9.74
+            brand-dk บนการ์ด/พื้น/soft 8.31/7.23/7.27 · 10.50/13.18/8.86 · ctrl 3.80/3.30/3.46 · 3.80/4.77/4.47
+            ok/warn/err/info-ink บน -soft 4.83/4.80/6.03/5.11 · 5.60/5.56/5.56/5.70
+     plum   muted 6.55/5.72/6.00 · 6.65/8.10/7.64 · on-accent 7.86 · 7.92
+            brand-dk 10.12/8.82/8.44 · 9.35/11.39/8.16 · ctrl 3.87/3.37/3.54 · 3.95/4.81/4.54
+            ok/warn/err/info-ink บน -soft 5.00/4.86/6.00/5.22 · 5.82/5.71/5.70/5.91
+   โหมดมืดของทั้งสองชุดใช้เงาระดับ 1 อ่อนลง (.3 แทน .45 ของค่าเริ่มต้น) — การ์ดแยกจากพื้นด้วยเส้นขอบเป็นหลัก ไม่อ่านเป็นกล่องลอย */
+[data-accent="olive"]{
+  --ome-bg:#EEF0E8; --ome-card:#FFFFFF; --ome-ink:#1D2015; --ome-muted:#5A604E;
+  --ome-line:#D9DCCD; --ome-brand:#56690F; --ome-brand-dk:#45540B; --ome-brand-sf:#EEF2DC;
+  --ome-ctrl:#7F866D; --ome-faint:#888E78;
+}
+[data-accent="olive"][data-theme="dark"]{
+  --ome-bg:#0E100A; --ome-card:#23271B; --ome-ink:#EEF0E6; --ome-muted:#A4AA93;
+  --ome-line:#3A4029; --ome-brand:#B3CA52; --ome-brand-dk:#CDDF80; --ome-brand-sf:#2D3517;
+  --ome-ctrl:#7B8268; --ome-faint:#80876D;
+  --ome-on-accent:#141A03;
+  --ome-shadow-1:0 1px 2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.03);
+}
+[data-accent="plum"]{
+  --ome-bg:#F3EEF1; --ome-card:#FFFFFF; --ome-ink:#241A20; --ome-muted:#665A62;
+  --ome-line:#E3D8DE; --ome-brand:#8E2C5E; --ome-brand-dk:#74224C; --ome-brand-sf:#F7E6EF;
+  --ome-ctrl:#8B7E87; --ome-faint:#94878F;
+}
+[data-accent="plum"][data-theme="dark"]{
+  --ome-bg:#120C10; --ome-card:#2A1F26; --ome-ink:#F3EAF0; --ome-muted:#B4A3AE;
+  --ome-line:#45343F; --ome-brand:#F08CBE; --ome-brand-dk:#F7B3D5; --ome-brand-sf:#44222F;
+  --ome-ctrl:#8B7A85; --ome-faint:#8E7D88;
+  --ome-on-accent:#2B0A1A;
+  --ome-shadow-1:0 1px 2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.03);
 }
 }
 
@@ -777,9 +811,10 @@ body{padding-bottom:0!important}
 .ome-theme-btn:hover{color:var(--ome-ink);background:var(--ome-bg)}
 
 /* ── ลิ้นชักเมนู (backdrop + panel เลื่อนจากซ้าย) ──────────────────── */
+/* ตอนปิด visibility:hidden ด้วย (ไม่ใช่แค่ opacity 0) — ฉากเต็มจอที่โปร่งใสยังถูก hit-test/ตัวตรวจนับว่าทับเนื้อหา */
 .ome-drawer-backdrop{position:fixed;inset:0;background:rgba(15,20,30,.45);z-index:199;
-  opacity:0;pointer-events:none;transition:.2s}
-.ome-drawer-backdrop.open{opacity:1;pointer-events:auto}
+  opacity:0;visibility:hidden;pointer-events:none;transition:opacity .2s,visibility 0s linear .2s}
+.ome-drawer-backdrop.open{opacity:1;visibility:visible;pointer-events:auto;transition:opacity .2s,visibility 0s}
 .ome-drawer{position:fixed;top:0;left:0;bottom:0;width:290px;max-width:86vw;background:var(--ome-card);
   box-sizing:border-box;padding-top:env(safe-area-inset-top, 0px);padding-bottom:env(safe-area-inset-bottom, 0px);padding-left:env(safe-area-inset-left,0px);
   z-index:200;transform:translateX(-100%);transition:transform .22s ease,box-shadow .22s ease;
@@ -825,9 +860,10 @@ body{padding-bottom:0!important}
 /* ── แผงตั้งค่า (dropdown เล็กใต้ปุ่มฟันเฟือง) ──────────────────────── */
 .ome-settings-panel{position:fixed;top:calc(var(--ome-nav-h,48px) + 6px);right:calc(10px + env(safe-area-inset-right,0px));width:220px;max-height:calc(100dvh - var(--ome-nav-h,48px) - 14px - env(safe-area-inset-bottom,0px));
   background:var(--ome-card);border:1px solid var(--ome-line);border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.14);
-  z-index:150;opacity:0;pointer-events:none;transform:translateY(-6px);transition:.15s;
+  z-index:150;opacity:0;visibility:hidden;pointer-events:none;transform:translateY(-6px);transition:opacity .15s,transform .15s,visibility 0s linear .15s;
   font-family:var(--ome-f);padding:6px;overflow-x:hidden;overflow-y:auto}
-.ome-settings-panel.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+/* ตอนปิด visibility:hidden ด้วย — แผงโปร่งใสที่ยัง visible ถูก hit-test ว่าทับเนื้อหา และปุ่มข้างในยังกด Tab เข้าได้ */
+.ome-settings-panel.open{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0);transition:opacity .15s,transform .15s,visibility 0s}
 .ome-settings-row{width:100%;display:flex;align-items:center;gap:10px;padding:10px 10px;border:none;
   background:transparent;border-radius:9px;color:var(--ome-ink);font-size:13.5px;font-weight:500;
   cursor:pointer;text-align:left}

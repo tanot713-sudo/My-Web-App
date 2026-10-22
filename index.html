@@ -28,22 +28,48 @@
 <script src="home-calc.js" defer></script>
 <script src="index.js" defer></script>
 <style>
-.head-text{flex:1;min-width:0}
-.head-text .muted{margin:0;font-size:var(--ome-fs-sm)}
+/* หัวหน้า: ชื่อวัน (h1) ซ้าย · ปุ่มด่วนขวาในแถวเดียวกัน (จอแคบตัดลงบรรทัดใหม่) */
+.page-head{align-items:center;row-gap:var(--ome-sp-3)}
+.head-text{min-width:0}
 .head-text h1{margin:0}
-.quick{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-4)}
-.home-big{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums;white-space:nowrap}
+.quick{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2);margin-left:auto}
+/* กล่องแรก: จำนวนเรื่องที่ต้องทำ (ตัวเลขใหญ่สุดของหน้า ชิดขวาของหัวกล่อง) + finding สดตามความเร่งใต้หัวกล่อง */
+.todo-n{display:inline-flex;align-items:baseline;gap:6px;white-space:nowrap;margin-left:auto}
+.todo-n[hidden]{display:none}
+.todo-n .n{font-size:var(--ome-fs-3xl);font-weight:700;line-height:1.2;font-variant-numeric:tabular-nums}
+.todo-n small{font-size:var(--ome-fs-sm);font-weight:600;color:var(--ome-text-2)}
+.todo-find{margin:0;min-width:0;font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.todo-find > span{white-space:nowrap}
+.todo-find b{font-weight:600;font-variant-numeric:tabular-nums}
+.todo-find .err{color:var(--ome-err-ink)}
+.todo-find .warn{color:var(--ome-warn-ink)}
+@media (min-width:900px){.todo-list.cols-2 > .todo-row:nth-child(2){border-top:0}}
+/* กราฟมูลค่าพอร์ตเตี้ยลงให้การ์ดคู่ (เงิน | ลงทุน) สมดุล — การ์ดเงินไม่มีช่องว่างกลาง */
+#investBody .spark{height:52px}
+/* งบรวม = แถวแรกของรายการหมวด ตัวหนากว่าหมวด */
+#spendBody .meter-row.total .name{font-weight:700}
+/* แท่งออกกำลังกาย 8 สัปดาห์: สัปดาห์นี้สีข้อมูล ที่ผ่านมาเทา เส้นเป้าประ 1px + ป้ายท้ายเส้น · แท่งเหลี่ยมเริ่มที่ 0 */
+.wk-bars{position:relative;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;align-items:end;height:68px;margin-top:var(--ome-sp-2);
+  border-bottom:1px solid var(--ome-border-strong)}
+.wk-bars > i{display:block;min-height:0;background:var(--ome-text-3)}
+.wk-bars > i.cur{background:var(--ome-chart-1)}
+.wk-bars .goal{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--ome-text-2);pointer-events:none}
+.wk-bars .goal small{position:absolute;right:0;bottom:2px;padding:0 4px;font-size:var(--ome-fs-xs);line-height:1.3;color:var(--ome-text-2);background:var(--ome-surface-1)}
+.wk-bars .goal.start small{right:auto;left:0}
+.home-big{font-size:var(--ome-fs-2xl);font-weight:700;line-height:1.25;font-variant-numeric:tabular-nums;white-space:nowrap}
 .sub .n{white-space:nowrap}
 .sub{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .up{color:var(--ome-ok-ink)}
 .down{color:var(--ome-err-ink)}
 .ome-icon.flame{color:var(--ome-warn)}
 .home-foot .row{gap:var(--ome-sp-2)}
+/* โหมดมืด: เงาระดับ 1 (rgba .45) อ่านเป็นกล่องลอย — การ์ดหน้าแรกใช้เส้นขอบอย่างเดียว */
+[data-theme="dark"] #homeGrid > .card{box-shadow:none}
 /* มือถือ: กระชับระยะ (หน้ายาวเกินไป) — ค่าเฉพาะหน้านี้ */
 @media (max-width:700px){
   .page{padding-top:var(--ome-sp-4)}
   .page-head{margin-bottom:var(--ome-sp-3)}
-  .quick{gap:var(--ome-sp-2);margin-bottom:var(--ome-sp-3)}
+  .quick{gap:var(--ome-sp-2);flex-basis:100%;margin-left:0}
   .quick > *{padding:0 10px;gap:6px}
   .quick #qaSearch{padding:0;width:40px}
   .quick #qaSearch .lbl,.quick #qaReview .ic{display:none}
@@ -57,8 +83,8 @@
   #homeGrid .card.fill{padding:14px;gap:var(--ome-sp-2)}
   #homeGrid .card-fill-body{gap:var(--ome-sp-2)}
   #investBody .spark{height:44px}
+  .wk-bars{display:none}
   @media (max-width:380px){.quick > *{padding:0 8px}}
-  .home-big{font-size:var(--ome-fs-2xl)}
 }
 .home-foot .lead-label{font-size:var(--ome-fs-base);color:var(--ome-text-2);font-weight:600}
 </style>
@@ -66,22 +92,19 @@
 <body data-layout="dashboard">
 <main class="page">
   <header class="page-head">
-    <div class="head-text">
-      <p class="muted" id="dateLine"></p>
-      <h1 id="greet">สวัสดี</h1>
+    <div class="head-text"><h1 id="todayTitle">วันนี้</h1></div>
+    <div class="quick">
+      <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qExpense">รายจ่าย</span></button>
+      <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qIncome">รายรับ</span></button>
+      <a class="btn" href="review.html" id="qaReview"><svg class="ome-icon ic" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="today.qReview">ทบทวน</span><span class="badge accent" id="qaReviewN" hidden>0</span></a>
+      <button class="btn" type="button" id="qaSearch" data-i18n-attr="aria-label:today.qSearch" aria-label="ค้นหา"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span class="lbl" data-i18n="today.qSearch">ค้นหา</span></button>
     </div>
   </header>
 
-  <div class="quick">
-    <button class="btn primary" type="button" id="qaExpense"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qExpense">รายจ่าย</span></button>
-    <button class="btn" type="button" id="qaIncome"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-plus"/></svg><span data-i18n="today.qIncome">รายรับ</span></button>
-    <a class="btn" href="review.html" id="qaReview"><svg class="ome-icon ic" aria-hidden="true"><use href="icons.svg#i-refresh-cw"/></svg><span data-i18n="today.qReview">ทบทวน</span><span class="badge accent" id="qaReviewN">0</span></a>
-    <button class="btn" type="button" id="qaSearch" data-i18n-attr="aria-label:today.qSearch" aria-label="ค้นหา"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-search"/></svg><span class="lbl" data-i18n="today.qSearch">ค้นหา</span></button>
-  </div>
-
   <div class="grid" id="homeGrid">
     <section class="card fill span-12" id="boxTodo" data-box="todo" aria-labelledby="hTodo">
-      <div class="card-head"><h2 id="hTodo" data-i18n="today.hTodo">ต้องทำวันนี้</h2><span class="badge" id="todoCount" hidden></span></div>
+      <div class="card-head"><h2 id="hTodo" data-i18n="today.hTodo">ต้องทำวันนี้</h2><span class="todo-n" id="todoCount" hidden></span></div>
+      <p class="todo-find" id="todoFind" aria-live="polite" hidden></p>
       <div id="todoBody"></div>
     </section>
 

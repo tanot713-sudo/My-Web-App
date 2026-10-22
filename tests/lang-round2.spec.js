@@ -128,7 +128,7 @@ test.describe('ความเข้มภาพพื้นหลัง', () =>
 });
 
 const PAGES = [
-  { p: 'index.html', title: 'วันนี้', h1: '#greet' },
+  { p: 'index.html', title: 'วันนี้', h1: '#todayTitle' },
   { p: 'budget.html', title: 'รายรับรายจ่าย', h1: 'h1' },
   { p: 'health.html', title: 'สุขภาพ', h1: 'h1' },
   { p: 'car.html', title: 'บันทึกรถ', h1: 'h1' },
@@ -201,7 +201,7 @@ test.describe('6 หน้าที่ใช้บ่อย: แปลอัง�
       const errors = await open(page, p, { lang: 'th' });
       await page.evaluate(() => { window.__noReload = 1; });
       const thTitle = (await page.locator(h1).first().innerText()).trim();
-      expect(thTitle).toContain(p === 'index.html' ? 'สวัสดี' : title);
+      expect(thTitle).toContain(p === 'index.html' ? 'วันพุธที่' : title);
       await page.click('#omeGearBtn');
       await page.locator('.ome-settings-panel .ome-settings-row').filter({ hasText: 'ภาษา' }).click();
       await page.click('.ome-settings-panel [data-lang-id="en"]');
