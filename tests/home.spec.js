@@ -218,6 +218,14 @@ test.describe('หน้าแรก: ข้อมูลครบ', () => {
     await expect(page.locator('#todoBody')).not.toContainText('ตู้เย็น');
     await expect(page.locator('#todoBody')).not.toContainText('ทิพยประกันภัย');
     await expect(page.locator('#todoCount')).toHaveText(`${kinds.length} เรื่อง`);
+    // finding ของกล่องแรก: แยกตามความเร่ง ผลรวม = จำนวนทั้งหมด (2 + 4 + 4 = 10)
+    await expect(page.locator('#todoFind')).toHaveText('เลยกำหนด/เกินงบ 2 · ถึงเวลา/ใกล้ถึง 4 · ไม่เร่ง 4');
+    const parts = await page.locator('#todoFind b').allTextContents();
+    expect(parts.reduce((a, x) => a + Number(x), 0)).toBe(kinds.length);
+    // ปุ่มหลัก (.primary) มีปุ่มเดียวในหน้า = เพิ่มรายจ่าย · ชื่อหน้า = วันนี้ (วัน วันที่ เดือน)
+    await expect(page.locator('main .btn.primary')).toHaveCount(1);
+    await expect(page.locator('#qaExpense')).toHaveClass(/primary/);
+    await expect(page.locator('h1#todayTitle')).toHaveText('วันพุธที่ 30 กันยายน');
     expect(errors).toEqual([]);
   });
 
@@ -227,7 +235,10 @@ test.describe('หน้าแรก: ข้อมูลครบ', () => {
     await expect(sp.locator('[data-s=income]')).toHaveText('฿30,000');
     await expect(sp.locator('[data-s=expense]')).toHaveText('฿5,060'); // 2760 + 1400 + 900
     await expect(sp.locator('[data-s=balance]')).toHaveText('฿24,940');
-    const rows = sp.locator('.meter-row');
+    // งบรวม = ผลรวมงบทุกหมวดที่ตั้ง (3,000 + 1,200 + 2,000) เทียบรายจ่ายของหมวดเหล่านั้น (2,760 + 1,400 + 900) → 81%
+    await expect(sp.locator('[data-s=budget]')).toContainText('฿5,060 / ฿6,200');
+    await expect(sp.locator('[data-s=budget] .meter')).toHaveAttribute('aria-valuenow', '81');
+    const rows = sp.locator('.meter-row[data-cat]');
     await expect(rows).toHaveCount(3);
     await expect(rows.nth(0)).toContainText('ค่าข้าว'); // ใช้มากสุด 2,760
     await expect(rows.nth(0)).toContainText('฿2,760 / ฿3,000');
@@ -266,7 +277,11 @@ test.describe('หน้าแรก: ข้อมูลครบ', () => {
     await expect(h.locator('[data-h=weightChange]')).toContainText('−0.8 กก. ใน 30 วัน');
     await expect(h.locator('[data-h=bp]')).toContainText('118/76');
     await expect(h.locator('[data-h=workout]')).toContainText('ออกกำลังกายสัปดาห์นี้ 105 / 150 นาที');
-    await expect(h.locator('[data-h=workout] .meter')).toHaveAttribute('aria-valuenow', '70');
+    // 8 สัปดาห์ · สัปดาห์นี้ (แท่งสุดท้าย) 105 นาที เทียบสเกลบนสุด 150 × 1.15 → 60.9% · เส้นเป้า 150/172.5 → 87%
+    await expect(h.locator('[data-h=workout] .wk-bars > i')).toHaveCount(8);
+    await expect(h.locator('[data-h=workout] .wk-bars > i[data-cur]')).toHaveAttribute('style', 'height:60.9%');
+    await expect(h.locator('[data-h=workout] .wk-bars .goal')).toHaveAttribute('style', 'bottom:87%');
+    await expect(h.locator('[data-h=workout] .wk-bars')).toHaveAttribute('aria-label', /105 นาที · เป้า 150 นาทีต่อสัปดาห์$/);
     const m = page.locator('#mealList .list-row');
     await expect(m).toHaveCount(3);
     await expect(m.nth(0)).toContainText('ไข่เจียวหมูสับ'); await expect(m.nth(0)).toContainText('เช้า');
@@ -344,6 +359,7 @@ test.describe('หน้าแรก: ว่าง', () => {
         await expect(e.locator('a.btn')).toHaveCount(1);
       }
       await expect(page.locator('#qaReviewN')).toHaveText('0');
+      await expect(page.locator('#qaReviewN')).toBeHidden(); // ไม่มีการ์ดถึงรอบ = ไม่มีป้ายตัวเลข
       const [a, b, c, d] = await Promise.all([box(page, '#boxMoney'), box(page, '#boxInvest'), box(page, '#boxHealth'), box(page, '#boxMeals')]);
       expect(Math.abs(a.height - b.height)).toBeLessThanOrEqual(1); expect(Math.abs(a.y - b.y)).toBeLessThanOrEqual(1);
       expect(Math.abs(c.height - d.height)).toBeLessThanOrEqual(1);
@@ -425,6 +441,26 @@ test.describe('หน้าแรก: ของใกล้กำหนดโผ
     const p2 = await page.context().newPage();
     await openHome(p2, { overrides: only({ 'tanot:health:meds': med, 'tanot:health:intake': [{ id: `m1|${ymd(0)}|08:00`, med: 'm1', date: ymd(0), time: '08:00', at: 1 }] }) });
     await expect(p2.locator('#todoBody .todo-none')).toBeVisible();
+  });
+
+  test('todoSummary / budgetTotal / weekBars (known-answer)', () => {
+    expect(H.todoSummary([{ urgency: 'err' }, { urgency: 'warn' }, { urgency: 'info' }, { urgency: 'err' }, null])).toEqual({ total: 4, err: 2, warn: 1, info: 1 });
+    expect(H.todoSummary([])).toEqual({ total: 0, err: 0, warn: 0, info: 0 });
+    const rec = [
+      { date: '2026-09-01', type: 'expense', categoryId: 'a', amount: 4260 }, { date: '2026-09-02', type: 'expense', categoryId: 'b', amount: 1400 },
+      { date: '2026-09-03', type: 'expense', categoryId: 'c', amount: 900 }, { date: '2026-09-03', type: 'expense', categoryId: 'nobudget', amount: 999 },
+      { date: '2026-08-31', type: 'expense', categoryId: 'a', amount: 5000 },
+    ];
+    expect(H.budgetTotal(rec, { '2026-09': { a: 3000, b: 1200, c: 2000, d: 0 } }, '2026-09')).toEqual({ spent: 6560, budget: 6200, pct: 105 }); // 105.8 ปัดลง
+    expect(H.budgetTotal(rec, {}, '2026-09')).toBe(null);
+    const wb = H.weekBars([{ start: '2026-09-14', minutes: 0 }, { start: '2026-09-21', minutes: 200 }, { start: '2026-09-28', minutes: 105 }], 150);
+    expect(wb.goalPct).toBe(65.2); // 150 / (200 × 1.15)
+    expect(wb.bars.map((b) => [b.pct, b.cur])).toEqual([[0, false], [87, false], [45.7, true]]);
+    expect(wb.goalSide).toBe('end'); // สัปดาห์นี้ 45.7% ต่ำกว่าเส้นเป้า 65.2% (ป้ายอยู่เหนือเส้น)
+    // สัปดาห์นี้เกินเป้า (แท่งขวาขึ้นไปถึงป้าย) และสัปดาห์แรกต่ำกว่า → ป้ายย้ายไปซ้าย
+    expect(H.weekBars([{ minutes: 0 }, { minutes: 180 }], 150).goalSide).toBe('start');
+    expect(H.weekBars([{ minutes: 200 }, { minutes: 180 }], 150).goalSide).toBe('end'); // แท่งซ้ายสูงกว่า = คงขวา
+    expect(H.weekBars([], 0).goalPct).toBe(null);
   });
 
   test('PM: มีรายการเดียว = แสดงรายการนั้น · หลายรายการ = สรุปจำนวนต่อสถานะ', async ({ page }) => {
@@ -611,7 +647,7 @@ test.describe('หน้าแรก: ภาษา', () => {
     const hits = await page.evaluate(() => window.__tanotAudit.thaiInEn());
     expect(hits, JSON.stringify(hits.slice(0, 5))).toEqual([]);
     await expect(page.locator('#hTodo')).toHaveText('To do today');
-    await expect(page.locator('#greet')).toHaveText('Good morning');
+    await expect(page.locator('#todayTitle')).toHaveText('Wednesday 30 September');
     await expect(todo(page, 'review').first()).toContainText('Review Languages: 2 cards');
     await expect(page.locator('[data-lang="lang-en"]')).toContainText('English');
     await expect(page.locator('[data-lang="lang-en"]')).toContainText('Next:');

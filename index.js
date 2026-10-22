@@ -19,14 +19,14 @@
   var I18N = window.OME_I18N;
   if (I18N) I18N.add('today', {
     th: {
-      title: 'Tanot — วันนี้', morning: 'สวัสดีตอนเช้า', afternoon: 'สวัสดีตอนบ่าย', evening: 'สวัสดีตอนเย็น',
+      title: 'Tanot — วันนี้',
       qExpense: 'รายจ่าย', qIncome: 'รายรับ', qReview: 'ทบทวน', qSearch: 'ค้นหา', qLayout: 'จัดหน้าแรก',
-      hTodo: 'ต้องทำวันนี้', todoNone: 'ไม่มีเรื่องค้าง', todoCount: '{n} เรื่อง', todoAll: 'ดูทั้งหมด ({n})', todoLess: 'แสดงน้อยลง',
+      hTodo: 'ต้องทำวันนี้', todoNone: 'ไม่มีเรื่องค้าง', todoUnit: 'เรื่อง', findErr: 'เลยกำหนด/เกินงบ {n}', findWarn: 'ถึงเวลา/ใกล้ถึง {n}', findInfo: 'ไม่เร่ง {n}', todoAll: 'ดูทั้งหมด ({n})', todoLess: 'แสดงน้อยลง',
       hSpend: 'เงินเดือนนี้', lBudget: 'รายรับรายจ่าย', income: 'รายรับ', expense: 'รายจ่าย', balance: 'คงเหลือ', emptySpend: 'ยังไม่มีรายการเดือนนี้', openBudget: 'เปิดรายรับรายจ่าย',
-      unknownCat: 'ไม่ทราบหมวดหมู่', usedPct: 'ใช้ไป {pct}% ของงบ', budgetOf: '{spent} / {budget}', shareOf: '{pct}% ของรายจ่าย',
+      unknownCat: 'ไม่ทราบหมวดหมู่', budgetTotal: 'งบรวม', usedPct: 'ใช้ไป {pct}% ของงบ', budgetOf: '{spent} / {budget}', shareOf: '{pct}% ของรายจ่าย',
       hStock: 'พอร์ตลงทุน', lInvest: 'การลงทุน', emptyInvest: 'ยังไม่มีสินทรัพย์ลงทุน', openInvest: 'เปิดหน้าการลงทุน', changeToday: 'วันนี้', change30: '30 วัน',
       noFx: 'ไม่รวมสินทรัพย์ USD (ยังไม่มีอัตราแลกเปลี่ยน)', priceAt: 'ราคา ณ {d}', sparkAria: 'มูลค่าพอร์ต 30 วันล่าสุด', noQuote: '—', watchAria: 'รายการติดตาม',
-      hLearn: 'เรียนต่อ', lLearn: 'การศึกษา', streak: 'ติดต่อกัน', days: 'วัน', week7: '7 วันล่าสุด', xpToday: 'XP วันนี้', cardsDue: 'การ์ดถึงรอบ', review: 'ทบทวน',
+      hLearn: 'เรียนต่อ', lLearn: 'การศึกษา', streak: 'ติดต่อกัน', days: 'วัน', week7: '7 วันล่าสุด', xpToday: 'XP วันนี้', cardsDue: 'การ์ดถึงรอบ',
       'dot.done': 'ฝึกแล้ว', 'dot.rest': 'วันพัก', 'dot.miss': 'ขาด', 'dot.today': 'วันนี้ยังไม่ฝึก',
       cont: 'ต่อ', nextT: 'บทถัดไป: {t}', doneN: 'เรียนแล้ว {n} บท', readN: 'อ่านแล้ว {n} หัวข้อ', phrasesN: 'ฝึกแล้ว {n} วลี', xpN: 'XP {n}', openedAt: 'เปิดล่าสุด {when}',
       emptyLearn: 'ยังไม่ได้เริ่มเรียน', openLearn: 'เริ่มเรียน', allDone: 'ครบทุกบทแล้ว',
@@ -34,7 +34,7 @@
       'lang.lang-en': 'ภาษาอังกฤษ', 'lang.lang-jp': 'ภาษาญี่ปุ่น', 'lang.lang-cn': 'ภาษาจีนกลาง', 'lang.lang-yue': 'ภาษาจีนกวางตุ้ง', 'lang.lang-kr': 'ภาษาเกาหลี', 'lang.lang-de': 'ภาษาเยอรมัน',
       'lang.lang-in': 'ภาษาฮินดี', 'lang.lang-fr': 'ภาษาฝรั่งเศส', 'lang.lang-it': 'ภาษาอิตาลี', 'lang.lang-mm': 'ภาษาพม่า', 'lang.lang-kh': 'ภาษาเขมร', 'lang.lang-la': 'ภาษาลาว',
       'lang.lang-vn': 'ภาษาเวียดนาม', 'lang.lang-my': 'ภาษามลายู', 'lang.lang-ar': 'ภาษาอาหรับ', 'lang.lang-es': 'ภาษาสเปน', 'lang.lang-pt': 'ภาษาโปรตุเกส', 'lang.lang-ru': 'ภาษารัสเซีย',
-      hHealth: 'สุขภาพ', lHealth: 'เปิดหน้าสุขภาพ', weight: 'น้ำหนัก', bp: 'ความดัน', kg: 'กก.', weightChange: '{d} กก. ใน 30 วัน', workout: 'ออกกำลังกายสัปดาห์นี้ {a} / {b} นาที', workoutAria: 'ออกกำลังกายเทียบเป้า',
+      hHealth: 'สุขภาพ', lHealth: 'เปิดหน้าสุขภาพ', weight: 'น้ำหนัก', bp: 'ความดัน', kg: 'กก.', weightChange: '{d} กก. ใน 30 วัน', workout: 'ออกกำลังกายสัปดาห์นี้ {a} / {b} นาที', workoutAria: 'ออกกำลังกายเทียบเป้า', weekBarsAria: 'นาทีออกกำลังกาย 8 สัปดาห์ล่าสุด: {list} · เป้า {goal} นาทีต่อสัปดาห์', weekOf: 'สัปดาห์ {d}: {n} นาที', goalN: 'เป้า {n}',
       noHealth: 'ยังไม่มีข้อมูลสุขภาพ', openHealth: 'บันทึกสุขภาพ',
       hMeals: 'เมนูวันนี้', lMeals: 'แผนอาหาร', 'meal.b': 'เช้า', 'meal.l': 'กลางวัน', 'meal.d': 'เย็น', notPicked: 'ยังไม่ได้เลือก', cooked: 'ทำแล้ว', undo: 'ยกเลิก', servingsN: '{n} ที่',
       toBuy: 'ของที่ยังไม่ซื้อ {n} รายการ', emptyMeals: 'วันนี้ยังไม่ได้วางเมนู', planMeals: 'วางแผนเมนู', toastXp: 'ทำเมนูแล้ว +{xp} XP',
@@ -52,14 +52,14 @@
       'freq.Daily': 'รายวัน', 'freq.Weekly': 'รายสัปดาห์', 'freq.M1': 'รายเดือน', 'freq.M3': 'ราย 3 เดือน', 'freq.M6': 'ราย 6 เดือน', 'freq.Annually': 'รายปี'
     },
     en: {
-      title: 'Tanot — Today', morning: 'Good morning', afternoon: 'Good afternoon', evening: 'Good evening',
+      title: 'Tanot — Today',
       qExpense: 'Expense', qIncome: 'Income', qReview: 'Review', qSearch: 'Search', qLayout: 'Customise home',
-      hTodo: 'To do today', todoNone: 'Nothing pending', todoCount: '{n} items', todoAll: 'View all ({n})', todoLess: 'Show less',
+      hTodo: 'To do today', todoNone: 'Nothing pending', todoUnit: 'items', findErr: 'Overdue/over budget {n}', findWarn: 'Due now/soon {n}', findInfo: 'Can wait {n}', todoAll: 'View all ({n})', todoLess: 'Show less',
       hSpend: "This month's money", lBudget: 'Income & expenses', income: 'Income', expense: 'Expenses', balance: 'Balance', emptySpend: 'No entries this month', openBudget: 'Open income & expenses',
-      unknownCat: 'Unknown category', usedPct: '{pct}% of budget used', budgetOf: '{spent} / {budget}', shareOf: '{pct}% of spending',
+      unknownCat: 'Unknown category', budgetTotal: 'Total budget', usedPct: '{pct}% of budget used', budgetOf: '{spent} / {budget}', shareOf: '{pct}% of spending',
       hStock: 'Investment portfolio', lInvest: 'Investing', emptyInvest: 'No investment assets yet', openInvest: 'Open investing', changeToday: 'Today', change30: '30 days',
       noFx: 'USD assets excluded (no exchange rate yet)', priceAt: 'Price as of {d}', sparkAria: 'Portfolio value, last 30 days', noQuote: '—', watchAria: 'Watchlist',
-      hLearn: 'Keep learning', lLearn: 'Education', streak: 'Streak', days: 'days', week7: 'Last 7 days', xpToday: 'XP today', cardsDue: 'Cards due', review: 'Review',
+      hLearn: 'Keep learning', lLearn: 'Education', streak: 'Streak', days: 'days', week7: 'Last 7 days', xpToday: 'XP today', cardsDue: 'Cards due',
       'dot.done': 'Practised', 'dot.rest': 'Rest day', 'dot.miss': 'Missed', 'dot.today': 'Not practised yet today',
       cont: 'Continue', nextT: 'Next: {t}', doneN: '{n} lessons done', readN: '{n} topics read', phrasesN: '{n} phrases practised', xpN: '{n} XP', openedAt: 'Opened {when}',
       emptyLearn: 'Nothing started yet', openLearn: 'Start learning', allDone: 'All lessons done',
@@ -67,7 +67,7 @@
       'lang.lang-en': 'English', 'lang.lang-jp': 'Japanese', 'lang.lang-cn': 'Mandarin Chinese', 'lang.lang-yue': 'Cantonese', 'lang.lang-kr': 'Korean', 'lang.lang-de': 'German',
       'lang.lang-in': 'Hindi', 'lang.lang-fr': 'French', 'lang.lang-it': 'Italian', 'lang.lang-mm': 'Burmese', 'lang.lang-kh': 'Khmer', 'lang.lang-la': 'Lao',
       'lang.lang-vn': 'Vietnamese', 'lang.lang-my': 'Malay', 'lang.lang-ar': 'Arabic', 'lang.lang-es': 'Spanish', 'lang.lang-pt': 'Portuguese', 'lang.lang-ru': 'Russian',
-      hHealth: 'Health', lHealth: 'Open health', weight: 'Weight', bp: 'Blood pressure', kg: 'kg', weightChange: '{d} kg in 30 days', workout: 'Exercise this week {a} / {b} min', workoutAria: 'Exercise vs goal',
+      hHealth: 'Health', lHealth: 'Open health', weight: 'Weight', bp: 'Blood pressure', kg: 'kg', weightChange: '{d} kg in 30 days', workout: 'Exercise this week {a} / {b} min', workoutAria: 'Exercise vs goal', weekBarsAria: 'Exercise minutes, last 8 weeks: {list} · goal {goal} min a week', weekOf: 'Week of {d}: {n} min', goalN: 'Goal {n}',
       noHealth: 'No health data yet', openHealth: 'Log health',
       hMeals: "Today's menu", lMeals: 'Meal plan', 'meal.b': 'Breakfast', 'meal.l': 'Lunch', 'meal.d': 'Dinner', notPicked: 'Not chosen', cooked: 'Cooked', undo: 'Undo', servingsN: '{n} servings',
       toBuy: '{n} items left to buy', emptyMeals: 'No meals planned today', planMeals: 'Plan meals', toastXp: 'Cooked +{xp} XP',
@@ -121,11 +121,9 @@
     } catch (e) { return dstr(new Date(ts)); }
   }
 
-  /* ── หัว + ปุ่มด่วน ── */
+  /* ── หัว: ชื่อหน้า = วันนี้ (วัน วันที่ เดือน) ── */
   function renderHead() {
-    var now = new Date(), h = now.getHours();
-    $('greet').textContent = T(h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening');
-    $('dateLine').textContent = dstr(now, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    $('todayTitle').textContent = dstr(new Date(), { weekday: 'long', day: 'numeric', month: 'long' });
   }
 
   /* ── เงินเดือนนี้: รายรับ/รายจ่าย/คงเหลือ + 3 หมวดที่ใช้มากสุดเทียบงบ ── */
@@ -143,7 +141,10 @@
       '<div class="strip-cell"><span class="k">' + esc(T('income')) + '</span><span class="v" data-s="income">' + baht(s.income) + '</span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('expense')) + '</span><span class="v" data-s="expense">' + baht(s.expense) + '</span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('balance')) + '</span><span class="v ' + (s.balance < 0 ? 'down' : '') + '" data-s="balance">' + (s.balance < 0 ? '−' : '') + baht(Math.abs(s.balance)) + '</span></div></div>';
-    html += '<div class="card-foot meter-list">' + s.cats.map(function (c) {
+    var tot = HM.budgetTotal(records, budgets, mk);
+    html += '<div class="card-foot meter-list">' + (tot ? '<div class="meter-row total" data-s="budget"><span class="name">' + esc(T('budgetTotal')) + '</span>' +
+      '<span class="val">' + esc(T('budgetOf', { spent: baht(tot.spent), budget: baht(tot.budget) })) + '</span>' +
+      meterHtml(tot.pct, tot.pct >= 100 ? 'err' : tot.pct >= 90 ? 'warn' : '', T('usedPct', { pct: tot.pct })) + '</div>' : '') + s.cats.map(function (c) {
       var cls = c.budget ? (c.pct >= 100 ? 'err' : c.pct >= 90 ? 'warn' : '') : '';
       return '<div class="meter-row" data-cat="' + esc(c.id) + '"><span class="name">' + esc(catName[c.id] || T('unknownCat')) + '</span>' +
         '<span class="val">' + esc(c.budget ? T('budgetOf', { spent: baht(c.spent), budget: baht(c.budget) }) : baht(c.spent)) + '</span>' +
@@ -290,7 +291,7 @@
     else if ((sum.bySrc[r.src] || 0) > 0) info.push(T('xpN', { n: num(sum.bySrc[r.src]) }));
     if (r.lastOpen) info.push(T('openedAt', { when: ago(r.lastOpen) }));
     var metaText = info.join(' · ');
-    return '<div class="list-row" data-src="' + r.src + '"' + (r.langId ? ' data-lang="' + esc(r.langId) + '"' : '') + '><span class="lead">' + icon(S.icon) + '</span>' +
+    return '<div class="list-row" data-src="' + r.src + '"' + (r.langId ? ' data-lang="' + esc(r.langId) + '"' : '') + '>' +
       '<div class="grow"><div class="row-head"><span class="title" data-i18n-skip>' + esc(title) + '</span>' + (r.pct != null ? '<span class="amt" data-p>' + r.pct + '%</span>' : '') + '</div>' +
       '<div class="meta one" data-i18n-skip title="' + esc(metaText) + '">' + esc(metaText) + '</div>' +
       (r.pct != null ? meterHtml(r.pct, 'sm', title) : '') + '</div>' +
@@ -313,7 +314,7 @@
         return '<span class="dotcol"><i class="dot ' + d.state + '" role="img" aria-label="' + esc(T('dot.' + d.state)) + '" title="' + esc(T('dot.' + d.state)) + '"></i><small>' + esc(wd[dt.getDay()]) + '</small></span>';
       }).join('') + '</span></div>' +
       '<div class="strip-cell"><span class="k">' + esc(T('xpToday')) + '</span><span class="v" data-l="xp"><span class="n">' + num(sum.todayXp) + '</span> <small>/ ' + num(sum.goal) + '</small></span>' + meterHtml(pct, sum.goalMet ? 'ok' : '', T('xpToday')) + '</div>' +
-      '<div class="strip-cell"><span class="k">' + esc(T('cardsDue')) + '</span><span class="v" data-l="due">' + num(total) + '</span><a class="btn sm primary" href="review.html">' + esc(T('review')) + '</a></div></div>';
+      '<div class="strip-cell"><span class="k">' + esc(T('cardsDue')) + '</span><span class="v" data-l="due">' + num(total) + '</span></div></div>';
     if (st2.rows.length) html += '<div class="list plain cols-2" id="studyList">' + st2.rows.map(function (r) { return rowHtml(r, sum); }).join('') + '</div>';
     el.innerHTML = html;
     if (st2.need.length) ensureTotals(st2.need);
@@ -335,8 +336,17 @@
       '<div class="strip-cell"><span class="k">' + esc(T('bp')) + '</span><span class="v ' + bpCls + '" data-h="bp">' + (s.latest.sys && s.latest.dia ? '<span class="n">' + num(s.latest.sys.v) + '/' + num(s.latest.dia.v) + '</span> <small>mmHg</small>' : '—') + '</span><span class="s"></span></div></div>';
     var ws = HC.workoutSummary(workouts, rd('tanot:health:settings', {}), Date.now());
     html += '<div class="card-foot" data-h="workout"><div class="sub">' + esc(T('workout', { a: num(ws.weekMinutes, 1), b: num(ws.goal) })) + '</div>' +
-      meterHtml(Math.min(100, ws.pct), ws.weekMinutes >= ws.goal ? 'ok' : '', T('workoutAria')) + '</div>';
+      weekBarsHtml(ws) + '</div>';
     el.innerHTML = html;
+  }
+
+  /* แท่งนาทีรายสัปดาห์ 8 สัปดาห์ (สัปดาห์นี้ = สีข้อมูล, ที่ผ่านมา = เทา) + เส้นเป้าประ — สเกล/สัดส่วนจาก HomeCalc.weekBars */
+  function weekBarsHtml(ws) {
+    var wb = HM.weekBars(ws.weeks, ws.goal), short = { day: 'numeric', month: 'short' };
+    var label = function (b) { return T('weekOf', { d: b.start ? dstr(new Date(b.start + 'T12:00:00'), short) : '', n: num(b.minutes, 1) }); };
+    return '<div class="wk-bars" role="img" aria-label="' + esc(T('weekBarsAria', { list: wb.bars.map(label).join(', '), goal: num(ws.goal) })) + '">' +
+      wb.bars.map(function (b) { return '<i' + (b.cur ? ' class="cur" data-cur' : '') + ' style="height:' + b.pct + '%" title="' + esc(label(b)) + '"></i>'; }).join('') +
+      (wb.goalPct != null ? '<span class="goal' + (wb.goalSide === 'start' ? ' start' : '') + '" style="bottom:' + wb.goalPct + '%"><small>' + esc(T('goalN', { n: num(ws.goal) })) + '</small></span>' : '') + '</div>';
   }
 
   /* ── เมนูวันนี้ (แผนสัปดาห์ของหน้าทำอาหาร) ── */
@@ -349,9 +359,9 @@
     if (!tm.slots.some(function (s) { return s.planned; })) { el.innerHTML = emptyHtml('chef-hat', T('emptyMeals'), 'cooking.html', T('planMeals')); return; }
     var html = '<div class="list plain" id="mealList">' + tm.slots.map(function (s) {
       var name = s.recipe ? s.recipe.name : (s.planned ? '' : T('notPicked'));
-      return '<div class="list-row" data-slot="' + s.slot + '"><span class="lead">' + icon('chef-hat') + '</span><div class="grow"><div class="title"' + (s.recipe ? ' data-i18n-skip' : '') + '>' + esc(name) + '</div>' +
+      return '<div class="list-row" data-slot="' + s.slot + '"><div class="grow"><div class="title"' + (s.recipe ? ' data-i18n-skip' : '') + '>' + esc(name) + '</div>' +
         '<div class="meta">' + esc(T('meal.' + s.meal)) + (s.planned ? ' · ' + esc(T('servingsN', { n: s.servings })) : '') + '</div></div>' +
-        (s.planned ? '<div class="end">' + (s.done ? '<span class="badge ok">' + esc(T('cooked')) + '</span>' : '') + '<button class="btn sm' + (s.done ? '' : ' primary') + '" type="button" data-act="cook" data-slot="' + s.slot + '">' + esc(s.done ? T('undo') : T('cooked')) + '</button></div>' : '') + '</div>';
+        (s.planned ? '<div class="end">' + (s.done ? '<span class="badge ok">' + esc(T('cooked')) + '</span>' : '') + '<button class="btn sm" type="button" data-act="cook" data-slot="' + s.slot + '">' + esc(s.done ? T('undo') : T('cooked')) + '</button></div>' : '') + '</div>';
     }).join('') + '</div>';
     var shop = rd('tanot:cooking:shopping', []), sid = CP.shopId(tm.week), left;
     var list = (isArr(shop) ? shop : []).filter(function (r) { return r && r.id === sid; })[0];
@@ -451,7 +461,7 @@
     return HM.sortTodos(out);
   }
   function todoRowHtml(t) {
-    var act = t.act.btn ? '<button class="btn sm primary" type="button" data-act="' + t.act.btn + '" data-med="' + esc(t.act.med) + '" data-time="' + esc(t.act.time) + '">' + esc(t.act.label) + '</button>'
+    var act = t.act.btn ? '<button class="btn sm" type="button" data-act="' + t.act.btn + '" data-med="' + esc(t.act.med) + '" data-time="' + esc(t.act.time) + '">' + esc(t.act.label) + '</button>'
       : '<a class="btn sm" href="' + esc(t.act.href) + '">' + esc(t.act.label) + '</a>';
     return '<div class="todo-row" data-kind="' + t.kind + '" data-urg="' + t.urgency + '"><span class="pill ' + t.urgency + '">' + esc(t.pill) + '</span>' +
       '<div class="grow"><div class="title" data-i18n-skip>' + esc(t.title) + '</div>' + (t.meta ? '<div class="meta" data-i18n-skip>' + esc(t.meta) + '</div>' : '') + '</div><div class="end">' + act + '</div></div>';
@@ -462,12 +472,16 @@
   function renderTodo(ctx) {
     if (ctx) todoCtx = ctx;
     if (!todoCtx) return;
-    var items = collectTodos(todoCtx), el = $('todoBody'), badge = $('todoCount'), limit = todoLimit();
-    badge.hidden = !items.length;
-    badge.textContent = items.length ? T('todoCount', { n: num(items.length) }) : '';
+    var items = collectTodos(todoCtx), el = $('todoBody'), limit = todoLimit(), sum = HM.todoSummary(items);
+    /* ตัวเลขใหญ่สุดของหน้า = จำนวนเรื่องทั้งหมด · finding = แยกตามความเร่ง (ผลรวมเท่าจำนวนทั้งหมด) */
+    $('todoCount').hidden = $('todoFind').hidden = !items.length;
+    $('todoCount').innerHTML = items.length ? '<span class="n">' + num(sum.total) + '</span> <small>' + esc(T('todoUnit')) + '</small>' : '';
+    $('todoFind').innerHTML = [['err', 'findErr'], ['warn', 'findWarn'], ['info', 'findInfo']].filter(function (g) { return sum[g[0]] > 0; }).map(function (g) {
+      return '<span class="' + g[0] + '" data-u="' + g[0] + '">' + T(g[1], { n: '<b>' + num(sum[g[0]]) + '</b>' }) + '</span>';
+    }).join(' · ');
     if (!items.length) { el.innerHTML = '<div class="todo-none">' + icon('circle-check') + '<span>' + esc(T('todoNone')) + '</span></div>'; return; }
     var more = items.length > limit, shown = more && !todoOpen ? items.slice(0, limit) : items;
-    el.innerHTML = '<div class="list plain todo-list">' + shown.map(todoRowHtml).join('') + '</div>' +
+    el.innerHTML = '<div class="list plain todo-list cols-2">' + shown.map(todoRowHtml).join('') + '</div>' +
       (more ? '<button class="btn ghost sm todo-toggle" type="button" data-act="todo-toggle" aria-expanded="' + todoOpen + '">' + esc(todoOpen ? T('todoLess') : T('todoAll', { n: num(items.length) })) + '</button>' : '');
   }
 
@@ -532,6 +546,7 @@
       studyCounts = counts;
       Object.keys(counts).forEach(function (k) { n += counts[k]; });
       $('qaReviewN').textContent = num(n);
+      $('qaReviewN').hidden = !n;
       renderTodo({ counts: counts, pm: r[1] });
       renderLearn();
     }).then(function () {

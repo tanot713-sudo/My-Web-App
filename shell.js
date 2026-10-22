@@ -74,9 +74,9 @@
       accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ความเข้มภาพพื้นหลัง',
       'bg.off': 'ปิด', 'bg.soft': 'อ่อน', 'bg.mid': 'กลาง (ปกติ)', 'bg.strong': 'ชัด',
       clearData: 'ล้างข้อมูล', help: 'Help', credits: 'เครดิต & ลิขสิทธิ์',
-      'accent.teal': 'เขียวน้ำทะเล (ปกติ)', 'accent.blue': 'น้ำเงิน', 'accent.violet': 'ม่วง', 'accent.orange': 'ส้ม', 'accent.graphite': 'เทาเข้ม',
+      'accent.teal': 'เขียวน้ำทะเล (ปกติ)', 'accent.blue': 'น้ำเงิน', 'accent.violet': 'ม่วง', 'accent.orange': 'ส้ม', 'accent.graphite': 'เทาเข้ม', 'accent.olive': 'เขียวมะกอก', 'accent.plum': 'ม่วงมังคุด',
       'style.flat': 'เรียบ (ปกติ)', 'style.soft': 'นุ่ม', 'style.outline': 'เส้นขอบ',
-      'font.prompt': 'Prompt (ปกติ)', 'font.ibmplex': 'IBM Plex Sans Thai',
+      'font.prompt': 'Prompt (ปกติ)', 'font.ibmplex': 'IBM Plex Sans Thai', 'font.anuphan': 'Hanken Grotesk + อนุพันธ์', 'font.looped': 'IBM Plex + ไทยมีหัว',
       ok: 'ตกลง', cancel: 'ยกเลิก', del: 'ลบ', confirmDelete: 'ลบ{what}?', confirmDeleteGeneric: 'ลบรายการนี้?', soon: 'เร็วๆ นี้'
     },
     en: {
@@ -85,9 +85,9 @@
       accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image intensity',
       'bg.off': 'Off', 'bg.soft': 'Light', 'bg.mid': 'Medium (default)', 'bg.strong': 'Vivid',
       clearData: 'Clear data', help: 'Help', credits: 'Credits & licenses',
-      'accent.teal': 'Teal (default)', 'accent.blue': 'Blue', 'accent.violet': 'Violet', 'accent.orange': 'Orange', 'accent.graphite': 'Graphite',
+      'accent.teal': 'Teal (default)', 'accent.blue': 'Blue', 'accent.violet': 'Violet', 'accent.orange': 'Orange', 'accent.graphite': 'Graphite', 'accent.olive': 'Olive', 'accent.plum': 'Mangosteen',
       'style.flat': 'Flat (default)', 'style.soft': 'Soft', 'style.outline': 'Outline',
-      'font.prompt': 'Prompt (default)', 'font.ibmplex': 'IBM Plex Sans Thai',
+      'font.prompt': 'Prompt (default)', 'font.ibmplex': 'IBM Plex Sans Thai', 'font.anuphan': 'Hanken Grotesk + Anuphan', 'font.looped': 'IBM Plex + Thai Looped',
       ok: 'OK', cancel: 'Cancel', del: 'Delete', confirmDelete: 'Delete {what}?', confirmDeleteGeneric: 'Delete this item?', soon: 'Coming soon'
     }
   });
@@ -116,10 +116,12 @@
     { id: 'blue',     swatch: '#2D6EE6' },
     { id: 'violet',   swatch: '#6A5AE0' },
     { id: 'orange',   swatch: '#C4500F' },
-    { id: 'graphite', swatch: '#3F3F46' }
+    { id: 'graphite', swatch: '#3F3F46' },
+    { id: 'olive',    swatch: '#56690F' },
+    { id: 'plum',     swatch: '#8E2C5E' }
   ];
   var STYLES = [{ id: 'flat' }, { id: 'soft' }, { id: 'outline' }];
-  var FONTS = [{ id: 'prompt' }, { id: 'ibmplex' }];
+  var FONTS = [{ id: 'prompt' }, { id: 'ibmplex' }, { id: 'anuphan' }, { id: 'looped' }];
   function themeGet(kind) { return OT ? OT.get(kind) : (kind === 'theme' ? 'light' : ''); }
   function themeSet(kind, v) { if (OT) OT.set(kind, v); }
   function syncThemeBtn() {
