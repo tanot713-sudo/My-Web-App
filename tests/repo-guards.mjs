@@ -10,10 +10,12 @@
 // 10. ไอคอนแอป: ทุกหน้าลิงก์ apple-touch-icon.png + favicon-32.png, manifest มี any/maskable แยกกัน, ไฟล์มีจริง
 // 11. ภาพพื้นหลังรายหน้า: ทุกกลุ่มใน theme-boot.js มีไฟล์ -light/-dark.webp และกฎใน theme.css
 // 12. ตัวตรวจธีม static (theme-guards.mjs): สี hex/ปุ่มนิยามเองต่อหน้าห้ามเพิ่มจาก tests/theme-baseline.json
+// 13. vendor/gridcraft (wasm คำนวณสูตรของ compare): sha256 ทุกไฟล์ตรง manifest.json + มีการ์ด GridCraft ใน credits.html
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -125,6 +127,29 @@ const ALIAS = { 'pdfjs-dist': 'pdf.js' };
 const notCredited = [...used].filter((n) => !credits.includes((ALIAS[n] || n).toLowerCase().replace(/^@[^/]+\//, '')) && !CREDITS_BASELINE.has(n));
 if (notCredited.length) fail('credits', `ไลบรารีที่ใช้แต่ไม่มีใน credits.html: ${notCredited.join(', ')}`);
 else ok('credits', `${used.size} ไลบรารีมีใน credits.html (หรืออยู่ใน baseline)`);
+
+/* ── 13. vendor/gridcraft: ไฟล์ตรงกับที่ tools/wasm/gridcraft-recalc/build.sh สร้าง (แก้ด้วยมือ/ลืม build ใหม่ = ล้ม) ── */
+{
+  const dir = 'vendor/gridcraft';
+  let man = null;
+  try { man = JSON.parse(read(dir + '/manifest.json')); } catch (e) {}
+  const onDisk = fs.existsSync(path.join(ROOT, dir)) ? fs.readdirSync(path.join(ROOT, dir)).filter((f) => f !== 'manifest.json').sort() : [];
+  const bad = [];
+  if (!man || !man.files || !/^[0-9a-f]{40}$/.test(man.commit || '')) bad.push('อ่าน manifest.json ไม่ได้ / ไม่มี commit ต้นทาง');
+  else {
+    const listed = Object.keys(man.files).sort();
+    if (listed.join('|') !== onDisk.join('|')) bad.push(`ไฟล์ในโฟลเดอร์ (${onDisk.join(', ')}) ไม่ตรงกับ manifest (${listed.join(', ')})`);
+    for (const f of listed) {
+      if (!fs.existsSync(path.join(ROOT, dir, f))) continue;
+      const h = createHash('sha256').update(fs.readFileSync(path.join(ROOT, dir, f))).digest('hex');
+      if (h !== man.files[f].sha256) bad.push(`${f} sha256 ไม่ตรง manifest`);
+    }
+    for (const need of ['gridcraft_recalc_bg.wasm', 'gridcraft_recalc.js', 'LICENSE-MIT', 'THIRD-PARTY.txt']) if (!man.files[need]) bad.push(`ไม่มี ${need}`);
+  }
+  if (!/<span class="lib-name">gridcraft<\/span>/.test(credits) || !credits.includes('gridcraft by the artcraft team')) bad.push('ไม่มีการ์ด GridCraft ใน credits.html');
+  if (bad.length) fail('gridcraft', bad.join(' · '));
+  else ok('gridcraft', `vendor/gridcraft ${onDisk.length} ไฟล์ตรง manifest (commit ${man.commit.slice(0, 7)}) + มีใน credits.html`);
+}
 
 /* ── 7. ทุกหน้าที่ใช้ theme.css ต้องโหลด theme-boot.js ก่อน (ไม่ defer) — ไม่งั้นจอกะพริบ และ shell.js ไม่มี OmeTheme ── */
 {
