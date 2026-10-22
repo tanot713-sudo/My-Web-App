@@ -1,13 +1,36 @@
 ---
 name: tanot-design
-description: กฎการออกแบบ UI ของเว็บ Tanot (repo นี้) — token สี/ระยะ/มุม, คอมโพเนนต์กลางใน theme.css, data-layout แต่ละแบบ, ระบบภาพพื้นหลังรายหน้า, ระบบภาษาไทย/อังกฤษ (i18n.js) และวิธีรันตัวตรวจธีม/ภาษา + อัปเดต baseline. โหลดทุกครั้งก่อนแก้หรือสร้าง UI ในไฟล์ .html/.css/.js/.jsx ของหน้าใดๆ (ปุ่ม การ์ด สี ฟอร์ม เลย์เอาต์ ข้อความในหน้า ไอคอน) หรือเมื่อแก้ theme.css / theme-boot.js / shell.js / i18n.js
+description: ตัวหลักของงาน UI ทุกชิ้นในเว็บ Tanot (รุ่น 2) — วิธีคิดหน้าจอแอปและรอบดูภาพ-แก้ (จาก taste-skill app-screens), token/คอมโพเนนต์กลางใน theme.css, data-layout, ภาพพื้นหลัง, ระบบไทย/อังกฤษ, เช็กลิสต์ UX/ข้อความ และตัวตรวจ + baseline. โหลดทุกครั้งก่อนแก้หรือสร้าง UI ในไฟล์ .html/.css/.js/.jsx ของหน้าใดๆ (ปุ่ม การ์ด สี ฟอร์ม ตาราง กราฟ เลย์เอาต์ ข้อความในหน้า ไอคอน) หรือแก้ theme.css / theme-boot.js / shell.js / i18n.js. ไฟล์นี้บอกว่าเมื่อไรเรียก taste-skill (ออกแบบ/รื้อหน้า, ตรวจด้วย inspect.mjs --app ก่อนเปิด PR) และ ui-ux-pro-max (ค้นแนวทาง UX เฉพาะเรื่อง)
 ---
 
-# Tanot design — กฎ UI ของทั้งเว็บ
+# Tanot design รุ่น 2 — งาน UI ทั้งเว็บ
 
-> **ลำดับความสำคัญ**: กฎในไฟล์นี้ + CLAUDE.md + `tanot-pr-review` ชนะ skill ภายนอกใน `.claude/skills/` (accessibility, performance, security-and-hardening, humanizer, cloudflare, transformers-js) เสมอ — ใช้ skill เหล่านั้นเป็นเช็กลิสต์ ห้ามเปลี่ยนธีม/โครงสร้างตามโดยไม่ได้ถาม · ห้ามดึงสไตล์/ชุดสี/ฟอนต์จากแคตตาล็อกภายนอก (เช่น ui-ux-pro-max) มาใช้ในเว็บนี้
+> **ลำดับความสำคัญ**: คำสั่งผู้ใช้ในข้อความนั้น > ไฟล์นี้ (+ CLAUDE.md, `tanot-pr-review`) > skill ภายนอก. skill ภายนอก (`taste-skill`, `ui-ux-pro-max`, `accessibility`, `humanizer`, `performance`) เป็นแหล่งวิธีการและเครื่องมือที่ไฟล์นี้เรียกใช้ตามหัวข้อ 12 — ตรงไหนขัดกับไฟล์นี้ ไฟล์นี้ชนะ (ข้อขัดที่ตัดสินแล้วอยู่ในหัวข้อ 12)
 
 ทุกหน้าใช้ธีมกลางชุดเดียว: `theme-boot.js` (ตั้งธีม/ภาษา/ภาพพื้นหลังก่อนวาดจอ) → `theme.css` (token + คอมโพเนนต์ + layout) → `i18n.js` (ภาษา) → `shell.js` (เมนู/nav/แผงตั้งค่า). คอมโพเนนต์ทั้งหมดอยู่ใน `theme.css` — ดูที่นั่นก่อนสร้างของใหม่
+
+## 0. วิธีทำงาน (ทุกงานที่แตะ UI)
+
+เว็บนี้เกือบทั้งหมดเป็น **หน้าจอแอป** (แดชบอร์ด ฟอร์ม ตาราง บันทึกข้อมูล เครื่องมือ) — ใช้ run ของ `.claude/skills/taste-skill/references/app-screens.md` ไม่ใช้ run ของหน้า landing ใน `taste-skill/SKILL.md` (การสุ่มทิศทาง, รูปจากคลังเปิด ≥ 4 รูป, motion ≥ 8 ชิ้น, scroll scenes ไม่ใช้กับเว็บนี้). ออกแบบหน้าใหม่หรือรื้อหน้าทั้งหน้า = อ่าน app-screens.md ทั้งไฟล์ก่อน · แก้จุดเล็ก = อ่านเฉพาะหัวข้อที่ตรงกับงาน (KPI §5, กราฟ §6, ตาราง §7, ฟอร์ม §8, สถานะ §11, มือถือ §12)
+
+1. **สำรวจข้อมูลและงาน** (app-screens §2.1): ของที่หน้าแสดง + ฟิลด์ + หน่วย, ขนาดข้อมูลจริง (เว็บส่วนตัวคนเดียว — ตัวเลขเล็กแสดงตามจริง), เปิดบ่อยแค่ไหน/บนมือถือหรือคอม, งานถัดไปที่ผู้ใช้ทำจากหน้านี้. ตัวเลขที่โชว์สองที่ = ค่าเดียวกันจากแหล่งเดียว · ยอดรวม/ส่วนต่างคำนวณจากค่าที่แสดง (สูตรอยู่ใน `*-calc.js` ของหน้านั้นเสมอ) · ตัวเลขเทียบบอกฐานในวลีเดียวกัน ("มากกว่าเดือนก่อน 1,200 บาท")
+2. **คำถามเดียวของหน้า** (§2.2): เขียนหนึ่งบรรทัด เช่น "เดือนนี้ใช้เงินเกินงบไหม" — กล่องที่ตอบคำถามนี้ใหญ่ที่สุดและอ่านก่อน, ตัวเลขใหญ่สุดของหน้าตอบคำถามนี้, กล่องที่ไม่ตอบคำถามถัดไปของผู้ใช้ = ลบ. **งานที่ทำบ่อยสุดอยู่ห่าง 1 คลิก** (ปุ่มที่หัวหน้า/ในแถวที่ต้องทำ). เรื่องที่ต้องสนใจตอนนี้ (finding) เป็นข้อมูลสดในกล่องแรกหรือบรรทัดสถานะ — ห้ามเป็นบรรทัดคำอธิบายคงที่ใต้ h1 (กฎ no-explainer)
+3. **สไตล์ไม่ต้องสุ่ม**: สไตล์ของเว็บคือธีมกลาง (หัวข้อ 1–2). ไม่รัน `draw.mjs` เพื่อเลือกสไตล์ใหม่ให้หน้าเดียว · "หน้าตาของหน้า" มาจากภาพพื้นหลังของกลุ่ม + สีเน้นของผู้ใช้ + ข้อมูลจริง + องค์ประกอบเฉพาะที่พกข้อมูล (เช่น `.dots` สตรีค, `.meter` งบ, ไทม์ไลน์) ไม่ใช่ของประดับ
+4. **สร้างจากคอมโพเนนต์กลาง** + `data-layout` (หัวข้อ 2–3): กริดลงตัว (ไม่มีช่องกำพร้า), การ์ดในแถวเดียวกันขอบล่างเท่ากัน (`.card.fill` + `.card-foot`) แต่ไม่ยืดการ์ดที่เนื้อหาสั้นจนเป็นช่องว่าง (`panel-void`), คอลัมน์ตามจำนวนรายการ, รายการยาวตัดที่ 4–8 แถว + "ดูทั้งหมด (n)"
+5. **สถานะครบ** (หัวข้อ 10): ว่าง / ศูนย์ / กำลังโหลด / ผิดพลาด / ออฟไลน์ ของทุกกล่อง + hover / focus / disabled ของทุกปุ่ม
+6. **ตรวจ — บังคับก่อนเปิด PR ที่แตะ UI**:
+   ```bash
+   .claude/skills/tanot-design/scripts/ui-inspect.sh <หน้า>.html               # สว่าง ตอนว่าง
+   .claude/skills/tanot-design/scripts/ui-inspect.sh <หน้า>.html --dark --seed .taste-skill/seed-<หน้า>.js --tag data
+   node .claude/skills/taste-skill/scripts/lint.mjs --app <ไฟล์ที่แก้>
+   ```
+   สคริปต์เปิดเซิร์ฟเวอร์ static ในเครื่อง (`python3 -m http.server` พอร์ต 8199) แล้วรัน `inspect.mjs --app` ที่ 1440 / 768 / 390 ภาพลง `.taste-skill/inspect/<หน้า>[-tag]/` (`.gitignore` แล้ว) · ในคอนเทนเนอร์ที่รันเป็น root สคริปต์หา Chromium ใน `/opt/pw-browsers` แล้วใส่ `--no-sandbox` ให้ · `--seed file.js` = สคริปต์ที่ตั้ง localStorage ก่อนเปิดหน้า (เขียนไฟล์ seed ไว้ใน `.taste-skill/` คัดรูปแบบข้อมูลจาก `tests/*-fixtures.js`) · `--en` = เปิดเป็นภาษาอังกฤษ · ตัวเลือกของ inspect ใส่หลัง `--` (เช่น `-- --allow palette-purple`)
+   - **ทุกหน้าที่แก้: 0 FAIL** ทั้งสว่าง/มืด ตอนว่างและตอนมีข้อมูล · WARN = แก้ หรือเขียนเหตุผลหนึ่งประโยคใน PR (เช่น `font-fallback` ของฟอนต์ที่ผู้ใช้ไม่ได้เลือก)
+   - **เปิดภาพทุกไฟล์ที่ inspect บอก** (desktop/tablet/mobile ทั้ง fold และ page) ด้วย Read แล้วเขียนคำตอบ 7 ข้อของ app-screens §2.7 ลงในงาน (คำถามของหน้าตอบด้วยของที่ใหญ่สุด? ขอบซ้าย-ขวาตรงกันทุกกล่อง? สีอยู่บนข้อมูล/สถานะ/ปุ่มหลักเท่านั้น? ตัวเลขรวมถูกและตรงหลัก? ศูนย์เป็นศูนย์ ไม่มีค่าเป็นขีด? legend ตรงกับเส้น? มือถือยังตอบคำถาม?) → แก้ 3 เรื่องที่แย่สุด → รันซ้ำ ไม่เกิน 3 รอบ · ปัญหาที่เห็นในภาพคือปัญหาจริง ไม่ว่าโค้ดจะว่าอย่างไร
+   - `lint.mjs --app`: ห้ามเพิ่ม FAIL ใหม่ในไฟล์ที่แก้ (ของเดิมเป็นหนี้ที่แก้เมื่อแตะส่วนนั้น) · ของที่เป็นข้อมูลจริง (โดนัท `conic-gradient` ของกราฟ, สีหมวดที่ผู้ใช้เลือก) ไม่ใช่ของประดับ — อธิบายใน PR
+   - แล้วรันตัวตรวจของ repo (หัวข้อ 7) — ต้องผ่านทั้งสองชุด ถ้าขัดกัน ตัวตรวจของ repo ชนะ
+   - ไม่มี Node 22 / Chromium = บอกใน PR ว่ารัน inspect ไม่ได้ แล้วใช้ภาพจาก Playwright 3 ความกว้างแทน
+7. **รายงานใน PR**: คำถามของแต่ละหน้าที่แก้ · ผล inspect ก่อน/หลัง (FAIL/WARN ต่อหน้า × สว่าง/มืด) + เหตุผลของ WARN ที่เหลือ · ตารางตัวเลขของตัวตรวจ repo (หัวข้อ 9 ข้อ 10)
 
 ## 1. Token ที่ต้องใช้ (ห้ามเขียนสี hex/rgb ตรงๆ ในหน้า)
 
@@ -27,20 +50,34 @@ description: กฎการออกแบบ UI ของเว็บ Tanot (r
 | ระยะ / ตัวอักษร | `--ome-sp-1..7` (ฐาน 4px) · `--ome-fs-xs..3xl` |
 | สีกราฟ | `--ome-chart-1..8` เรียงตายตัว ห้ามวนเกิน 8 + `chart-theme.js` (ห้าม hardcode สีกราฟใน JS) · **ข้อยกเว้น**: กราฟที่แบ่งตามหมวดที่ผู้ใช้กำหนดสีเองใช้สีของผู้ใช้ (โดนัทรายรับ/รายจ่ายของ `budget.html`; ตรวจเป็น hex `#rgb`/`#rrggbb` ก่อนใส่ style เสมอ) — ชุดสีตายตัว `--ome-chart-1..8` เป็นค่าสำรอง · ชิ้นติดกันคั่นด้วยช่องสี `--ome-surface-1` · กราฟแนวโน้มและหน้าอื่นไม่เปลี่ยน |
 
-ค่าทุกสีเน้น (teal/blue/violet/orange/graphite) × สว่าง/มืด ถูกตั้งให้ผ่านเกณฑ์ข้างบนแล้ว — ถ้าแก้ค่าใน `theme.css` ต้องรัน `theme-audit.spec.js` ซ้ำ และอัปเดตตารางคอนทราสต์ในคอมเมนต์หัวบล็อก tokens
+### เปลี่ยนสี / ฟอนต์ / ระยะ / มุม — ได้ แต่ทำที่ token ให้ทั้งเว็บเปลี่ยนพร้อมกันเท่านั้น
+
+ปรับหน้าตาตามแนวทางของ taste-skill / ui-ux-pro-max ได้ (ชุดสี คู่ฟอนต์ ระยะ มุม เงา) โดยแก้ที่ต้นทางของ token เท่านั้น — ห้ามเขียนสี/ขนาดตรงในหน้าใดหน้าหนึ่ง (`theme-guards.mjs` นับสี hex/rgb และปุ่มนิยามเองต่อหน้าแบบ ratchet)
+
+| จะเปลี่ยน | แก้ที่ |
+|---|---|
+| สีพื้น/การ์ด/ตัวอักษร/เส้น/สีเน้น | `theme.css` `@layer tokens`: `:root` + `[data-theme="dark"]` (teal ค่าเริ่มต้น) และบล็อก `[data-accent="…"]` × มืด — แก้ชื่อเดิม (`--ome-bg/card/ink/muted/line/brand/brand-dk/brand-sf/ctrl/faint`) แล้ว token v2 ตามเอง · สีเน้นใหม่ = บล็อกใหม่ใน theme.css + `ACCENTS` ใน `theme-boot.js` + ป้ายในแผงตั้งค่าของ `shell.js` |
+| มุม / เงา / ระยะ / ขนาดตัวอักษร | token ใน `:root` (`--ome-radius-*`, `--ome-card-r`, `--ome-shadow-*`, `--ome-sp-*`, `--ome-fs-*`, `--ome-card-pad/gap`) · สไตล์ flat/soft/outline = กฎ `data-style` ในส่วน compat ของ theme.css |
+| ฟอนต์ | `FONTS` ใน `theme-boot.js` (family + ชุดน้ำหนักของ Google Fonts) + ค่าเริ่มต้น `--ome-f` ใน theme.css + ป้ายใน `shell.js` · เลิกตัวเลือกเดิม = ใส่แผนที่ย้ายค่าใน `theme-boot.js` (แบบ `sarabun → ibmplex`) · ลง `credits.html` |
+| สีกราฟ | `--ome-chart-*` ทั้งสว่าง/มืด — คงลำดับ 8 สีและให้แยกกันได้สำหรับคนตาบอดสี |
+| หน้า React 4 หน้า | ไม่ต้องแก้ — `tests/react-build/tailwind.config.js` ผูกสีกับ `--ome-*` แล้ว |
+
+**ฟอนต์ต้องมีอักษรไทย**: คลังฟอนต์ของ taste-skill (`library/type.json`) และ ui-ux-pro-max เป็นตัวละตินเกือบทั้งหมด — ใช้ฟอนต์ละตินได้โดยเรียงก่อนฟอนต์ไทยใน stack (`'<ละติน>','<ไทย>',system-ui,sans-serif` เบราว์เซอร์ใช้ฟอนต์ไทยกับอักษรไทยเอง) และจับคู่โครงให้เข้ากัน: เรขาคณิต (Jost, Albert Sans, Outfit) ↔ Prompt / Kanit / Mitr (ไม่มีหัว) · grotesk/humanist (IBM Plex Sans, Hanken Grotesk, Work Sans, Public Sans) ↔ IBM Plex Sans Thai / Anuphan / Noto Sans Thai · serif ↔ ฟอนต์ไทยมีหัว (Noto Serif Thai, Taviraj, Trirong). ตรวจด้วยตา: ความสูงตัว x ของละตินกับไทยใกล้กัน, สระ/วรรณยุกต์บนล่างไม่ชนบรรทัดข้างเคียง — **ข้อความไทย line-height ≥ 1.5 (หัวข้อ ≥ 1.25) และไม่ตั้ง letter-spacing ติดลบ** (ค่าของ taste-skill สำหรับตัวใหญ่ 0.85–1.05 / −0.02em ใช้กับไทยไม่ได้) · `font-variant-numeric: tabular-nums` ต้องทำให้ความกว้างตัวเลขเท่ากันจริงในฟอนต์นั้น ไม่งั้นเลือกฟอนต์อื่น · โหลดเฉพาะน้ำหนักที่ใช้ (2–3 น้ำหนัก)
+
+**ทุกสีที่เปลี่ยนต้องผ่านเกณฑ์เดิม** ทุกสีเน้น × สว่าง/มืด: `--ome-text-2` ≥ 4.5 บนการ์ด/พื้น/surface-2 · `--ome-on-accent` บน `--ome-accent` ≥ 4.5 · `--ome-accent-strong` ≥ 4.5 บนการ์ด/พื้น/accent-soft · `--ome-border-strong` ≥ 3:1 · `--ome-*-ink` ≥ 4.5 บน `--ome-*-soft` · `--ome-text-3` ห้ามพาข้อความที่ต้องอ่าน. หลังแก้: อัปเดตตารางคอนทราสต์ในคอมเมนต์หัวบล็อก tokens → รัน `theme-audit.spec.js` + ชุด `*-audit.spec.js` → `ui-inspect.sh` หน้าตัวแทน (index, budget, invest-stock, text-to-speech, classroom-business) ทั้งสว่าง/มืด → ภาพ visual baseline เปลี่ยนทั้งชุด (ติดป้าย `update-snapshots`) → bump `CACHE` ใน `sw.js`. การเปลี่ยน token ที่ผู้ใช้ไม่ได้ขอ = เสนอก่อน ไม่ทำเอง
 
 ## 2. คอมโพเนนต์กลาง (ใช้คลาสนี้ ห้ามนิยามเอง)
 
-- ปุ่ม: `.btn` (+ `.primary` / `.ghost` / `.danger`, ขนาด `.sm` / `.lg`, `.icon`; สถานะกด `.on`/`.active`/`aria-pressed="true"`) — **ห้ามสร้าง `.xxx-btn` หรือนิยาม `.btn` ใหม่ใน `<style>` ของหน้า**
+- ปุ่ม: `.btn` (+ `.primary` / `.ghost` / `.danger`, ขนาด `.sm` / `.lg`, `.icon`; สถานะกด `.on`/`.active`/`aria-pressed="true"`) — **ห้ามสร้าง `.xxx-btn` หรือนิยาม `.btn` ใหม่ใน `<style>` ของหน้า** · ปุ่มหลัก (`.primary`) หนึ่งปุ่มต่อหน้าจอ ที่เหลือ ghost/ธรรมดา
 - ฟอร์ม: `.field` (label + input/select/textarea) / `.frow` · ช่องเดี่ยว `.input` `.select` `.textarea`
 - กล่อง: `.card` + `.card-head` · `.kpi-grid`/`.kpi` · `.list`/`.list-row` · `.table-wrap`/`.table` (`.num` = ชิดขวา+tabular-nums) · `.callout` · `.kv` · `details.disclosure`
 - แถวรายการ: `.list-row` มี `.lead` (ไอคอน) · `.grow` (`.title` + `.meta`) · **`.end`** (ป้าย/จำนวนเงิน/ปุ่มชิดขวา — จอ ≤ 640px ตัดลงบรรทัดใหม่เอง) · `.amt` (จำนวนเงินชิดขวา) — ห้ามเขียน `.xxx-list .list-row .end` เอง
 - ฟอร์มใน dialog: `<dialog class="dialog dialog-form">` (กว้าง 600px + เลื่อนในกล่อง + ระยะระหว่างช่อง) · `label.check` (กล่องติ๊กในบรรทัด) · `.form-msg` (ข้อความ error ใต้ฟอร์ม `role="alert"` ว่าง = ซ่อน) · `.file-list` > `.file-row` (`a` + `.sz` + ปุ่มเอาออก) · `.sub-head` (หัวรองในการ์ด) · `.kpi-value small` (หน่วยท้ายตัวเลข KPI)
-- แดชบอร์ดรวม/หน้าหมวด (รอบ 3): `.pill` (ป้ายสถานะตามความเร่ง `.err/.warn/.info/.ok` กว้างขั้นต่ำเท่ากัน) · `.meter` (+ `.ok/.warn/.err`, `.sm`) + `.meter-row`/`.meter-list` · `.card.fill` + `.card-fill-body` + `.card-foot` (กล่องคู่ที่ใส่ `margin-top:auto` ให้ส่วนท้ายชิดล่างเท่ากัน; ใส่ใน `.grid` + `.span-6` ซึ่ง stretch สูงเท่ากันที่ ≥ 900px) · `.strip` (`.two/.three/.four`) > `.strip-cell` (`.k/.v/.s`) · `.dots` > `.dotcol` > `.dot.done/.rest/.miss/.today` · `.spark` (SVG เส้นเล็ก path.spark-area/.spark-line + i.spark-dot สีจาก `--ome-chart-1`) · `.list.plain` (+ `.cols-2`) · `.todo-row` (`.pill` | `.grow` | `.end`) · `.empty.compact` (ข้อความชวนเริ่ม 1 บรรทัด + ปุ่มเดียว จัดกลางแนวตั้งในกล่อง) · hub: `.tile.row` + `.tile-ic` + `.tile-text`, `.tile-group` ใน `.tile-cols`, `.tile-latest`
+- แดชบอร์ดรวม/หน้าหมวด: `.pill` (ป้ายสถานะตามความเร่ง `.err/.warn/.info/.ok` กว้างขั้นต่ำเท่ากัน) · `.meter` (+ `.ok/.warn/.err`, `.sm`) + `.meter-row`/`.meter-list` · `.card.fill` + `.card-fill-body` + `.card-foot` (กล่องคู่ที่ใส่ `margin-top:auto` ให้ส่วนท้ายชิดล่างเท่ากัน; ใส่ใน `.grid` + `.span-6` ซึ่ง stretch สูงเท่ากันที่ ≥ 900px) · `.strip` (`.two/.three/.four`) > `.strip-cell` (`.k/.v/.s`) · `.dots` > `.dotcol` > `.dot.done/.rest/.miss/.today` · `.spark` (SVG เส้นเล็ก path.spark-area/.spark-line + i.spark-dot สีจาก `--ome-chart-1`) · `.list.plain` (+ `.cols-2`) · `.todo-row` (`.pill` | `.grow` | `.end`) · `.empty.compact` (ข้อความชวนเริ่ม 1 บรรทัด + ปุ่มเดียว จัดกลางแนวตั้งในกล่อง) · hub: `.tile.row` + `.tile-ic` + `.tile-text`, `.tile-group` ใน `.tile-cols`, `.tile-latest`
 - เลือก/สลับ: `.tabs`/`.tab` · `.segmented > button` · `.chip` · `.lang-toggle` · `.subnav`
 - อื่นๆ: `.badge` · `.empty` · `.toolbar` · `.dropzone` · `.spinner` · `.status` · `.crumb` · `<dialog class="dialog">`
 - JS กลาง: `tanotConfirm(msg, {danger})` · `tanotConfirmDelete(what)` · `tanotAlert(msg)` · `tanotToast(msg, 'ok'|'err')`
-- ไอคอน: `<svg class="ome-icon"><use href="icons.svg#i-ชื่อ"/></svg>` จาก `icons.svg` (เพิ่มด้วย `node tests/build-icons.mjs a,b`) — **ไม่ใช้ emoji เป็นไอคอน/หัวข้อ**
+- ไอคอน: `<svg class="ome-icon"><use href="icons.svg#i-ชื่อ"/></svg>` จาก `icons.svg` (เพิ่มด้วย `node tests/build-icons.mjs a,b`) — เส้น outline ชุดเดียว สีเทา, ไม่ใส่ในวงกลม/สี่เหลี่ยมสี, **ไม่ใช้ emoji เป็นไอคอน/หัวข้อ** · ไอคอนประดับข้างข้อความ `aria-hidden="true"` · ปุ่มไอคอนล้วนต้องมี `aria-label`
 - เป้ากดบนจอแคบ ≥ 40px (คอมโพเนนต์กลางขยายให้เองที่ ≤ 700px)
 
 ## 3. data-layout (ใส่ที่ `<body>`, เนื้อหาอยู่ใน `<main class="page">`)
@@ -85,17 +122,36 @@ OME_I18N.catName(cat)                              // ชื่อหมวด b
 - เมนูใหม่ใน `shell.js` ต้องมีทั้ง `label` และ `labelEn`
 - แปลเฉพาะ UI (ปุ่ม ป้าย หัวข้อ เมนู ข้อความแจ้ง placeholder) — เนื้อหาบทเรียน/ตัวบทกฎหมาย/ข้อมูลผู้ใช้/ข่าว/ชื่อเฉพาะ ใส่ `data-i18n-skip` ที่กล่องที่ครอบ
 
-## 6. กฎที่ห้ามละเมิด
+## 6. กฎหน้าตา (ห้ามละเมิด)
 
+**กฎของเว็บ**
 - ห้ามสี hex/rgb ตรงๆ ใน `<style>` ของหน้า (ใช้ token) · ห้ามนิยามปุ่มเอง · ไอคอนจาก `icons.svg` ไม่ใช้ emoji
-- **ห้ามข้อความอธิบายใน UI** (กฎเด็ดขาดใน CLAUDE.md): ไม่มีบรรทัดใต้ h1, การ์ด "เรียนรู้", hint ข้างปุ่ม, cheat-sheet คีย์ลัด, ย่อหน้า "วิธีใช้" — เว้นแต่ผู้ใช้ขอในข้อความนั้น
-- กันหน้าตา "แบบ AI":
-  - ไม่ใช้ gradient ม่วง-น้ำเงิน (หรือ gradient ประดับใดๆ) เป็นพื้นการ์ด/หัวข้อ/ปุ่ม
-  - ไม่ใส่เงา + มุมโค้งเท่ากันทุกกล่อง — ใช้ระดับความสูง (shadow-1/2/3) ตามหน้าที่ กล่องซ้อนในการ์ดใช้ `--ome-surface-2` ไม่มีเงา
-  - ไม่ใช้ emoji เป็นหัวข้อ/ไอคอน
-  - ไม่จัดทุกอย่างกึ่งกลาง — ข้อความและฟอร์มชิดซ้าย กึ่งกลางเฉพาะสถานะว่าง (`.empty`)
-  - ไม่ใช้แถบสีแปะข้างการ์ด (border-left หนาสีเน้น) — ใช้ `.badge`/`.callout` แทน
-  - ตัวเลขที่เรียงเป็นคอลัมน์ใช้ `font-variant-numeric: tabular-nums` (`.num` / `.table.right` / `.kv .v` มีให้แล้ว)
+- **ห้ามข้อความอธิบายใน UI** (กฎเด็ดขาดใน CLAUDE.md): ไม่มีบรรทัดใต้ h1, การ์ด "เรียนรู้", hint ข้างปุ่ม, cheat-sheet คีย์ลัด, ย่อหน้า "วิธีใช้" — เว้นแต่ผู้ใช้ขอในข้อความนั้น · ข้อความที่เกิดจากสถานะตอนนี้ (error, ว่าง, คำเตือนสด) ใช้ได้
+
+**กฎบ้านของหน้าจอแอป** (ปรับจาก app-screens §13–14 — แทนหัวข้อ "กันหน้าตาแบบ AI" เดิม; inspect.mjs/lint.mjs วัดส่วนใหญ่ให้)
+
+| ใช้ได้ | ขอบเขต |
+|---|---|
+| เส้นขอบ 1px บนการ์ด/ตาราง/control | `--ome-border` (การ์ด) · `--ome-border-strong` (control) — เส้นแบ่งแถวในตาราง/รายการ ไม่มีแถบสีสลับแถว ไม่มีแถบสีหัวตาราง |
+| ป้ายเล็กเหนือค่า | 12–14px ตัวพิมพ์ปกติ สี `--ome-text-2` · ป้ายสถานะ (`.pill`/`.badge`) อยู่ในแถวหรือข้างค่าเท่านั้น ไม่อยู่เหนือหัวข้อ |
+| การ์ดหน้าตาเดียวกันเรียงกัน | เฉพาะของที่เป็นคู่เทียบกัน (KPI, ไทล์ของ hub) กว้างเท่ากัน ช่องว่างเดียว ไม่มีช่องกำพร้า ไม่มีไอคอนบนหัวทุกใบ · KPI หลายตัวชอบ `.strip` (กล่องเดียวแบ่งเส้น) มากกว่าการ์ดแยก |
+| เงา | ของที่ลอย (เมนู ป๊อปโอเวอร์ dialog) ใช้ `--ome-shadow-2/3` · การ์ดบนพื้นใช้ `--ome-shadow-1` (เส้นผม) เท่านั้น |
+| ตัวเลขลำดับ | เฉพาะที่เป็นข้อมูล (อันดับ ขั้นตอนจริงใน `<ol>`) |
+| ไล่สี | เฉพาะพื้นใต้เส้นกราฟเส้นเดียว (≤ 14%) และ scrim ของภาพพื้นหลัง |
+
+| ห้าม | ใช้แทน |
+|---|---|
+| ไล่สีบนพื้น/ปุ่ม/การ์ด/ตัวอักษร/KPI, glow, glassmorphism เป็นของประดับ | พื้นเรียบจาก token |
+| ไอคอนในวงกลม/สี่เหลี่ยมสีบน KPI หรือการ์ดทุกใบ, ไอคอนสีต่างกันต่อหมวดในรายการ | ป้าย + ตัวเลข · ไอคอนเทาชุดเดียวเฉพาะที่ช่วย |
+| sparkline บน KPI ทุกตัว, ตัวเลข KPI 36–48px สีแบรนด์ | แนวโน้มอยู่ในกราฟของมัน · ตัวเลข 24–30px สีตัวอักษรหลัก (ตัวเลขที่ตอบคำถามของหน้าใหญ่สุด) |
+| กราฟสีรุ้ง (สีต่อแท่ง, เรื่องเดียวสองสี), เส้นโค้งเรียบ + จุดทุกจุด, legend ของกราฟเส้นเดียว | สีเดียวต่อกราฟจาก `--ome-chart-*` · เส้นตรง 2px ไม่มีจุด · ชื่อกราฟบอกว่าเป็นอะไร |
+| สถานะเขียว/แดงบนค่าเปลี่ยนที่เป็นศูนย์ หรือเทียบกับศูนย์ ("+100%") | สีเทา หรือ "+4 (ใหม่)" · สีบอกดี/แย่ ไม่ใช่ขึ้น/ลง (ค่าใช้จ่ายเพิ่ม = แย่) |
+| ตัวเลขชิดซ้าย/ตัวเลขกว้างไม่เท่าในคอลัมน์ | ชิดขวา `tabular-nums` (`.num`, `.table.right`, `.kv .v`) |
+| หัวหน้าแบบ hero/คำทักทาย + อีโมจิ/แบนเนอร์ภาพประกอบ, หัวข้อเป็นสโลแกน | h1 เป็นคำนาม ("รายรับรายจ่าย") ขนาดตาม token |
+| ข้อมูลปลอม (lorem, ชื่อสมมติแบบ John Doe, ยอดรวมที่บวกไม่ได้) ในหน้า/ภาพตัวอย่าง | ข้อมูลตัวอย่างที่คำนวณจากแถว (ข้อมูลตัวอย่างในเทสต์แต่งเอง ห้ามใช้ข้อมูลจริงของเจ้าของ) |
+| แบ่งหน้า (pagination) ใต้รายการสั้นในภาพรวม | ตัดแถว + "ดูทั้งหมด (n)" |
+| จัดกลางทุกอย่าง, แถบสีหนาแปะข้างการ์ด (border-left) | ข้อความ/ฟอร์มชิดซ้าย กลางเฉพาะ `.empty` · `.badge`/`.callout`/`.pill` |
+| แอนิเมชันเข้าฉาก (fade-up ทุกกล่อง), ไอคอนเต้น | การเคลื่อนไหวเป็น feedback เท่านั้น (กด hover focus เปิดเมนู/dialog) ใช้ `--ome-dur-*` + `--ome-ease` และปิดใน `prefers-reduced-motion` |
 
 ## 7. ตัวตรวจ (รันก่อน commit ทุกครั้งที่แตะ UI)
 
@@ -105,10 +161,12 @@ node repo-guards.mjs                                     # รวม theme-guard
 npx playwright test theme-audit.spec.js                  # runtime: axe คอนทราสต์, ตัวอักษร/ขอบ control, คอมโพเนนต์กลาง,
                                                          # เป้ากด 390px, ตัวอักษรบนภาพพื้นหลัง, กดสำรวจไม่มี error, ไทยหลุดโหมด EN, สลับภาษาสด
 ```
+- คู่กับ `ui-inspect.sh` + `lint.mjs --app` ของหัวข้อ 0 ข้อ 6 (taste-skill วัดองค์ประกอบ/ลำดับชั้น/ช่องว่างในการ์ด/สีบนข้อมูล ซึ่งตัวตรวจของ repo ไม่วัด)
 - รายงาน: `tests/theme-report/report.html` (เปิดในเบราว์เซอร์ — ตารางต่อหน้า + selector + ค่าคอนทราสต์ของทุกจุด), `report.json`, `summary.md` (15 หน้าที่แย่ที่สุด) — ไม่ commit (CI อัปโหลดเป็น artifact `theme-report`)
 - **ตอนมีข้อมูล**: ตัวตรวจแยกต่อกลุ่ม (เป้า = 0 ไม่ใช้ ratchet) — ลงทุน `invest-audit.spec.js` · เอกสาร `docs-audit.spec.js` (word/excel/slides/extract-text/doc-check/doc-check-file/compare/text-to-speech: seed ข้อมูล + mock `/api` ทุกตัว + CDN → `tests/node_modules` (luckysheet ฯลฯ) · เปิดทุกแท็บ/dialog/ผลลัพธ์ × 360/390/1100 × สว่าง/มืด · EN ไทยหลุด 0 · สลับสด th→en→th) — `DOCS_AUDIT_ONLY=<regex หน้า>` เลือกหน้า · `DOCS_AUDIT_DUMP=<โฟลเดอร์>` เขียนผลทุกจุดแทนการล้ม (⚠️ เทสต์ "live switch" ยังล้มจริงในโหมดนี้) · `DOCS_AUDIT_NOALLOW=1` ดูจุดที่ `ALLOW` ซ่อนไว้ (ปุ่ม/ช่องที่ Luckysheet สร้างเอง) · modal/ลิ้นชัก/ป็อปอัพที่ทับหน้าจะวัดเฉพาะในกล่อง
-- **ตอนมีข้อมูล — กลุ่มวิศวกรรม/รายงาน/ภาษี** (รอบ 6): `tests/eng-audit.spec.js` + `tests/eng-fixtures.js` (cad · electrical · maintenance · run (ประเมินราคา) · report-dashboard · tax; seed ข้อมูลทุกหน้า, mock `/api` ทุกตัว (ocr/ai ถูกเรียก = ล้ม), Pyodide/Google ปลอม, CDN → `tests/node_modules` (chart.js/echarts/frappe-gantt/gridstack/html2canvas/jspdf เป็น devDependency ไว้ให้ report-dashboard) · report-dashboard อัปโหลด xlsx ทุกแม่แบบ (11 ตัว) ผ่าน `#fileInput` แล้วเปิดทุกส่วน/โหมด/เมนู/dialog/ป็อปโอเวอร์/มุมมองกำหนดเอง/บันทึก-รีโหลด-ดำเนินการต่อ/ตัวเลือกชีต) — ตัวแปร `ENG_AUDIT_ONLY` · `ENG_AUDIT_DUMP` · `ENG_AUDIT_NOALLOW` · `ENG_AUDIT_TRACE=1` · ใส่ `overlay: '<selector>'` ให้ fixture ที่มีแผงลอย/ลิ้นชักที่ทับหน้าเพื่อวัดเฉพาะในแผง · รีโหลดหน้ากลางสถานะต้อง `addScriptTag` ตัวตรวจใหม่
-- **ตอนมีข้อมูล — กลุ่มการศึกษา** (รอบ 7A): `tests/edu-audit.spec.js` + `tests/edu-fixtures.js` (review · books · classroom-law · classroom-business · classroom-engineering; seed การ์ดถึงรอบจากทุกแหล่ง/หนังสือ/ความคืบหน้าห้องเรียน/สมุดโน้ตกฎหมาย, mock `/api` ทุกตัว + Open Library ปลอม, เปิดทุกแท็บ/บท/dialog + ทำทบทวน/ข้อสอบ/Mock/Drill จนจบ) — ตัวแปร `EDU_AUDIT_ONLY` · `EDU_AUDIT_DUMP` · `EDU_AUDIT_NOALLOW` · selector ของสถานะห้ามพึ่งข้อความไทย (spec รันซ้ำด้วย `ome:lang=en`) ใช้ id / `data-k` · **หน้า React**: คลาสกลางใช้ได้เพราะ `tests/react-build/input.css` คืนค่าด้วย `all: revert-layer` (preflight ของ Tailwind ไม่อยู่ใน layer) — เพิ่มชื่อคลาสกลางใหม่ที่หน้า React ใช้ต้องเพิ่มในลิสต์นั้น (เฉพาะตัวเลือกคลาสเดี่ยว) แล้วรัน `./build-react.sh`
+- **ตอนมีข้อมูล — กลุ่มวิศวกรรม/รายงาน/ภาษี**: `tests/eng-audit.spec.js` + `tests/eng-fixtures.js` (cad · electrical · maintenance · run (ประเมินราคา) · report-dashboard · tax; seed ข้อมูลทุกหน้า, mock `/api` ทุกตัว (ocr/ai ถูกเรียก = ล้ม), Pyodide/Google ปลอม, CDN → `tests/node_modules` (chart.js/echarts/frappe-gantt/gridstack/html2canvas/jspdf เป็น devDependency ไว้ให้ report-dashboard) · report-dashboard อัปโหลด xlsx ทุกแม่แบบ (11 ตัว) ผ่าน `#fileInput` แล้วเปิดทุกส่วน/โหมด/เมนู/dialog/ป็อปโอเวอร์/มุมมองกำหนดเอง/บันทึก-รีโหลด-ดำเนินการต่อ/ตัวเลือกชีต) — ตัวแปร `ENG_AUDIT_ONLY` · `ENG_AUDIT_DUMP` · `ENG_AUDIT_NOALLOW` · `ENG_AUDIT_TRACE=1` · ใส่ `overlay: '<selector>'` ให้ fixture ที่มีแผงลอย/ลิ้นชักที่ทับหน้าเพื่อวัดเฉพาะในแผง · รีโหลดหน้ากลางสถานะต้อง `addScriptTag` ตัวตรวจใหม่
+- **ตอนมีข้อมูล — กลุ่มการศึกษา**: `tests/edu-audit.spec.js` + `tests/edu-fixtures.js` (review · books · classroom-law · classroom-business · classroom-engineering; seed การ์ดถึงรอบจากทุกแหล่ง/หนังสือ/ความคืบหน้าห้องเรียน/สมุดโน้ตกฎหมาย, mock `/api` ทุกตัว + Open Library ปลอม, เปิดทุกแท็บ/บท/dialog + ทำทบทวน/ข้อสอบ/Mock/Drill จนจบ) — ตัวแปร `EDU_AUDIT_ONLY` · `EDU_AUDIT_DUMP` · `EDU_AUDIT_NOALLOW` · selector ของสถานะห้ามพึ่งข้อความไทย (spec รันซ้ำด้วย `ome:lang=en`) ใช้ id / `data-k` · **หน้า React**: คลาสกลางใช้ได้เพราะ `tests/react-build/input.css` คืนค่าด้วย `all: revert-layer` (preflight ของ Tailwind ไม่อยู่ใน layer) — เพิ่มชื่อคลาสกลางใหม่ที่หน้า React ใช้ต้องเพิ่มในลิสต์นั้น (เฉพาะตัวเลือกคลาสเดี่ยว) แล้วรัน `./build-react.sh`
+- **ตอนมีข้อมูล — กลุ่มงานอดิเรก/ตั้งค่า**: `tests/hobby-audit.spec.js` (`HOBBY_AUDIT_ONLY` · `HOBBY_AUDIT_DUMP` · `HOBBY_AUDIT_NOALLOW`) · หน้าแรก `home.spec.js`
 - **ช่องกรอก/ปุ่มที่ประกอบด้วย `innerHTML`** (ป็อปโอเวอร์/กล่องโต้ตอบของ report-dashboard): เรียก `TanotReportUtils.controls(root)` ใส่ `.input/.select/.textarea` ให้ทีเดียวแทนแก้ทีละสตริง · กลุ่มปุ่มเลือกค่า (ปีเดือน/มาตราส่วน) = `.segmented` (`.active` นับเป็นสถานะกดเหมือน `.on`/`aria-pressed`) · การ์ดกดได้ (`role=button`) = `.stat-card` · ปุ่มเล็กในตาราง/หัวกล่อง = `.btn.ghost.icon.sm` (CSS ของหน้ากำหนดแค่ขนาด/ตำแหน่ง ไม่กำหนดสี/ขอบ) แล้วที่ ≤ 700px ขยายเป็น 40px ในบล็อกมือถือของหน้า · สีข้อความสถานะใช้ `--ome-*-ink` (ไม่ใช่ `--ome-ok/warn/err/info` ที่เป็นสีเติม) · `.btn` ปรากฏใน selector ของ CSS หน้าถือเป็น "ปุ่มนิยามเอง" ของ theme-guards (เขียนเป็น `> button`)
 - **หน้าที่มีพจนานุกรมของตัวเองต้องไม่ทับของส่วนกลาง**: ลูป `[data-i18n-attr]` ของหน้า ต้องแตะเฉพาะคีย์ที่อยู่ในพจนานุกรมหน้า (shell ใช้ `data-i18n-attr="aria-label:shell.…"` บนปุ่มเมนู — ถ้าหน้าเขียนทับด้วยคีย์ที่ไม่มี จะได้ `aria-label="shell.openMenu"`)
 - ratchet: `tests/theme-baseline.json` — CI ล้มเฉพาะเมื่อตัวเลขของหน้า/ชุดไหน **เพิ่มขึ้น**; หน้าใหม่ต้องเป็น 0
@@ -116,13 +174,13 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
   - static: `node theme-guards.mjs --update`
   - runtime: `THEME_AUDIT_UPDATE=1 npx playwright test theme-audit.spec.js` (ลดอย่างเดียว)
   - ตั้งใจให้เพิ่ม (หายาก ต้องเขียนเหตุผลใน PR): `--accept` / `THEME_AUDIT_UPDATE=accept`
-- ภาพ baseline เปลี่ยน → `npm run test:update` แล้วเปิดดูด้วยตา 390/1100 × สว่าง/มืด
+- ภาพ baseline เปลี่ยน → `npm run test:update` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา
 
-## 8. มือถือ (กฎตรวจรอบ 3 — ใช้ทุกรอบหลังจากนี้)
+## 8. มือถือ (กฎตรวจรอบ 3 + รอบ 9 — ใช้ทุกงาน)
 
-**กฎมือถือเป็นของกลางตั้งแต่รอบ 5** (`theme.css` บล็อก `@media (max-width:700px)` ท้ายกลุ่ม "จังหวะแนวตั้งภายในการ์ด"): ทุก `body[data-layout]` ได้ `--ome-fs-xs/sm` = 14px, ช่องว่างของ `.tabs/.subnav-*/.card-head/.toolbar` ≥ 8px, `.segmented > button` ไม่ตัดบรรทัด, ตารางใน `.table-wrap` ตรึงคอลัมน์แรก, `.lang-toggle` สูง ≥ 40px · **พื้นที่แก้เอกสารของหน้า app/เนื้อหาที่ผู้ใช้แก้ใส่ `data-doc-area`** (กระดาษของ word, กริดของ excel, ภาพสไลด์ `.sl-s`): ในกล่องนั้นคืนค่า token เดิม และตัวตรวจ `mobileFont` ไม่นับ (ขนาดตัวอักษรเป็นส่วนของไฟล์ ไม่ใช่กรอบหน้า)
+**กฎมือถือเป็นของกลาง** (`theme.css` บล็อก `@media (max-width:700px)` ท้ายกลุ่ม "จังหวะแนวตั้งภายในการ์ด"): ทุก `body[data-layout]` ได้ `--ome-fs-xs/sm` = 14px, ช่องว่างของ `.tabs/.subnav-*/.card-head/.toolbar` ≥ 8px, `.segmented > button` ไม่ตัดบรรทัด, ตารางใน `.table-wrap` ตรึงคอลัมน์แรก, `.lang-toggle` สูง ≥ 40px · **พื้นที่แก้เอกสารของหน้า app/เนื้อหาที่ผู้ใช้แก้ใส่ `data-doc-area`** (กระดาษของ word, กริดของ excel, ภาพสไลด์ `.sl-s`): ในกล่องนั้นคืนค่า token เดิม และตัวตรวจ `mobileFont` ไม่นับ (ขนาดตัวอักษรเป็นส่วนของไฟล์ ไม่ใช่กรอบหน้า)
 
-ตรวจที่ **360px และ 390px ทุกหน้า** (รอบ 9 เลิก `NARROW_360` — ค่าเริ่มต้นของ `theme-audit.spec.js`) ทั้งสว่าง/มืด · 6 ตัวชี้วัด (ratchet + รายงานแบบเดียวกับกฎเดิม; หน้าที่แก้ในรอบนั้นต้องเป็น 0):
+ตรวจที่ **360px และ 390px ทุกหน้า** ทั้งสว่าง/มืด (ค่าเริ่มต้นของ `theme-audit.spec.js`) · 6 ตัวชี้วัดหลัก (ratchet; หน้าที่แก้ในรอบนั้นต้องเป็น 0):
 
 | ตัวชี้วัด | ผิดเมื่อ |
 |---|---|
@@ -130,58 +188,102 @@ npx playwright test theme-audit.spec.js                  # runtime: axe คอ�
 | `mobileOverflow` | ตัวหน้าเลื่อนแนวนอน หรือ element เลยขอบจอ (ยกเว้นอยู่ใน container ที่ตั้ง `overflow-x:auto/scroll/hidden` เอง เช่น `.table-wrap`, `pre`) |
 | `mobileClip` | ข้อความถูกตัด (`scrollWidth > clientWidth` ในกล่องที่ overflow ไม่ visible) โดยไม่มี `text-overflow:ellipsis` ที่ตั้งใจ และไม่มี `title`/`aria-label` · **และตัวเลขที่ถูกตัดกลางตัวข้ามบรรทัด** (เช่น "118/7 \| 6" — ตรวจด้วย `Range.getClientRects` ของแต่ละก้อนตัวเลข ต้องอยู่บรรทัดเดียว) |
 | `mobileRowBreak` | ปุ่มท้ายแถว (`.list-row`/`.todo-row` ที่มี `.end`) ตกลงไปอยู่ใต้เนื้อหา — ปุ่มต้องอยู่บรรทัดเดียวกับเนื้อหา ชิดขวา |
-| `mobileCrowd` | เป้ากด 2 อันขอบห่างกัน < **8px** (ไม่นับ: ปุ่ม AI ลอย, ลิงก์ในบรรทัด, ตัวควบคุมติดกันโดยออกแบบ `.segmented`/`.lang-toggle`, แถวกว้าง ≥ 60% ของจอและสูง ≥ 44px เรียงซ้อนกัน) — เสริมกฎเป้ากด ≥ 40px เดิม (`targetSize`) |
+| `mobileCrowd` | เป้ากด 2 อันขอบห่างกัน < **8px** (ไม่นับ: ลิงก์ในบรรทัด, ตัวควบคุมติดกันโดยออกแบบ `.segmented`/`.lang-toggle`, แถวกว้าง ≥ 60% ของจอและสูง ≥ 44px เรียงซ้อนกัน) — เสริมกฎเป้ากด ≥ 40px เดิม (`targetSize`) |
 | `mobileAlign` | พี่น้อง `.card` / `.grid > *` / `.list-row` / `.tile` / `.kpi` / `.todo-row` ที่เรียงซ้อนแล้วขอบซ้าย-ขวาไม่ตรง (> 2px) หรือวางแถวเดียวกันแล้วกว้างไม่เท่ากัน (> 2px) |
 
-ขนาดตัวอักษรที่ใช้ (token มีให้แล้ว — อย่า hardcode px): **เนื้อหา 15px** (`--ome-fs-base`) · **ข้อความรอง 13–13.5px** (`--ome-fs-sm` 13.5; `--ome-fs-xs` 12.5 ใช้กับป้าย/หัวคอลัมน์เท่านั้น) · **ต่ำสุด 12px** (ไม่มีข้อความที่อ่านได้ต่ำกว่านี้ — `.badge` 12px คือเพดานล่าง) · **หัวข้อบนจอแคบ h1 22–24px, h2 ≤ 20px**
-- **ตัวเลข + หน่วยห้ามขาดกลางตัว**: ห่อก้อนตัวเลขด้วย `<span class="n">118/76</span> <small>mmHg</small>` (`.n` = `white-space:nowrap`) — หน่วยขึ้นบรรทัดใหม่ทั้งก้อนได้ · **ห้ามใช้ `overflow-wrap:anywhere` กับตัวเลข** (ตัวการที่ทำให้ขาดกลางตัว) · ตัวเลขใหญ่ใน `.strip-cell .v` ลดขนาดด้วย `clamp()`/container query และถ้ายาวเกินช่อง ให้เรียงช่องเป็นแถว (`.strip.three.long`) ไม่ใช่ตัด/ล้น
-- **แถวรายการที่มีปุ่มท้าย (หน้าแรก/กล่องที่ใช้ `.list.plain` และ `.todo-row`)**: ปุ่มอยู่บรรทัดเดียวกับเนื้อหาชิดขวาเสมอ (คอลัมน์ `[เนื้อหา minmax(0,1fr)] [ปุ่ม auto]`, ไม่ `flex-wrap`) ข้อความตัดบรรทัดในคอลัมน์ของมันเอง · pill สถานะอยู่บรรทัดบนของข้อความ (`grid-template-areas:"pill act" "body act"`) · ปุ่มบนมือถือใช้ขนาด sm (สูง 32px) แต่พื้นที่กดต้อง ≥ 40px ด้วย `::after{content:"";position:absolute;inset:-5px -2px}` (ตัวตรวจ `targetSize` นับขนาด `::after` ให้) · ข้อความรองในแถวที่ต้องคุมความสูง: `.meta.one` (บรรทัดเดียว ellipsis) + `title` ของเต็ม + `data-i18n-skip` ถ้าเป็นข้อมูลบทเรียน
+ขนาดตัวอักษรที่ใช้ (token มีให้แล้ว — อย่า hardcode px): **เนื้อหา 15px** (`--ome-fs-base`) · **ข้อความรอง 13–13.5px** (`--ome-fs-sm` 13.5; `--ome-fs-xs` 12.5 ใช้กับป้าย/หัวคอลัมน์เท่านั้น) · **ต่ำสุด 12px** (`.badge` 12px คือเพดานล่าง) · **หัวข้อบนจอแคบ h1 22–24px, h2 ≤ 20px**
+- **ตัวเลข + หน่วยห้ามขาดกลางตัว**: ห่อก้อนตัวเลขด้วย `<span class="n">118/76</span> <small>mmHg</small>` (`.n` = `white-space:nowrap`) — หน่วยขึ้นบรรทัดใหม่ทั้งก้อนได้ · **ห้ามใช้ `overflow-wrap:anywhere` กับตัวเลข** · ตัวเลขใหญ่ใน `.strip-cell .v` ลดขนาดด้วย `clamp()`/container query และถ้ายาวเกินช่อง ให้เรียงช่องเป็นแถว (`.strip.three.long`) ไม่ใช่ตัด/ล้น
+- **แถวรายการที่มีปุ่มท้าย (`.list.plain` และ `.todo-row`)**: ปุ่มอยู่บรรทัดเดียวกับเนื้อหาชิดขวาเสมอ (คอลัมน์ `[เนื้อหา minmax(0,1fr)] [ปุ่ม auto]`, ไม่ `flex-wrap`) ข้อความตัดบรรทัดในคอลัมน์ของมันเอง · pill สถานะอยู่บรรทัดบนของข้อความ (`grid-template-areas:"pill act" "body act"`) · ปุ่มบนมือถือใช้ขนาด sm (สูง 32px) แต่พื้นที่กดต้อง ≥ 40px ด้วย `::after{content:"";position:absolute;inset:-5px -2px}` (ตัวตรวจ `targetSize` นับขนาด `::after` ให้) · ข้อความรองในแถวที่ต้องคุมความสูง: `.meta.one` (บรรทัดเดียว ellipsis) + `title` ของเต็ม + `data-i18n-skip` ถ้าเป็นข้อมูลบทเรียน
+- **ตารางบนจอ ≤ 640px** (app-screens §12): เป็นรายการสองบรรทัด (ชื่อ + ตัวเลขหลักบรรทัด 1, ฟิลด์อื่นบรรทัด 2 สีรอง, ปุ่มเดียวชิดขวา) — ย้ายฟิลด์ลงบรรทัด 2 ไม่ใช่ตัดทิ้ง · ตารางที่ต้องเป็นตารางเลื่อนใน `.table-wrap` (คอลัมน์แรกตรึง) หน้าไม่เลื่อนแนวนอน · ตัวกรองไม่เกินหนึ่งแถวเหนือรายการ/กราฟ (แถวแรกของรายการต้องอยู่ใน 60% บนของจอ) · KPI เป็นกริด 2 คอลัมน์ (จำนวนคู่ หรือตัวสุดท้ายกว้างเต็ม) ไม่บีบ 4 คอลัมน์ · กล่องที่มีงานต้องทำขึ้นก่อน ไม่ตกไปใต้รายการยาว
 - **ความยาวหน้า**: หน้าแรก 390px ตอนมีข้อมูล seed ชุด `tests/home-fixtures.js` ต้อง ≤ 3,200px (`home.spec.js` ตรวจ) — รายการยาวให้ตัดแสดงก่อน + ปุ่ม "ดูทั้งหมด (n)" กางในที่ (`.todo-toggle`) แทนการเรียงยาว
-- ตัวเลขใหญ่ (`.big`, `.kpi-value`) ไม่ใช่หัวข้อ แต่ที่ 360px ต้องไม่ทำให้ล้นกล่อง — ลดขนาดด้วย `clamp()` + `white-space:nowrap` ไม่ใช่ปล่อยให้ล้น/ขาด
+- ตัวเลขใหญ่ (`.big`, `.kpi-value`) ที่ 360px ต้องไม่ล้นกล่อง — ลดขนาดด้วย `clamp()` + `white-space:nowrap`
 - กล่องที่มีปุ่มหลายอัน: ระยะระหว่างปุ่ม ≥ 8px (`gap:var(--ome-sp-2)` ขึ้นไป) · แถวรายการที่มีปุ่มท้าย (`.list-row .end`) ตัดลงบรรทัดใหม่เองที่ ≤ 640px — ห้ามบีบปุ่มให้ชิดกัน
 - จอแคบวางเป็นคอลัมน์เดียว: การ์ดพี่น้องต้องกว้างเท่ากัน ขอบซ้าย-ขวาตรงกัน (อย่าใช้ `align-self:flex-start`/`width:fit-content` กับ `.card`)
-- **กฎมือถือรอบ 9 (รอบสุดท้าย — ใช้กับทุกหน้า/ทุกงานใหม่)**:
-  - **ปุ่มแชท AI ลอย (`.ome-ai-fab`, `ai-chat-widget.js`) ห้ามบังปุ่มท้ายหน้า**: วิดเจ็ตเว้นที่ท้ายหน้าให้เอง (ฟุตเตอร์กลางได้ padding-bottom = `--ome-fab-space` ที่ ≤ 700px · body ถูก `theme.css` บังคับ padding-bottom:0 จึงเว้นที่ที่ฟุตเตอร์) และหลบลงเมื่อเลื่อนลง/โผล่เมื่อเลื่อนขึ้นหรืออยู่ใกล้บนสุด (ฟัง scroll แบบ capture ทุกตัวเลื่อน รวมกล่องที่เลื่อนในตัวของหน้า app) · หน้า `data-layout="app"` (สูงเท่าจอ ซ่อนฟุตเตอร์) ที่มีปุ่ม/แถบสถานะชิดมุมขวาล่างต้องเว้นมุมนั้นเอง (padding-right/ขนาด `--ome-fab-space`) — `mobileFabOverlap` เลื่อนทุกตัวเลื่อนไปท้ายสุดแล้วบังคับให้ปุ่มโผล่ ห้ามมี element กดได้ทับปุ่ม · ปุ่มนี้นับใน `mobileCrowd` ด้วย (เอาข้อยกเว้นออกแล้ว) · ห้ามเพิ่มปุ่ม/แถบลอยตัวที่สองมุมขวาล่างโดยไม่เว้นที่ให้กัน
-  - **ช่องกรอก**: `font-size ≥ 16px` ที่ ≤ 700px (iOS ซูมหน้าเองตอนแตะช่องที่เล็กกว่า 16px) — `theme.css` ท้ายไฟล์บังคับให้ทุก `input/select/textarea` (ยกเว้น `[data-doc-area]`, Luckysheet, `#xlCellEditor`, แผงแชท) ด้วย `max(16px,1em)!important` จึงไม่ต้องกำหนดเอง · ใช้ชนิดให้ถูก: อีเมล `type=email`, เบอร์ `type=tel`, จำนวนเงิน/ตัวเลข `inputmode="decimal"` (หรือ `numeric` ถ้าเป็นจำนวนเต็ม) บน `type=text` ที่ต้องการจุดทศนิยม/เลขนำหน้า 0, `autocomplete` ให้ email/tel/password/url (ใช้ `off` ได้ถ้าไม่ใช่ข้อมูลส่วนตัวของผู้ใช้) · placeholder ต้องพอดีช่องที่ 360/390 (ตัวอักษร 16px ทำให้ล้นง่าย) — ใช้ตัวอย่างสั้นๆ ("เช่น ม.150") ให้ป้ายช่อง/aria-label เป็นตัวอธิบาย หรือขยายช่อง — ตัวตรวจ `mobileInput` (รวม `placeholderClip`)
-  - **ช่องวันที่/เวลา** (`type=date|time|datetime-local|month|week`): iOS Safari ให้ความกว้างขั้นต่ำของตัวเองจนล้นทับช่องข้างๆ — `theme.css` ท้ายไฟล์ (นอก layer) ให้ทุกช่องชนิดนี้ `min-width:0; max-width:100%; appearance:none` และกล่องแม่/กล่องปู่ `min-width:0` (`:has()`) แล้ว ไม่ต้องเขียนเองในหน้า · ความสูง/ขอบมาจาก `.field`/`.input`/CSS ของหน้า (appearance:none ไม่มีขอบ native) · ห้ามตั้ง `min-width` ให้ช่องวันที่ในหน้า · `tests/session-layout.spec.js` ไล่ทุกหน้าที่ 360px (เพิ่มหน้าที่มีช่องวันที่ใหม่ในลิสต์ `PAGES` ของสเปกนั้น)
-  - **กล่อง/ลิ้นชัก/เมนู**: ต้องปิดได้ทั้งปุ่มปิดและแตะนอกกล่อง (`shell.js` ผูกให้ทุก `<dialog class="dialog">` — กล่องที่ห้ามปิดโดยไม่ตั้งใจใส่ `data-keep-open`; กล่องที่ผู้ใช้เริ่มพิมพ์/เลือกค่าแล้วจะไม่ปิดด้วยการแตะนอกกล่องอัตโนมัติ กันข้อมูลที่กรอกหาย), Esc ปิด, ไม่ล้นจอ, เนื้อหายาวเลื่อนในกล่อง (ไม่ใช่ทั้งหน้า), ปุ่มท้ายกล่อง (`.dialog-foot`) ไม่ตกขอบ/ไม่ถูกตัด — ตัวตรวจ `mobileDialog` (วัดทุกกล่องที่เปิดอยู่ตอนวัด) + ใน `theme-audit.spec.js` เทสต์ `dialogs:` กดปุ่มปลอดภัยทีละปุ่มแล้วแตะนอกกล่อง (`dialogClose`) · ลิ้นชัก/กล่องที่ทำเอง (`role=dialog`) ใช้ `max-height:calc(100dvh - …)` + `overflow:auto` ไม่ใช่ `100vh` (แถบ URL ของ Safari)
-  - **safe-area** (รอยบาก/แถบโฮมของ iPhone): ทุกหน้าต้องมี `viewport-fit=cover` (repo-guards ตรวจ) · element `position:fixed` ที่ติดขอบ (top:0 / bottom / left / right) ต้องมี `env(safe-area-inset-*)` ในกฎเดียวกัน · แถบ sticky ล่างต้องมี `padding-bottom` ที่รวม `env(safe-area-inset-bottom)` · แถบหัวกลาง/ลิ้นชัก/แผงตั้งค่า/palette รวมแล้ว · `html` ได้ padding ซ้าย/ขวา = inset แนวนอนอัตโนมัติ — ข้อยกเว้นของ guard เป็นรายชื่อพร้อมเหตุผลใน `tests/repo-guards.mjs` (บล็อก "safe-area")
-  - **แนวนอน (844×390)**: ทุกหน้าไม่ล้นแนวนอน · แถบหัว/ลิ้นชักเมนู/แผงตั้งค่าอยู่ในจอและเลื่อนถึงรายการสุดท้ายได้ (แผงตั้งค่าเลื่อนในกล่อง `max-height:calc(100dvh - …)`) · dialog เลื่อนได้ไม่หลุดจอ — เทสต์ `landscape:` ใน `theme-audit.spec.js` (ตัวชี้วัด `landscape`)
-  - **ขนาดจอที่ตรวจ**: 360 + 390 ทุกหน้า (ค่าเริ่มต้นของ `theme-audit.spec.js` ตั้งแต่รอบ 9 — ไม่มี `NARROW_360` แล้ว) + 412 (Android ทั่วไป) / 430 (iPhone Pro Max) ด้วย `THEME_AUDIT_WIDTHS=412,430` · ชุด `*-audit.spec.js` ตอนมีข้อมูลตรวจที่ 360/390
-- รันเฉพาะส่วนมือถือของหน้าเดียว: เปิดหน้าที่ viewport 390/360 แล้วเรียก `window.__tanotAudit.mobile({shell:false})` (ฉีด `tests/theme-audit-page.js`) — คืน sample ของทั้ง 6 ตัวชี้วัดพร้อม selector
+- **กฎรอบ 9 (ทุกหน้า/ทุกงานใหม่)**:
+  - **ปุ่มแชท AI ลอย (`.ome-ai-fab`, `ai-chat-widget.js`) ห้ามบังปุ่มท้ายหน้า**: วิดเจ็ตเว้นที่ท้ายหน้าให้เอง (ฟุตเตอร์กลางได้ padding-bottom = `--ome-fab-space` ที่ ≤ 700px · body ถูก `theme.css` บังคับ padding-bottom:0 จึงเว้นที่ที่ฟุตเตอร์) และหลบลงเมื่อเลื่อนลง/โผล่เมื่อเลื่อนขึ้นหรืออยู่ใกล้บนสุด · หน้า `data-layout="app"` ที่มีปุ่ม/แถบสถานะชิดมุมขวาล่างต้องเว้นมุมนั้นเอง (padding-right/ขนาด `--ome-fab-space`) — `mobileFabOverlap` เลื่อนทุกตัวเลื่อนไปท้ายสุดแล้วบังคับให้ปุ่มโผล่ ห้ามมี element กดได้ทับปุ่ม · ปุ่มนี้นับใน `mobileCrowd` ด้วย · ห้ามเพิ่มปุ่ม/แถบลอยตัวที่สองมุมขวาล่างโดยไม่เว้นที่ให้กัน
+  - **ช่องกรอก**: `font-size ≥ 16px` ที่ ≤ 700px (iOS ซูมหน้าเอง) — `theme.css` ท้ายไฟล์บังคับให้ทุก `input/select/textarea` (ยกเว้น `[data-doc-area]`, Luckysheet, `#xlCellEditor`, แผงแชท) ด้วย `max(16px,1em)!important` · ใช้ชนิดให้ถูก: อีเมล `type=email`, เบอร์ `type=tel`, จำนวนเงิน/ตัวเลข `inputmode="decimal"` (หรือ `numeric`) บน `type=text` ที่ต้องการจุดทศนิยม/เลขนำหน้า 0, `autocomplete` ให้ email/tel/password/url (`off` ได้ถ้าไม่ใช่ข้อมูลส่วนตัว) · placeholder ต้องพอดีช่องที่ 360/390 — ตัวอย่างสั้นๆ ("เช่น ม.150") ให้ป้ายช่อง/aria-label เป็นตัวบอก — ตัวตรวจ `mobileInput` (รวม `placeholderClip`)
+  - **ช่องวันที่/เวลา** (`type=date|time|datetime-local|month|week`): `theme.css` ท้ายไฟล์ (นอก layer) ให้ `min-width:0; max-width:100%; appearance:none` และกล่องแม่/กล่องปู่ `min-width:0` (`:has()`) แล้ว · ห้ามตั้ง `min-width` ให้ช่องวันที่ในหน้า · `tests/session-layout.spec.js` ไล่ทุกหน้าที่ 360px (เพิ่มหน้าที่มีช่องวันที่ใหม่ในลิสต์ `PAGES`)
+  - **กล่อง/ลิ้นชัก/เมนู**: ปิดได้ทั้งปุ่มปิดและแตะนอกกล่อง (`shell.js` ผูกให้ทุก `<dialog class="dialog">` — กล่องที่ห้ามปิดโดยไม่ตั้งใจใส่ `data-keep-open`; กล่องที่ผู้ใช้เริ่มกรอกแล้วไม่ปิดด้วยการแตะนอกกล่อง), Esc ปิด, ไม่ล้นจอ, เนื้อหายาวเลื่อนในกล่อง, ปุ่มท้ายกล่อง (`.dialog-foot`) ไม่ตกขอบ — ตัวตรวจ `mobileDialog` + เทสต์ `dialogs:` (`dialogClose`) · ลิ้นชัก/กล่องที่ทำเอง (`role=dialog`) ใช้ `max-height:calc(100dvh - …)` + `overflow:auto` ไม่ใช่ `100vh`
+  - **safe-area**: ทุกหน้าต้องมี `viewport-fit=cover` (repo-guards ตรวจ) · element `position:fixed` ที่ติดขอบต้องมี `env(safe-area-inset-*)` ในกฎเดียวกัน · แถบ sticky ล่างต้องมี `padding-bottom` ที่รวม `env(safe-area-inset-bottom)` · ข้อยกเว้นของ guard เป็นรายชื่อพร้อมเหตุผลใน `tests/repo-guards.mjs` (บล็อก "safe-area")
+  - **แนวนอน (844×390)**: ไม่ล้นแนวนอน · แถบหัว/ลิ้นชักเมนู/แผงตั้งค่าเลื่อนถึงรายการสุดท้าย · dialog เลื่อนได้ไม่หลุดจอ — เทสต์ `landscape:` ใน `theme-audit.spec.js`
+  - **ขนาดจอที่ตรวจ**: 360 + 390 ทุกหน้า + 412 / 430 ด้วย `THEME_AUDIT_WIDTHS=412,430` · ชุด `*-audit.spec.js` ตอนมีข้อมูลตรวจที่ 360/390 · `ui-inspect.sh` ถ่าย 390 ด้วย
+- รันเฉพาะส่วนมือถือของหน้าเดียว: เปิดหน้าที่ viewport 390/360 แล้วเรียก `window.__tanotAudit.mobile({shell:false})` (ฉีด `tests/theme-audit-page.js`) — คืน sample ของทุกตัวชี้วัดพร้อม selector
 - เพิ่มกฎใหม่ในอนาคต: เติม baseline เฉพาะตัวชี้วัดที่ยังไม่มีด้วย `THEME_AUDIT_UPDATE=seed npx playwright test theme-audit.spec.js` (ไม่แตะค่าเดิม)
 
-## 9. ขั้นตอนแก้ 1 หน้า (checklist — จากรอบ 2: index, budget, health, car, receipts, insurance · ขั้น "มือถือ" เพิ่มรอบ 3)
+## 9. ขั้นตอนแก้ 1 หน้า (checklist)
 
 ทำตามลำดับ ทีละหน้า แล้ว commit แยกต่อหน้า:
-1. **ดูตัวเลขของหน้า**: `tests/theme-report/report.html` (หรือ `node` อ่าน `report.json` → `pages['x.html'].configs[...].samples`) — ตัวตรวจ runtime วัดหน้าที่ "ว่าง" เท่านั้น จึงต้องตรวจหน้าที่มีข้อมูลและกล่องที่เปิดอยู่ด้วย: seed `localStorage` แล้วเรียก `window.__tanotAudit.audit()` (ฉีด `tests/theme-audit-page.js`) ที่ 390/1100 × สว่าง/มืด ในทุกสถานะ (ลิสต์มีข้อมูล, dialog ทุกใบ, แท็บทุกอัน)
-2. **อ่าน `.html` + `.js` ทั้งไฟล์** แล้วทำรายการ: ปุ่ม/ช่องกรอก/แท็บ/chip ที่ไม่ใช่คอมโพเนนต์กลาง · สี hex/rgb ใน `<style>` · คลาสที่ซ้ำกับคอมโพเนนต์กลาง (`.xx-file`, `.xx-msg`, `.xx-list .list-row .end`, `.xx-dialog` → `.file-row`, `.form-msg`, `.end`, `.dialog-form`) · `.btn` ใน selector ของหน้า (นับเป็นปุ่มนิยามเอง — ใช้ `button` หรือคลาสห่อ) · input ที่ห่มด้วย chip/ไม่มี `.input` · ข้อความอธิบายที่ห้ามมี (หัวรอง, hint ข้างปุ่ม)
-3. **ภาษา** (ทำก่อนแก้ธีม ไฟล์เดียวกัน): ทำพจนานุกรม th/en ทีเดียวจากรายการข้อความทั้งหมด — HTML ใส่ `data-i18n` / `data-i18n-attr` (ข้อความที่ปนกับไอคอนให้ห่อ `<span data-i18n>`) · JS ใช้ `T()` · ชื่อเดือน/วัน/วันที่/ตัวเลข/เงิน ใช้ `OME_I18N.months/weekdays/date/number` · ภาษาไทยในพจนานุกรม `th` ต้องเหมือนข้อความเดิมทุกตัวอักษร (spec เดิมค้นข้อความไทย) · ข้อมูลผู้ใช้/ชื่อที่ผู้ใช้ตั้ง/ชื่อเฉพาะ ไม่ต้องแปล
+1. **ดูตัวเลขของหน้า**: `tests/theme-report/report.html` (หรือ `node` อ่าน `report.json` → `pages['x.html'].configs[...].samples`) + `ui-inspect.sh` ของหน้า (สว่าง/มืด ว่าง/มีข้อมูล) เก็บไว้เป็น "ก่อน" · ตัวตรวจ runtime วัดหน้าที่ "ว่าง" เท่านั้น จึงต้องตรวจหน้าที่มีข้อมูลและกล่องที่เปิดอยู่ด้วย: seed `localStorage` แล้วเรียก `window.__tanotAudit.audit()` (ฉีด `tests/theme-audit-page.js`) ที่ 390/1100 × สว่าง/มืด ในทุกสถานะ (ลิสต์มีข้อมูล, dialog ทุกใบ, แท็บทุกอัน)
+2. **เขียนคำถามของหน้า + งานที่บ่อยสุด** (หัวข้อ 0 ข้อ 2) แล้ว **อ่าน `.html` + `.js` ทั้งไฟล์** ทำรายการ: กล่องที่ไม่ตอบคำถามใด · ปุ่ม/ช่องกรอก/แท็บ/chip ที่ไม่ใช่คอมโพเนนต์กลาง · สี hex/rgb ใน `<style>` · คลาสที่ซ้ำกับคอมโพเนนต์กลาง (`.xx-file`, `.xx-msg`, `.xx-list .list-row .end`, `.xx-dialog` → `.file-row`, `.form-msg`, `.end`, `.dialog-form`) · `.btn` ใน selector ของหน้า · input ที่ไม่มี `.input` · ข้อความอธิบายที่ห้ามมี · สถานะที่ขาด (หัวข้อ 10)
+3. **ภาษา** (ทำก่อนแก้ธีม ไฟล์เดียวกัน): พจนานุกรม th/en ทีเดียวจากรายการข้อความทั้งหมด — HTML ใส่ `data-i18n` / `data-i18n-attr` (ข้อความที่ปนกับไอคอนให้ห่อ `<span data-i18n>`) · JS ใช้ `T()` · ชื่อเดือน/วัน/วันที่/ตัวเลข/เงิน ใช้ `OME_I18N.months/weekdays/date/number` · ภาษาไทยในพจนานุกรม `th` ต้องเหมือนข้อความเดิมทุกตัวอักษร (spec เดิมค้นข้อความไทย) เว้นแต่ตั้งใจแก้ข้อความตามหัวข้อ 11 · ข้อมูลผู้ใช้/ชื่อเฉพาะ ไม่ต้องแปล
 4. **ห้ามแตะรูปแบบข้อมูลที่ซิงก์** (คีย์, ฟิลด์, id) — ถ้าต้องเพิ่มค่าเริ่มต้นในข้อมูลให้เก็บค่าไทย/รหัสเดิม แปลตอนแสดง
 5. **ตรวจภาษา**: เปิดหน้าด้วย `ome:lang=en` + ข้อมูลตัวอย่าง เปิดทุกกล่อง/แท็บ แล้วไล่หา text node ภาษาไทยที่มองเห็น (ไม่รวมข้อมูลผู้ใช้) ต้องเหลือ 0 · สลับ en→th→en จากแผงตั้งค่าโดยไม่โหลดหน้าใหม่ — หน้าเปลี่ยนทันที (รวมกราฟ/รายการ/ตัวเลือก)
-6. **รัน spec ของหน้านั้น** (ปรับ selector ที่เปลี่ยนคลาสแล้ว — ปรับให้ตรวจพฤติกรรมเดิม ห้ามลบเทสต์), `today.spec.js` ถ้าหน้านั้นมีการ์ดในหน้าวันนี้, `smoke.spec.js`
+6. **รัน spec ของหน้านั้น** (ปรับ selector ที่เปลี่ยนคลาสแล้ว — ปรับให้ตรวจพฤติกรรมเดิม ห้ามลบเทสต์), `home.spec.js` + `today.spec.js` ถ้าหน้านั้นมีกล่องในหน้าวันนี้, `smoke.spec.js`
 7. **ตัวตรวจ**: `node repo-guards.mjs` → `npx playwright test theme-audit.spec.js` → ลด baseline (`node theme-guards.mjs --update`, `THEME_AUDIT_UPDATE=1 …`) — ตัวเลขลดอย่างเดียว
-8. **มือถือ** (รอบ 3 + รอบ 9): ดูตัวชี้วัด `mobile*` ทั้ง 9 ตัว (6 ตัวเดิม + `mobileInput/mobileDialog/mobileFabOverlap`) ที่ 390 และ 360 (+ แนวนอน `landscape:`) × สว่าง/มืด ทั้งตอนว่างและตอนมีข้อมูล (seed) + ทุกกล่อง/แท็บที่เปิดอยู่ — แก้จนเป็น 0 (ขนาดตัวอักษร/ระยะ/การเรียงตามหัวข้อ 8) · เปิดดูภาพ 390/360 ด้วยตา
-9. **visual**: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด ด้วยตา — ถ้าเครื่องที่ทำงานเรนเดอร์ฟอนต์ไม่ตรง CI (visual ใน CI ล้มเฉพาะหน้าที่แก้) ให้ติดป้าย `update-snapshots` ที่ PR ให้ CI สร้างภาพเอง (`.github/workflows/update-visual.yml`) · bump `CACHE` ใน `sw.js`
-10. ในรายงาน PR: ตารางตัวเลขก่อน/หลัง **ต้องมีคอลัมน์มือถือ** (`mobileFont/Overflow/Clip/Crowd/Align/RowBreak` ที่ 390 และ 360 + ความสูงหน้าที่ 390 ถ้าเป็นหน้ายาว) + เหตุผลรายจุดของค่าที่ยังไม่เป็น 0 (เช่น ปุ่มที่ไลบรารีสร้าง)
+8. **มือถือ**: ตัวชี้วัด `mobile*` ทั้ง 9 ตัว (6 ตัวหลัก + `mobileInput/mobileDialog/mobileFabOverlap`) ที่ 390 และ 360 (+ แนวนอน `landscape:`) × สว่าง/มืด ทั้งตอนว่างและตอนมีข้อมูล + ทุกกล่อง/แท็บที่เปิดอยู่ — แก้จนเป็น 0
+9. **ดูภาพและแก้** (หัวข้อ 0 ข้อ 6): `ui-inspect.sh` → 0 FAIL → เปิดทุกภาพ ตอบ 7 ข้อ แก้ 3 เรื่องแรก (≤ 3 รอบ) · visual: `npm run test:update -- -g "<หน้า>"` แล้วเปิดดูภาพ 390/1100 × สว่าง/มืด — เครื่องที่ทำงานเรนเดอร์ฟอนต์ไม่ตรง CI ให้ติดป้าย `update-snapshots` ที่ PR · bump `CACHE` ใน `sw.js`
+10. **รายงาน PR**: ตารางตัวเลขก่อน/หลัง **ต้องมีคอลัมน์มือถือ** (`mobileFont/Overflow/Clip/Crowd/Align/RowBreak` ที่ 390 และ 360 + ความสูงหน้าที่ 390 ถ้าเป็นหน้ายาว) + เหตุผลรายจุดของค่าที่ยังไม่เป็น 0 + ผล inspect ก่อน/หลัง + คำถามของหน้า
 
-## หลีกเลี่ยงหน้าตาแบบงาน AI สำเร็จรูป
+## 10. เช็กลิสต์ UX (จาก app-screens §5–12, ui-ux-pro-max, accessibility — ใช้ตอนสร้างและตอนดูภาพ)
 
-**ห้ามเพิ่ม**
-- พื้นหลัง/หัวข้อไล่สีม่วง-น้ำเงิน
-- glassmorphism / เบลอฉากหลังเป็นของตกแต่ง
-- อีโมจิแทนไอคอน (ใช้ `icons.svg`)
-- การ์ดเงาเท่ากันทุกใบเรียงซ้ำๆ
-- ป้าย/badge ประดับที่ไม่บอกข้อมูล
-- ตัวเลขใหญ่ (big number tiles) ที่ไม่ใช่สาระของหน้า
-- หัวข้อแบบสโลแกน/คำโฆษณา
-- เลขลำดับ 01/02/03 ที่ไม่ใช่ขั้นตอนจริง
-- จัดกลางทุกอย่าง
-- แอนิเมชันประดับทุกส่วน
+**ฟอร์ม**
+- ป้ายอยู่เหนือช่องเสมอ (`.field`) — placeholder ไม่ใช่ป้าย · ช่องที่ต้องกรอกมีเครื่องหมาย · ชนิดช่อง/`inputmode`/`autocomplete` ตามหัวข้อ 8
+- ตรวจตอนออกจากช่อง (blur) ไม่ใช่ทุกตัวอักษร · error อยู่ใต้ช่องนั้น บอกสาเหตุ + วิธีแก้ ผูก `aria-describedby` + `aria-invalid="true"` · ส่งแล้วผิดหลายช่อง = โฟกัสช่องแรกที่ผิด (หรือสรุปข้อผิดพลาดที่ลิงก์ไปแต่ละช่อง) · `.form-msg` (`role="alert"`) สำหรับ error ระดับฟอร์ม
+- ปุ่มส่งระหว่างรอ: disabled + `.spinner` (กดซ้ำไม่ได้) → สำเร็จ `tanotToast(…,'ok')` / ผิด ข้อความในกล่อง · ลบ = `tanotConfirmDelete(สิ่งที่ลบ)` ระบุชื่อของ · กล่องที่กรอกค้างไม่หายเมื่อแตะนอกกล่อง
+- รูปแบบบันทึกเดียวต่อมุมมอง: บันทึกอัตโนมัติทุกช่อง (+ สถานะ "บันทึกแล้ว") หรือปุ่มบันทึกปุ่มเดียวท้ายกล่อง — ไม่ปนกัน · disabled ต้องยังอ่านได้ (ไม่จางจนอ่านไม่ออก)
 
-**ให้ทำ**
-- ใช้คอมโพเนนต์/สีของ `theme.css` เท่านั้น
-- ข้อความเรียบ ตรง บอกสิ่งที่ปุ่มทำ ("สร้างไฟล์เสียง" ไม่ใช่ "เริ่มต้นสร้างสรรค์")
-- เนื้อหาจริงของผู้ใช้อยู่ในส่วนที่เห็นก่อนบนหน้าแรก
-- เน้นสิ่งเดียวที่สำคัญของหน้า ที่เหลือเรียบ
-- ภาษาไทยเป็นหลัก ใช้คำที่คนไทยพูดจริง
+**ตาราง / รายการ**
+- ตัวเลขชิดขวา `tabular-nums` หัวคอลัมน์ตัวเลขชิดขวาตรงกับค่า · ทศนิยมคงที่ต่อชนิด (เงิน 2 ตำแหน่ง, % 1–2, จำนวนนับ 0) · คั่นหลักพันด้วย `OME_I18N.number/money` · ค่าเปลี่ยนมีเครื่องหมาย (+/−) · หน่วยเป็นตัวเล็กสีรอง
+- ศูนย์จริงแสดง "0" / "฿0" ปกติ · ไม่มีค่า = ขีดสีรอง "—" (ขนาดเท่าข้อความ ไม่ใช่ขนาดตัวเลขใหญ่) · ข้อความยาวตัดหนึ่งบรรทัดด้วย ellipsis + `title`
+- หัวตารางตัวพิมพ์ปกติ 12–13px สีรอง ไม่มีแถบสีหัว ไม่สลับสีแถว · ป้ายสถานะหนึ่งอันต่อแถว (`.pill`/`.badge` พื้นอ่อน + ตัวอักษร `-ink`) ไม่ถูกบีบ (`white-space:nowrap`) · ปุ่มของแถวที่ต้องทำอยู่คอลัมน์ท้ายตำแหน่งเดียวกันทุกแถว
+- รายการในภาพรวมตัดที่ 4–8 แถว + "ดูทั้งหมด (n)" ไม่มีแบ่งหน้า · รายการเต็มบอกจำนวนรวม และเกิน ~200 แถวแสดงทีละชุด (แบบหน้า compare: 50 แถว) ไม่ render ทั้งหมด
+
+**กราฟ** (สีจาก `chart-theme.js` เสมอ)
+- เลือกตามคำถาม: แนวโน้ม = เส้น · ต่อช่วง = แท่งมุมเหลี่ยม · สัดส่วน ≤ 5 ส่วน = วงแหวนบาง/แท่ง 100% (เกินนั้นใช้แท่งแนวนอนเรียงลำดับ) · ใกล้เป้าแค่ไหน = แถบ (`.meter`) ที่สัดส่วนจริง ป้ายทั้งสองปลาย
+- เส้นเดียวไม่มี legend (ชื่อกราฟบอก) · หลายชุด ≤ 5 ชุด legend เป็นจุดสีของเส้นนั้นจริง · เส้นกริดแนวนอน 3–5 เส้นจาง (`--ome-chart-grid`) · แกน y ขั้นกลมเท่ากัน ค่าบนสุดเกินค่าสูงสุด แท่งเริ่มที่ 0 · ป้ายแกน x 4–8 อัน ไม่เอียง
+- เหตุการณ์ที่กระโดดชัดมีเส้นกำกับ + ป้ายสั้น · ค่าในอนาคต (พยากรณ์) เป็นเส้นประ · ข้อมูลน้อย/เป็นศูนย์วาดตามจริง (เส้นศูนย์ + ข้อความหนึ่งประโยคในกรอบ) ไม่ใช่ภาพ "ไม่มีข้อมูล"
+- ความหมายไม่พึ่งสีอย่างเดียว (ขึ้นเขียว/ลงแดงตามตลาดไทย + เครื่องหมาย/ลูกศร) · มี `aria-label` สรุปสิ่งที่กราฟบอก หรือมีตัวเลขเดียวกันในข้อความ/ตาราง · ค่าเห็นได้ด้วยการแตะ (ไม่ใช่ hover อย่างเดียว)
+
+**สถานะของทุกกล่อง** (app-screens §11)
+- ว่าง: กรอบและหัวกล่องคงอยู่ + หนึ่งประโยค + ปุ่มเริ่ม (`.empty` / `.empty.compact`) — ไม่มีภาพประกอบ ไม่มีวิธีใช้
+- กำลังโหลด: โครงสุดท้ายจริง ค่าแทนด้วยแถบเทาเรียบขนาดเท่าค่า (ไม่มี shimmer) ป้าย/หัวขึ้นทันที เลย์เอาต์ไม่กระโดดตอนข้อมูลมา · งานที่ใช้เวลา: สถานะความคืบหน้าจริง (n/N, เวลาที่เหลือ)
+- ผิดพลาด: ในกล่องที่ล้ม ไม่ใช่แบนเนอร์ทั้งหน้า — บอกว่าอะไรล้ม + ข้อมูลล่าสุดเมื่อไร + ปุ่ม "ลองใหม่" · ดึงค่าจากเน็ตไม่ได้ = ใช้แคชเดิม + เวลา หรือให้กรอกเอง (CLAUDE.md)
+- ออฟไลน์/เซสชันหมด: ใช้ทางกลาง (`sw.js` แถบเซสชัน, `TanotMedia.classify`) ไม่ทำแถบของหน้าเอง
+- จำนวนที่แสดง (แท็บ, "12 รายการ") คำนวณจากมุมมอง/ตัวกรองปัจจุบัน · สีแดงหนึ่งจุดต่อเรื่องที่เกินจริง ไม่ทาแดงทั้งแถว
+
+**การกด / การมองเห็น** (accessibility, ui-ux-pro-max §1–2)
+- เป้ากด ≥ 40px บนจอแคบ (ตัวตรวจ) — เป้าใหม่ตั้ง 44px · ห่างกัน ≥ 8px · ทุกอย่างทำได้ด้วยการแตะ (ไม่พึ่ง hover) และด้วยคีย์บอร์ด (Tab ตามลำดับที่เห็น, Enter/Space, Esc ปิดกล่อง) · ลากต้องมีทางเลือกแบบปุ่ม
+- โฟกัสมองเห็นได้ (`:focus-visible` วงสี `--ome-accent`) ไม่ถูกแถบ sticky/ปุ่มลอยบัง · ใช้ `<button>`/`<a>`/`<input>` จริง ไม่ใช่ `div` ที่กดได้
+- คอนทราสต์ ข้อความ ≥ 4.5:1, ขอบ control/ไอคอนที่มีความหมาย ≥ 3:1 ทั้งสว่างและมืด (ตรวจแยกกัน) · หัวข้อเรียงระดับ h1 → h2 → h3 หนึ่ง h1 ต่อหน้า · รูปที่มีความหมายมี `alt` ภาพประดับ `alt=""`
+- การแจ้งเตือนที่เปลี่ยนเอง (จำนวน, สถานะ) อยู่ใน `aria-live="polite"` ไม่ขโมยโฟกัส · การเคลื่อนไหวเคารพ `prefers-reduced-motion`
+- งานหนัก (โมเดล, ไฟล์ใหญ่) ไม่ทำบนเธรดหลักนานจนหน้าค้าง (CLAUDE.md: Worker) · รูปบอกขนาด/อัตราส่วนกันเลย์เอาต์กระโดด
+
+## 11. ข้อความใน UI (หลัก humanizer + app-screens)
+
+- **ชื่อหน้า/หัวกล่องเป็นคำนามของเรื่องนั้น** ("ใบเสร็จ", "ต้องทำวันนี้") ไม่ใช่สโลแกน คำทักทาย หรือคำโฆษณา · ใช้คำของเรื่องนั้นจริง ("ครบกำหนด 28 ต.ค.", "ยังไม่ได้กินยามื้อเย็น") แทนคำกลางๆ ("รายการ", "ข้อมูล", "สถานะ")
+- **ปุ่มบอกสิ่งที่ทำ** 1–3 คำ ("สร้างไฟล์เสียง", "บันทึกเป็นรายจ่าย") — ไม่ใช่ "เริ่มต้นสร้างสรรค์" / "ตกลง" ลอยๆ · การกระทำเดียวกันใช้ชื่อเดียวทั้งเว็บ
+- **ทุกประโยคต้องเพิ่มข้อมูลที่ผู้ใช้ยังไม่มี**: ตัดคำเกริ่น ("มาดูกันว่า…"), คำปิดท้ายที่พูดซ้ำ, คำโอ้อวด (ง่ายสุดๆ, ทรงพลัง, ไร้รอยต่อ, ครบจบในที่เดียว), การขีดเส้นใต้ว่าสำคัญ, ประโยค "ไม่ใช่แค่ X แต่คือ Y", การเรียงสามอย่างเพื่อจังหวะ, ตัวหนาประดับ — ข้อความที่ตัดแล้วเหลือศูนย์คำ = ลบทั้งประโยค (ตรงกับกฎ no-explainer)
+- **ข้อความ error/ว่าง** = เกิดอะไร + ทำอะไรต่อได้ ในประโยคเดียว ("อ่านไฟล์ไม่ได้ — ลองบันทึกเป็น PDF แล้วเลือกใหม่") ไม่โทษผู้ใช้ ไม่ขอโทษยืดยาว ไม่มีรหัสเทคนิคบนจอ (รหัสไปลง problem log)
+- **ตัวเลขเทียบบอกฐาน** ("มากกว่าเดือนก่อน 1,200 บาท") · ช่วงเวลาเดียวกันใช้คำเดียวกันทุกที่บนหน้า
+- **ไทย**: ภาษาที่คนไทยพูดจริง สั้น ไม่แปลตรงตัวจากอังกฤษ · ข้อความเดียวกันมีฉบับอังกฤษใน `en` ที่เขียนใหม่แบบเจ้าของภาษา (ประโยคบอกเล่า sentence case ไม่ใช้ Title Case ทุกคำ ไม่มีคำในรายการ AI words ของ humanizer §12) — ใช้ `humanizer` เต็มรูปแบบกับข้อความอังกฤษ (UI, คำอธิบาย PR), กับข้อความไทยใช้หลักข้างบน (รายการคำของ humanizer เป็นภาษาอังกฤษ)
+
+## 12. skill ภายนอก: ใช้เมื่อไร และข้อขัดที่ตัดสินแล้ว
+
+| skill | เรียกใช้เมื่อ | เอาอะไร |
+|---|---|---|
+| `taste-skill` (`design-taste-frontend`) | ออกแบบ/รื้อหน้า (อ่าน `references/app-screens.md`), ทุก PR ที่แตะ UI (`scripts/inspect.mjs --app` ผ่าน `ui-inspect.sh`, `scripts/lint.mjs --app`), ตัดสินเรื่องตัวอักษร/สี (`references/type.md`, `colour.md` — ปรับเรื่องภาษาไทยตามหัวข้อ 1) | run ของหน้าจอแอป, คำถาม 7 ข้อ, กฎบ้าน, ตัวเลข/ตาราง/กราฟ/สถานะ · **ไม่เอา**: page run, `draw.mjs` สุ่มสไตล์, `assets.mjs` หารูป, motion floor, scenes, `assets/app.css`/`charts.js` (เว็บมีคอมโพเนนต์กลาง + `chart-theme.js` แล้ว) |
+| `ui-ux-pro-max` | ค้นแนวทาง UX เฉพาะเรื่องเดียว: `python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<2–5 คำ>" --domain ux` (หรือ `chart`, `icons`) · ตรวจรอบสุดท้ายด้วย `references/quick-reference.md` §1–3 | กฎ UX/a11y รายข้อ · **ไม่เอา**: `--design-system` / `--persist` (ห้ามสร้างโฟลเดอร์ `design-system/` ใน repo), ชุดสี/สไตล์/ฟอนต์สำเร็จรูปไปใส่ตรงๆ (ถ้าจะใช้ ทำที่ token ตามหัวข้อ 1), GSAP, คำแนะนำของ stack อื่น (เว็บนี้ HTML/JS ล้วน + React 4 หน้า) |
+| `accessibility` | หน้าที่มีฟอร์ม/dialog/คีย์บอร์ด/live region, งาน a11y โดยตรง | รูปแบบ markup ใน `references/A11Y-PATTERNS.md`, เช็กลิสต์ WCAG 2.2 |
+| `humanizer` | ข้อความอังกฤษใน UI, คำอธิบาย PR · หลักการใช้กับไทยตามหัวข้อ 11 | — |
+| `performance` | หน้าที่โหลดช้า/ไฟล์ใหญ่/ไลบรารีหนัก | เช็กลิสต์ — ห้ามเปลี่ยนไปใช้ bundler/build |
+
+**ข้อขัดที่ตัดสินแล้ว** (ไฟล์นี้ชนะ)
+- **ปุ่มหลัก**: taste-skill แนะนำสีเกือบดำ — เว็บนี้ใช้ `.btn.primary` สี `--ome-accent` (หนึ่งปุ่มต่อหน้าจอ) จนกว่าเจ้าของจะสั่งเปลี่ยน token
+- **สีเน้นที่ผู้ใช้เลือกได้**: violet = ตระกูลที่ taste-skill ห้าม (`palette-purple`), orange โหมดสว่าง = พื้นครีม + ส้มอิฐ (`palette-cream`/`palette-terracotta`) — เป็นตัวเลือกของผู้ใช้ ไม่ใช่ค่าเริ่มต้น (teal): ตรวจหน้าด้วยค่าเริ่มต้น และถ้าทดสอบสีเหล่านั้นใส่ `-- --allow <กฎ>` · เปลี่ยน/เลิกสีเน้น = ถามเจ้าของ
+- **การ์ด**: มีทั้ง `--ome-border` และ `--ome-shadow-1` (เงาเส้นผม alpha .07) — ยอมรับเป็น token ปัจจุบัน; ห้ามเพิ่มเงาหนาที่หน้า · มุมการ์ด 16px อยู่ในกลุ่ม "มุมนุ่ม" ของ app-screens §9.4 ใช้ต่อได้
+- **เป้ากด**: ตัวตรวจของ repo ใช้ 40px (ui-ux-pro-max 44px, WCAG AA 24px) — ต้องผ่าน 40 เสมอ ของใหม่ตั้ง 44
+- **legend / โหลด**: ui-ux-pro-max ให้มี legend เสมอและใช้ shimmer — ใช้ของ app-screens (ไม่มี legend เมื่อเส้นเดียว, แถบเทาเรียบไม่มี shimmer)
+- **บรรทัดใต้ h1**: app-screens อนุญาตบรรทัดสรุปข้อมูลใต้ชื่อหน้า — เว็บนี้ห้ามทุกบรรทัดใต้ h1 (CLAUDE.md); ข้อมูลสดไปอยู่ในกล่องแรก
+- **ตัวอักษร**: ค่าของ taste-skill (leading 0.85–1.05, tracking ติดลบ, ขั้นขนาด 4 เท่า) เป็นของหน้า landing ภาษาละติน — หน้าจอแอปของเว็บนี้ใช้ขนาดตาม token และกฎไทยในหัวข้อ 1
+- **ภาพหน้าจอ**: inspect.mjs ถ่าย 1440/768/390; ตัวตรวจของ repo วัด 360/390/1100 — ต้องผ่านทั้งคู่
+- skill ภายนอกเป็นภาษาอังกฤษ แต่ไม่เปลี่ยนภาษาที่ตอบผู้ใช้ (ไทยเสมอ) และไม่เปลี่ยนภาษาของข้อความ UI (ไทยเป็นหลัก)
