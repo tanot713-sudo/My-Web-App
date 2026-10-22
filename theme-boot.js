@@ -1,22 +1,25 @@
 /* theme-boot.js — ตั้งธีมก่อนวาดจอ (โหลดใน <head> แบบไม่ defer ก่อน theme.css) กันจอกะพริบ
    และเป็นที่เดียวที่เก็บค่าตั้งธีม: shell.js (แผงตั้งค่า) อ่าน/เขียนผ่าน window.OmeTheme
-   ชุดคัดสรร: สีเน้น 5 · สไตล์พื้นผิว 3 · ฟอนต์ 2 — ค่าเดิมที่เคยเลือกไว้ถูกแปลงให้อัตโนมัติครั้งเดียว
+   ชุดคัดสรร: สีเน้น 7 · สไตล์พื้นผิว 3 · ฟอนต์ 4 — ค่าเดิมที่เคยเลือกไว้ถูกแปลงให้อัตโนมัติครั้งเดียว
    + ภาพพื้นหลังรายหน้า (data-bg + data-bg-level บน <html>; 'ome:bg' = 'off' | 'soft' | 'mid' (ค่าเริ่มต้น) | 'strong') + <html lang> จาก 'ome:lang' */
 (function () {
   var doc = document.documentElement;
   function read(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
   function write(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
 
-  var ACCENTS = ['teal', 'blue', 'violet', 'orange', 'graphite'];
+  var ACCENTS = ['teal', 'blue', 'violet', 'orange', 'graphite', 'olive', 'plum'];
   var STYLES = ['flat', 'soft', 'outline'];
   var FONTS = {
     prompt: { family: "'Prompt',system-ui,-apple-system,sans-serif", google: 'Prompt:wght@300;400;500;600;700' },
-    ibmplex: { family: "'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif", google: 'IBM+Plex+Sans+Thai:wght@300;400;500;600;700' }
+    ibmplex: { family: "'IBM Plex Sans Thai',system-ui,-apple-system,sans-serif", google: 'IBM+Plex+Sans+Thai:wght@300;400;500;600;700' },
+    /* คู่ละติน↔ไทย (ละตินก่อนใน stack — เบราว์เซอร์ใช้ฟอนต์ไทยกับอักษรไทยเอง) · ตัวเลขของละตินกว้างเท่ากันทุกตัว (tabular) */
+    anuphan: { family: "'Hanken Grotesk','Anuphan',system-ui,-apple-system,sans-serif", google: 'Hanken+Grotesk:wght@400;500;600;700&family=Anuphan:wght@400;500;600;700' },
+    looped: { family: "'IBM Plex Sans','IBM Plex Sans Thai Looped',system-ui,-apple-system,sans-serif", google: 'IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Sans+Thai+Looped:wght@400;500;600;700' }
   };
   /* สีแถบเบราว์เซอร์ (theme-color) = สีพื้น nav (--ome-card) ของแต่ละสีเน้น [สว่าง, มืด] */
   var BAR = {
     teal: ['#FFFFFF', '#1F2536'], blue: ['#FFFFFF', '#202A3E'], violet: ['#FFFFFF', '#24203A'],
-    orange: ['#FFFFFF', '#2C2219'], graphite: ['#FFFFFF', '#212125']
+    orange: ['#FFFFFF', '#2C2219'], graphite: ['#FFFFFF', '#212125'], olive: ['#FFFFFF', '#23271B'], plum: ['#FFFFFF', '#2A1F26']
   };
   var BG_LEVELS = ['off', 'soft', 'mid', 'strong'];
   var DEFAULTS = { accent: 'teal', style: 'flat', font: 'prompt', bg: 'mid' };
@@ -90,7 +93,8 @@
     loaded[google] = true;
     var name = google.split(':')[0];
     var links = document.querySelectorAll('link[href*="fonts.googleapis.com"]');
-    for (var i = 0; i < links.length; i++) { if (links[i].href.indexOf('family=' + name) >= 0) return; }
+    /* เทียบชื่อเต็ม ('IBM+Plex+Sans:' ต้องไม่นับว่าเจอใน 'IBM+Plex+Sans+Thai:') */
+    for (var i = 0; i < links.length; i++) { var h = links[i].href; if (h.indexOf('family=' + name + ':') >= 0 || h.indexOf('family=' + name + '&') >= 0) return; }
     var l = document.createElement('link');
     l.rel = 'stylesheet';
     l.href = 'https://fonts.googleapis.com/css2?family=' + google + '&display=swap';
