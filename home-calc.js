@@ -254,16 +254,16 @@
   }
   function cacheFresh(c, now) { return !!c && isObj(c) && now - num(c.ts) < CACHE_TTL; }
 
-  /** แท่งนาทีออกกำลังกายรายสัปดาห์ (HealthCalc.workoutSummary().weeks) เทียบเป้า → { top, goalPct, bars:[{start, minutes, pct, cur}] }
-      สเกลเริ่มที่ 0 · บนสุด = ค่ามากสุดของแท่ง/เป้า × 1.15 (เส้นเป้าไม่ชนขอบบน) · สัปดาห์สุดท้าย = สัปดาห์นี้ (cur) */
+  /** แท่งนาทีออกกำลังกายรายสัปดาห์ (HealthCalc.workoutSummary().weeks) เทียบเป้า → { top, goalPct, goalSide, bars:[{start, minutes, pct, cur}] }
+      สเกลเริ่มที่ 0 · บนสุด = ค่ามากสุดของแท่ง/เป้า × 1.15 (เส้นเป้าไม่ชนขอบบน) · สัปดาห์สุดท้าย = สัปดาห์นี้ (cur)
+      goalSide = ฝั่งของป้ายเป้า (ป้ายอยู่เหนือเส้นเป้า): 'end' (ขวา) ปกติ · 'start' เมื่อแท่งขวาสุดเกินเส้นเป้า และแท่งซ้ายสุดต่ำกว่า — ป้ายไม่ทับแท่ง */
   function weekBars(weeks, goal) {
     var list = Array.isArray(weeks) ? weeks : [], g = num(goal), max = g;
     list.forEach(function (w) { if (w && num(w.minutes) > max) max = num(w.minutes); });
-    var top = max > 0 ? max * 1.15 : 1;
-    return {
-      top: top, goalPct: g > 0 ? Math.round(g / top * 1000) / 10 : null,
-      bars: list.map(function (w, i) { var m = num(w && w.minutes); return { start: w && w.start, minutes: m, pct: Math.round(m / top * 1000) / 10, cur: i === list.length - 1 }; })
-    };
+    var top = max > 0 ? max * 1.15 : 1, goalPct = g > 0 ? Math.round(g / top * 1000) / 10 : null;
+    var bars = list.map(function (w, i) { var m = num(w && w.minutes); return { start: w && w.start, minutes: m, pct: Math.round(m / top * 1000) / 10, cur: i === list.length - 1 }; });
+    var first = bars.length ? bars[0].pct : 0, last = bars.length ? bars[bars.length - 1].pct : 0;
+    return { top: top, goalPct: goalPct, goalSide: goalPct != null && last > goalPct && first < last ? 'start' : 'end', bars: bars };
   }
 
   /** สรุปรายการ "ต้องทำวันนี้" ตามความเร่ง → { total, err, warn, info } — ตัวเลขใหญ่ + บรรทัด finding ของกล่องแรก */

@@ -346,7 +346,7 @@
     var label = function (b) { return T('weekOf', { d: b.start ? dstr(new Date(b.start + 'T12:00:00'), short) : '', n: num(b.minutes, 1) }); };
     return '<div class="wk-bars" role="img" aria-label="' + esc(T('weekBarsAria', { list: wb.bars.map(label).join(', '), goal: num(ws.goal) })) + '">' +
       wb.bars.map(function (b) { return '<i' + (b.cur ? ' class="cur" data-cur' : '') + ' style="height:' + b.pct + '%" title="' + esc(label(b)) + '"></i>'; }).join('') +
-      (wb.goalPct != null ? '<span class="goal" style="bottom:' + wb.goalPct + '%"><small>' + esc(T('goalN', { n: num(ws.goal) })) + '</small></span>' : '') + '</div>';
+      (wb.goalPct != null ? '<span class="goal' + (wb.goalSide === 'start' ? ' start' : '') + '" style="bottom:' + wb.goalPct + '%"><small>' + esc(T('goalN', { n: num(ws.goal) })) + '</small></span>' : '') + '</div>';
   }
 
   /* ── เมนูวันนี้ (แผนสัปดาห์ของหน้าทำอาหาร) ── */

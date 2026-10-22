@@ -456,6 +456,10 @@ test.describe('หน้าแรก: ของใกล้กำหนดโผ
     const wb = H.weekBars([{ start: '2026-09-14', minutes: 0 }, { start: '2026-09-21', minutes: 200 }, { start: '2026-09-28', minutes: 105 }], 150);
     expect(wb.goalPct).toBe(65.2); // 150 / (200 × 1.15)
     expect(wb.bars.map((b) => [b.pct, b.cur])).toEqual([[0, false], [87, false], [45.7, true]]);
+    expect(wb.goalSide).toBe('end'); // สัปดาห์นี้ 45.7% ต่ำกว่าเส้นเป้า 65.2% (ป้ายอยู่เหนือเส้น)
+    // สัปดาห์นี้เกินเป้า (แท่งขวาขึ้นไปถึงป้าย) และสัปดาห์แรกต่ำกว่า → ป้ายย้ายไปซ้าย
+    expect(H.weekBars([{ minutes: 0 }, { minutes: 180 }], 150).goalSide).toBe('start');
+    expect(H.weekBars([{ minutes: 200 }, { minutes: 180 }], 150).goalSide).toBe('end'); // แท่งซ้ายสูงกว่า = คงขวา
     expect(H.weekBars([], 0).goalPct).toBe(null);
   });
 
