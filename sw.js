@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v658';
+const CACHE = 'ome-v659';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -15,6 +15,13 @@ const STATE_CACHE = 'ome-state-v1';
 /* โมเดล ONNX ของ "อ่านแบบใหม่ (ทดลอง)" (PaddleOCR ~51 MB จาก Hugging Face — ocr-paddle-worker.js เขียนเอง ตอนใช้ครั้งแรก) — ไม่อยู่ใน PRECACHE
    และไม่ถูกล้างตอน bump CACHE (URL มี revision ของโมเดลอยู่แล้ว: เปลี่ยนรุ่น = คีย์ใหม่) */
 const PADDLE_CACHE = 'tanot-paddle-models';
+/* แคชที่ activate "ลบได้" — ลบเฉพาะที่รู้ว่าเป็นของเราและเลิกใช้แล้ว ที่เหลือเก็บไว้ทั้งหมด
+   (เดิมลบทุกแคชที่ไม่อยู่ในรายการเก็บ → bump CACHE ทีไรแคชโมเดลเสียง/Whisper `transformers-cache` ที่หนักหลายสิบ–ร้อย MB
+   ถูกลบ มือถือโหลดใหม่หมดทุก deploy) · แคชใหม่ที่ต้องอยู่รอดข้าม deploy ไม่ต้องมาแก้ที่นี่ แค่ไม่ใส่ในรายการนี้
+   · ome-v<เลข> ที่ไม่ใช่ CACHE ปัจจุบัน = precache รุ่นเก่าของเราเอง
+   · tanot-f5-models- = โมเดลหน้าทดลอง f5-lab ที่เอาออกแล้ว (#71) */
+const OBSOLETE_CACHE_PREFIXES = ['tanot-f5-models-'];
+const isObsoleteCache = (k) => k !== CACHE && (/^ome-v\d+$/.test(k) || OBSOLETE_CACHE_PREFIXES.some((p) => k.indexOf(p) === 0));
 const PRECACHE = [
   './',
   './index.html',
@@ -270,7 +277,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE && k !== PADDLE_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter(isObsoleteCache).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
