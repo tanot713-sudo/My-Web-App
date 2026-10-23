@@ -45,6 +45,7 @@
     { key: 'tanot:tts:opts', kind: 'local' }, // ตัวเลือกสร้างไฟล์เสียงของเครื่องนี้ (text-to-speech.js): ข้ามอังกฤษในวงเล็บ · แบ่งไฟล์ตามตอน · ใช้ WebGPU · ลดเสียงแหลม (lowpass: มีเฉพาะเมื่อผู้ใช้ติ๊กเอง) · บันทึกคำอ่านผิดอัตโนมัติ (misread)
     { key: 'tanot:asr:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ล้มล่าสุดบนเครื่องนี้ (media-core.js) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:asrcloud:neuronUsage', kind: 'local' },
+    { key: 'tanot:ocr:bestcleaned', kind: 'cache' }, // ธงว่าล้างแคช tessdata_best ของโหมดแม่นยำเก่าแล้ว (file-reader.js) — เฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:ocrengine', kind: 'local' },
     { key: 'tanot:market:live-config:v1', kind: 'local' }, // มี API key ที่ UI บอกว่าเก็บในเครื่องเท่านั้น — ห้ามส่งขึ้นเซิร์ฟเวอร์

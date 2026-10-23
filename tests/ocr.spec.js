@@ -481,14 +481,14 @@ test.describe('extract-text — Claude Vision ต้องเลือกเอ�
   });
 });
 
-test.describe('doc-check-file (โฮสต์ pages.dev) — Claude Vision + โหมดแม่นยำของ Tesseract', () => {
+test.describe('doc-check-file (โฮสต์ pages.dev) — Claude Vision + Tesseract ฟรี', () => {
   test.beforeEach(async ({ request }) => { await reset(request); });
 
   test('เลือก Claude Vision (จำค่าในช่อง tanot:ocrengine) → รูป: dialog → ข้อความขึ้นหน้า · PDF สแกน: ส่งทั้งไฟล์ แยกเป็น 2 หน้า · ยกเลิกแล้วไม่มีคำขอ', async ({ page }) => {
     const { ocrReqs, errors } = await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
     await expect(page.locator('#ocrEngineToggle')).toBeVisible();
     await page.click('#ocrEngineToggle [data-oe=vision]');
-    await expect(page.locator('#accChk')).toBeHidden();
+    await expect(page.locator('#accChk')).toHaveCount(0);
 
     await page.setInputFiles('#fileInput', { name: 'a.png', mimeType: 'image/png', buffer: PNG_1X1 });
     await dialog(page).locator('[data-k=cancel]').click();
@@ -513,30 +513,76 @@ test.describe('doc-check-file (โฮสต์ pages.dev) — Claude Vision + �
     expect(errors).toEqual([]);
   });
 
-  test('โหมดฟรี: ค่าเริ่มต้นสร้าง worker แบบเดิม · ติ๊ก "แม่นยำ" → tessdata_best 4.1.0 แบบไม่บีบอัด + cachePath แยก (ไม่ชนแคชเดิม) แล้วปิดตัวเดิม · ภาพที่ส่งเป็น PNG จาก Worker เตรียมภาพ', async ({ page }) => {
+  test('โหมดฟรี: สร้าง worker แบบค่าเริ่มต้นตัวเดียว (ไม่มีตัวเลือกแม่นยำ/tessdata_best) · ภาพที่ส่งเป็น PNG จาก Worker เตรียมภาพ', async ({ page }) => {
     const { ocrReqs, errors } = await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
     await page.evaluate(() => localStorage.setItem('tanot:ocrengine', 'tesseract'));
     await page.reload();
+    await expect(page.locator('#accChk')).toHaveCount(0);
     const png = { name: 'a.png', mimeType: 'image/png', buffer: PNG_1X1 };
     await page.setInputFiles('#fileInput', png);
     await expect(page.locator('#docText')).toContainText('ข้อความ tesseract');
-    let cw = await page.evaluate(() => window.__cw);
+    const cw = await page.evaluate(() => window.__cw);
     expect(cw).toHaveLength(1);
     expect(cw[0]).toEqual({ langs: 'eng+tha', oem: 1, opts: null });
     const rec = await page.evaluate(() => window.__rec);
     expect(rec[0].ctor).toBe('Blob');
     expect(rec[0].type).toBe('image/png');
-
-    await page.click('#replaceFileBtn');
-    await page.check('#accChk');
-    await page.setInputFiles('#fileInput', png);
-    await expect.poll(() => page.evaluate(() => window.__rec.length)).toBe(2);
-    cw = await page.evaluate(() => window.__cw);
-    expect(cw).toHaveLength(2);
-    expect(cw[1].opts).toEqual({ langPath: 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0', gzip: false, cachePath: 'tessdata_best_4.1.0' });
-    await expect.poll(() => page.evaluate(() => window.__term)).toBe(1);
     expect(ocrReqs).toHaveLength(0);
     expect(errors).toEqual([]);
+  });
+
+  test('fixThaiOcr: known-answer — "ํา" → "ำ", วรรณยุกต์ซ้ำเหลือตัวเดียว, ข้อความที่ถูกอยู่แล้วไม่เปลี่ยน', async ({ page }) => {
+    await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
+    const cases = [
+      ['ส\u0E4D\u0E32\u0E04ัญ', 'สำคัญ'],
+      ['น\u0E49\u0E49\u0E32', 'น\u0E49\u0E32'],            // น้้า → น้า (ตัดซ้ำเท่านั้น ไม่เดาเป็น น้ำ)
+      ['น\u0E4D\u0E49\u0E32', 'น\u0E49\u0E33'],             // นํ้า → น้ำ
+      ['น\u0E49\u0E4D\u0E32', 'น\u0E49\u0E33'],             // น้ํา → น้ำ
+      ['น\u0E49\u0E49\u0E49\u0E4D\u0E32', 'น\u0E49\u0E33'], // ซ้ำหลายตัว + ํา
+      ['\u0E01\u0E4D\u0E32\u0E25ัง ก\u0E4D\u0E32หนด', 'กำลัง กำหนด'],
+      ['สำคัญ น้ำ ก๊ก ไม่มีอะไรผิด', 'สำคัญ น้ำ ก๊ก ไม่มีอะไรผิด'],
+      ['Hello 123 \n\n ข้อความ', 'Hello 123 \n\n ข้อความ'],
+      ['', ''],
+    ];
+    const out = await page.evaluate((cs) => cs.map((c) => window.TanotFileReader.fixThaiOcr(c[0])), cases);
+    cases.forEach((c, i) => expect(out[i], JSON.stringify(c[0])).toBe(c[1]));
+    expect(await page.evaluate(() => window.TanotFileReader.fixThaiOcr(null))).toBe('');
+  });
+
+  test('ผลของ recognizeText ถูกแก้ด้วย fixThaiOcr · ข้อความจาก Claude Vision ไม่ถูกแตะ', async ({ page }) => {
+    await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
+    const r = await page.evaluate(async () => {
+      window.Tesseract.createWorker = function () {
+        return Promise.resolve({ setParameters: () => Promise.resolve(), recognize: () => Promise.resolve({ data: { text: ' ส\u0E4D\u0E32\u0E04ัญ น\u0E49\u0E49\u0E32 ' } }) });
+      };
+      return window.TanotFileReader.recognizeText(new Blob(['x'], { type: 'image/png' }), {});
+    });
+    expect(r).toBe('สำคัญ น\u0E49\u0E32');
+  });
+
+  test('ล้างแคช tessdata_best เก่าครั้งเดียว — ลบเฉพาะคีย์ tessdata_best_4.1.0/ ไม่แตะแคชโมเดลปกติ', async ({ page }) => {
+    await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
+    await page.evaluate(() => localStorage.removeItem('tanot:ocr:bestcleaned'));
+    const seeded = await page.evaluate(() => new Promise((res, rej) => {
+      const rq = indexedDB.open('keyval-store');
+      rq.onupgradeneeded = () => rq.result.createObjectStore('keyval');
+      rq.onerror = () => rej(rq.error);
+      rq.onsuccess = () => {
+        const tx = rq.result.transaction('keyval', 'readwrite'), st = tx.objectStore('keyval');
+        st.put(new Uint8Array(4), 'tessdata_best_4.1.0/tha.traineddata');
+        st.put(new Uint8Array(4), 'tessdata_best_4.1.0/eng.traineddata');
+        st.put(new Uint8Array(4), './tha.traineddata');
+        tx.oncomplete = () => { rq.result.close(); res(true); };
+      };
+    }));
+    expect(seeded).toBe(true);
+    await page.reload();
+    await expect.poll(() => page.evaluate(() => localStorage.getItem('tanot:ocr:bestcleaned'))).toBe('1');
+    const keys = await page.evaluate(() => new Promise((res) => {
+      const rq = indexedDB.open('keyval-store');
+      rq.onsuccess = () => { const g = rq.result.transaction('keyval').objectStore('keyval').getAllKeys(); g.onsuccess = () => { rq.result.close(); res(g.result); }; };
+    }));
+    expect(keys).toEqual(['./tha.traineddata']);
   });
 
   test('ไม่มี OffscreenCanvas → เตรียมภาพบนเธรดหลักแทน (ยังใช้ได้ ส่ง canvas ที่ขยายเป็น 1800px ให้ Tesseract)', async ({ page }) => {
@@ -662,13 +708,12 @@ test.describe('dialog รหัส — ตัวตรวจธีม/ภาษ�
   }
 
   for (const [theme, width] of [['light', 390], ['dark', 360], ['light', 1100]]) {
-    test(`doc-check-file บน pages.dev (แถวเลือก Claude + ติ๊กแม่นยำ) ${theme}/${width}px — ทุกตัวชี้วัดเป็น 0`, async ({ page }) => {
+    test(`doc-check-file บน pages.dev (แถวเลือก Claude) ${theme}/${width}px — ทุกตัวชี้วัดเป็น 0`, async ({ page }) => {
       await page.addInitScript((t) => { try { localStorage.setItem('ome:theme', t); } catch (e) {} }, theme);
       await page.setViewportSize({ width, height: 800 });
       await openPage(page, 'doc-check-file.html', { host: PAGES_HOST });
       await page.addScriptTag({ path: path.join(__dirname, 'theme-audit-page.js') });
       await expect(page.locator('#ocrEngineToggle')).toBeVisible();
-      await expect(page.locator('#accChk')).toBeVisible();
       const a = await page.evaluate((m) => window.__tanotAudit.audit({ mobile: m }), width < 700);
       const m = width < 700 ? await page.evaluate(() => window.__tanotAudit.mobile({ shell: false })) : {};
       const all = counts({ contrast: a.contrast, controlBorder: a.controlBorder, nonCentral: a.nonCentral, targetSize: width < 700 ? a.targetSize : [], ...m });

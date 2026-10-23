@@ -184,47 +184,69 @@ function requireLib(globalName, humanName) {
 
    ใช้ worker เดียวใช้ซ้ำได้ตลอดอายุหน้าเว็บ (ไม่ terminate ทิ้งหลังอ่านแต่ละครั้งเหมือน Tesseract.recognize()
    แบบสะดวก) เพื่อไม่ต้องโหลด/init โมเดลภาษาใหม่ทุกครั้งที่มีคนกด OCR ซ้ำในหน้าเดียวกัน */
-/* โหมดฟรีมี 2 แบบ: ค่าเริ่มต้น = ข้อมูลภาษาที่ Tesseract.js โหลดให้เอง (@tesseract.js-data 4.0.0_best_int, เล็ก/เร็ว) ·
-   "แม่นยำ" (ผู้ใช้เลือกเอง) = tessdata_best (โมเดลเต็ม ไม่ลดขนาด) tha + eng ปักแท็ก 4.1.0 — ใหญ่กว่า (~23 MB, ดาวน์โหลดครั้งแรกครั้งเดียวแล้วเก็บใน IndexedDB) และช้ากว่า
-   ⚠️ Tesseract.js เก็บแคชข้อมูลภาษาตามชื่อไฟล์ (<cachePath>/<lang>.traineddata) ไม่ดูว่ามาจาก langPath ไหน — โหมดแม่นยำจึงต้องใช้ cachePath แยก
-   ไม่งั้นจะได้ไฟล์ best_int ที่แคชไว้จากโหมดปกติโดยไม่รู้ตัว */
-var BEST_LANG_PATH = 'https://raw.githubusercontent.com/tesseract-ocr/tessdata_best/4.1.0';
-var BEST_CACHE_PATH = 'tessdata_best_4.1.0';
-var ocrWorkers = { fast: null, best: null };
-function getOcrWorker(accurate) {
-  var key = accurate ? 'best' : 'fast', other = accurate ? 'fast' : 'best';
-  if (ocrWorkers[other]) { // เก็บโมเดลไว้ตัวเดียวต่อครั้ง (มือถือหน่วยความจำน้อย)
-    ocrWorkers[other].then(function (w) { return w.terminate(); }).catch(function () {});
-    ocrWorkers[other] = null;
-  }
-  if (!ocrWorkers[key]) {
+/* ใช้ worker เดียวต่อหน้า (ข้อมูลภาษาที่ Tesseract.js โหลดให้เอง @tesseract.js-data 4.0.0_best_int) — โหมด "แม่นยำ" (tessdata_best) เอาออกแล้ว:
+   วัดจริงบน 20 ภาพ CER เท่ากับโหมดปกติ (45.5%) แต่ต้องโหลดเพิ่ม ~23 MB */
+var ocrWorker = null;
+function getOcrWorker() {
+  if (!ocrWorker) {
     var Tesseract = requireLib('Tesseract', 'Tesseract.js');
     /* OEM_LSTM_ONLY (1) — ตรงกับชุดข้อมูลภาษาที่ Tesseract.js โหลดมาให้เป็นค่าเริ่มต้นอยู่แล้ว */
-    ocrWorkers[key] = accurate
-      ? Tesseract.createWorker('eng+tha', 1, { langPath: BEST_LANG_PATH, gzip: false, cachePath: BEST_CACHE_PATH })
-      : Tesseract.createWorker('eng+tha', 1);
+    ocrWorker = Tesseract.createWorker('eng+tha', 1);
   }
-  return ocrWorkers[key];
+  return ocrWorker;
+}
+
+/* ล้างข้อมูลภาษา tessdata_best ที่โหมดแม่นยำเคยแคชไว้ใน IndexedDB (Tesseract.js ใช้ idb-keyval: db 'keyval-store' store 'keyval',
+   คีย์ '<cachePath>/<lang>.traineddata') — ทำครั้งเดียวต่อเครื่อง เงียบๆ · ลบเฉพาะคีย์ที่ขึ้นต้น 'tessdata_best_4.1.0/' (แคชโหมดปกติใช้ cachePath อื่น ไม่แตะ)
+   · ไม่มี db/store = ยกเลิกทรานแซกชันตอน upgrade (ไม่สร้าง db เปล่าทิ้งไว้) */
+var LEGACY_BEST_PREFIX = 'tessdata_best_4.1.0/', LEGACY_CLEAN_KEY = 'tanot:ocr:bestcleaned';
+function cleanLegacyBestCache() {
+  try {
+    if (localStorage.getItem(LEGACY_CLEAN_KEY) || !window.indexedDB) return;
+    var req = indexedDB.open('keyval-store');
+    var existed = true;
+    req.onupgradeneeded = function () { existed = false; req.transaction.abort(); };
+    req.onerror = function () { try { localStorage.setItem(LEGACY_CLEAN_KEY, '1'); } catch (e) {} };
+    req.onsuccess = function () {
+      var db = req.result;
+      function done() { try { db.close(); } catch (e) {} try { localStorage.setItem(LEGACY_CLEAN_KEY, '1'); } catch (e) {} }
+      if (!existed || !db.objectStoreNames.contains('keyval')) return done();
+      var tx = db.transaction('keyval', 'readwrite'), st = tx.objectStore('keyval');
+      st.openCursor().onsuccess = function (ev) {
+        var c = ev.target.result;
+        if (!c) return;
+        if (typeof c.key === 'string' && c.key.indexOf(LEGACY_BEST_PREFIX) === 0) c.delete();
+        c.continue();
+      };
+      tx.oncomplete = done; tx.onerror = done; tx.onabort = done;
+    };
+  } catch (e) { /* ล้างไม่ได้ก็ข้าม */ }
+}
+/* Tesseract เขียน "ำ" (U+0E33) เป็น "ํ"+"า" (U+0E4D U+0E32) และวรรณยุกต์ซ้ำติดกัน ("น้้า") — แก้เฉพาะผลของ OCR ฟรี
+   (ไม่ใช้กับ Claude Vision หรือข้อความจากเลเยอร์ข้อความของ PDF) */
+function fixThaiOcr(text) {
+  return String(text == null ? '' : text)
+    .replace(/([\u0E48-\u0E4B])\1+/g, '$1')
+    .replace(/\u0E4D([\u0E48-\u0E4B]?)\u0E32/g, '$1\u0E33'); // ํ + (วรรณยุกต์) + า → (วรรณยุกต์) + ำ
 }
 var PSM_AUTO = '3', PSM_SINGLE_LINE = '7';
-/* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE, accurate: boolean (tessdata_best), onProgress: function(number 0-100) } — คืนข้อความล้วน (trim แล้ว)
+/* opts: { psm: PSM_AUTO|PSM_SINGLE_LINE } — คืนข้อความล้วน (trim แล้ว)
    image = canvas / Blob / ImageBitmap ที่ Tesseract.js รับได้ */
 async function recognizeText(image, opts) {
   opts = opts || {};
-  var accurate = !!opts.accurate;
   try {
-    var worker = await getOcrWorker(accurate);
+    var worker = await getOcrWorker();
     await worker.setParameters({
       tessedit_pageseg_mode: opts.psm || PSM_AUTO,
       user_defined_dpi: '300'
     });
     var result = await worker.recognize(image);
-    return (result.data.text || '').trim();
+    return fixThaiOcr((result.data.text || '').trim());
   } catch (e) {
     /* Worker ของ Tesseract พัง/โหลดภาษาไม่ได้ → ทิ้งตัวเดิม ครั้งหน้าสร้างใหม่ + บันทึกปัญหา (data.html: เฉพาะขนาดภาพ ไม่เก็บภาพ/ข้อความ) */
-    ocrWorkers[accurate ? 'best' : 'fast'] = null;
+    ocrWorker = null;
     var dim = image && image.width ? image.width + 'x' + image.height : '';
-    if (window.TanotMedia) window.TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: accurate ? 'tesseract best eng+tha' : 'tesseract eng+tha', file: { type: image && image.size != null ? 'blob' : (dim ? 'canvas ' + dim : 'image'), size: image && image.size != null ? image.size : 0 } });
+    if (window.TanotMedia) window.TanotMedia.logError('ocr', e, { stage: 'tesseract', engine: 'local', model: 'tesseract eng+tha', file: { type: image && image.size != null ? 'blob' : (dim ? 'canvas ' + dim : 'image'), size: image && image.size != null ? image.size : 0 } });
     throw e;
   }
 }
@@ -378,7 +400,7 @@ async function readPdfFile(file, opts) {
     var pageImage;
     try { pageImage = await prepareOcrImage(function () { return createImageBitmap(canvas); }, { source: 'pdf' }); }
     catch (e) { pageImage = preprocessForOcr(canvas); } // เตรียมภาพแบบใหม่ไม่ได้ → ทางเดิม (Otsu บนเธรดหลัก)
-    var ocrText = await recognizeText(pageImage, { psm: PSM_AUTO, accurate: opts.accurate });
+    var ocrText = await recognizeText(pageImage, { psm: PSM_AUTO });
     parts.push(ocrText || FR_T('ocrNone', { n: i }));
   }
   return parts.join('\n\n').trim();
@@ -401,7 +423,7 @@ async function readImageFile(file, opts) {
     rawCanvas.getContext('2d').drawImage(bitmap, 0, 0);
     image = preprocessForOcr(rawCanvas);
   }
-  return recognizeText(image, { psm: PSM_AUTO, accurate: opts.accurate });
+  return recognizeText(image, { psm: PSM_AUTO });
 }
 
 /* ตรวจ PDF ว่าหน้าไหนไม่มีเลเยอร์ข้อความใช้ได้ (สแกน/ฟอนต์เพี้ยน) → { numPages, scanned:[เลขหน้า] } — ใช้ตัดสินว่าจะส่งทั้งไฟล์ให้ Claude Vision หรือไม่
@@ -425,7 +447,7 @@ async function inspectPdf(file) {
 /* ชนิดไฟล์ที่รองรับ — ใช้ทั้งตัดสินใจ dispatch ที่นี่ และใส่ใน <input accept="..."> ของหน้าที่เรียกใช้ */
 var ACCEPT_ATTR = '.txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp';
 
-/* opts: { ocr: boolean, accurate: boolean (โหมดแม่นยำ tessdata_best), onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
+/* opts: { ocr: boolean, onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
    (รูปภาพเดี่ยว .png/.jpg ฯลฯ ใช้ OCR เสมอเพราะไม่มีเลเยอร์ข้อความให้เลือกอยู่แล้ว) */
 function readAnyFile(file, opts) {
   var name = file.name.toLowerCase();
@@ -441,6 +463,8 @@ function readAnyFile(file, opts) {
   return promise.then(fixSpacedThaiIfNeeded);
 }
 
+cleanLegacyBestCache();
+
 window.TanotFileReader = {
   ACCEPT_ATTR: ACCEPT_ATTR,
   errorText: frErrorText,
@@ -453,7 +477,7 @@ window.TanotFileReader = {
   readImageFile: readImageFile,
   inspectPdf: inspectPdf,
   prepareOcrImage: prepareOcrImage,
-  BEST_LANG_PATH: BEST_LANG_PATH,
+  fixThaiOcr: fixThaiOcr,
   preprocessForOcr: preprocessForOcr,
   recognizeText: recognizeText,
   PSM_AUTO: PSM_AUTO,
