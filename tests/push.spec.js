@@ -574,7 +574,7 @@ test.describe('หน้าเว็บ', () => {
 });
 
 /* ══════════ E. sw.js: รับ push → แสดงการแจ้งเตือน → กดแล้วเปิดหน้าถูก ══════════ */
-function loadSw(scope, clientsList) {
+function loadSw(scope, clientsList, cachesImpl) {
   const listeners = {}, shown = [], opened = [], focused = [], navigated = [];
   const self = {
     addEventListener: (t, f) => { listeners[t] = f; },
@@ -590,7 +590,7 @@ function loadSw(scope, clientsList) {
     c.focus = async () => { focused.push(c.url); return c; };
     c.navigate = async (u) => { navigated.push(u); c.url = u; return c; };
   }
-  const ctx = vm.createContext({ self, location: new URL(scope + 'sw.js'), URL, Promise, console, caches: {}, fetch: async () => { throw new Error('offline'); } });
+  const ctx = vm.createContext({ self, location: new URL(scope + 'sw.js'), URL, Promise, console, caches: cachesImpl || {}, fetch: async () => { throw new Error('offline'); } });
   vm.runInContext(fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'), ctx);
   async function fire(type, ev) {
     const waits = [];
@@ -605,6 +605,25 @@ const clickEvent = (data) => ({ notification: { data, close() {} } });
 
 test.describe('sw.js (push / notificationclick)', () => {
   const SCOPE = 'https://my-web-app-5w2.pages.dev/';
+
+  test('activate ลบเฉพาะแคชเก่าของเรา (ome-v รุ่นเก่า, tanot-f5-models-*) — แคชโมเดลและอื่นๆ อยู่รอด', async () => {
+    const swSrc = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
+    const cur = swSrc.match(/const CACHE = '([^']+)'/)[1];
+    const store = new Map(['transformers-cache', 'tanot-paddle-models', 'ome-bg-v1', 'ome-state-v1', 'ome-v1', 'tanot-f5-models-x', 'other-lib-cache', cur]
+      .map((k) => [k, new Map()]));
+    store.get('transformers-cache').set('https://huggingface.co/Tanotfin/m/resolve/abc/onnx/model.onnx', 'x');
+    store.get('transformers-cache').set('https://huggingface.co/Tanotfin/m/resolve/abc/config.json', 'y');
+    const fakeCaches = {
+      keys: async () => [...store.keys()],
+      delete: async (k) => store.delete(k),
+      open: async (k) => ({ add: async () => {}, put: async () => {}, match: async () => undefined }),
+      match: async () => undefined,
+    };
+    const sw = loadSw(SCOPE, [], fakeCaches);
+    await sw.fire('activate', {});
+    expect([...store.keys()].sort()).toEqual(['transformers-cache', 'tanot-paddle-models', 'ome-bg-v1', 'ome-state-v1', 'other-lib-cache', cur].sort());
+    expect(store.get('transformers-cache').size).toBe(2);
+  });
 
   test('push → showNotification ด้วย title/body/tag + URL เต็มใน data · URL นอกเว็บถูกแทนด้วยหน้าแรก', async () => {
     const sw = loadSw(SCOPE, []);
