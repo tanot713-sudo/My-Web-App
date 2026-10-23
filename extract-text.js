@@ -13,7 +13,7 @@
   var T = OME_I18N.scope('ex', {
     th: {
       title: 'ดึงข้อความออกจากเอกสาร | Tanot', crumb: 'งานที่รับผิดชอบ', h1: 'ดึงข้อความออกจากเอกสาร', attach: 'แนบไฟล์',
-      dropMain: 'แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้', ocr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน', accurate: 'โหมดแม่นยำ (ช้ากว่า)',
+      dropMain: 'แตะเพื่อเลือกไฟล์ หรือลากไฟล์มาวางตรงนี้', ocr: 'ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน',
       engLabel: 'อ่านภาพสแกนด้วย', engFree: 'ฟรี (OCR)', engVision: 'Claude Vision',
       readingClaude: 'Claude Vision กำลังอ่าน…', readingClaudePart: 'Claude Vision กำลังอ่านส่วนที่ {i}/{n}…', cancelled: 'ยกเลิกการอ่านด้วย Claude Vision',
       doneTruncated: 'ดึงข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ข้อความยาวเกินที่ Claude ตอบได้ในครั้งเดียว ส่วนท้ายอาจขาด',
@@ -28,7 +28,7 @@
     },
     en: {
       title: 'Extract text from documents | Tanot', crumb: 'Work', h1: 'Extract text from documents', attach: 'Attach a file',
-      dropMain: 'Tap to choose a file, or drag one here', ocr: 'Use OCR on scanned pages/images', accurate: 'Accurate mode (slower)',
+      dropMain: 'Tap to choose a file, or drag one here', ocr: 'Use OCR on scanned pages/images',
       engLabel: 'Read scans with', engFree: 'Free (OCR)', engVision: 'Claude Vision',
       readingClaude: 'Claude Vision is reading…', readingClaudePart: 'Claude Vision is reading part {i}/{n}…', cancelled: 'Reading with Claude Vision was cancelled',
       doneTruncated: 'Extracted text from {name} ({n} characters) — the text is longer than Claude can return in one reply; the end may be missing',
@@ -85,7 +85,7 @@
   /* อ่านไฟล์ → Promise<{ text, truncated }> — Claude Vision เฉพาะเมื่อผู้ใช้เลือกเอง: รูป = ส่งรูป · PDF = ส่งทั้งไฟล์เมื่อมีหน้าที่ไม่มีเลเยอร์ข้อความ (ถ้ามีข้อความครบทุกหน้าใช้ข้อความจริงฟรีตามเดิม) */
   function readOne(file) {
     var name = file.name.toLowerCase(), opts = {
-      ocr: $('ocrChk').checked, accurate: $('accChk').checked && !visionOn(),
+      ocr: $('ocrChk').checked,
       onProgress: function (p) { readStatus(function () { return formatProgress(p); }, ''); }
     };
     function plain() { return window.TanotFileReader.readAnyFile(file, opts).then(function (text) { return { text: text }; }); }
@@ -232,7 +232,6 @@
         engine = span.getAttribute('data-oe') === 'vision' ? 'vision' : 'free';
         $('engToggle').querySelectorAll('[data-oe]').forEach(function (x) { x.classList.toggle('active', x === span); });
         $('ocrChk').disabled = engine === 'vision';
-        $('accChk').disabled = engine === 'vision';
       });
     }
     updateCharCount();

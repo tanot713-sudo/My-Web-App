@@ -49,11 +49,6 @@ function getOcrEngine() {
 function setOcrEngine(engine) {
   try { localStorage.setItem(OCR_ENGINE_KEY, engine); } catch (e) {}
 }
-/* โหมดแม่นยำของ Tesseract (tessdata_best) — ผู้ใช้ติ๊กเอง ไม่จำค่า */
-function getAccurate() {
-  var el = typeof document !== 'undefined' && document.getElementById('accChk');
-  return !!(el && el.checked && getOcrEngine() === 'tesseract');
-}
 var ocrProgressCb = null; /* handleFile ตั้งไว้ให้บรรทัดสถานะบอกความคืบหน้าของ Claude (หลายท่อน) */
 
 /* ══════════════════════════════════════════════════════════════════
@@ -121,7 +116,6 @@ var I18N = {
     unsupportedFileType: 'ไม่รองรับไฟล์ประเภทนี้ (รองรับ .txt .docx .pdf .png .jpg)',
     ltServiceError: 'บริการตรวจคำผิดตอบกลับผิดพลาด ({status})',
     ocrEngineLabel: 'อ่านรูปภาพ/PDF สแกนด้วย',
-    ocrAccurate: 'โหมดแม่นยำ (ช้ากว่า)',
     ocrClaudeReading: 'Claude Vision กำลังอ่าน…',
     ocrClaudeReadingPart: 'Claude Vision กำลังอ่านส่วนที่ {i}/{n}…',
     fileReadTruncated: 'อ่านไฟล์สำเร็จ — พบ {n} หน้า (ข้อความยาวเกินที่ Claude ตอบได้ในครั้งเดียว ส่วนท้ายอาจขาด)',
@@ -179,7 +173,6 @@ var I18N = {
     unsupportedFileType: 'This file type is not supported (supports .txt .docx .pdf .png .jpg)',
     ltServiceError: 'The spell-check service returned an error ({status})',
     ocrEngineLabel: 'Read images / scanned PDFs with',
-    ocrAccurate: 'Accurate mode (slower)',
     ocrClaudeReading: 'Claude Vision is reading…',
     ocrClaudeReadingPart: 'Claude Vision is reading part {i}/{n}…',
     fileReadTruncated: 'File read successfully — found {n} page(s) (the text is longer than Claude can return in one reply; the end may be missing)',
@@ -322,7 +315,7 @@ async function readImageFileTesseract(file) {
      ภาพก่อน OCR ด้วย (ขยายภาพเล็ก, แก้ภาพเอียง, ขาวดำ Otsu/Sauvola ตามแสง, เคารพ EXIF orientation) ช่วยให้
      อ่านแม่นขึ้นชัดเจน — เดิมหน้านี้เรียก Tesseract.recognize(file, ...) ตรงๆ ไม่มีการเตรียมภาพเลย */
   var text = window.TanotFileReader
-    ? await window.TanotFileReader.readImageFile(file, { accurate: getAccurate() })
+    ? await window.TanotFileReader.readImageFile(file)
     : (await window.Tesseract.recognize(file, 'eng+tha')).data.text;
   return splitIntoPages(text || t('ocrNoText'));
 }
@@ -415,7 +408,7 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       docText = $('docText'), issueCount = $('issueCount'), issueList = $('issueList'), issueEmpty = $('issueEmpty'),
       emptyState = $('emptyState'), typeBox = $('typeBox'), modeTabs = $('modeTabs'),
       typeTextarea = $('typeTextarea'), useTypedTextBtn = $('useTypedTextBtn'), langToggle = $('langToggle'),
-      ocrEngineToggle = $('ocrEngineToggle'), accChk = $('accChk');
+      ocrEngineToggle = $('ocrEngineToggle');
 
   var SPEAK_ICON = '<svg class="ome-icon"><use href="icons.svg#i-volume-2"/></svg>';
   var STOP_ICON = '<svg class="ome-icon"><use href="icons.svg#i-square"/></svg>';
@@ -458,7 +451,6 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     ocrEngineToggle.querySelectorAll('[data-oe]').forEach(function (span) {
       span.classList.toggle('active', span.getAttribute('data-oe') === engine);
     });
-    if (accChk) accChk.closest('label').style.display = engine === 'tesseract' ? '' : 'none';
   }
 
   if (ocrEngineToggle) {
