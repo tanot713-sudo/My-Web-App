@@ -27,14 +27,15 @@
   var UNEVEN_SPREAD = 28;       // เกณฑ์ "แสงไม่เท่ากัน" เดียวกับ ocr-prep.js (UNEVEN_SPREAD) — เกิน = น่าจะเป็นภาพถ่าย
   var LINE_RATIO = 0.5;         // จุดกึ่งกลางแนวตั้งห่างกัน ≤ 0.5 × ความสูงกล่อง = บรรทัดเดียว
   var HF = 'https://huggingface.co/';
-  /* revision: commit 40 hex ของแต่ละ repo — 'main' = ยังไม่ได้ล็อก (sandbox ที่เขียนโค้ดเข้า Hugging Face ไม่ได้)
-     ต้องรัน `node tools/media-eval/check-models.mjs --paddle --pin` บนเครื่องที่เข้า huggingface.co ได้ก่อนเปิดใช้จริง */
+  /* revision: commit 40 hex ของแต่ละ repo (ล็อก 2026-10-23 ด้วย `node tools/media-eval/check-models.mjs --paddle --pin`
+     บนเครื่องที่เข้า huggingface.co ได้ — ไฟล์ครบทุก repo) · bytes = ขนาดจริงที่ revision นั้น (ใช้กับแถบดาวน์โหลดก่อนรู้ Content-Length)
+     · เปลี่ยน revision = รัน check-models ใหม่ + bump CACHE */
   var MODELS = {
-    det:   { id: 'PP-OCRv5_mobile_det', repo: 'PaddlePaddle/PP-OCRv5_mobile_det_onnx', file: 'inference.onnx', revision: 'main', bytes: 4826518 },
-    rec:   { id: 'th_PP-OCRv5_mobile_rec', repo: 'PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx', file: 'inference.onnx', revision: 'main', bytes: 7918606 },
-    dict:  { id: 'th_PP-OCRv5_mobile_rec', repo: 'PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx', file: 'inference.yml', revision: 'main', bytes: 12000 },
-    ori:   { id: 'PP-LCNet_x1_0_doc_ori', repo: 'PaddlePaddle/PP-LCNet_x1_0_doc_ori_onnx', file: 'inference.onnx', revision: 'main', bytes: 6787248 },
-    uvdoc: { id: 'UVDoc', repo: 'PaddlePaddle/UVDoc_onnx', file: 'inference.onnx', revision: 'main', bytes: 31684150 }
+    det:   { id: 'PP-OCRv5_mobile_det', repo: 'PaddlePaddle/PP-OCRv5_mobile_det_onnx', file: 'inference.onnx', revision: 'e6f4fa85f00e168c862bc462aebca69eef9b3d3d', bytes: 4826518 },
+    rec:   { id: 'th_PP-OCRv5_mobile_rec', repo: 'PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx', file: 'inference.onnx', revision: '1d4adbbafb1034a2fd6618498575b81ea7b69f69', bytes: 7891015 },
+    dict:  { id: 'th_PP-OCRv5_mobile_rec', repo: 'PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx', file: 'inference.yml', revision: '1d4adbbafb1034a2fd6618498575b81ea7b69f69', bytes: 4667 },
+    ori:   { id: 'PP-LCNet_x1_0_doc_ori', repo: 'PaddlePaddle/PP-LCNet_x1_0_doc_ori_onnx', file: 'inference.onnx', revision: '7330ab7039123e46af2dc03154b9969aa412c61d', bytes: 6788069 },
+    uvdoc: { id: 'UVDoc', repo: 'PaddlePaddle/UVDoc_onnx', file: 'inference.onnx', revision: '3bcf535371727d11e783101f79a504c68848aae3', bytes: 31684150 }
   };
   var BASE_SET = ['det', 'rec', 'dict'], UNWARP_SET = ['ori', 'uvdoc'];
   /* ค่าของตัวหากล่องข้อความ (det) ตามไปป์ไลน์ OCR ทางการ (PaddleX OCR.yaml / ค่าเริ่มต้นของ PaddleOCR.js ทางการ) */

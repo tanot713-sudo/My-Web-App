@@ -121,7 +121,7 @@ test.describe('ocr-paddle-calc — known-answer', () => {
     Object.keys(C.MODELS).forEach((k) => {
       const m = C.MODELS[k];
       expect(m.repo).toMatch(/^PaddlePaddle\/[A-Za-z0-9_.-]+_onnx$/);
-      expect(m.revision === 'main' || C.isSha(m.revision)).toBe(true);
+      expect(C.isSha(m.revision)).toBe(true); // ล็อก commit แล้ว (ตรวจด้วย check-models.mjs --paddle) — ห้ามกลับไปใช้ 'main'
       expect(C.modelUrl(m)).toBe('https://huggingface.co/' + m.repo + '/resolve/' + m.revision + '/' + m.file);
     });
     expect(C.MODELS.rec.repo).toBe('PaddlePaddle/th_PP-OCRv5_mobile_rec_onnx');
