@@ -48,6 +48,10 @@
     <input type="checkbox" id="ocrChk" checked>
     <span data-i18n="ex.ocr">ใช้ OCR อ่านหน้า/รูปที่เป็นภาพสแกน</span>
   </label>
+  <label class="mini check">
+    <input type="checkbox" id="paddleChk">
+    <span data-i18n="ex.paddle">อ่านแบบใหม่ (ทดลอง)</span>
+  </label>
   <div class="row" id="engRow" style="display:none;margin-top:var(--ome-sp-2)">
     <span class="mini" data-i18n="ex.engLabel">อ่านภาพสแกนด้วย</span>
     <div class="lang-toggle" id="engToggle">
@@ -55,7 +59,15 @@
       <span data-oe="vision" data-i18n="ex.engVision">Claude Vision</span>
     </div>
   </div>
-  <div class="status" id="readStatus"></div>
+  <div class="status" id="readStatus" aria-live="polite"></div>
+  <div class="meter-row" id="modelBar" hidden>
+    <span class="name" data-i18n="ex.modelDl">โหลดโมเดลอ่านภาพ</span>
+    <span class="val" id="modelBarVal"></span>
+    <div class="meter" id="modelBarMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-attr="aria-label:ex.modelDl" aria-label="โหลดโมเดลอ่านภาพ"><i></i></div>
+  </div>
+  <div class="row" id="legacyRow" hidden>
+    <button class="btn sm" id="legacyBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="ex.legacy">อ่านด้วยแบบเดิม</span></button>
+  </div>
 </div>
 
 <div class="card" id="resultCard" style="display:none">

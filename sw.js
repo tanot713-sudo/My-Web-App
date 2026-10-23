@@ -5,13 +5,16 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v657';
+const CACHE = 'ome-v658';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
 const BG_CACHE = 'ome-bg-v1';
 /* สถานะเล็กๆ ของ SW ที่ต้องอยู่รอดตอน iOS ปิด SW ทิ้ง (ตอนนี้มีแค่ "หน้าเว็บยืนยันว่าเซสชันใช้ได้ถึงเวลา…") — ไม่ถูกล้างตอน bump CACHE */
 const STATE_CACHE = 'ome-state-v1';
+/* โมเดล ONNX ของ "อ่านแบบใหม่ (ทดลอง)" (PaddleOCR ~51 MB จาก Hugging Face — ocr-paddle-worker.js เขียนเอง ตอนใช้ครั้งแรก) — ไม่อยู่ใน PRECACHE
+   และไม่ถูกล้างตอน bump CACHE (URL มี revision ของโมเดลอยู่แล้ว: เปลี่ยนรุ่น = คีย์ใหม่) */
+const PADDLE_CACHE = 'tanot-paddle-models';
 const PRECACHE = [
   './',
   './index.html',
@@ -54,6 +57,8 @@ const PRECACHE = [
   './file-reader.js',
   './ocr-prep.js',
   './ocr-prep-worker.js',
+  './ocr-paddle-calc.js',
+  './ocr-paddle-worker.js',
   './ocr-vision.js',
   './vendor/lamejs/lamejs.iife.js',
   './ai-client.js',
@@ -265,7 +270,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE && k !== BG_CACHE && k !== STATE_CACHE && k !== PADDLE_CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

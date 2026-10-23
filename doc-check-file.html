@@ -69,6 +69,9 @@
 @media(max-width:600px){.dc-viewer{padding:var(--ome-sp-4)}}
 /* ตัวสลับเครื่องอ่าน (ฟรี / Claude Vision) ป้ายยาว — ที่ 360px ชนขอบจอพอดี: ไม่ให้กว้างเกินแถว + ลด padding บนจอแคบ */
 #ocrEngineToggle{max-width:100%}
+.dc-paddle{margin-top:var(--ome-sp-2)}
+.dc-paddle input{accent-color:var(--ome-accent)}
+.dc-model,.dc-legacy{margin-top:var(--ome-sp-3)}
 #ocrEngineToggle span{min-width:0;text-align:center}
 @media(max-width:400px){#ocrEngineToggle span{padding:0 8px}}
 </style>
@@ -108,6 +111,10 @@
     <span data-oe="vision" data-i18n="ocrEngineVision">Claude Vision (แม่นยำกว่า ทุกภาษา)</span>
   </div>
 </div>
+<label class="mini check dc-paddle">
+  <input type="checkbox" id="paddleChk">
+  <span data-i18n="paddleOpt">อ่านแบบใหม่ (ทดลอง)</span>
+</label>
 
 <div class="toolbar dc-toolbar" id="toolbar">
   <div class="badge accent dc-file-chip">
@@ -129,7 +136,15 @@
   </button>
 </div>
 
-<div class="dc-status" id="statusMsg"></div>
+<div class="dc-status" id="statusMsg" aria-live="polite"></div>
+<div class="meter-row dc-model" id="modelBar" hidden>
+  <span class="name" data-i18n="modelDl">โหลดโมเดลอ่านภาพ</span>
+  <span class="val" id="modelBarVal"></span>
+  <div class="meter" id="modelBarMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-aria-label="modelDl" aria-label="โหลดโมเดลอ่านภาพ"><i></i></div>
+</div>
+<div class="row dc-legacy" id="legacyRow" hidden>
+  <button class="btn sm" id="legacyBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="legacyBtn">อ่านด้วยแบบเดิม</span></button>
+</div>
 
 <div class="dc-workspace" id="workspace">
   <div>

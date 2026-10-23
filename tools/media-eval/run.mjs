@@ -15,6 +15,10 @@
 //   ocr:tesseract                           — แนบไฟล์ (เปิด OCR) ในหน้า text-to-speech.html → file-reader.js เส้นทางเดียวกับผู้ใช้
 //   ocr:claude                              — POST /api/ocr (prompt เริ่มต้นของเซิร์ฟเวอร์, โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์) บน pages.dev (ต้องตั้ง env เหมือน asr:cloud + MEDIA_EVAL_OCR_PIN)
 //   ocr:claude-sonnet-5 ocr:claude-sonnet-5-5 ocr:claude-haiku-5-5 — เหมือน ocr:claude แต่ระบุโมเดลตัวเลขชัดเจน (allowlist ใน functions/api/ocr.js) ให้วัด CER/เวลาก่อนเลือกค่าเริ่มต้น
+//   ocr:paddle                              — "อ่านแบบใหม่ (ทดลอง)" = PaddleOCR PP-OCRv5 ไทยในเบราว์เซอร์ ผ่านหน้า extract-text.html จริง (ติ๊กตัวเลือก → file-reader.js
+//                                             engine 'paddle' → ocr-paddle-worker.js) · คลี่หน้าตามกฎจริงของเว็บ (เฉพาะภาพถ่าย) · เทียบกับผล Colab ของเจ้าของ
+//   ocr:paddle-unwarp ocr:paddle-flat        — เหมือน ocr:paddle แต่บังคับคลี่หน้าทุกภาพ / ไม่คลี่เลย (window.TANOT_PADDLE) = แถว "unwarp" / "ไม่ unwarp" ของ Colab
+//                                             เวลาแยกขั้น (โหลด/ทิศหน้า/UVDoc/หากล่อง/อ่าน) มาจากแถวสถิติที่หน้าเขียนลง problem log · ภาพแรกรวมเวลาดาวน์โหลดโมเดล (~51 MB) ถ้ายังไม่มีในแคช
 //     ทุกตัวที่เรียก Claude ต้องมี env MEDIA_EVAL_OCR_PIN (รหัส OCR_PIN ที่ตั้งใน Cloudflare) — ไม่ตั้ง = ข้าม · รหัสผิดครั้งเดียวสคริปต์หยุดเรียก Claude ทั้งหมด (กันล็อก 15 นาที) · ไม่พิมพ์รหัสที่ไหน
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
@@ -43,8 +47,9 @@ const OCR_PIN = process.env.MEDIA_EVAL_OCR_PIN || ''; // ห้ามพิม�
 const HF_TOKEN = process.env.HF_TOKEN || ''; // โมเดลของ Tanotfin (private) — แนบให้เฉพาะคำขอไป huggingface.co/…Tanotfin/… ห้ามพิมพ์/บันทึก
 const CLAUDE_MODEL_OF = { 'ocr:claude': null, 'ocr:claude-sonnet-5': 'claude-sonnet-5', 'ocr:claude-sonnet-5-5': 'claude-sonnet-5-5', 'ocr:claude-haiku-5-5': 'claude-haiku-5-5' };
 let claudeStopped = false; // รหัสผิด/ล็อก/ไม่ได้ตั้ง → หยุดเรียก Claude ที่เหลือ
+const PADDLE_ENGINES = { 'ocr:paddle': '', 'ocr:paddle-unwarp': 'yes', 'ocr:paddle-flat': 'no' };
 const TTS_ENGINES = { 'tts:wasm-60': { max: 60, gpu: false }, 'tts:wasm-100': { max: 100, gpu: false }, 'tts:webgpu-100': { max: 100, gpu: true } };
-const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:th-small', 'asr:th-medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:gpu-th-small', 'asr:gpu-th-medium', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(CLAUDE_MODEL_OF), ...Object.keys(TTS_ENGINES)];
+const ALL_ENGINES = ['asr:tiny', 'asr:base', 'asr:small', 'asr:medium', 'asr:th-small', 'asr:th-medium', 'asr:gpu-tiny', 'asr:gpu-base', 'asr:gpu-small', 'asr:gpu-large', 'asr:gpu-th-small', 'asr:gpu-th-medium', 'asr:cloud', 'asr:cloud-seq', 'ocr:tesseract', ...Object.keys(PADDLE_ENGINES), ...Object.keys(CLAUDE_MODEL_OF), ...Object.keys(TTS_ENGINES)];
 const ENGINES = (opt('engines', '') || ALL_ENGINES.join(',')).split(',').map((s) => s.trim()).filter(Boolean);
 const ONLY = opt('only', '') ? new RegExp(opt('only')) : null;
 const LANG = opt('lang', 'auto'); // auto | thai | english — ตัวเลือก "ภาษา" ของหน้า text-to-speech
@@ -184,6 +189,26 @@ async function ocrTesseract(page, file) {
   return ok ? { text: await page.inputValue('#ttsText'), ms } : { text: '', ms, err: await page.textContent('#importStatus') };
 }
 
+/* อ่านแบบใหม่ผ่านหน้า extract-text.html (ติ๊ก #paddleChk) · คืนเวลาแยกขั้นจากแถวสถิติ (stage 'paddle') ใน problem log */
+async function openPaddle(ctx, base, unwarp) {
+  const page = await ctx.newPage();
+  await page.addInitScript((u) => { try { localStorage.setItem('tanot:ocr:paddle', '1'); } catch (x) {} if (u) window.TANOT_PADDLE = { unwarp: u }; }, unwarp);
+  await page.goto(base + '/extract-text.html');
+  await page.check('#paddleChk');
+  return page;
+}
+async function ocrPaddle(page, file) {
+  const before = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:media:log') || '[]').length);
+  await page.evaluate(() => { const s = document.getElementById('readStatus'); s.className = 'status'; s.textContent = ''; });
+  await page.setInputFiles('#fileInput', file);
+  const t0 = Date.now();
+  await page.waitForFunction(() => /\b(ok|err)\b/.test(document.getElementById('readStatus').className), null, { timeout: TIMEOUT });
+  const ms = Date.now() - t0;
+  const ok = await page.evaluate(() => /\bok\b/.test(document.getElementById('readStatus').className));
+  const notes = await page.evaluate((n) => JSON.parse(localStorage.getItem('tanot:media:log') || '[]').slice(n).filter((r) => r.stage === 'paddle').map((r) => r.msg + ' device=' + r.device), before);
+  return ok ? { text: await page.inputValue('#resultText'), ms, detail: notes.join(' | ') } : { text: '', ms, err: await page.textContent('#readStatus'), detail: notes.join(' | ') };
+}
+
 async function ocrClaude(file, model) {
   const buf = await readFile(file);
   const ext = extname(file).toLowerCase();
@@ -296,6 +321,16 @@ async function main() {
         const page = await openTts(ctx, base, 'local');
         await page.check('#importOcrChk');
         for (const f of ocrFiles) record('ocr', engine, f, await ocrTesseract(page, f.path));
+        await ctx.close();
+      }
+      if (engine in PADDLE_ENGINES && ocrFiles.length) {
+        const ctx = await localContext(browser);
+        const page = await openPaddle(ctx, base, PADDLE_ENGINES[engine]);
+        for (const f of ocrFiles) {
+          const r = await ocrPaddle(page, f.path);
+          record('ocr', engine, f, r);
+          if (r.detail) { results[results.length - 1].detail = r.detail; console.log('    ' + r.detail); }
+        }
         await ctx.close();
       }
       if (engine in CLAUDE_MODEL_OF && ocrFiles.length) {

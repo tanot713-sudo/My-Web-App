@@ -48,6 +48,8 @@
     { key: 'tanot:ocr:bestcleaned', kind: 'cache' }, // ธงว่าล้างแคช tessdata_best ของโหมดแม่นยำเก่าแล้ว (file-reader.js) — เฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:media:log', kind: 'cache' }, // บันทึกปัญหาเสียง/OCR ของเครื่องนี้ (media-core.js, แสดงที่ data.html) — ข้อมูลวินิจฉัยเฉพาะเครื่อง ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:ocrengine', kind: 'local' },
+    { key: 'tanot:ocr:paddle', kind: 'local' }, // ตัวเลือก "อ่านแบบใหม่ (ทดลอง)" = PaddleOCR ในเบราว์เซอร์ ('1'|'0') ของ extract-text / doc-check-file
+    { key: 'tanot:ocr:gpubad', kind: 'cache' }, // เวลาที่ WebGPU ของอ่านแบบใหม่ (PaddleOCR) ล้มล่าสุดบนเครื่องนี้ (file-reader.js) — ไม่ซิงก์/ไม่สำรอง/ไม่ย้าย
     { key: 'tanot:market:live-config:v1', kind: 'local' }, // มี API key ที่ UI บอกว่าเก็บในเครื่องเท่านั้น — ห้ามส่งขึ้นเซิร์ฟเวอร์
     { key: 'tanot:barprep:ttsvoice', kind: 'local' },
     { key: 'tanot:dashboardDensity', kind: 'local' },

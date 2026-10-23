@@ -49,7 +49,13 @@ function getOcrEngine() {
 function setOcrEngine(engine) {
   try { localStorage.setItem(OCR_ENGINE_KEY, engine); } catch (e) {}
 }
-var ocrProgressCb = null; /* handleFile ตั้งไว้ให้บรรทัดสถานะบอกความคืบหน้าของ Claude (หลายท่อน) */
+var ocrProgressCb = null; /* handleFile ตั้งไว้ให้บรรทัดสถานะบอกความคืบหน้าของ Claude (หลายท่อน) / อ่านแบบใหม่ (โหลดโมเดล + ขั้นตอน) */
+/* อ่านแบบใหม่ (ทดลอง) = PaddleOCR ในเบราว์เซอร์ (file-reader.js engine 'paddle') — ใช้แทน Tesseract เมื่อติ๊กไว้และไม่ได้เลือก Claude Vision
+   จำค่าในเครื่อง tanot:ocr:paddle ('1'|'0', ใช้ร่วมกับ extract-text) · ล้มแล้วหน้าแสดงปุ่ม "อ่านด้วยแบบเดิม" (forceLegacy) — ไม่สลับเอง */
+var PADDLE_KEY = 'tanot:ocr:paddle';
+var forceLegacy = false;
+function paddleSaved() { try { return localStorage.getItem(PADDLE_KEY) === '1'; } catch (e) { return false; } }
+function paddleOn() { return !forceLegacy && getOcrEngine() !== 'vision' && paddleSaved() && !!window.TanotFileReader && !!window.TanotFileReader.paddleRun; }
 
 /* ══════════════════════════════════════════════════════════════════
    ภาษาที่ใช้แสดงผล UI (ไทย/อังกฤษ) — แยกจาก "ภาษาของเอกสาร" (state.lang) ด้านบน
@@ -121,7 +127,15 @@ var I18N = {
     fileReadTruncated: 'อ่านไฟล์สำเร็จ — พบ {n} หน้า (ข้อความยาวเกินที่ Claude ตอบได้ในครั้งเดียว ส่วนท้ายอาจขาด)',
     ocrEngineTesseract: 'ฟรี (ไทย/อังกฤษ)',
     ocrEngineVision: 'Claude Vision (แม่นยำกว่า ทุกภาษา)',
-    ocrCancelled: 'ยกเลิกการอ่านด้วย Claude Vision'
+    ocrCancelled: 'ยกเลิกการอ่านด้วย Claude Vision',
+    paddleOpt: 'อ่านแบบใหม่ (ทดลอง)',
+    modelDl: 'โหลดโมเดลอ่านภาพ',
+    mbOf: '{a} / {b} MB',
+    legacyBtn: 'อ่านด้วยแบบเดิม',
+    pdRead: 'กำลังอ่านแบบใหม่…',
+    pdUnwarp: 'กำลังคลี่หน้ากระดาษ…',
+    pdLine: 'กำลังอ่านข้อความ {i}/{n}…',
+    pdPage: 'หน้า {page}/{total} — {msg}'
   },
   en: {
     docTitleType: 'Document Check | Tanot',
@@ -178,7 +192,15 @@ var I18N = {
     fileReadTruncated: 'File read successfully — found {n} page(s) (the text is longer than Claude can return in one reply; the end may be missing)',
     ocrEngineTesseract: 'Free (Thai/English)',
     ocrEngineVision: 'Claude Vision (more accurate, all languages)',
-    ocrCancelled: 'Reading with Claude Vision was cancelled'
+    ocrCancelled: 'Reading with Claude Vision was cancelled',
+    paddleOpt: 'New reader (experimental)',
+    modelDl: 'Downloading the reading model',
+    mbOf: '{a} / {b} MB',
+    legacyBtn: 'Read with the old method',
+    pdRead: 'Reading with the new reader…',
+    pdUnwarp: 'Flattening the page…',
+    pdLine: 'Reading text {i}/{n}…',
+    pdPage: 'Page {page}/{total} — {msg}'
   }
 };
 
@@ -297,6 +319,20 @@ async function readPdfFile(file) {
     else pages.push(text);
   }
   /* เลือก Claude Vision และมีหน้าที่ไม่มีเลเยอร์ข้อความ (สแกน) → ส่งทั้งไฟล์ให้ Claude อ่าน (เกิน 100 หน้า/20 MB แบ่งช่วงหน้าให้เอง) แทนข้อความที่ได้บางหน้า */
+  /* อ่านแบบใหม่: หน้าที่ไม่มีเลเยอร์ข้อความ → เรนเดอร์แล้วให้ PaddleOCR อ่านทีละหน้า (ไม่คลี่หน้า — เป็นภาพเรนเดอร์) */
+  if (blank && paddleOn()) {
+    for (var q = 0; q < pages.length; q++) {
+      if (pages[q] !== t('pdfNoTextPage') && pages[q] !== t('pdfGarbledPage')) continue;
+      var pg = await doc.getPage(q + 1), vp = pg.getViewport({ scale: 3 }), cv = document.createElement('canvas');
+      cv.width = vp.width; cv.height = vp.height;
+      await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+      var pr = await window.TanotFileReader.paddleRun(cv, { source: 'pdf', mime: 'application/pdf', name: file.name, page: q + 1, pages: doc.numPages, file: file },
+        { onProgress: function (p) { if (ocrProgressCb) ocrProgressCb(p); } });
+      cv.width = cv.height = 0;
+      pages[q] = pr.text || t('pdfNoTextPage');
+    }
+    return pages;
+  }
   if (blank && getOcrEngine() === 'vision' && window.TanotOcr) {
     var total = doc.numPages;
     var r = await window.TanotOcr.ocrPdf(file, { numPages: total, onProgress: function (p) { if (ocrProgressCb) ocrProgressCb(p); } });
@@ -315,7 +351,7 @@ async function readImageFileTesseract(file) {
      ภาพก่อน OCR ด้วย (ขยายภาพเล็ก, แก้ภาพเอียง, ขาวดำ Otsu/Sauvola ตามแสง, เคารพ EXIF orientation) ช่วยให้
      อ่านแม่นขึ้นชัดเจน — เดิมหน้านี้เรียก Tesseract.recognize(file, ...) ตรงๆ ไม่มีการเตรียมภาพเลย */
   var text = window.TanotFileReader
-    ? await window.TanotFileReader.readImageFile(file)
+    ? await window.TanotFileReader.readImageFile(file, paddleOn() ? { engine: 'paddle', onProgress: function (p) { if (ocrProgressCb) ocrProgressCb(p); } } : undefined)
     : (await window.Tesseract.recognize(file, 'eng+tha')).data.text;
   return splitIntoPages(text || t('ocrNoText'));
 }
@@ -451,6 +487,8 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
     ocrEngineToggle.querySelectorAll('[data-oe]').forEach(function (span) {
       span.classList.toggle('active', span.getAttribute('data-oe') === engine);
     });
+    var pc = $('paddleChk');
+    if (pc) pc.disabled = engine === 'vision';
   }
 
   if (ocrEngineToggle) {
@@ -579,14 +617,36 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
   });
 
   function readErrText(err) {
+    if (err && err.paddle && window.TanotFileReader) return window.TanotFileReader.errorText(err);
     return err && err.code && window.TanotOcr ? window.TanotOcr.errorText(err) : (err && err.message ? err.message : String(err));
   }
 
+  /* แถบโหลดโมเดลของอ่านแบบใหม่ (ครั้งแรก บอก MB) — ซ่อนเมื่อครบ/ล้ม */
+  var modelBarEl = $('modelBar'), legacyRow = $('legacyRow'), paddleChk = $('paddleChk'), lastFile = null;
+  function modelBar(loaded, total) {
+    if (!modelBarEl) return;
+    if (loaded == null || !total || loaded >= total) { modelBarEl.hidden = true; return; }
+    var pct = Math.max(0, Math.min(100, loaded / total * 100)), meter = $('modelBarMeter');
+    modelBarEl.hidden = false;
+    meter.setAttribute('aria-valuenow', String(Math.round(pct)));
+    meter.firstElementChild.style.width = pct.toFixed(1) + '%';
+    $('modelBarVal').textContent = t('mbOf', { a: (loaded / 1048576).toFixed(1), b: (total / 1048576).toFixed(1) });
+  }
+  function paddleStepText(p) {
+    var msg = p.step === 'orient' || p.step === 'unwarp' ? t('pdUnwarp') : p.step === 'recognize' && p.n ? t('pdLine', { i: p.i || 0, n: p.n }) : t('pdRead');
+    return p.total > 1 ? t('pdPage', { page: p.page, total: p.total, msg: msg }) : msg;
+  }
+
   async function handleFile(file) {
+    lastFile = file;
+    if (legacyRow) legacyRow.hidden = true;
+    modelBar(null);
     state.busy = true; render();
     setStatus(t('readingFile'), false, true);
     ocrProgressCb = function (p) {
       if (p.stage === 'claude') setStatus(p.parts > 1 ? t('ocrClaudeReadingPart', { i: p.part, n: p.parts }) : t('ocrClaudeReading'), false, true);
+      else if (p.stage === 'model') modelBar(p.loaded, p.total);
+      else if (p.stage === 'paddle') setStatus(paddleStepText(p), false, true);
     };
     try {
       var result = await readAnyFile(file);
@@ -594,12 +654,22 @@ if (typeof document !== 'undefined' && document.getElementById('toolbar')) {
       setStatus(t(result.truncated ? 'fileReadTruncated' : 'fileReadSuccess', { n: result.pages.length }));
     } catch (err) {
       if (window.TanotOcr && window.TanotOcr.isCancel(err)) setStatus(t('ocrCancelled'));
+      else if (err && err.paddle) setStatus(readErrText(err), true); // ข้อความของอ่านแบบใหม่บอกครบในตัว
       else setStatus(t('fileReadError', { msg: readErrText(err) }), true);
+      /* อ่านแบบใหม่ล้ม → ผู้ใช้เลือกอ่านด้วยแบบเดิม (Tesseract) เอง */
+      if (legacyRow && err && err.paddle) legacyRow.hidden = false;
     } finally {
       ocrProgressCb = null;
+      forceLegacy = false;
+      modelBar(null);
       state.busy = false; render();
     }
   }
+  if (paddleChk) {
+    paddleChk.checked = paddleSaved();
+    paddleChk.addEventListener('change', function () { try { localStorage.setItem(PADDLE_KEY, paddleChk.checked ? '1' : '0'); } catch (e) {} });
+  }
+  if (legacyRow) $('legacyBtn').addEventListener('click', function () { if (!lastFile) return; forceLegacy = true; handleFile(lastFile); });
 
   /* หน้าแนบไฟล์ (doc-check-file.html) เท่านั้นที่มี dropZone/fileInput */
   if (dropZone && fileInput) {

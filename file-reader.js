@@ -27,7 +27,12 @@ var FR_T = (window.OME_I18N ? window.OME_I18N.scope : function (ns, d) { return 
     scanned: '(หน้า {n}: ดูเหมือนเป็นภาพสแกน ไม่มีเลเยอร์ข้อความ — เปิด "ใช้ OCR" แล้วลองใหม่ถ้าต้องการอ่านหน้านี้ด้วย)',
     ocrNone: '(หน้า {n}: OCR อ่านแล้วแต่ไม่พบข้อความ)',
     ppt: 'ไฟล์ .ppt (PowerPoint รุ่นเก่า) ไม่รองรับ — เปิดไฟล์ใน PowerPoint แล้ว "บันทึกเป็น" ชนิด .pptx ก่อน',
-    unsupported: 'ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ'
+    unsupported: 'ไม่รองรับไฟล์ชนิดนี้ — รองรับ .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ',
+    paddleMissing: 'อ่านแบบใหม่ไม่ได้ — ไม่พบไฟล์โมเดลบนเซิร์ฟเวอร์',
+    paddleNetwork: 'อ่านแบบใหม่ไม่ได้ — โหลดโมเดลไม่สำเร็จ ตรวจอินเทอร์เน็ตแล้วลองใหม่',
+    paddleMemory: 'อ่านแบบใหม่ไม่ได้ — หน่วยความจำของเครื่องไม่พอ',
+    paddleOther: 'อ่านแบบใหม่ไม่สำเร็จ',
+    paddleNoWorker: 'อ่านแบบใหม่ไม่ได้ — เบราว์เซอร์นี้ไม่รองรับ'
   },
   en: {
     libFail: 'Could not load the library needed to read this file type ({name}) — check your connection and reload the page',
@@ -38,7 +43,12 @@ var FR_T = (window.OME_I18N ? window.OME_I18N.scope : function (ns, d) { return 
     scanned: '(Page {n}: looks like a scanned image with no text layer — turn on "Use OCR" and try again to read this page)',
     ocrNone: '(Page {n}: OCR ran but found no text)',
     ppt: '.ppt files (old PowerPoint) are not supported — open the file in PowerPoint and "Save as" .pptx first',
-    unsupported: 'This file type is not supported — supported: .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/images'
+    unsupported: 'This file type is not supported — supported: .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/images',
+    paddleMissing: 'The new reader is unavailable — the model files were not found on the server',
+    paddleNetwork: 'The new reader is unavailable — the model did not download. Check your connection and try again',
+    paddleMemory: 'The new reader is unavailable — this device ran out of memory',
+    paddleOther: 'The new reader could not read this file',
+    paddleNoWorker: 'The new reader is unavailable in this browser'
   }
 });
 
@@ -310,6 +320,129 @@ function prepareOcrImage(getBitmap, popts) {
   });
 }
 
+/* ── อ่านแบบใหม่ (ทดลอง): PaddleOCR PP-OCRv5 ไทย ใน ocr-paddle-worker.js (Module Worker เสมอ) ──
+   ตรรกะล้วน (ตาราง/URL โมเดล, ตัดสินใจคลี่หน้า, EXIF, เรียงบรรทัด) อยู่ใน ocr-paddle-calc.js — โหลดตอนใช้ครั้งแรก
+   • ภาพย่อด้านยาว ≤ 2000px บนเธรดหลัก (เคารพ EXIF orientation) แล้วส่งพิกเซล RGBA (transfer) ให้ Worker
+   • คลี่หน้า (หมุนหน้า + UVDoc) เฉพาะภาพถ่าย: JPEG/HEIC ที่มี EXIF กล้อง หรือภาพที่แสงไม่เท่ากัน (unevenness > 28 ของ ocr-prep.js)
+     · PNG (ภาพหน้าจอ) / หน้า PDF ที่เรนเดอร์ = ข้าม
+   • WASM เป็นหลัก · WebGPU เมื่อ TanotMedia.webgpuPlan() ใช้ได้และไม่เคยล้มใน 3 วัน (tanot:ocr:gpubad) — ล้มแล้ว Worker ทำซ้ำบน WASM เอง
+   • โหลด/รันไม่สำเร็จ = โยน error ที่ err.paddle = true (+ frKey ข้อความชัดเจน) — หน้าแสดงข้อความ + ปุ่ม "อ่านด้วยแบบเดิม" เอง
+     **ห้ามสลับไป Tesseract เงียบๆ ในไฟล์นี้**
+   • opts.onProgress({stage:'model', loaded, total}) ตอนดาวน์โหลดโมเดลครั้งแรก (ไบต์) · ({stage:'paddle', step, i, n, page, total}) ตอนอ่าน
+   • problem log: error → logError('ocr', …, {stage:'paddle-load'|'paddle-run'}) · สำเร็จ → logNote สถิติเวลา (ไม่มีข้อความ/ชื่อไฟล์) */
+var PADDLE_CALC_URL = 'ocr-paddle-calc.js', PADDLE_WORKER_URL = 'ocr-paddle-worker.js';
+var PADDLE_GPU_BAD_KEY = 'tanot:ocr:gpubad', PADDLE_GPU_BAD_MS = 3 * 24 * 3600 * 1000;
+var paddleCalcP = null, paddle = { w: null, seq: 0, pending: {} };
+function ensurePaddleCalc() {
+  if (window.TanotPaddleCalc) return Promise.resolve(window.TanotPaddleCalc);
+  if (!paddleCalcP) {
+    paddleCalcP = new Promise(function (resolve, reject) {
+      var s = document.createElement('script');
+      s.src = PADDLE_CALC_URL;
+      s.onload = function () { resolve(window.TanotPaddleCalc); };
+      s.onerror = function () { paddleCalcP = null; reject(new Error(PADDLE_CALC_URL)); };
+      document.head.appendChild(s);
+    });
+  }
+  return paddleCalcP;
+}
+function paddleGpuBad() { try { var t = +localStorage.getItem(PADDLE_GPU_BAD_KEY); return t > 0 && Date.now() - t < PADDLE_GPU_BAD_MS; } catch (e) { return false; } }
+function paddleDevice() {
+  if (paddleGpuBad() || !window.TanotMedia || !window.TanotMedia.webgpuPlan) return Promise.resolve('wasm');
+  return window.TanotMedia.webgpuPlan().then(function (p) { return p && p.ok ? 'webgpu' : 'wasm'; }, function () { return 'wasm'; });
+}
+function paddleError(code, cause, stage) {
+  var key = { missing: 'paddleMissing', network: 'paddleNetwork', memory: 'paddleMemory', noWorker: 'paddleNoWorker' }[code] || 'paddleOther';
+  var e = frError(key);
+  e.paddle = true; e.code = 'paddle-' + code; e.stage = stage || 'run';
+  if (cause) { e.causeName = cause.name || ''; e.causeMessage = cause.message || String(cause); }
+  return e;
+}
+function paddleKill(reason) {
+  var w = paddle.w, p = paddle.pending;
+  paddle.w = null; paddle.pending = {};
+  if (w) { try { w.terminate(); } catch (e) {} }
+  if (window.TanotMedia && TanotMedia.budget) TanotMedia.budget.release('ocr-paddle');
+  Object.keys(p).forEach(function (id) { p[id].reject(paddleError(reason === 'memory' ? 'memory' : 'other', { name: 'WorkerError', message: reason || 'worker closed' }, 'run')); });
+}
+function paddleWorker() {
+  if (paddle.w) return paddle.w;
+  /* มือถือ: โมเดลในเบราว์เซอร์ได้ทีละตัว (ปิด Whisper/TTS/แชทที่ค้างอยู่) */
+  if (window.TanotMedia && TanotMedia.budget) TanotMedia.budget.acquire('ocr-paddle', function () { paddleKill('evicted'); });
+  var w;
+  try { w = new Worker(PADDLE_WORKER_URL, { type: 'module' }); }
+  catch (e) { if (window.TanotMedia && TanotMedia.budget) TanotMedia.budget.release('ocr-paddle'); throw paddleError('noWorker', e, 'load'); }
+  w.onmessage = function (ev) {
+    var m = ev.data || {}, job = paddle.pending[m.id];
+    if (!job) return;
+    if (m.type === 'progress') { if (job.onMsg) job.onMsg(m); return; }
+    if (m.type === 'fallback') {
+      try { localStorage.setItem(PADDLE_GPU_BAD_KEY, String(Date.now())); } catch (e) {}
+      if (window.TanotMedia) TanotMedia.logError('ocr', { name: m.name || 'Error', message: m.message || 'webgpu failed' }, { stage: 'paddle-webgpu-' + (m.stage || 'run'), engine: 'paddle', model: 'PP-OCRv5 th', device: 'webgpu' });
+      return;
+    }
+    delete paddle.pending[m.id];
+    if (m.type === 'result') job.resolve(m);
+    else job.reject(paddleError(m.code, { name: m.name, message: m.message }, m.stage));
+  };
+  /* Worker พังทั้งตัว (เช่น หน่วยความจำหมดบน iPhone) = ทิ้งตัวเดิม ครั้งหน้าสร้างใหม่ */
+  w.onerror = function (ev) { if (ev && ev.preventDefault) ev.preventDefault(); paddleKill(/memory/i.test(String(ev && ev.message)) ? 'memory' : 'crash'); };
+  paddle.w = w;
+  return w;
+}
+/* source: ImageBitmap / canvas · info: { source:'photo'|'pdf', mime, name, exifCamera, file } → Promise<{ text, items, … }> */
+function paddleRun(source, info, opts) {
+  opts = opts || {};
+  return Promise.all([ensurePaddleCalc(), paddleDevice()]).then(function (r) {
+    var C = r[0], device = r[1];
+    var sw = source.width, sh = source.height, fit = C.fitSize(sw, sh);
+    var cv = document.createElement('canvas');
+    cv.width = fit.w; cv.height = fit.h;
+    var ctx = cv.getContext('2d', { willReadFrequently: true });
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, fit.w, fit.h);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source, 0, 0, fit.w, fit.h);
+    var px = ctx.getImageData(0, 0, fit.w, fit.h);
+    cv.width = cv.height = 0;
+    /* window.TANOT_PADDLE = { unwarp:'yes'|'no' } = บังคับคลี่/ไม่คลี่ทุกภาพ — ใช้เฉพาะวัดผล (tools/media-eval ocr:paddle-unwarp / ocr:paddle-flat) */
+    var force = window.TANOT_PADDLE && window.TANOT_PADDLE.unwarp;
+    var plan = force === 'yes' || force === 'no' ? force : C.unwarpPlan(info);
+    var w = paddleWorker(), id = ++paddle.seq;
+    return new Promise(function (resolve, reject) {
+      paddle.pending[id] = {
+        resolve: resolve, reject: reject,
+        onMsg: function (m) {
+          if (!opts.onProgress) return;
+          if (m.stage === 'download') opts.onProgress({ stage: 'model', loaded: m.loaded, total: m.total });
+          else opts.onProgress({ stage: 'paddle', step: m.stage, i: m.i, n: m.n, page: info.page || 1, total: info.pages || 1 });
+        }
+      };
+      w.postMessage({ type: 'run', id: id, img: { width: px.width, height: px.height, data: px.data }, plan: plan, device: device }, [px.data.buffer]);
+    }).then(function (res) {
+      var ms = res.ms || {};
+      if (window.TanotMedia && TanotMedia.logNote) {
+        TanotMedia.logNote('ocr', { stage: 'paddle', engine: 'paddle', model: 'PP-OCRv5 th', device: res.device },
+          'ms load=' + (ms.load || 0) + ' orient=' + (ms.orient || 0) + ' unwarp=' + (ms.unwarp || 0) + ' det=' + (ms.detect || 0) + ' rec=' + (ms.recognize || 0) + ' total=' + (ms.total || 0) +
+          ' size=' + (res.size || []).join('x') + ' boxes=' + (res.boxes || 0) + ' unwarped=' + (res.unwarped ? 1 : 0) + ' angle=' + (res.angle || 0) + ' src=' + (info.source || ''));
+      }
+      return { text: fixThaiOcr(res.text || ''), items: res.items, unwarped: res.unwarped, angle: res.angle, device: res.device, ms: ms };
+    });
+  }).catch(function (e) {
+    var err = e && e.paddle ? e : paddleError('other', e, 'load');
+    if (window.TanotMedia) TanotMedia.logError('ocr', err, { stage: 'paddle-' + (err.stage || 'run'), engine: 'paddle', model: 'PP-OCRv5 th', file: info.file || null });
+    err.mediaLogged = true;
+    throw err;
+  });
+}
+/* อ่านไฟล์รูปด้วย PaddleOCR — EXIF กล้องดูจาก 128 KB แรกของไฟล์ */
+function paddleReadImage(file, opts) {
+  return Promise.all([ensurePaddleCalc(), file.slice(0, 131072).arrayBuffer(), createImageBitmap(file, { imageOrientation: 'from-image' })]).then(function (r) {
+    var bmp = r[2];
+    return paddleRun(bmp, { source: 'photo', mime: file.type, name: file.name, exifCamera: r[0].readExifCamera(new Uint8Array(r[1])), file: file }, opts)
+      .then(function (res) { if (bmp.close) bmp.close(); return res; }, function (e) { if (bmp.close) bmp.close(); throw e; });
+  });
+}
+
 async function readTxtFile(file) {
   return (await file.text()).trim();
 }
@@ -375,6 +508,7 @@ async function readPptxFile(file) {
    opts.onProgress({stage:'pdf'|'ocr', page, total}) แจ้งความคืบหน้าเพราะ OCR ช้ามาก (หลักวินาที/หน้า) */
 async function readPdfFile(file, opts) {
   opts = opts || {};
+  var usePaddle = opts.engine === 'paddle';
   var pdfjsLib = requireLib('pdfjsLib', 'pdf.js');
   var buf = await file.arrayBuffer();
   var doc = await pdfjsLib.getDocument({ data: buf }).promise;
@@ -388,8 +522,8 @@ async function readPdfFile(file, opts) {
 
     if (!opts.ocr) { parts.push(FR_T('scanned', { n: i })); continue; }
 
-    if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: i, total: doc.numPages });
-    requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
+    if (opts.onProgress) opts.onProgress(usePaddle ? { stage: 'paddle', step: 'load', page: i, total: doc.numPages } : { stage: 'ocr', page: i, total: doc.numPages });
+    if (!usePaddle) requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
     /* scale 3 (~216 DPI) แทน 2 เดิม (~144 DPI) — ยิ่งความละเอียดสูง ตัวอักษรยิ่งคมชัดตอน OCR อ่าน
        (preprocessForOcr ด้านล่างจะขยายเพิ่มอีกให้เองถ้าหน้านั้นยังเล็กกว่าเกณฑ์ขั้นต่ำ) */
     var viewport = page.getViewport({ scale: 3 });
@@ -397,6 +531,13 @@ async function readPdfFile(file, opts) {
     canvas.width = viewport.width; canvas.height = viewport.height;
     var ctx = canvas.getContext('2d');
     await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+    if (usePaddle) {
+      /* อ่านแบบใหม่: หน้าที่เรนเดอร์ไม่คลี่หน้า (source:'pdf') · ไม่ผ่านขาวดำของ Tesseract (PaddleOCR อ่านภาพสีได้ดีกว่า) */
+      var pres = await paddleRun(canvas, { source: 'pdf', mime: 'application/pdf', name: file.name, page: i, pages: doc.numPages, file: file }, opts);
+      canvas.width = canvas.height = 0;
+      parts.push(pres.text || FR_T('ocrNone', { n: i }));
+      continue;
+    }
     var pageImage;
     try { pageImage = await prepareOcrImage(function () { return createImageBitmap(canvas); }, { source: 'pdf' }); }
     catch (e) { pageImage = preprocessForOcr(canvas); } // เตรียมภาพแบบใหม่ไม่ได้ → ทางเดิม (Otsu บนเธรดหลัก)
@@ -407,8 +548,12 @@ async function readPdfFile(file, opts) {
 }
 
 async function readImageFile(file, opts) {
-  requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
   opts = opts || {};
+  if (opts.engine === 'paddle') {
+    if (opts.onProgress) opts.onProgress({ stage: 'paddle', step: 'load', page: 1, total: 1 });
+    return (await paddleReadImage(file, opts)).text;
+  }
+  requireLib('Tesseract', 'Tesseract.js'); // แค่เช็คว่าโหลดแล้ว — ตัวจริงเรียกผ่าน recognizeText()
   if (opts.onProgress) opts.onProgress({ stage: 'ocr', page: 1, total: 1 });
   /* imageOrientation:'from-image' ให้เคารพค่า EXIF orientation ของรูปที่ถ่ายจากมือถือ (ไม่งั้นรูป
      ที่ถือแนวตั้งแต่กล้องบันทึก orientation ไว้ใน metadata แทนที่จะหมุน pixel จริง จะกลายเป็นเอียง/
@@ -447,8 +592,8 @@ async function inspectPdf(file) {
 /* ชนิดไฟล์ที่รองรับ — ใช้ทั้งตัดสินใจ dispatch ที่นี่ และใส่ใน <input accept="..."> ของหน้าที่เรียกใช้ */
 var ACCEPT_ATTR = '.txt,.docx,.xlsx,.xls,.csv,.pptx,.pdf,.png,.jpg,.jpeg,.webp,.bmp';
 
-/* opts: { ocr: boolean, onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
-   (รูปภาพเดี่ยว .png/.jpg ฯลฯ ใช้ OCR เสมอเพราะไม่มีเลเยอร์ข้อความให้เลือกอยู่แล้ว) */
+/* opts: { ocr: boolean, engine: 'tesseract'(ค่าเริ่มต้น)|'paddle', onProgress: function({stage, page, total}) } — ocr มีผลกับ .pdf เท่านั้น
+   (รูปภาพเดี่ยว .png/.jpg ฯลฯ ใช้ OCR เสมอเพราะไม่มีเลเยอร์ข้อความให้เลือกอยู่แล้ว) · engine 'paddle' = อ่านแบบใหม่ (ทดลอง) — ล้มแล้วโยน err.paddle ไม่ถอยเอง */
 function readAnyFile(file, opts) {
   var name = file.name.toLowerCase();
   var promise;
@@ -476,6 +621,10 @@ window.TanotFileReader = {
   readPdfFile: readPdfFile,
   readImageFile: readImageFile,
   inspectPdf: inspectPdf,
+  paddleReadImage: paddleReadImage,
+  paddleRun: paddleRun,
+  paddleModelBytes: function (unwarp) { return ensurePaddleCalc().then(function (C) { return C.setBytes(C.modelSet(!!unwarp)); }); },
+  isPaddleError: function (err) { return !!(err && err.paddle); },
   prepareOcrImage: prepareOcrImage,
   fixThaiOcr: fixThaiOcr,
   preprocessForOcr: preprocessForOcr,

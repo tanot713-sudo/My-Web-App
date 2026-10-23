@@ -57,6 +57,12 @@
     <div class="card lib"><div class="lib-top"><span class="lib-name">Tesseract.js</span><span class="badge">Apache-2.0</span></div>
       <div class="lib-desc" data-cr="c3">OCR อ่านตัวอักษรจากรูปภาพ/หน้าสแกนเป็นข้อความ</div>
       <div class="lib-meta"><span data-cr="c35">เอกสาร, เตรียมสอบเนติ, แปลงเสียง ↔ ข้อความ, ดึงข้อความออกจากเอกสาร</span><a href="https://github.com/naptha/tesseract.js" target="_blank" rel="noopener">github.com/naptha/tesseract.js</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">PaddleOCR PP-OCRv5 (PaddlePaddle)</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc" data-cr="c74">โมเดล OCR ของ "อ่านแบบใหม่ (ทดลอง)": PP-OCRv5_mobile_det (หากล่องข้อความ) + th_PP-OCRv5_mobile_rec (อ่านภาษาไทย) + PP-LCNet_x1_0_doc_ori (ทิศหน้ากระดาษ) + UVDoc (คลี่หน้ากระดาษในภาพถ่าย) ไฟล์ ONNX ทางการ ดาวน์โหลดจาก Hugging Face ตอนใช้ครั้งแรกแล้วเก็บในเครื่อง ไม่ได้ฝังในโค้ดเว็บนี้</div>
+      <div class="lib-meta"><span data-cr="c76">ดึงข้อความออกจากเอกสาร, ตรวจสอบเอกสาร</span><a href="https://github.com/PaddlePaddle/PaddleOCR" target="_blank" rel="noopener">github.com/PaddlePaddle/PaddleOCR</a><a href="https://huggingface.co/PaddlePaddle" target="_blank" rel="noopener">huggingface.co/PaddlePaddle</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">paddleocr (paddleocr.js)</span><span class="badge">MIT</span></div>
+      <div class="lib-desc" data-cr="c75">ขั้นเตรียมภาพ/แปลงผลของ PaddleOCR แบบ JavaScript ล้วน (หากล่อง, ตัดบรรทัด, ถอดตัวอักษร, ทิศหน้า, UVDoc) รันคู่กับ ONNX Runtime Web — ฝังในเว็บนี้ที่ vendor/paddleocr/ (เวอร์ชัน 1.2.0)</div>
+      <div class="lib-meta"><span data-cr="c76">ดึงข้อความออกจากเอกสาร, ตรวจสอบเอกสาร</span><a href="https://github.com/x3zvawq/paddleocr.js" target="_blank" rel="noopener">github.com/x3zvawq/paddleocr.js</a></div></div>
 
     <div class="card lib"><div class="lib-top"><span class="lib-name">JSZip</span><span class="badge">MIT</span></div>
       <div class="lib-desc" data-cr="c4">แกะไฟล์ .pptx (PowerPoint) เพื่อดึงข้อความจากสไลด์ และรวมไฟล์ PDF รายหน้าเป็น .zip</div>
@@ -203,6 +209,9 @@
   var EN = {
  "c71": "Thai speech model (F5-TTS fine-tuned by VIZINTZOR) — used to synthesize the training audio for the Thai voices \"Female (Jori)\" / \"Male (Riko)\" (not run on this site) · personal / non-commercial use only",
  "c72": "The base model of F5-TTS-THAI (code MIT, pretrained weights CC-BY-NC 4.0)",
+ "c74": "OCR models of the \"New reader (experimental)\": PP-OCRv5_mobile_det (finds text boxes) + th_PP-OCRv5_mobile_rec (reads Thai) + PP-LCNet_x1_0_doc_ori (page orientation) + UVDoc (flattens pages in photos). Official ONNX files downloaded from Hugging Face on first use and kept on your device, not bundled in this site\'s code",
+ "c75": "PaddleOCR pre/post-processing in plain JavaScript (text boxes, line crops, character decoding, page orientation, UVDoc), run with ONNX Runtime Web — bundled with this site in vendor/paddleocr/ (version 1.2.0)",
+ "c76": "Extract text from documents, Document check",
  "c73": "GridCraft by the ArtCraft team — the .xlsx reader and formula engine (the xlsx/calc crates only, commit 06920de) compiled to WebAssembly in vendor/gridcraft/. Used to calculate formulas that a file saved without values; runs on your device · licenses of the crates compiled in are in vendor/gridcraft/THIRD-PARTY.txt",
  "c70": "Whisper fine-tuned for Thai (distill-whisper-th-small / medium by the biodatlab group) — converted to ONNX by the site owner so it runs in the browser (transformers.js 3.8.1 scripts/convert.py --quantize). Downloaded from Hugging Face when you choose it, not bundled in this site\'s code",
  "c67": "facebook/mms-tts-tha (original)",

@@ -24,7 +24,10 @@
       empty: 'ไม่พบข้อความในไฟล์นี้', done: 'ดึงข้อความจาก {name} แล้ว ({n} ตัวอักษร)', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
       splitNoLib: 'โหลดไลบรารีแยกหน้า PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่', splitting: 'กำลังแยกหน้า PDF…', splitNoPages: 'ไฟล์ PDF ไม่มีหน้าเลย',
       splitDone: 'แยกเป็น {n} ไฟล์ ดาวน์โหลด pages_{base}.zip แล้ว', splitFail: 'แยกหน้า PDF ไม่สำเร็จ: {msg}',
-      copied: 'คัดลอกข้อความแล้ว', downloaded: 'ดาวน์โหลด text_{base}.txt แล้ว'
+      copied: 'คัดลอกข้อความแล้ว', downloaded: 'ดาวน์โหลด text_{base}.txt แล้ว',
+      paddle: 'อ่านแบบใหม่ (ทดลอง)', modelDl: 'โหลดโมเดลอ่านภาพ', mbOf: '{a} / {b} MB', legacy: 'อ่านด้วยแบบเดิม',
+      pdRead: 'กำลังอ่านแบบใหม่…', pdUnwarp: 'กำลังคลี่หน้ากระดาษ…', pdLine: 'กำลังอ่านข้อความ {i}/{n}…',
+      pdPage: 'หน้า {page}/{total} — {msg}'
     },
     en: {
       title: 'Extract text from documents | Tanot', crumb: 'Work', h1: 'Extract text from documents', attach: 'Attach a file',
@@ -39,16 +42,39 @@
       empty: 'No text found in this file', done: 'Extracted text from {name} ({n} characters)', readFail: 'Could not read the file: {msg}',
       splitNoLib: 'Could not load the PDF split library — check your connection and reload the page', splitting: 'Splitting PDF pages…', splitNoPages: 'This PDF has no pages',
       splitDone: 'Split into {n} files — downloaded pages_{base}.zip', splitFail: 'Could not split the PDF: {msg}',
-      copied: 'Text copied', downloaded: 'Downloaded text_{base}.txt'
+      copied: 'Text copied', downloaded: 'Downloaded text_{base}.txt',
+      paddle: 'New reader (experimental)', modelDl: 'Downloading the reading model', mbOf: '{a} / {b} MB', legacy: 'Read with the old method',
+      pdRead: 'Reading with the new reader…', pdUnwarp: 'Flattening the page…', pdLine: 'Reading text {i}/{n}…',
+      pdPage: 'Page {page}/{total} — {msg}'
     }
   });
 
   var currentFile = null;
   var engine = 'free'; /* 'free' | 'vision' — ไม่จำค่า ทุกครั้งที่เปิดหน้าเริ่มที่ฟรี (Claude ต้องเลือกเอง + กรอกรหัสทุกครั้ง) */
   function visionOn() { return engine === 'vision' && !!window.TanotOcr && TanotOcr.available(); }
+  /* อ่านแบบใหม่ (ทดลอง) = PaddleOCR ในเบราว์เซอร์ (file-reader.js engine 'paddle') — จำค่าในเครื่อง tanot:ocr:paddle ('1'|'0', ใช้ร่วมกับ doc-check-file) · ค่าเริ่มต้นปิด */
+  var PADDLE_KEY = 'tanot:ocr:paddle';
+  function paddleSaved() { try { return localStorage.getItem(PADDLE_KEY) === '1'; } catch (e) { return false; } }
+  function paddleOn() { return $('paddleChk').checked && !$('paddleChk').disabled; }
+
+  /* แถบโหลดโมเดลครั้งแรก (บอก MB) — ซ่อนเมื่อโหลดครบ/ล้ม · โมเดลที่แคชแล้วไม่มีเหตุการณ์ดาวน์โหลด แถบจึงไม่ขึ้น */
+  function modelBar(loaded, total) {
+    var bar = $('modelBar');
+    if (loaded == null || !total || loaded >= total) { bar.hidden = true; OME_I18N.live($('modelBarVal'), null); return; }
+    var pct = Math.max(0, Math.min(100, loaded / total * 100));
+    bar.hidden = false;
+    $('modelBarMeter').setAttribute('aria-valuenow', String(Math.round(pct)));
+    $('modelBarMeter').firstElementChild.style.width = pct.toFixed(1) + '%';
+    OME_I18N.live($('modelBarVal'), function () { return T('mbOf', { a: (loaded / 1048576).toFixed(1), b: (total / 1048576).toFixed(1) }); });
+  }
+  function paddleStep(p) {
+    var msg = p.step === 'orient' || p.step === 'unwarp' ? T('pdUnwarp') : p.step === 'recognize' && p.n ? T('pdLine', { i: p.i || 0, n: p.n }) : T('pdRead');
+    return p.total > 1 ? T('pdPage', { page: p.page, total: p.total, msg: msg }) : msg;
+  }
 
   function formatProgress(p) {
     if (!p) return T('reading');
+    if (p.stage === 'paddle') return paddleStep(p);
     if (p.stage === 'ocr') return T('readingOcr', { page: p.page, total: p.total });
     if (p.stage === 'pdf') return T('readingPdf', { page: p.page, total: p.total });
     return T('reading');
@@ -75,6 +101,7 @@
   function readStatus(fn, cls) { setStatus($('readStatus'), fn, cls); }
   function actionStatus(fn, cls) { setStatus($('actionStatus'), fn, cls); }
   function errMsg(err) {
+    if (err && err.paddle && window.TanotFileReader) return TanotFileReader.errorText(err);
     if (err && err.code && window.TanotOcr) return TanotOcr.errorText(err);
     return window.TanotFileReader && TanotFileReader.errorText ? TanotFileReader.errorText(err) : (err && err.message ? err.message : String(err));
   }
@@ -83,10 +110,14 @@
   }
 
   /* อ่านไฟล์ → Promise<{ text, truncated }> — Claude Vision เฉพาะเมื่อผู้ใช้เลือกเอง: รูป = ส่งรูป · PDF = ส่งทั้งไฟล์เมื่อมีหน้าที่ไม่มีเลเยอร์ข้อความ (ถ้ามีข้อความครบทุกหน้าใช้ข้อความจริงฟรีตามเดิม) */
-  function readOne(file) {
+  function readOne(file, forceEngine) {
     var name = file.name.toLowerCase(), opts = {
       ocr: $('ocrChk').checked,
-      onProgress: function (p) { readStatus(function () { return formatProgress(p); }, ''); }
+      engine: forceEngine || (paddleOn() ? 'paddle' : 'tesseract'),
+      onProgress: function (p) {
+        if (p.stage === 'model') { modelBar(p.loaded, p.total); return; }
+        readStatus(function () { return formatProgress(p); }, '');
+      }
     };
     function plain() { return window.TanotFileReader.readAnyFile(file, opts).then(function (text) { return { text: text }; }); }
     if (visionOn() && /\.(png|jpe?g|webp|bmp)$/.test(name)) {
@@ -103,9 +134,11 @@
     return plain();
   }
 
-  function handleFile(file) {
+  function handleFile(file, forceEngine) {
     if (!file) return;
     currentFile = file;
+    $('legacyRow').hidden = true;
+    modelBar(null);
     $('dropMain').removeAttribute('data-i18n');
     $('dropMain').textContent = file.name;
     OME_I18N.live($('dropSub'), function () { return T('dropSub', { kb: (file.size / 1024).toFixed(0) }); });
@@ -117,7 +150,7 @@
       return;
     }
     readStatus(function () { return T('readingFile', { name: file.name }); }, '');
-    readOne(file).then(function (res) {
+    readOne(file, forceEngine).then(function (res) {
       var text = String((res && res.text) || '').trim();
       if (!text) {
         readStatus(function () { return T('empty'); }, 'err');
@@ -129,8 +162,13 @@
       $('splitPdfBtn').style.display = file.name.toLowerCase().endsWith('.pdf') ? '' : 'none';
       readStatus(function () { return T(res.truncated ? 'doneTruncated' : 'done', { name: file.name, n: text.length }); }, res.truncated ? '' : 'ok');
     }).catch(function (err) {
+      modelBar(null);
+      var paddleErr = !!(err && err.paddle);
       if (window.TanotOcr && TanotOcr.isCancel(err)) readStatus(function () { return T('cancelled'); }, '');
+      else if (paddleErr) readStatus(function () { return errMsg(err); }, 'err'); // ข้อความของอ่านแบบใหม่บอกครบในตัว
       else readStatus(function () { return T('readFail', { msg: errMsg(err) }); }, 'err');
+      /* อ่านแบบใหม่ล้ม → ให้ผู้ใช้เลือกอ่านด้วยแบบเดิม (Tesseract) เอง — ไม่สลับเงียบๆ */
+      if (paddleErr) $('legacyRow').hidden = false;
     });
   }
 
@@ -222,6 +260,11 @@
       actionStatus(function () { return T('downloaded', { base: base }); }, 'ok');
     });
     $('splitPdfBtn').addEventListener('click', splitPdfPages);
+    $('paddleChk').checked = paddleSaved();
+    $('paddleChk').addEventListener('change', function () {
+      try { localStorage.setItem(PADDLE_KEY, this.checked ? '1' : '0'); } catch (e) {}
+    });
+    $('legacyBtn').addEventListener('click', function () { if (currentFile) handleFile(currentFile, 'tesseract'); });
 
     /* ตัวเลือก Claude Vision — แสดงเฉพาะ *.pages.dev (ที่มี /api/ocr) */
     if (window.TanotOcr && TanotOcr.available()) {
@@ -232,6 +275,7 @@
         engine = span.getAttribute('data-oe') === 'vision' ? 'vision' : 'free';
         $('engToggle').querySelectorAll('[data-oe]').forEach(function (x) { x.classList.toggle('active', x === span); });
         $('ocrChk').disabled = engine === 'vision';
+        $('paddleChk').disabled = engine === 'vision';
       });
     }
     updateCharCount();
