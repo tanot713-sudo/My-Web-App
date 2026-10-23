@@ -1,0 +1,32 @@
+{
+  "source": "https://github.com/storytold/gridcraft",
+  "commit": "06920de8da609c19de7446945cfc62b844691efd",
+  "crates": [
+    "gridcraft-xlsx",
+    "gridcraft-calc"
+  ],
+  "wrapper": "tools/wasm/gridcraft-recalc",
+  "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+  "wasmBindgen": "wasm-bindgen 0.2.129",
+  "wasmOpt": "wasm-opt version 132 (version_132)",
+  "files": {
+    "LICENSE-MIT": {
+      "sha256": "a87109bbb1ad43ca3920a5d7ff3806863b7e8470a73f4ded97a1447ac93333f5",
+      "bytes": 1101
+    },
+    "THIRD-PARTY.txt": {
+      "sha256": "bfadeb74fe8fcdf33c8c1494b9bdf629fe5216f97ef0f91cea5fb44cb7d9514d",
+      "bytes": 68827
+    },
+    "gridcraft_recalc.js": {
+      "sha256": "d412ca7cc0586a0959fc0dd9a8b91f65860ae93711f3322dedd640c8c2a3eb17",
+      "bytes": 11733,
+      "brotli": 2763
+    },
+    "gridcraft_recalc_bg.wasm": {
+      "sha256": "5785103766d9504ef6a44eba1a18ae4bbd81aa32086ec9fd98b8edb1c851b531",
+      "bytes": 1941838,
+      "brotli": 578719
+    }
+  }
+}

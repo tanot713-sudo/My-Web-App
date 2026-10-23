@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
 <script src="compare-calc.js" defer></script>
+<script src="xlsx-recalc.js" defer></script>
 <script src="file-reader.js" defer></script>
 <script src="compare.js" defer></script>
 <style>
@@ -30,6 +31,10 @@
 @media (max-width:760px){.cp-two{grid-template-columns:1fr}}
 .cp-two > .card > * + *{margin-top:var(--ome-sp-3)}
 .cp-fname{font-size:var(--ome-fs-sm);color:var(--ome-text-2);overflow-wrap:anywhere}
+.cp-calc{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.cp-calc.warn{color:var(--ome-warn-ink)}
+.cp-calc:empty{display:none}
+.cp-two > .card > .cp-calc{margin-top:var(--ome-sp-1)}
 .cp-check{display:flex;align-items:center;gap:6px;font-size:var(--ome-fs-sm);cursor:pointer}
 .cp-check input{width:auto;height:auto;accent-color:var(--ome-accent)}
 .cp-opts{display:flex;flex-wrap:wrap;gap:var(--ome-sp-3) var(--ome-sp-4);align-items:center}
@@ -104,6 +109,7 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
         <div class="field" style="flex:0 0 120px"><label for="hdrA" data-i18n="cp.hdrRow">แถวหัวตาราง</label><input id="hdrA" type="number" min="1" step="1" value="1" disabled></div>
       </div>
       <div class="cp-fname" id="infoA"></div>
+      <div class="cp-calc" id="calcA" role="status" aria-live="polite"></div>
     </div>
     <div class="card" id="sideB">
       <div class="card-head"><h2 data-i18n="cp.fileB">ไฟล์ B</h2></div>
@@ -114,6 +120,7 @@ textarea.cp-ta{min-height:220px;font-family:inherit;resize:vertical}
         <div class="field" style="flex:0 0 120px"><label for="hdrB" data-i18n="cp.hdrRow">แถวหัวตาราง</label><input id="hdrB" type="number" min="1" step="1" value="1" disabled></div>
       </div>
       <div class="cp-fname" id="infoB"></div>
+      <div class="cp-calc" id="calcB" role="status" aria-live="polite"></div>
     </div>
   </div>
   <p class="cp-msg" id="tMsg" role="alert"></p>

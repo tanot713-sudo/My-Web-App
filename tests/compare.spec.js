@@ -406,6 +406,194 @@ test.describe('หน้า compare.html — เทียบตาราง', ()
   });
 });
 
+/* ══════════ สูตรที่ไฟล์ไม่ได้เก็บค่าไว้ (xlsx-recalc.js + GridCraft wasm) ══════════ */
+const R = require(path.join(__dirname, '..', 'xlsx-recalc.js'));
+const GC = path.join(__dirname, '..', 'vendor', 'gridcraft');
+const RATE = 'อัตรา & ราคา';
+// แบบไฟล์ประมาณราคาที่ openpyxl/run.html เขียน: สูตรไม่มีค่าแคช · ราคาวัสดุอยู่อีกชีต (ชื่อมี &) · emptyV = <v /> แบบ openpyxl (ไม่ใส่ = ไม่มี <v> แบบ SheetJS)
+async function estBook(price, { emptyV = false, cached = false } = {}) {
+  const wb = XLSX.utils.book_new();
+  const s = XLSX.utils.aoa_to_sheet([['รายการ', 'จำนวน', 'ราคาต่อหน่วย', 'รวม', 'ตัวอักษร'], ['ค่าแรง', 3], ['ค่าวัสดุ', 4], ['รวม']]);
+  const f = { C2: `'${RATE}'!B2`, C3: `'${RATE}'!B3`, D2: 'B2*C2', D3: 'B3*C3', D4: 'SUM(D2:D3)' };
+  for (const [a, x] of Object.entries(f)) s[a] = cached ? { t: 'n', f: x, v: 1 } : { t: 'n', f: x }; // cached: ค่าแคชผิดโดยตั้งใจ (1) — ต้องคงเดิม
+  s.E4 = cached ? { t: 's', f: 'BAHTTEXT(D4)', v: 'แคช' } : { t: 's', f: 'BAHTTEXT(D4)' };
+  s['!ref'] = 'A1:E4';
+  XLSX.utils.book_append_sheet(wb, s, 'สรุป');
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['อัตรา', 'ราคา'], ['ค่าแรง', 120.5], ['ค่าวัสดุ', price]]), RATE);
+  const b = XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+  if (!emptyV) return b;
+  const z = await JSZip.loadAsync(b);
+  for (const p of Object.keys(z.files).filter((p) => /worksheets\/sheet\d+\.xml$/.test(p))) z.file(p, (await z.file(p).async('string')).replace(/<\/f><\/c>/g, '</f><v /></c>'));
+  return z.generateAsync({ type: 'nodebuffer' });
+}
+// glue แบบ no-modules ของ wasm-bindgen ใน vm (เหมือนใน Worker)
+function gridcraft() {
+  const vm = require('vm');
+  const ctx = { self: {}, console, TextDecoder, TextEncoder, WebAssembly };
+  ctx.globalThis = ctx; vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(GC, 'gridcraft_recalc.js'), 'utf8') + ';globalThis.gc = wasm_bindgen;', ctx);
+  ctx.bytes = new Uint8Array(fs.readFileSync(path.join(GC, 'gridcraft_recalc_bg.wasm')));
+  vm.runInContext('gc.initSync({ module: bytes })', ctx);
+  return (buf, names, cells) => JSON.parse(ctx.gc.recalc(new Uint8Array(buf), names, new Uint32Array(cells)));
+}
+
+test.describe('xlsx-recalc.js + GridCraft (known-answer)', () => {
+  test('scanSheet: ไม่มี <v> / <v /> / <v></v> = ขาดค่า · มีค่าแคช, str ว่าง, shared, inlineStr, prefix x: ถูกต้อง', () => {
+    const xml = '<worksheet><sheetData><row r="1">'
+      + '<c r="A1"><f>1+1</f></c>'                     // ไม่มี <v> (SheetJS)
+      + '<c r="B1" s="3"><f>A1*2</f><v /></c>'         // openpyxl
+      + '<c r="C1"><f>A1</f><v></v></c>'
+      + '<c r="D1"><f>A1</f><v>2</v></c>'              // มีค่าแคช
+      + '<c r="E1" t="str"><f>""</f><v></v></c>'       // ผลเป็นข้อความว่างจริง
+      + '<c r="F1"><f t="shared" ref="F1:F2" si="0">A1</f><v>2</v></c>'
+      + '</row><row r="2"><c r="F2"><f t="shared" si="0"/></c><c r="G2" s="1"/><c r="AA10" t="inlineStr"><is><t>x</t></is></c>'
+      + '<x:c r="ZZ7"><x:f>1</x:f></x:c><c r="H2" t="e"><f>1/0</f><v>#DIV/0!</v></c>'
+      + '</row></sheetData></worksheet>';
+    expect(R.scanSheet(xml)).toEqual([{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }, { r: 1, c: 5 }, { r: 6, c: 701 }]);
+    expect(R.scanSheet('<worksheet><sheetData><row r="1"><c r="A1"><v>1</v></c></row></sheetData></worksheet>')).toEqual([]);
+    expect(R.scanSheet(null)).toEqual([]);
+  });
+
+  test('sheetPaths: ชื่อชีตจาก workbook.xml (entity) + rels (relative/absolute) · ข้ามชีตกราฟ', () => {
+    const files = {
+      '_rels/.rels': '<Relationships><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>',
+      'xl/workbook.xml': '<workbook><sheets><sheet name="อัตรา &amp; ราคา" sheetId="1" r:id="rId2"/><sheet name="กราฟ" sheetId="2" r:id="rId3"/><sheet r:id="rId4" name=\'S3\' sheetId="3"/></sheets></workbook>',
+      'xl/_rels/workbook.xml.rels': '<Relationships><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+        + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/chartsheet" Target="chartsheets/sheet1.xml"/>'
+        + '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="/xl/worksheets/../worksheets/s3.xml"/></Relationships>',
+    };
+    expect(R.sheetPaths((p) => files[p] || null)).toEqual([{ name: 'อัตรา & ราคา', path: 'xl/worksheets/sheet1.xml' }, { name: 'S3', path: 'xl/worksheets/s3.xml' }]);
+  });
+
+  test('ไฟล์จริงทั้ง 2 แบบ: นับเซลล์ได้ครบ · ไฟล์ค่าแคชครบ = 0 · template est-cost = 51', async () => {
+    const XS = require('xlsx-js-style');
+    const count = (b) => R.missing(XS.read(new Uint8Array(b), { type: 'array', cellDates: true, dense: true, bookFiles: true })).length;
+    expect(count(await estBook(99))).toBe(6);
+    expect(count(await estBook(99, { emptyV: true }))).toBe(6);
+    expect(count(await estBook(99, { cached: true }))).toBe(0);
+    expect(count(fs.readFileSync(path.join(__dirname, '..', 'tool', 'est-cost', 'Est_Cost_MA_v5_clean.xlsx')))).toBe(51);
+    const wb = XS.read(new Uint8Array(await estBook(99)), { type: 'array', dense: true, bookFiles: true });
+    R.missing(wb);
+    expect(wb.files).toBeUndefined(); // ไม่ถือ zip ไว้
+  });
+
+  test('GridCraft wasm: 361.5 / 396 / 757.5 + BAHTTEXT ไทย · ชีตชื่อมี & · ชีต/แถวที่ไม่มีถูกข้าม', async () => {
+    const calc = gridcraft();
+    for (const emptyV of [false, true]) {
+      const out = calc(await estBook(99, { emptyV }), ['สรุป', 'ไม่มีชีตนี้'], [0, 1, 2, 0, 1, 3, 0, 2, 3, 0, 3, 3, 0, 3, 4, 1, 0, 0, 0, 2000000, 0]);
+      expect(out).toEqual([
+        { sheet: 'สรุป', r: 1, c: 2, t: 'n', v: 120.5 },
+        { sheet: 'สรุป', r: 1, c: 3, t: 'n', v: 361.5 },
+        { sheet: 'สรุป', r: 2, c: 3, t: 'n', v: 396 },
+        { sheet: 'สรุป', r: 3, c: 3, t: 'n', v: 757.5 },
+        { sheet: 'สรุป', r: 3, c: 4, t: 's', v: 'เจ็ดร้อยห้าสิบเจ็ดบาทห้าสิบสตางค์' },
+      ]);
+    }
+    expect(calc(await estBook(100), ['สรุป'], [0, 3, 3, 0, 3, 4])).toEqual([
+      { sheet: 'สรุป', r: 3, c: 3, t: 'n', v: 761.5 }, { sheet: 'สรุป', r: 3, c: 4, t: 's', v: 'เจ็ดร้อยหกสิบเอ็ดบาทห้าสิบสตางค์' }]);
+    expect(() => calc(Buffer.from('not a zip'), ['A'], [0, 0, 0])).toThrow();
+    // template est-cost: C5 = C4*100/107, D5 = 100%, E4 = BAHTTEXT(C4)
+    const est = calc(fs.readFileSync(path.join(__dirname, '..', 'tool', 'est-cost', 'Est_Cost_MA_v5_clean.xlsx')), ['Summary Cost'], [0, 4, 2, 0, 4, 3, 0, 3, 4]);
+    expect(est[0].v).toBeCloseTo(22500000 * 100 / 107, 6);
+    expect(est[1]).toMatchObject({ t: 'n', v: 1, z: '0%' });
+    expect(est[2]).toMatchObject({ t: 's', v: 'ยี่สิบสองล้านห้าแสนบาทถ้วน' });
+  });
+
+  test('apply: เติมเฉพาะเซลล์ว่าง ไม่ทับค่าที่มี · วันที่ตามรูปแบบ · error · ขยาย !ref', () => {
+    const XS = require('xlsx-js-style');
+    const ws = [[{ t: 's', v: 'h' }], [{ t: 'n', v: 5 }]];
+    ws['!ref'] = 'A1:A2';
+    const wb = { Sheets: { S: ws }, SheetNames: ['S'], Workbook: { WBProps: {} } };
+    const n = R.apply(XS, wb, [
+      { sheet: 'S', r: 1, c: 0, t: 'n', v: 99 },                       // มีค่าแล้ว → ไม่ทับ
+      { sheet: 'S', r: 1, c: 1, t: 'n', v: 46302.5, z: 'd/m/yyyy h:mm' }, // รูปแบบวันที่ → Date แบบเดียวกับที่ SheetJS อ่านค่าแคช
+      { sheet: 'S', r: 1, c: 2, t: 'e', v: '#DIV/0!' },
+      { sheet: 'S', r: 3, c: 3, t: 'b', v: true },                     // นอก !ref → ขยาย
+      { sheet: 'S', r: 2, c: 0, t: 'z', v: null },
+      { sheet: 'ไม่มี', r: 0, c: 0, t: 'n', v: 1 },
+    ], { cellDates: true });
+    expect(n).toBe(3);
+    expect(ws[1][0].v).toBe(5);
+    expect(ws[1][1].t).toBe('d');
+    expect(C.toCell(ws[1][1].v)).toBe('2026-10-07 12:00');
+    const dws = XS.utils.aoa_to_sheet([[46302.5]]); dws.A1.z = 'd/m/yyyy h:mm';
+    const dwb = XS.utils.book_new(); XS.utils.book_append_sheet(dwb, dws, 'S');
+    expect(ws[1][1].v.getTime()).toBe(XS.read(XS.write(dwb, { type: 'buffer', bookType: 'xlsx' }), { type: 'buffer', cellDates: true, dense: true }).Sheets.S[0][0].v.getTime());
+    expect(ws[1][2]).toEqual({ t: 'e', v: 7, w: '#DIV/0!' });
+    expect(ws[3][3]).toEqual({ t: 'b', v: true });
+    expect(ws['!ref']).toBe('A1:D4');
+    expect(ws[2]).toBeUndefined();
+  });
+});
+
+test.describe('หน้า compare.html — สูตรที่ไม่มีค่าแคช', () => {
+  test.use({ baseURL: SRV });
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+  const wasmHits = (page) => { const hits = []; page.on('request', (r) => { if (/vendor\/gridcraft\/|xlsx-recalc-worker/.test(r.url())) hits.push(r.url()); }); return hits; };
+
+  test('2 ไฟล์ต่างแค่ราคาในอีกชีต → แถวยอดรวม "ต่าง" (คำนวณใน Worker) + บรรทัดสถานะ th/en', async ({ page }) => {
+    const errors = await openPage(page, '/compare.html');
+    const hits = wasmHits(page);
+    await upload(page, '#fileA', 'est-v1.xlsx', await estBook(99));
+    await expect(page.locator('#calcA')).toHaveText('คำนวณสูตร 6 เซลล์');
+    await expect(page.locator('#calcA')).not.toHaveClass(/warn/);
+    await upload(page, '#fileB', 'est-v2.xlsx', await estBook(100, { emptyV: true }));
+    await expect(page.locator('#calcB')).toHaveText('คำนวณสูตร 6 เซลล์');
+    await expect(page.locator('#infoA')).toContainText('3 แถว · 5 คอลัมน์');
+    expect(hits.some((u) => /gridcraft_recalc_bg\.wasm$/.test(u))).toBe(true);
+    await run(page);
+    expect(await kpi(page)).toEqual([0, 0, 2, 1]); // ค่าแรงเหมือน · ค่าวัสดุ + รวม เปลี่ยน
+    const rows = page.locator('#resBody tr');
+    await expect(rows).toHaveCount(2);
+    await expect(rows.nth(0).locator('td.chg')).toHaveText(['99 → 100', '396 → 400']);
+    await expect(rows.nth(1)).toContainText('รวม');
+    await expect(rows.nth(1).locator('td.chg')).toHaveText(['757.5 → 761.5', 'เจ็ดร้อยห้าสิบเจ็ดบาทห้าสิบสตางค์ → เจ็ดร้อยหกสิบเอ็ดบาทห้าสิบสตางค์']);
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#calcA')).toHaveText('Calculated 6 formula cells');
+    expect(errors).toEqual([]);
+  });
+
+  test('ไฟล์ที่ค่าแคชครบ → ไม่มีคำขอ wasm/Worker และค่าไม่เปลี่ยน (ค่าแคชที่ผิดก็คงไว้)', async ({ page }) => {
+    const errors = await openPage(page, '/compare.html');
+    const hits = wasmHits(page);
+    await upload(page, '#fileA', 'a.xlsx', await estBook(99, { cached: true }));
+    await upload(page, '#fileB', 'b.xlsx', await estBook(100, { cached: true }));
+    await expect(page.locator('#infoB')).toContainText('3 แถว · 5 คอลัมน์');
+    await run(page);
+    expect(await kpi(page)).toEqual([0, 0, 0, 3]); // ทุกสูตรแคชเป็น 1 / "แคช" ทั้งสองไฟล์
+    await expect(page.locator('#calcA')).toBeEmpty();
+    await expect(page.locator('#calcA')).toBeHidden();
+    expect(hits).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  test('wasm โหลดไม่ได้ → หน้าไม่พัง เทียบต่อได้ + ข้อความเตือนจำนวนเซลล์', async ({ page }) => {
+    const errors = await openPage(page, '/compare.html');
+    await page.route('**/vendor/gridcraft/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    await upload(page, '#fileA', 'est-v1.xlsx', await estBook(99));
+    await upload(page, '#fileB', 'est-v2.xlsx', await estBook(100));
+    const warn = 'มีสูตร 6 เซลล์ที่ไม่มีค่า — ผลเทียบช่องเหล่านี้อาจไม่ถูก';
+    await expect(page.locator('#calcA')).toHaveText(warn);
+    await expect(page.locator('#calcB')).toHaveText(warn);
+    await expect(page.locator('#calcA')).toHaveClass(/warn/);
+    await expect(page.locator('#tMsg')).toBeEmpty();
+    await run(page);
+    expect(await kpi(page)).toEqual([0, 0, 0, 3]); // ไม่มีค่าสูตร = ว่างทั้งคู่ → "เหมือน" ทุกแถว (ปัญหาเดิม) จึงต้องมีข้อความเตือน
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#calcA')).toHaveText('6 formula cells have no saved value — results for these cells may be wrong');
+    expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
+  });
+
+  test('Worker สร้างไม่ได้ (เช่นเบราว์เซอร์เก่า) → ข้อความเตือนเหมือนกัน', async ({ page }) => {
+    const errors = await openPage(page, '/compare.html');
+    await page.evaluate(() => { window.Worker = function () { throw new Error('no worker'); }; });
+    await upload(page, '#fileA', 'est-v1.xlsx', await estBook(99));
+    await expect(page.locator('#calcA')).toHaveText('มีสูตร 6 เซลล์ที่ไม่มีค่า — ผลเทียบช่องเหล่านี้อาจไม่ถูก');
+    await expect(page.locator('#infoA')).toContainText('3 แถว');
+    expect(errors).toEqual([]);
+  });
+});
+
 /* ── ไฟล์ .docx ที่สร้างใน Node ── */
 async function docx(paragraphs) {
   const z = new JSZip();

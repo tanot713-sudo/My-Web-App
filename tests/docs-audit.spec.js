@@ -62,6 +62,14 @@ function xlsxBuf(rows, sheetNames) {
   (sheetNames || ['Sheet1']).forEach((n) => XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), n));
   return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 }
+// ไฟล์แบบ openpyxl: ข้อความที่ขึ้นต้น "=" เป็นสูตรที่ไม่มีค่าแคช (compare คำนวณด้วย GridCraft ใน Worker)
+function xlsxNoCache(rows) {
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  Object.keys(ws).forEach((k) => { if (k[0] !== '!' && typeof ws[k].v === 'string' && ws[k].v[0] === '=') ws[k] = { t: 'n', f: ws[k].v.slice(1) }; });
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Estimate');
+  return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+}
+const EST = (p) => [['item', 'qty', 'price', 'total'], ['labour', 3, 120.5, '=B2*C2'], ['material', 4, p, '=B3*C3'], ['total', null, null, '=SUM(D2:D3)']];
 const TABLE_A = [['id', 'name', 'qty', 'note'], [1, 'apple', 3, 'a'], [2, 'banana', 5, 'b'], [3, 'cherry', 7, 'c'], [4, 'date', 9, 'd']];
 const TABLE_B = [['id', 'name', 'qty', 'extra'], [1, 'apple', 3, 'x'], [2, 'banana', 6, 'y'], [3, 'cherry', 7, 'z'], [5, 'elder', 1, 'w']];
 const TXT_A = 'Line one\nLine two\nLine three\nLine four\nLine five\nLine six\nLine seven\nLine eight\nLine nine\nLine ten';
@@ -153,6 +161,9 @@ const TARGETS = [
       ['tables-removed', async (p) => { await dom(p, '[data-g="removed"]'); await settle(p, 200); }],
       ['tables-added', async (p) => { await dom(p, '[data-g="added"]'); await settle(p, 200); }],
       ['tables-dups', async (p) => { await dom(p, '[data-g="dups"]'); await settle(p, 200); }],
+      // บรรทัดสถานะสูตรที่ไม่มีค่าแคช: คำนวณได้ (A) · Worker ใช้ไม่ได้ → ข้อความเตือน (B)
+      ['tables-calc', async (p) => { await files(p, '#fileA', { name: 'est-1.xlsx', mimeType: 'application/octet-stream', buffer: xlsxNoCache(EST(99)) }); await p.waitForSelector('#calcA:not(:empty):not(:has-text("…"))', { timeout: 15000 }).catch(() => {}); await settle(p, 300); }],
+      ['tables-calc-warn', async (p) => { await p.evaluate(() => { window.__W = window.Worker; window.Worker = function () { throw new Error('x'); }; }); await files(p, '#fileB', { name: 'est-2.xlsx', mimeType: 'application/octet-stream', buffer: xlsxNoCache(EST(100)) }); await p.waitForSelector('#calcB.warn', { timeout: 15000 }).catch(() => {}); await p.evaluate(() => { window.Worker = window.__W; }); await settle(p, 300); }],
       ['tab-text', async (p) => { await dom(p, '[data-tab="text"]'); await p.fill('#txtA', TXT_A); await p.fill('#txtB', TXT_B); await settle(p, 200); }],
       ['text-diff', async (p) => { await dom(p, '#runText'); await p.waitForSelector('#diffBox:not([hidden])', { timeout: 10000 }).catch(() => {}); await settle(p, 300); }],
       ['text-unified', async (p) => { await dom(p, '[data-view="unified"]'); await settle(p, 200); }],

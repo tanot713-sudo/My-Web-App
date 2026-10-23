@@ -4,6 +4,7 @@
    แท็บ 1–2: ไฟล์ประมวลผลในเบราว์เซอร์เท่านั้น ไม่อัปโหลด ไม่เก็บ ไม่ซิงก์ (อยู่ในหน่วยความจำของหน้า)
    แท็บ 3: tanot:compare:quotes (sync list, idField id — 1 งาน = 1 แถว) · ไฟล์แนบ R2 ผ่าน /api/files?ns=compare (เฉพาะ *.pages.dev)
    SheetJS: โหลดแบบ lazy จาก CDN ตอนเลือกไฟล์ตาราง/ส่งออกครั้งแรก — ใช้ xlsx-js-style (ฟอร์กของ SheetJS 0.18.5 ที่เขียนสีเซลล์ได้) แทนตัวมาตรฐาน
+   สูตรที่ไฟล์ไม่ได้เก็บค่าไว้ (openpyxl/run.html): xlsx-recalc.js นับจาก XML ของชีต แล้วคำนวณด้วย GridCraft (wasm) ใน Worker — ไม่มี = ไม่โหลด wasm
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -47,6 +48,7 @@
       priceCrit: 'ราคา', wFix: 'น้ำหนักรวม {n}% — ปรับให้เท่ากับ 100%', thRank: 'อันดับ', thBidder: 'ผู้เสนอราคา', thPrice: 'ราคา', thTotal: 'คะแนนรวม', noName: '(ไม่มีชื่อ)', noNameShort: 'ไม่มีชื่อ',
       onlyPdfImg: 'รองรับเฉพาะ PDF และรูปภาพ', tooBig15: '{name} ใหญ่เกิน 15 MB', uploadFailN: 'อัปโหลดไม่สำเร็จ ({n})', uploadFail: 'อัปโหลดไม่สำเร็จ',
       delJob: 'ลบงาน "{name}" และไฟล์แนบทั้งหมด?', delBid: 'ลบผู้เสนอราคา "{name}"?', del: 'ลบ',
+      calcBusy: 'กำลังคำนวณสูตร {n} เซลล์…', calcOk: 'คำนวณสูตร {n} เซลล์', calcWarn: 'มีสูตร {n} เซลล์ที่ไม่มีค่า — ผลเทียบช่องเหล่านี้อาจไม่ถูก',
       c_price: 'ราคา', c_delivery: 'ส่งมอบ', c_warranty: 'รับประกัน', c_tech: 'คุณสมบัติทางเทคนิค'
     },
     en: {
@@ -71,6 +73,7 @@
       priceCrit: 'Price', wFix: 'Total weight {n}% — adjust to equal 100%', thRank: 'Rank', thBidder: 'Bidder', thPrice: 'Price', thTotal: 'Total score', noName: '(no name)', noNameShort: 'Unnamed',
       onlyPdfImg: 'Only PDF and images are supported', tooBig15: '{name} is larger than 15 MB', uploadFailN: 'Upload failed ({n})', uploadFail: 'Upload failed',
       delJob: 'Delete job "{name}" and all attachments?', delBid: 'Delete bidder "{name}"?', del: 'Delete',
+      calcBusy: 'Calculating {n} formula cells…', calcOk: 'Calculated {n} formula cells', calcWarn: '{n} formula cells have no saved value — results for these cells may be wrong',
       c_price: 'Price', c_delivery: 'Delivery', c_warranty: 'Warranty', c_tech: 'Technical specs'
     }
   });
@@ -137,7 +140,7 @@
 
   /* ══════════ 1. เทียบตาราง ══════════ */
   var sides = { A: newSide(), B: newSide() };
-  function newSide() { return { name: '', wb: null, sheet: '', hdr: 1, table: null, off: 2 }; }
+  function newSide() { return { name: '', wb: null, sheet: '', hdr: 1, table: null, off: 2, read: 0 }; }
   var tst = { cfg: null, res: null, group: 'changed', page: 0, cols: [] };
 
   function buildTable(X, side) {
@@ -171,16 +174,42 @@
 
   function resetResult() { tst.res = null; $('resBox').hidden = true; }
 
+  /* บรรทัดสถานะสูตรของไฟล์ฝั่ง k: null = ไม่มีสูตรค้าง · {n, st: 'busy'|'ok'|'warn'} */
+  function calcInfo(k, c) {
+    var el = $('calc' + k);
+    el.classList.toggle('warn', !!c && c.st === 'warn');
+    OME_I18N.live(el, c ? function () { return T(c.st === 'busy' ? 'calcBusy' : c.st === 'ok' ? 'calcOk' : 'calcWarn', { n: nf(c.n) }); } : null);
+    if (!c) el.textContent = '';
+  }
+
+  /* .xlsx: อ่านแล้วเติมค่าสูตรที่ไฟล์ไม่ได้เก็บไว้ (ไม่มี = ทำงานเดิมทุกอย่าง ไม่โหลด wasm) → {wb, calc} */
+  function readBook(X, k, b, tok) {
+    var wb = X.read(b, { type: 'array', cellDates: true, dense: true, bookFiles: true });
+    var R = window.TanotXlsxRecalc, need = R ? R.missing(wb) : [];
+    delete wb.files; delete wb.keys;
+    if (!need.length) return { wb: wb, calc: null };
+    if (sides[k].read === tok) calcInfo(k, { n: need.length, st: 'busy' });
+    return R.fillMissing(X, wb, b, need, { cellDates: true }).then(function (r) {
+      var left = need.length - r.filled;
+      return { wb: wb, calc: left ? { n: left, st: 'warn' } : { n: r.filled, st: 'ok' } };
+    }, function () {
+      return { wb: wb, calc: { n: need.length, st: 'warn' } };
+    });
+  }
+
   function readSide(k, file) {
     msg('tMsg', '');
     if (file.size > 100 * 1024 * 1024) { msg('tMsg', function () { return T('tooBig100', { name: file.name }); }); return; }
-    var csv = /\.csv$/i.test(file.name);
+    var csv = /\.csv$/i.test(file.name), tok = ++sides[k].read;
+    calcInfo(k, null);
     return loadXlsx().then(function (X) {
       var p = csv
-        ? file.text().then(function (t) { return X.read(t, { type: 'string', raw: true, dense: true }); })
-        : file.arrayBuffer().then(function (b) { return X.read(b, { type: 'array', cellDates: true, dense: true }); });
-      return p.then(function (wb) {
-        var s = sides[k];
+        ? file.text().then(function (t) { return { wb: X.read(t, { type: 'string', raw: true, dense: true }), calc: null }; })
+        : file.arrayBuffer().then(function (b) { return readBook(X, k, b, tok); });
+      return p.then(function (got) {
+        if (sides[k].read !== tok) return; // เลือกไฟล์ใหม่ระหว่างคำนวณ
+        var s = sides[k], wb = got.wb;
+        calcInfo(k, got.calc);
         s.name = file.name; s.wb = wb; s.sheet = wb.SheetNames[0]; s.hdr = 1;
         $('hdr' + k).value = 1;
         var sel = $('sheet' + k);
@@ -190,6 +219,8 @@
         buildTable(X, s); sideInfo(k); refreshMapping();
       });
     }).catch(function (e) {
+      if (sides[k].read !== tok) return;
+      calcInfo(k, null);
       msg('tMsg', e && (e.message === 'offline' || e.message === 'lib') ? needNet : function () { return T('readFail', { name: file.name }); });
     });
   }

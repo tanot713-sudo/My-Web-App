@@ -1,0 +1,32 @@
+# คำนวณสูตรที่ไม่มีค่าแคชในไฟล์ .xlsx สำหรับ compare.html (ห่อ GridCraft — https://github.com/storytold/gridcraft)
+# ใช้เฉพาะ crate xlsx (อ่านไฟล์) + calc (คำนวณ) — model/core แค่ชนิดข้อมูลของสองตัวนั้น
+# build: ./build.sh → vendor/gridcraft/ (อย่าแก้ไฟล์ใน vendor เอง)
+[package]
+name = "gridcraft-recalc"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# ล็อก commit เดียวกันทุกตัว — เปลี่ยน rev = build ใหม่ + อัปเดต vendor/gridcraft/manifest.json
+gridcraft-xlsx = { git = "https://github.com/storytold/gridcraft", rev = "06920de8da609c19de7446945cfc62b844691efd" }
+gridcraft-calc = { git = "https://github.com/storytold/gridcraft", rev = "06920de8da609c19de7446945cfc62b844691efd" }
+gridcraft-model = { git = "https://github.com/storytold/gridcraft", rev = "06920de8da609c19de7446945cfc62b844691efd" }
+gridcraft-core = { git = "https://github.com/storytold/gridcraft", rev = "06920de8da609c19de7446945cfc62b844691efd" }
+# ต้องตรงกับ wasm-bindgen-cli ที่ build.sh ใช้ (build.sh อ่านเลขจาก Cargo.lock)
+wasm-bindgen = "=0.2.129"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+# crate นี้ไม่อยู่ใน workspace ไหน
+[workspace]
