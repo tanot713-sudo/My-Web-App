@@ -49,6 +49,8 @@ node tools/media-eval/run.mjs --lang thai                       # ตัวเ�
 | `asr:cloud-seq` | เหมือน `asr:cloud` แต่ทีละท่อนไม่เหลื่อม (พฤติกรรมก่อน Section 3) — เทียบเวลา/Neurons/CER กับ `asr:cloud` ด้วยไฟล์ชุดเดียวกัน |
 | `tts:wasm-60` `tts:wasm-100` `tts:webgpu-100` | **สร้างไฟล์เสียง** ผ่านการ์ด "สร้างไฟล์เสียง" ของหน้า `text-to-speech.html` จริง (Section 5) · วัด **วินาทีต่อ 1,000 ตัวอักษร** ของทุกไฟล์ใน `local/tts/*.txt` (ไม่มีเฉลย/CER) + จำนวนท่อน/Worker จากแถวสถิติที่หน้าบันทึกเอง · `wasm-60` / `wasm-100` = WASM (ปิดตัวเลือก WebGPU) เพดานท่อน 60 / 100 ตัวอักษร (ตัวแปรทดสอบ `window.TANOT_TTS.maxChunk` — ใช้งานจริงใช้ `MAX_CHUNK` ค่าเดียวใน `tts-normalize.js`) · `webgpu-100` = WebGPU (`--headed` เหมือน `asr:gpu-*`; ถ้าหน้าถอย WASM แถวนั้นขึ้น ERROR) · เอาเลขไปเลือก `MAX_CHUNK` + ตัดสินว่าเปิด WebGPU เป็นค่าเริ่มต้นต่อไปไหม · ฟังเสียงเองด้วยว่าท่อนยาวไม่ทำให้เสียงเพี้ยน |
 | `ocr:tesseract` | แนบไฟล์ (เปิด "ใช้ OCR") ในหน้า `text-to-speech.html` → `file-reader.js` |
+| `ocr:paddle` | **อ่านแบบใหม่ (ทดลอง)** = PaddleOCR PP-OCRv5 ไทยในเบราว์เซอร์ ผ่านหน้า `extract-text.html` จริง (ติ๊ก "อ่านแบบใหม่ (ทดลอง)" → `file-reader.js` engine `paddle` → `ocr-paddle-worker.js`) · คลี่หน้าตามกฎของเว็บ (เฉพาะภาพถ่าย: JPEG/HEIC ที่มี EXIF กล้อง หรือแสงไม่เท่ากัน) · คอลัมน์ `detail` ใน results-*.json = เวลาแยกขั้น (`load/orient/unwarp/det/rec` ms, ขนาดภาพ, คลี่ไหม, อุปกรณ์) จากแถวสถิติที่หน้าเขียนลง problem log · ภาพแรกรวมเวลาดาวน์โหลดโมเดล (~51 MB ครั้งแรก) — เทียบกับผล Colab ของเจ้าของ |
+| `ocr:paddle-unwarp` `ocr:paddle-flat` | เหมือน `ocr:paddle` แต่บังคับคลี่หน้าทุกภาพ / ไม่คลี่เลย (`window.TANOT_PADDLE = { unwarp }` — ใช้เฉพาะวัดผล) = แถว "unwarp" กับ "ไม่ unwarp" ของ Colab |
 | `ocr:claude` | `POST /api/ocr` (prompt เริ่มต้นของเซิร์ฟเวอร์ โมเดลค่าเริ่มต้นของเซิร์ฟเวอร์ = `claude-sonnet-5`) — รูปและ PDF · **เสียเงินค่า Claude API ทุกครั้ง** |
 | `ocr:claude-sonnet-5` `ocr:claude-sonnet-5-5` `ocr:claude-haiku-5-5` | เหมือน `ocr:claude` แต่ระบุโมเดลเอง (allowlist ฝั่งเซิร์ฟเวอร์) — วัด CER/เวลา/ความล้มเหลวของแต่ละรุ่นด้วยไฟล์ชุดเดียวกันก่อนเลือกค่าเริ่มต้น (ยังไม่เปลี่ยนค่าเริ่มต้นในรอบ Section 2) |
 
@@ -87,6 +89,8 @@ node tools/media-eval/run.mjs --engines asr:th-small,tts:wasm-60 --lang thai
 
 ```bash
 node tools/media-eval/check-models.mjs     # ตรวจว่า repo + ไฟล์ dtype ของทุกโมเดลใน media-models.js มีจริง (ต้องออกเน็ตได้; repo private ต้องตั้ง HF_TOKEN) · exit 1 ถ้าขาด
+node tools/media-eval/check-models.mjs --paddle        # PaddleOCR (repo ทางการ PaddlePaddle/*_onnx, public): ไฟล์ครบที่ revision ในตาราง + ขนาดจริง + commit ล่าสุดของ main
+node tools/media-eval/check-models.mjs --paddle --pin  # เขียน commit ล่าสุดลง ocr-paddle-calc.js (ล็อก revision) — แล้ว bump CACHE ใน sw.js + commit
 ```
 
 รายการ `Tanotfin/distill-whisper-th-*-onnx` (Thonburian) แปลงโดยเจ้าของ (transformers.js 3.8.1 `scripts/convert.py --quantize`) และทดสอบถอดเสียงไทยกับ transformers.js 4.2.0 แล้ว แต่สคริปต์นี้ควรผ่านก่อนปล่อยเสมอ (ตรวจไฟล์ `encoder_model{,_fp16}` / `decoder_model_merged{,_quantized,_q4}` + config/tokenizer)

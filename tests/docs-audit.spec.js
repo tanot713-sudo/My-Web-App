@@ -134,7 +134,9 @@ const TARGETS = [
       ['base', async () => {}],
       ['loaded', async (p) => { await files(p, '#fileInput', txtFile('notes.txt', 'บรรทัดแรกของไฟล์\nSecond line of the file\n' + 'More text. '.repeat(40))); await settle(p, 600); }],
       ['pdf-actions', async (p) => { await p.evaluate(() => { document.getElementById('splitPdfBtn').style.display = ''; }); await dom(p, '#copyBtn'); await settle(p, 300); }],
-      ['read-error', async (p) => { await files(p, '#fileInput', { name: 'scan.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n') }); await settle(p, 900); }]
+      ['read-error', async (p) => { await files(p, '#fileInput', { name: 'scan.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4\n') }); await settle(p, 900); }],
+      // อ่านแบบใหม่ (ทดลอง): ติ๊กตัวเลือก + แถบโหลดโมเดลครั้งแรก + ล้มแล้วมีปุ่มแบบเดิม (สถานะจริงทดสอบเต็มทางใน ocr-paddle.spec.js — ที่นี่วัดหน้าตา)
+      ['paddle-states', async (p) => { await p.check('#paddleChk'); await p.evaluate(() => { const b = document.getElementById('modelBar'); b.hidden = false; document.getElementById('modelBarVal').textContent = '18.4 / 51.0 MB'; b.querySelector('.meter > i').style.width = '36%'; document.getElementById('legacyRow').hidden = false; }); await settle(p, 300); }]
     ] },
   { page: 'doc-check.html',
     states: [
@@ -147,7 +149,8 @@ const TARGETS = [
     states: [
       ['base', async () => {}],
       ['loaded', async (p) => { await files(p, '#fileInput', txtFile('draft.txt', 'This is teh best recieve of the year.\n\nSecond paragraph.')).catch(() => {}); await settle(p, 800); }],
-      ['issues', async (p) => { await p.selectOption('#langSelect', 'en').catch(() => {}); await dom(p, '#runBtn'); await settle(p, 900); }]
+      ['issues', async (p) => { await p.selectOption('#langSelect', 'en').catch(() => {}); await dom(p, '#runBtn'); await settle(p, 900); }],
+      ['paddle-states', async (p) => { await dom(p, '#replaceFileBtn'); await p.check('#paddleChk'); await p.evaluate(() => { const b = document.getElementById('modelBar'); b.hidden = false; document.getElementById('modelBarVal').textContent = '18.4 / 51.0 MB'; b.querySelector('.meter > i').style.width = '36%'; document.getElementById('legacyRow').hidden = false; }); await settle(p, 300); }]
     ] },
   { page: 'compare.html', seed: { 'tanot:compare:quotes': [QUOTE_JOB] }, init: 'window.TANOT_FILES = { enabled: true };',
     states: [

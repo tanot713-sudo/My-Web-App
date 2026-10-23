@@ -78,6 +78,8 @@ jobs:
         run: npx playwright test media.spec.js
       - name: ocr (รหัส OCR_PIN ก่อนใช้ Claude Vision + กันเดา 5 ครั้ง/10 นาที ใน D1, ย่อรูป/PDF สแกน/แบ่งช่วงหน้า, allowlist โมเดล, Sauvola + แก้ภาพเอียง + โหมดแม่นยำของ Tesseract — Anthropic ตัวหลอก)
         run: npx playwright test ocr.spec.js
+      - name: ocr-paddle (อ่านแบบใหม่ทดลอง — เรียงบรรทัด/คลี่หน้าเฉพาะภาพถ่าย/EXIF/หมุนหน้า known-answer, แถบโหลดโมเดล + แคชในเครื่อง, ล้ม → ปุ่มแบบเดิม, WebGPU ล้ม → WASM — PaddleOCR/ORT ตัวหลอก)
+        run: npx playwright test ocr-paddle.spec.js
       - name: asr (ถอดเสียงแม่นและเร็วขึ้น — รอยต่อท่อนเหลื่อมตัดคำซ้ำ, ส่งขนาน ≤ 3 + ลำดับ/ลองใหม่/ยกเลิก/quota หยุดทั้งชุด, /api/asr allowlist + initial_prompt ตามโดเมน + จำกัดความยาว, WebGPU ล้ม → WASM, ย่อหน้า + สวิตช์เวลา — Workers AI/transformers ตัวหลอก)
         run: npx playwright test asr.spec.js
       - name: tts-normalize (ข้อความก่อนพูด — known-answer ทุกกฎ ตัวเลข/เงิน/วันที่/เวลา/ตัวย่อ/ๆ ฯ/อังกฤษปน/markdown, fuzz 2,000 ข้อความต้องอยู่ใน vocab และท่อน ≤ MAX_CHUNK, วิดเจ็ตแชทพูดคำตอบที่มีเลข/markdown/อีโมจิไม่พัง + iOS ใช้ forNative + ช่องว่างประโยค/ย่อหน้า, ดูข้อความที่จะอ่านจริง, ภาษาถอดเสียงเริ่มต้นไทย + จำที่เลือก — transformers ตัวหลอกที่โยน error เมื่อเจอตัวอักษรนอก vocab)
