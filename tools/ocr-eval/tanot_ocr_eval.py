@@ -3,7 +3,6 @@
 # ใช้ภาพใน Drive "Tanot หนังสือเสียง/_ผลวัด-OCR/ภาพ/" ที่มี "<ชื่อ>.txt" (เฉลย) คู่กัน · ประเภท = คำแรกของชื่อ (ใบเสร็จ สแกน ถ่าย จอ ตาราง ลายมือ)
 # ตัวที่วัด (เลือกได้ที่ ENGINES)
 #   tesseract       = โหมดฟรีของเว็บ (file-reader.js ตัวจริง: เตรียมภาพ + Tesseract.js tha+eng) เปิดหน้าเว็บใน Chromium
-#   tesseract-best  = เหมือนกันแต่ติ๊ก "โหมดแม่นยำ" (tessdata_best)
 #   paddle          = PaddleOCR PP-OCRv5 รุ่นภาษาไทย (th_PP-OCRv5_mobile_rec) — ตัวเลือกที่จะเอาเข้าเบราว์เซอร์ได้ (PaddleOCR.js)
 #   paddle-unwarp   = เหมือนกัน + ตัวหมุน/คลี่หน้ากระดาษโค้ง (UVDoc) ก่อนอ่าน
 #   typhoon         = Typhoon OCR 1.5 (2B) บน GPU — โมเดลไทยเฉพาะทาง ใหญ่เกินเบราว์เซอร์ (ไว้ดูเพดานของโมเดลเปิด)
@@ -15,7 +14,7 @@
 #           DevTools → Application → Cookies → my-web-app-5w2.pages.dev → CF_Authorization) · ไม่ตั้ง = ข้าม Claude · ห้ามวางค่าลงโค้ด/แชท
 #   ข้อควรรู้: เฉลยส่วนใหญ่แก้จากร่างของ Typhoon (ถ่าย 1 จากร่างของ Claude) → ถ้ามีจุดที่หลุดตาไม่ได้แก้ ตัวนั้นจะได้เปรียบเล็กน้อย
 
-ENGINES = ["typhoon", "paddle", "paddle-unwarp", "tesseract", "tesseract-best", "claude-sonnet-5", "claude-sonnet-5-5", "claude-haiku-5-5"]
+ENGINES = ["typhoon", "paddle", "paddle-unwarp", "tesseract", "claude-sonnet-5", "claude-sonnet-5-5", "claude-haiku-5-5"]
 SITE = "https://my-web-app-5w2.pages.dev"
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง"
@@ -178,7 +177,7 @@ for eng in c["engines"]:
             for key, r in d.items(): put(eng, key, r["text"], r["sec"], r["err"])
 
 # ── 3) Tesseract ของเว็บจริง (file-reader.js ในหน้า text-to-speech.html บน Chromium) ──
-TS = [e for e in ("tesseract", "tesseract-best") if e in ENGINES and todo(e)]
+TS = [e for e in ("tesseract",) if e in ENGINES and todo(e)]
 if TS:
     try:
         v = subprocess.run("node -v", shell=True, capture_output=True, text=True).stdout.strip()
@@ -204,11 +203,11 @@ const c = JSON.parse(fs.readFileSync(process.argv[3], 'utf8'));
     for (const [key, path] of c.items[eng]) {
       const t0 = Date.now();
       try {
-        const text = await page.evaluate(async ({ b64, acc }) => {
+        const text = await page.evaluate(async ({ b64 }) => {
           const bin = atob(b64), u = new Uint8Array(bin.length);
           for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
-          return window.TanotFileReader.readAnyFile(new File([u], 'x.jpg', { type: 'image/jpeg' }), { ocr: true, accurate: acc });
-        }, { b64: fs.readFileSync(path).toString('base64'), acc: eng === 'tesseract-best' });
+          return window.TanotFileReader.readAnyFile(new File([u], 'x.jpg', { type: 'image/jpeg' }), { ocr: true });
+        }, { b64: fs.readFileSync(path).toString('base64') });
         (out[eng] = out[eng] || {})[key] = { text, sec: (Date.now() - t0) / 1000, err: null };
       } catch (e) { (out[eng] = out[eng] || {})[key] = { text: null, sec: (Date.now() - t0) / 1000, err: String(e && e.message || e).slice(0, 300) }; }
       console.log(eng, key, ((Date.now() - t0) / 1000).toFixed(0) + 's');
