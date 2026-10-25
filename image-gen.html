@@ -41,6 +41,9 @@
 .ig-item{position:relative;display:block;width:100%;height:auto;padding:0;overflow:hidden;aspect-ratio:1/1;border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
 .ig-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--ome-surface-2)}
 .ig-item .badge{position:absolute;left:6px;bottom:6px}
+.ig-ref{display:inline-flex;align-items:center;gap:var(--ome-sp-2);max-width:100%;padding:4px 4px 4px 4px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
+.ig-ref img{flex:none;width:40px;height:40px;object-fit:cover;border-radius:var(--ome-radius-sm);background:var(--ome-surface-1)}
+.ig-ref > span{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
 .ig-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .ig-dialog{width:min(760px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:auto}
 .ig-dialog .dialog-body > * + *{margin-top:var(--ome-sp-3)}
@@ -48,7 +51,8 @@
 .ig-prompt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--ome-fs-sm)}
 .ig-meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm);overflow-wrap:anywhere}
 [hidden]{display:none !important}
-@media (max-width:480px){.ig-grid{grid-template-columns:repeat(2,1fr)}.ig-opt .segmented{max-width:100%}}
+@media (max-width:480px){.ig-grid{grid-template-columns:repeat(2,1fr)}.ig-opt .segmented{max-width:100%}
+  .ig-dialog .dialog-foot{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-2)}.ig-dialog .dialog-foot > :is(button,a){margin:0 !important;justify-content:center}}
 </style>
 </head>
 <body data-layout="tool">
@@ -64,6 +68,10 @@
     <div class="field">
       <label for="prompt" data-i18n="ig.prompt">คำสั่ง</label>
       <textarea id="prompt" maxlength="1500" rows="4" autocomplete="off"></textarea>
+    </div>
+    <div class="ig-ref" id="refBox" hidden>
+      <img id="refImg" alt="" width="40" height="40"><span data-i18n="ig.refLabel">ภาพอ้างอิง</span>
+      <button class="btn icon ghost" type="button" id="refDel" data-i18n-attr="aria-label:ig.refRemove" aria-label="เอาภาพอ้างอิงออก"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
     </div>
     <div class="ig-opts">
       <div class="ig-opt"><span id="lPreset" data-i18n="ig.preset">แบบ</span>
@@ -111,6 +119,7 @@
   </div>
   <div class="dialog-foot">
     <button class="btn danger" type="button" id="vDel" style="margin-right:auto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="ig.del">ลบ</span></button>
+    <button class="btn" type="button" id="vEdit"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-pencil"/></svg><span data-i18n="ig.edit">แก้ภาพนี้</span></button>
     <button class="btn" type="button" id="vAgain"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="ig.again">สร้างซ้ำแบบนี้</span></button>
     <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="ig.download">ดาวน์โหลด</span></a>
   </div>
