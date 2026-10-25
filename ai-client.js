@@ -81,10 +81,11 @@
       return res.json().catch(function () { return {}; }).then(function (data) {
         var msg = (data && data.error) || ('HTTP ' + res.status);
         if (data && /^pin_/.test(data.code || '')) { var pe = AiError(data.code, msg, res.status); if (data.retryAfter) pe.retryAfter = data.retryAfter; if (data.remaining != null) pe.remaining = data.remaining; throw pe; }
+        if (data && /^ref_/.test(data.code || '')) throw AiError(data.code, msg, res.status);
         if (res.status === 413) throw AiError('too_large', msg, res.status);
         if (res.status === 401 || res.status === 403) throw AiError('auth', msg, res.status);
         if (res.status === 429 || (data && data.code === 'quota')) throw AiError('quota', msg, res.status);
-        if (res.status >= 500) throw AiError('upstream', msg, res.status);
+        if (res.status >= 500) { var ue = AiError('upstream', msg, res.status); if (data && typeof data.detail === 'string') ue.detail = data.detail; throw ue; }
         throw AiError('bad', msg, res.status);
       });
     }, function (err) {
@@ -231,10 +232,11 @@
     return json('/api/ocr', body, { signal: opts.signal, timeoutMs: opts.timeoutMs || (opts.pdfBase64 ? 540000 : 200000), headers: { 'X-OCR-Pin': String(opts.pin == null ? '' : opts.pin) } });
   }
 
-  /* image({ prompt, preset:'background'|'icon'|'free', mode:'light'|'dark', model:'fast'|'quality', seed?, signal })
-     → { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt } — ภาพถูกเก็บใน R2 (ns images) แล้ว ดึงด้วย /api/files?id= */
+  /* image({ prompt, preset:'background'|'icon'|'free', mode:'light'|'dark', model:'fast'|'quality', seed?, ref?, signal })
+     → { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt } — ภาพถูกเก็บใน R2 (ns images) แล้ว ดึงด้วย /api/files?id=
+     ref = base64 ของภาพอ้างอิง PNG/JPEG (เฉพาะ quality) · ผิด = AiError code ref_model|ref_type|ref_size|ref_bytes · โมเดลล้ม = upstream + err.detail */
   function image(opts) {
-    return json('/api/ai/image', { prompt: opts.prompt, preset: opts.preset, mode: opts.mode, model: opts.model, seed: opts.seed },
+    return json('/api/ai/image', { prompt: opts.prompt, preset: opts.preset, mode: opts.mode, model: opts.model, seed: opts.seed, ref: opts.ref },
       { signal: opts.signal, timeoutMs: 120000 });
   }
 
