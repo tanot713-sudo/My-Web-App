@@ -410,6 +410,7 @@ test.describe('หน้า compare.html — เทียบตาราง', ()
 const R = require(path.join(__dirname, '..', 'xlsx-recalc.js'));
 const GC = path.join(__dirname, '..', 'vendor', 'gridcraft');
 const RATE = 'อัตรา & ราคา';
+const wasmHits = (page) => { const hits = []; page.on('request', (r) => { if (/vendor\/gridcraft\/|xlsx-recalc-worker/.test(r.url())) hits.push(r.url()); }); return hits; };
 // แบบไฟล์ประมาณราคาที่ openpyxl/run.html เขียน: สูตรไม่มีค่าแคช · ราคาวัสดุอยู่อีกชีต (ชื่อมี &) · emptyV = <v /> แบบ openpyxl (ไม่ใส่ = ไม่มี <v> แบบ SheetJS)
 async function estBook(price, { emptyV = false, cached = false } = {}) {
   const wb = XLSX.utils.book_new();
@@ -529,7 +530,6 @@ test.describe('xlsx-recalc.js + GridCraft (known-answer)', () => {
 test.describe('หน้า compare.html — สูตรที่ไม่มีค่าแคช', () => {
   test.use({ baseURL: SRV });
   test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
-  const wasmHits = (page) => { const hits = []; page.on('request', (r) => { if (/vendor\/gridcraft\/|xlsx-recalc-worker/.test(r.url())) hits.push(r.url()); }); return hits; };
 
   test('2 ไฟล์ต่างแค่ราคาในอีกชีต → แถวยอดรวม "ต่าง" (คำนวณใน Worker) + บรรทัดสถานะ th/en', async ({ page }) => {
     const errors = await openPage(page, '/compare.html');
@@ -591,6 +591,201 @@ test.describe('หน้า compare.html — สูตรที่ไม่ม�
     await expect(page.locator('#calcA')).toHaveText('มีสูตร 6 เซลล์ที่ไม่มีค่า — ผลเทียบช่องเหล่านี้อาจไม่ถูก');
     await expect(page.locator('#infoA')).toContainText('3 แถว');
     expect(errors).toEqual([]);
+  });
+});
+
+/* ══════════ ไฟล์ดาวน์โหลดของ run.html: เติม <v> ลง XML ของชีต (xlsx-recalc.js writeSheet/writeValues/fillXlsx) ══════════ */
+const FULLCALC = '<calcPr calcId="124519" fullCalcOnLoad="1"/>';
+// แบบที่ openpyxl เขียน: <v /> ว่าง + calcPr fullCalcOnLoad ใน workbook.xml
+async function opxBook(price, opt) {
+  const z = await JSZip.loadAsync(await estBook(price, Object.assign({ emptyV: true }, opt)));
+  z.file('xl/workbook.xml', (await z.file('xl/workbook.xml').async('string')).replace(/<calcPr[^>]*\/>|(<\/workbook>)/, (m, end) => FULLCALC + (end || '')));
+  return z.generateAsync({ type: 'nodebuffer' });
+}
+// Worker ปลอมใน Node: ส่งงานให้ GridCraft จริง (รูปแบบข้อความเดียวกับ xlsx-recalc-worker.js) · mode: ok | error | hang
+function fakeWorker(mode = 'ok') {
+  const calc = mode === 'ok' ? gridcraft() : null, made = [];
+  global.Worker = class {
+    constructor(url) { made.push(url); }
+    terminate() {}
+    postMessage(d) {
+      if (mode === 'hang') return;
+      setTimeout(() => {
+        if (mode === 'error') return this.onmessage({ data: { ok: false, error: 'boom' } });
+        const names = [], flat = [];
+        d.cells.forEach((q) => { let k = names.indexOf(q.sheet); if (k < 0) { k = names.length; names.push(q.sheet); } flat.push(k, q.r, q.c); });
+        this.onmessage({ data: { ok: true, cells: calc(d.bytes, names, flat), ms: 1 } });
+      });
+    }
+  };
+  return made;
+}
+
+test.describe('xlsx-recalc.js — เติมค่าลงไฟล์ (run.html)', () => {
+  test.afterEach(() => { delete global.Worker; });
+
+  test('writeSheet: ชนิดค่า n/str/b/e/วันที่ · escape XML · คง <f> · ไม่ทับค่าที่มี · ข้าม z/NaN', () => {
+    const xml = '<worksheet><sheetData><row r="1">'
+      + '<c r="A1" s="2"><f>1+1</f><v /></c>'
+      + '<c r="B1" t="n"><f>A1&amp;"&lt;x&gt;"</f></c>'
+      + '<c r="C1"><f>A1&gt;1</f><v></v></c>'
+      + '<c r="D1"><f>1/0</f></c>'
+      + '<c r="E1" s="4"><f>TODAY()</f></c>'
+      + '<c r="F1"><f>A1</f><v>9</v></c>'                       // มีค่าแคชแล้ว → ไม่ทับ
+      + '<c r="G1"><f t="shared" ref="G1:G2" si="0">A1</f></c>'
+      + '</row><row r="2"><c r="G2"><f t="shared" si="0"/></c><c r="H2"><f>X</f></c><c r="I2"><f>Y</f></c><x:c r="J2"><x:f>1</x:f></x:c>'
+      + '</row></sheetData></worksheet>';
+    const res = R.writeSheet(xml, [
+      { r: 0, c: 0, t: 'n', v: 2 }, { r: 0, c: 1, t: 's', v: '2<x>&"\u0001' }, { r: 0, c: 2, t: 'b', v: true },
+      { r: 0, c: 3, t: 'e', v: '#DIV/0!' }, { r: 0, c: 4, t: 'd', v: new Date(2026, 9, 7, 12) }, { r: 0, c: 5, t: 'n', v: 1 },
+      { r: 0, c: 6, t: 'n', v: 0.1 + 0.2 }, { r: 1, c: 6, t: 'n', v: -3e-7 }, { r: 1, c: 7, t: 'z', v: null }, { r: 1, c: 8, t: 'n', v: NaN },
+      { r: 1, c: 9, t: 'n', v: 5 }, { r: 9, c: 9, t: 'n', v: 1 },
+    ], false);
+    expect(res.filled).toBe(8);
+    const c = (ref) => (new RegExp('<(?:x:)?c r="' + ref + '"[^>]*>[\\s\\S]*?</(?:x:)?c>').exec(res.xml) || [])[0];
+    expect(c('A1')).toBe('<c r="A1" s="2"><f>1+1</f><v>2</v></c>');
+    expect(c('B1')).toBe('<c r="B1" t="str"><f>A1&amp;"&lt;x&gt;"</f><v>2&lt;x&gt;&amp;"</v></c>');
+    expect(c('C1')).toBe('<c r="C1" t="b"><f>A1&gt;1</f><v>1</v></c>');
+    expect(c('D1')).toBe('<c r="D1" t="e"><f>1/0</f><v>#DIV/0!</v></c>');
+    expect(c('E1')).toBe('<c r="E1" s="4"><f>TODAY()</f><v>46302.5</v></c>'); // วันที่ = serial (ระบบ 1900)
+    expect(c('F1')).toBe('<c r="F1"><f>A1</f><v>9</v></c>');
+    expect(c('G1')).toBe('<c r="G1"><f t="shared" ref="G1:G2" si="0">A1</f><v>0.30000000000000004</v></c>');
+    expect(c('G2')).toBe('<c r="G2"><f t="shared" si="0"/><v>-3e-7</v></c>');
+    expect(c('H2')).toBe('<c r="H2"><f>X</f></c>');
+    expect(c('I2')).toBe('<c r="I2"><f>Y</f></c>');
+    expect(c('J2')).toBe('<x:c r="J2"><x:f>1</x:f><x:v>5</x:v></x:c>');
+    expect(R.writeSheet(xml, [{ r: 0, c: 4, t: 'd', v: new Date(2026, 9, 7, 12) }], true).xml).toContain('<v>44840.5</v>'); // date1904 = serial 1900 − 1462
+    expect(R.writeSheet(xml, [], false)).toEqual({ xml, filled: 0 });
+    expect(R.scanSheet(res.xml).map((q) => q.c)).toEqual([7, 8]); // เหลือเฉพาะที่คำนวณไม่ได้
+  });
+
+  test('fillXlsx: แบบ est-cost (openpyxl / SheetJS) → <v> 361.5 / 396 / 757.5 + BAHTTEXT · สูตรอยู่ · fullCalcOnLoad อยู่ · SheetJS อ่านเห็นค่า', async () => {
+    for (const make of [() => opxBook(99), () => estBook(99)]) {
+      const made = fakeWorker('ok');
+      const src = await make();
+      const r = await R.fillXlsx(JSZip, src);
+      expect(made).toEqual(['xlsx-recalc-worker.js']);
+      expect([r.need, r.filled]).toEqual([6, 6]);
+      const z0 = await JSZip.loadAsync(src), z1 = await JSZip.loadAsync(r.bytes);
+      expect(await z1.file('xl/workbook.xml').async('string')).toBe(await z0.file('xl/workbook.xml').async('string'));
+      expect(Object.keys(z1.files).sort()).toEqual(Object.keys(z0.files).sort());
+      const xml = await z1.file('xl/worksheets/sheet1.xml').async('string');
+      expect(xml).toContain('<c r="D4"><f>SUM(D2:D3)</f><v>757.5</v></c>');
+      expect(xml).toContain('<c r="E4" t="str"><f>BAHTTEXT(D4)</f><v>เจ็ดร้อยห้าสิบเจ็ดบาทห้าสิบสตางค์</v></c>');
+      const ws = XLSX.read(r.bytes, { type: 'buffer' }).Sheets['สรุป'];
+      expect(['C2', 'D2', 'D3', 'D4', 'E4'].map((a) => ws[a].v)).toEqual([120.5, 361.5, 396, 757.5, 'เจ็ดร้อยห้าสิบเจ็ดบาทห้าสิบสตางค์']);
+      expect(['D2', 'D4', 'E4'].map((a) => ws[a].f)).toEqual(['B2*C2', 'SUM(D2:D3)', 'BAHTTEXT(D4)']);
+      expect(R.missingCells((p) => null)).toEqual([]);
+    }
+    expect(await (await JSZip.loadAsync(await opxBook(99))).file('xl/workbook.xml').async('string')).toContain(FULLCALC);
+  });
+
+  test('fillXlsx: template est-cost จริง → 51 เซลล์ครบ ทุกสูตรมีค่าใน SheetJS · ส่วนอื่นของไฟล์ไม่เปลี่ยน', async () => {
+    fakeWorker('ok');
+    const src = fs.readFileSync(path.join(__dirname, '..', 'tool', 'est-cost', 'Est_Cost_MA_v5_clean.xlsx'));
+    const r = await R.fillXlsx(JSZip, src);
+    expect([r.need, r.filled]).toEqual([51, 51]);
+    const wb = XLSX.read(r.bytes, { type: 'buffer' });
+    const empty = [];
+    for (const n of wb.SheetNames) for (const [a, x] of Object.entries(wb.Sheets[n])) if (a[0] !== '!' && x.f && x.v === undefined) empty.push(n + '!' + a);
+    expect(empty).toEqual([]);
+    const s = wb.Sheets['Summary Cost'];
+    expect(s.C5.v).toBeCloseTo(22500000 * 100 / 107, 6);
+    expect(s.E4.v).toBe('ยี่สิบสองล้านห้าแสนบาทถ้วน');
+    const z0 = await JSZip.loadAsync(src), z1 = await JSZip.loadAsync(r.bytes);
+    const changed = [];
+    for (const p of Object.keys(z0.files)) if (!z0.files[p].dir && (await z0.file(p).async('base64')) !== (await z1.file(p).async('base64'))) changed.push(p);
+    expect(changed.length).toBeGreaterThan(0);
+    expect(changed.every((p) => /^xl\/worksheets\/sheet\d+\.xml$/.test(p))).toBe(true);
+    expect(await z1.file('xl/workbook.xml').async('string')).toMatch(/fullCalcOnLoad="1"/);
+  });
+
+  test('fillXlsx: ไม่มีเซลล์ขาดค่า = bytes เดิม ไม่สร้าง Worker · Worker ล้ม/หมดเวลา = reject (ผู้เรียกใช้ไฟล์เดิม)', async () => {
+    const made = fakeWorker('ok');
+    const cached = await estBook(99, { cached: true });
+    const r = await R.fillXlsx(JSZip, cached);
+    expect(r.bytes).toBe(cached); // ไม่แตะไฟล์
+    expect(r.need).toBe(0);
+    expect(made).toEqual([]);
+    fakeWorker('error');
+    await expect(R.fillXlsx(JSZip, await opxBook(99))).rejects.toThrow('boom');
+    fakeWorker('hang');
+    await expect(R.fillXlsx(JSZip, await opxBook(99), { timeout: 50 })).rejects.toThrow('timeout');
+    global.Worker = function () { throw new Error('no worker'); };
+    await expect(R.fillXlsx(JSZip, await opxBook(99))).rejects.toThrow('no worker');
+    await expect(R.fillXlsx(JSZip, Buffer.from('not a zip'))).rejects.toThrow();
+  });
+});
+
+test.describe('หน้า run.html — ไฟล์ประมาณราคามีค่าสูตรก่อนดาวน์โหลด', () => {
+  test.use({ baseURL: SRV });
+  const JSZIP_CDN = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+  // Pyodide ปลอม: tool_run.run() "เขียน" ไฟล์ประมาณราคา (bytes จาก Node) + svg
+  async function openRun(page, xlsx) {
+    const errors = await prepare(page, { theme: 'light' });
+    await page.addInitScript((b64) => {
+      const xl = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+      window.loadPyodide = async () => ({
+        setStdout() {}, setStderr() {}, loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }),
+        FS: { writeFile() {}, readFile: (p) => (/\.xlsx$/.test(p) ? xl.slice() : new Uint8Array(16)) },
+        runPythonAsync: async (code) => (code.indexOf('tool_run.run(') >= 0 ? { toJs: () => ['/home/pyodide/out/estimate_v5.xlsx', '/home/pyodide/out/route_map.svg'], destroy() {} } : undefined),
+      });
+    }, Buffer.from(xlsx).toString('base64'));
+    await page.route(JSZIP_CDN, (r) => r.fulfill({ path: path.join(__dirname, 'node_modules', 'jszip', 'dist', 'jszip.min.js'), contentType: 'application/javascript' }));
+    await page.goto('/run.html?tool=est-cost', { waitUntil: 'load' });
+    await page.waitForSelector('nav.ome-nav');
+    await expect(page.locator('#status')).toHaveText('พร้อมใช้งาน — เลือกไฟล์ข้อมูล', { timeout: 15000 });
+    await page.setInputFiles('#file', { name: 'input.xlsx', mimeType: 'application/octet-stream', buffer: xbuf({ EQUIPMENT: [['a'], [1]] }) });
+    await expect(page.locator('#run')).toBeEnabled();
+    return errors;
+  }
+  async function runAndDownload(page) {
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.click('#run')]);
+    expect(dl.suggestedFilename()).toBe('estimate_v5.xlsx');
+    return fs.readFileSync(await dl.path());
+  }
+  const benign = (errors) => errors.filter((e) => !/404|Failed to load resource|ERR_|pyodide|gsi/i.test(e));
+
+  test('สูตรไม่มีค่า → คำนวณใน Worker แล้วไฟล์ที่ดาวน์โหลดมี 757.5 + BAHTTEXT (สูตรยังอยู่) · ไม่มีข้อความเตือน', async ({ page }) => {
+    const errors = await openRun(page, await opxBook(99));
+    const hits = wasmHits(page);
+    const got = await runAndDownload(page);
+    const ws = XLSX.read(got, { type: 'buffer' }).Sheets['สรุป'];
+    expect([ws.D4.v, ws.D4.f, ws.E4.v]).toEqual([757.5, 'SUM(D2:D3)', 'เจ็ดร้อยห้าสิบเจ็ดบาทห้าสิบสตางค์']);
+    expect(await (await JSZip.loadAsync(got)).file('xl/workbook.xml').async('string')).toContain(FULLCALC);
+    expect(hits.some((u) => /gridcraft_recalc_bg\.wasm$/.test(u))).toBe(true);
+    await expect(page.locator('#status')).toHaveText('สร้างเอกสารเสร็จแล้ว');
+    await expect(page.locator('#files .callout')).toHaveCount(0);
+    await expect(page.locator('#files .list-row')).toHaveCount(2);
+    expect(benign(errors)).toEqual([]);
+  });
+
+  test('ค่าแคชครบ → ไม่โหลด wasm/Worker ไฟล์ไม่ถูกแตะ', async ({ page }) => {
+    const src = await estBook(99, { cached: true });
+    const errors = await openRun(page, src);
+    const hits = wasmHits(page);
+    const got = await runAndDownload(page);
+    expect(Buffer.compare(got, Buffer.from(src))).toBe(0);
+    expect(hits).toEqual([]);
+    await expect(page.locator('#files .callout')).toHaveCount(0);
+    expect(benign(errors)).toEqual([]);
+  });
+
+  test('wasm โหลดไม่ได้ → ได้ไฟล์เดิม + ข้อความเตือน th/en + problem log ไม่มีชื่อไฟล์/เนื้อหา', async ({ page }) => {
+    const src = await opxBook(99);
+    const errors = await openRun(page, src);
+    await page.route('**/vendor/gridcraft/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    const got = await runAndDownload(page);
+    expect(Buffer.compare(got, Buffer.from(src))).toBe(0);
+    const warn = page.locator('#files .callout.warn');
+    await expect(warn).toHaveText('เติมค่าสูตรในไฟล์ไม่สำเร็จ — พรีวิวบนมือถืออาจไม่เห็นยอดรวม');
+    await expect(page.locator('#status')).toHaveText('สร้างเอกสารเสร็จแล้ว');
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(warn).toHaveText("Couldn't fill formula values — mobile previews may show blank totals");
+    const log = await page.evaluate(() => localStorage.getItem('tanot:media:log') || '');
+    expect(log).toContain('"kind":"xlsx"');
+    expect(log).not.toMatch(/estimate|input\.xlsx|สรุป|อัตรา/);
+    expect(benign(errors)).toEqual([]);
   });
 });
 
