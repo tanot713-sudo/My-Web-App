@@ -1,5 +1,6 @@
 /* POST /api/ai/image — สร้างภาพจากข้อความด้วย Workers AI (FLUX) แล้วเก็บลง R2 + ตาราง files (ns 'images', ref = preset)
-   body: { prompt, preset: 'background'|'icon'|'free', mode: 'light'|'dark', model: 'fast'|'quality', seed?, ref? }
+   body: { prompt, preset: 'background'|'icon'|'free', mode: 'light'|'dark', model: 'fast'|'quality', seed?, ref?, ratio? }
+   ratio = '1:1'|'3:4'|'4:3'|'9:16'|'16:9' (ASPECTS) — มีผลเฉพาะ preset free + quality · ค่าอื่น = 400 code ratio
    ref = ภาพอ้างอิงของ "แก้ภาพนี้" (base64 ของ PNG/JPEG หรือ data URL) — เฉพาะ quality · กว้าง/สูง ≤ REF_MAX (อ่านจาก header) · ≤ REF_MAX_BYTES
      ไม่ผ่าน = 400 code ref_model|ref_type|ref_size|ref_bytes · ส่งเข้าโมเดลเป็นฟิลด์ multipart input_image_0
    ตอบ { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt(เต็ม) }
@@ -30,10 +31,20 @@ export const MODE_SUFFIX = {
   dark: 'deep dark charcoal and navy tones, low contrast, quiet night mood',
 };
 
-/* ขนาดภาพ: พื้นหลัง 16:9 (1024×576, ทวีคูณของ 16) / อื่นๆ 1:1 — schnell ไม่รับขนาด จึงได้ 1024×1024 เสมอ */
-export function sizeFor(preset, model) {
+/* ขนาดภาพ: พื้นหลัง 16:9 (1024×576, ทวีคูณของ 16) / อื่นๆ 1:1 — schnell ไม่รับขนาด จึงได้ 1024×1024 เสมอ
+   preset อิสระ + โมเดลที่รับขนาด (quality) เลือกอัตราส่วนได้จาก ASPECTS เท่านั้น (ห้ามรับ width/height จาก client) — ต้องตรงกับ RATIOS ใน image-gen-calc.js */
+export const ASPECTS = {
+  '1:1': { width: 1024, height: 1024 },
+  '3:4': { width: 768, height: 1024 },
+  '4:3': { width: 1024, height: 768 },
+  '9:16': { width: 576, height: 1024 },
+  '16:9': { width: 1024, height: 576 },
+};
+export function sizeFor(preset, model, ratio) {
   if (!model.sized) return { width: 1024, height: 1024 };
-  return preset === 'background' ? { width: 1024, height: 576 } : { width: 1024, height: 1024 };
+  if (preset === 'background') return { width: 1024, height: 576 };
+  if (preset === 'free' && ratio) return ASPECTS[ratio];
+  return { width: 1024, height: 1024 };
 }
 
 export function buildPrompt(prompt, preset, mode) {
@@ -137,8 +148,14 @@ export async function onRequestPost({ request, env }) {
     if (ref.code) return json(400, { error: ref.error, code: ref.code });
   }
 
+  let ratio = null;
+  if (body.ratio !== undefined && body.ratio !== null) {
+    if (typeof body.ratio !== 'string' || !Object.prototype.hasOwnProperty.call(ASPECTS, body.ratio)) return json(400, { error: 'ratio must be one of ' + Object.keys(ASPECTS).join('|'), code: 'ratio' });
+    ratio = body.ratio;
+  }
+
   const full = buildPrompt(prompt, preset, mode);
-  const { width, height } = sizeFor(preset, model);
+  const { width, height } = sizeFor(preset, model, ratio);
   const neurons = imageNeurons(model, width, height, ref ? [ref] : []);
   const blocked = await checkQuota(env, neurons);
   if (blocked) return blocked;

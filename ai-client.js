@@ -232,11 +232,11 @@
     return json('/api/ocr', body, { signal: opts.signal, timeoutMs: opts.timeoutMs || (opts.pdfBase64 ? 540000 : 200000), headers: { 'X-OCR-Pin': String(opts.pin == null ? '' : opts.pin) } });
   }
 
-  /* image({ prompt, preset:'background'|'icon'|'free', mode:'light'|'dark', model:'fast'|'quality', seed?, ref?, signal })
+  /* image({ prompt, preset:'background'|'icon'|'free', mode:'light'|'dark', model:'fast'|'quality', seed?, ref?, ratio?, signal })
      → { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt } — ภาพถูกเก็บใน R2 (ns images) แล้ว ดึงด้วย /api/files?id=
      ref = base64 ของภาพอ้างอิง PNG/JPEG (เฉพาะ quality) · ผิด = AiError code ref_model|ref_type|ref_size|ref_bytes · โมเดลล้ม = upstream + err.detail */
   function image(opts) {
-    return json('/api/ai/image', { prompt: opts.prompt, preset: opts.preset, mode: opts.mode, model: opts.model, seed: opts.seed, ref: opts.ref },
+    return json('/api/ai/image', { prompt: opts.prompt, preset: opts.preset, mode: opts.mode, model: opts.model, seed: opts.seed, ref: opts.ref, ratio: opts.ratio },
       { signal: opts.signal, timeoutMs: 120000 });
   }
 

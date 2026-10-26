@@ -18,6 +18,7 @@
 <link rel="stylesheet" href="theme.css">
 <script src="ai-client.js"></script>
 <script src="shell.js" defer></script>
+<script src="image-gen-calc.js" defer></script>
 <script src="image-gen.js" defer></script>
 <style>
 .ig-page{max-width:980px}
@@ -41,6 +42,24 @@
 .ig-item{position:relative;display:block;width:100%;height:auto;padding:0;overflow:hidden;aspect-ratio:1/1;border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
 .ig-item img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:var(--ome-surface-2)}
 .ig-item .badge{position:absolute;left:6px;bottom:6px}
+.ig-recent .disclosure-body{padding-top:var(--ome-sp-2)}
+.ig-recent ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--ome-sp-2)}
+.ig-rp{width:100%;justify-content:flex-start;text-align:left;min-width:0}
+.ig-rp > span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ig-chips{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2)}
+.ig-seed > span:first-child{padding-left:var(--ome-sp-2)}
+.ig-pend,.ig-fail{border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-2);min-width:0}
+.ig-pend{aspect-ratio:1/1;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;padding:var(--ome-sp-3)}
+.ig-skel{height:10px;border-radius:var(--ome-radius-pill);background:var(--ome-border)}
+.ig-skel.s{width:55%}
+.ig-pend > span{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.ig-fail{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2) var(--ome-sp-3);padding:var(--ome-sp-3)}
+.ig-fail-msg{flex:1 1 220px;min-width:0;display:flex;gap:var(--ome-sp-2);align-items:flex-start;font-size:var(--ome-fs-sm);color:var(--ome-err-ink)}
+.ig-fail-msg .ome-icon{flex:none;margin-top:3px}
+.ig-fail-msg span{overflow-wrap:anywhere}
+.ig-fail-acts{display:flex;gap:var(--ome-sp-2)}
+.ig-pr{display:flex;gap:var(--ome-sp-2);align-items:flex-start}
+.ig-pr .ig-prompt{flex:1;min-width:0}
 .ig-ref{display:inline-flex;align-items:center;gap:var(--ome-sp-2);max-width:100%;padding:4px 4px 4px 4px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
 .ig-ref img{flex:none;width:40px;height:40px;object-fit:cover;border-radius:var(--ome-radius-sm);background:var(--ome-surface-1)}
 .ig-ref > span{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
@@ -69,9 +88,19 @@
       <label for="prompt" data-i18n="ig.prompt">คำสั่ง</label>
       <textarea id="prompt" maxlength="1500" rows="4" autocomplete="off"></textarea>
     </div>
-    <div class="ig-ref" id="refBox" hidden>
-      <img id="refImg" alt="" width="40" height="40"><span data-i18n="ig.refLabel">ภาพอ้างอิง</span>
-      <button class="btn icon ghost" type="button" id="refDel" data-i18n-attr="aria-label:ig.refRemove" aria-label="เอาภาพอ้างอิงออก"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
+    <details class="disclosure ig-recent" id="recentBox" hidden>
+      <summary id="lRecent" data-i18n="ig.recent">prompt ล่าสุด</summary>
+      <div class="disclosure-body"><ul id="recent" aria-labelledby="lRecent" data-i18n-skip></ul></div>
+    </details>
+    <div class="ig-chips" id="chips" hidden>
+      <div class="ig-ref" id="refBox" hidden>
+        <img id="refImg" alt="" width="40" height="40"><span data-i18n="ig.refLabel">ภาพอ้างอิง</span>
+        <button class="btn icon ghost" type="button" id="refDel" data-i18n-attr="aria-label:ig.refRemove" aria-label="เอาภาพอ้างอิงออก"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
+      </div>
+      <div class="ig-ref ig-seed" id="seedBox" hidden>
+        <span id="seedTxt"></span>
+        <button class="btn icon ghost" type="button" id="seedDel" data-i18n-attr="aria-label:ig.seedRemove" aria-label="เอา seed ออก"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button>
+      </div>
     </div>
     <div class="ig-opts">
       <div class="ig-opt"><span id="lPreset" data-i18n="ig.preset">แบบ</span>
@@ -85,6 +114,10 @@
       <div class="ig-opt"><span id="lModel" data-i18n="ig.model">โมเดล</span>
         <div class="segmented" id="model" role="group" aria-labelledby="lModel">
           <button type="button" data-v="fast" data-i18n="ig.fast">เร็ว</button><button type="button" data-v="quality" data-i18n="ig.quality">คุณภาพ</button>
+        </div></div>
+      <div class="ig-opt" id="ratioBox" hidden><span id="lRatio" data-i18n="ig.ratio">สัดส่วนภาพ</span>
+        <div class="segmented" id="ratio" role="group" aria-labelledby="lRatio">
+          <button type="button" data-v="1:1">1:1</button><button type="button" data-v="3:4">3:4</button><button type="button" data-v="4:3">4:3</button><button type="button" data-v="9:16">9:16</button><button type="button" data-v="16:9">16:9</button>
         </div></div>
       <div class="ig-opt"><span id="lCount" data-i18n="ig.count">จำนวน</span>
         <div class="segmented" id="count" role="group" aria-labelledby="lCount">
@@ -114,7 +147,8 @@
   <div class="dialog-head"><h2 id="vTitle" data-i18n="ig.view">ภาพ</h2><button class="btn icon ghost" type="button" id="vClose" data-i18n-attr="aria-label:ig.close" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
   <div class="dialog-body">
     <img class="ig-big" id="vImg" alt="">
-    <div class="ig-prompt" id="vPrompt"></div>
+    <div class="ig-pr"><div class="ig-prompt" id="vPrompt"></div>
+      <button class="btn icon ghost" type="button" id="vCopy" data-i18n-attr="aria-label:ig.copy,title:ig.copy" aria-label="คัดลอก prompt" title="คัดลอก prompt"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg></button></div>
     <div class="ig-meta" id="vMeta"></div>
   </div>
   <div class="dialog-foot">
@@ -123,6 +157,7 @@
     <button class="btn" type="button" id="vAgain"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="ig.again">สร้างซ้ำแบบนี้</span></button>
     <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="ig.download">ดาวน์โหลด</span></a>
   </div>
+  <div class="toast-region" id="vToasts" role="status" aria-live="polite"></div>
 </dialog>
 
 <div class="toast-region" id="toasts" role="status" aria-live="polite"></div>
