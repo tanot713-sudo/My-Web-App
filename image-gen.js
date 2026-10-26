@@ -5,11 +5,14 @@
      { id (= id ไฟล์ใน R2), preset, mode, model:'fast'|'quality', modelId, seed|null, prompt (ที่ผู้ใช้พิมพ์), fullPrompt (ที่ส่งเข้าโมเดล),
        name, mime, w, h, createdAt (ms), refId? (id ภาพที่ใช้เป็นภาพอ้างอิงตอน "แก้ภาพนี้" — ไม่มี = สร้างจากข้อความอย่างเดียว) }
    "แก้ภาพนี้": ดึงภาพจาก /api/files?id= → ย่อด้านยาว ≤ REF_MAX ด้วย canvas → PNG base64 → ส่งเป็น ref (โมเดล quality เท่านั้น)
-   เขียนด้วย TanotData.update (อ่านสด → แก้ → เขียน) · ตัวกรอง/ค่าที่เลือกล่าสุดอยู่ที่ 'tanot:images:ui' (local)
+   เขียนด้วย TanotData.update (อ่านสด → แก้ → เขียน) · ตัวกรอง/ค่าที่เลือกล่าสุด/อัตราส่วนอยู่ที่ 'tanot:images:ui' (local)
+   การ์ด "กำลังสร้าง"/"ล้มเหลว" ในคลังอยู่ในหน่วยความจำของหน้า (state.pending) เท่านั้น — ไม่เขียนลง tanot:images:items, ไม่ซิงก์, ไม่ค้างข้ามการเปิดหน้า
+   ลองใหม่ = งานเดิมด้วยพารามิเตอร์เดิมทั้งหมด (รวม refId/seed/ratio) · seed (ชิป) ใช้กับภาพแรกของแต่ละโหมดในชุด ภาพรอบถัดไปของชุดสุ่มใหม่
+   ตรรกะล้วน (อัตราส่วน, prompt ล่าสุด) อยู่ใน image-gen-calc.js
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  var TD = window.TanotData, AI = window.AiClient;
+  var TD = window.TanotData, AI = window.AiClient, C = window.ImageGenCalc;
   var K = { items: 'tanot:images:items', ui: 'tanot:images:ui' };
   var REF_MAX = 512; // ต้องเท่ากับ REF_MAX ใน functions/api/ai/image.js (เทสต์ตรวจ)
   var T = OME_I18N.scope('ig', {
@@ -24,7 +27,9 @@
       delFail: 'ลบไม่สำเร็จ ตรวจสอบการเชื่อมต่อแล้วลองใหม่',
       edit: 'แก้ภาพนี้', refLabel: 'ภาพอ้างอิง', refRemove: 'เอาภาพอ้างอิงออก',
       refLoad: 'โหลดภาพอ้างอิงไม่ได้ — เปิดภาพนั้นแล้วลองใหม่', refType: 'ภาพอ้างอิงต้องเป็น PNG หรือ JPEG', refSize: 'ภาพอ้างอิงใหญ่เกิน {n}px',
-      refBytes: 'ภาพอ้างอิงใหญ่เกิน 1 MB', refModel: 'ภาพอ้างอิงใช้ได้กับโมเดลคุณภาพเท่านั้น', refRejected: 'โมเดลไม่รับภาพอ้างอิงนี้'
+      refBytes: 'ภาพอ้างอิงใหญ่เกิน 1 MB', refModel: 'ภาพอ้างอิงใช้ได้กับโมเดลคุณภาพเท่านั้น', refRejected: 'โมเดลไม่รับภาพอ้างอิงนี้',
+      recent: 'prompt ล่าสุด', seedRemove: 'เอา seed ออก', ratio: 'สัดส่วนภาพ', copy: 'คัดลอก prompt', copied: 'คัดลอก prompt แล้ว', copyFail: 'คัดลอกไม่สำเร็จ',
+      queued: 'รอคิว', retry: 'ลองใหม่'
     },
     en: {
       title: 'Image generator', quota: 'AI quota today', prompt: 'Prompt', preset: 'Type', mode: 'Mode', model: 'Model', count: 'Count',
@@ -37,7 +42,9 @@
       delFail: 'Could not delete. Check your connection and try again',
       edit: 'Edit this image', refLabel: 'Reference image', refRemove: 'Remove reference image',
       refLoad: 'Could not load the reference image. Open it again and retry', refType: 'The reference image must be PNG or JPEG', refSize: 'The reference image is larger than {n}px',
-      refBytes: 'The reference image is larger than 1 MB', refModel: 'Reference images only work with the Quality model', refRejected: 'The image model rejected the reference image'
+      refBytes: 'The reference image is larger than 1 MB', refModel: 'Reference images only work with the Quality model', refRejected: 'The image model rejected the reference image',
+      recent: 'Recent prompts', seedRemove: 'Remove seed', ratio: 'Aspect ratio', copy: 'Copy prompt', copied: 'Prompt copied', copyFail: 'Could not copy',
+      queued: 'Queued', retry: 'Retry'
     }
   });
   var PRESET_KEY = { background: 'pBackground', icon: 'pIcon', free: 'pFree' };
@@ -46,7 +53,8 @@
   var presetName = function (k) { return PRESET_KEY[k] ? T(PRESET_KEY[k]) : ''; };
   var modeName = function (k) { return MODE_KEY[k] ? T(MODE_KEY[k]) : ''; };
   var lastUsage = null, progress = null;
-  var state = { preset: 'background', mode: 'light', model: 'fast', count: 1, filter: 'all', busy: false, openId: null, ref: null, prevModel: null };
+  var state = { preset: 'background', mode: 'light', model: 'fast', count: 1, filter: 'all', ratio: '1:1', busy: false, openId: null, ref: null, prevModel: null, seed: null, pending: [] };
+  var seq = 0, recentList = [], recentInit = false;
 
   function $(id) { return document.getElementById(id); }
   function icon(n) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + n + '"/></svg>'; }
@@ -75,15 +83,16 @@
       if (u.model === 'fast' || u.model === 'quality') state.model = u.model;
       if (u.count >= 1 && u.count <= 4) state.count = u.count | 0;
       if (['all', 'background', 'icon', 'free'].indexOf(u.filter) >= 0) state.filter = u.filter;
+      if (C.RATIOS.some(function (r) { return r.id === u.ratio; })) state.ratio = u.ratio;
     } catch (e) {}
   }
   function saveUi() {
-    try { localStorage.setItem(K.ui, JSON.stringify({ preset: state.preset, mode: state.mode, model: state.ref ? state.prevModel : state.model, count: state.count, filter: state.filter })); } catch (e) {}
+    try { localStorage.setItem(K.ui, JSON.stringify({ preset: state.preset, mode: state.mode, model: state.ref ? state.prevModel : state.model, count: state.count, filter: state.filter, ratio: state.ratio })); } catch (e) {}
   }
 
   /* ── toast ── */
-  function toast(msg, kind) { /* msg = ข้อความ หรือฟังก์ชันที่คืนข้อความตามภาษาปัจจุบัน (แปลสดตอนสลับภาษา) */
-    var box = $('toasts');
+  function toast(msg, kind, hostId) { /* msg = ข้อความ หรือฟังก์ชันที่คืนข้อความตามภาษาปัจจุบัน (แปลสดตอนสลับภาษา) · hostId = กล่อง toast ใน dialog (dialog แบบ modal ทับ toast ของหน้า) */
+    var box = $(hostId || 'toasts');
     var t = document.createElement('div');
     t.className = 'toast' + (kind ? ' ' + kind : '');
     t.innerHTML = (kind === 'err' ? icon('circle-alert') : '') + '<span></span>';
@@ -113,6 +122,13 @@
     // มีภาพอ้างอิง = ล็อกโมเดล "คุณภาพ" (schnell ไม่รับภาพขาเข้า)
     $('model').querySelector('button[data-v="fast"]').disabled = !!state.ref;
     $('refBox').hidden = !state.ref;
+    var seedOn = state.model === 'quality' && state.seed != null;
+    $('seedBox').hidden = !seedOn;
+    if (seedOn) $('seedTxt').textContent = 'seed ' + state.seed;
+    $('chips').hidden = !state.ref && !seedOn;
+    $('seedDel').disabled = state.busy;
+    $('ratioBox').hidden = !(state.preset === 'free' && state.model === 'quality');
+    syncSeg('ratio', state.ratio);
     $('refDel').disabled = state.busy;
     $('genBtn').disabled = state.busy;
     $('trBtn').disabled = state.busy;
@@ -209,46 +225,85 @@
   }
 
   /* ── สร้างภาพ ── */
-  function jobs() {
-    var modes = state.preset !== 'background' ? ['light'] : state.mode === 'both' ? ['light', 'dark'] : [state.mode];
-    var out = [];
-    for (var i = 0; i < state.count; i++) modes.forEach(function (m) { out.push(m); });
-    return out;
+  function modesOf() { return state.preset !== 'background' ? ['light'] : state.mode === 'both' ? ['light', 'dark'] : [state.mode]; }
+  function pendingOf(key) {
+    for (var i = 0; i < state.pending.length; i++) if (state.pending[i].key === key) return state.pending[i];
+    return null;
+  }
+  function dropPending(key) { state.pending = state.pending.filter(function (j) { return j.key !== key; }); }
+  /* 1 งาน = 1 ภาพ · ctx.refP = ภาพอ้างอิงที่โหลดแล้วของชุดนี้ (ย่อครั้งเดียว) */
+  function runJob(job, ctx) {
+    var refP = job.refId ? (ctx.refP || (ctx.refP = loadRef(job.refId))) : Promise.resolve(null);
+    return refP.then(function (ref) {
+      var opts = { prompt: job.prompt, preset: job.preset, mode: job.mode, model: job.model };
+      if (job.ratio) opts.ratio = job.ratio;
+      if (job.seed != null) opts.seed = job.seed;
+      if (ref) opts.ref = ref;
+      return AI.image(opts);
+    }).then(function (r) {
+      var row = {
+        id: r.id, preset: r.preset, mode: r.preset === 'background' ? r.mode : null, model: job.model, modelId: r.model, seed: r.seed,
+        prompt: job.prompt, fullPrompt: r.prompt, name: r.name, mime: r.mime, w: r.width, h: r.height, createdAt: Date.now()
+      };
+      if (job.refId) row.refId = job.refId;
+      addItem(row);
+      return r;
+    });
   }
   function generate() {
     var prompt = $('prompt').value.trim();
     if (!prompt) { toast(function () { return T('needPrompt'); }, 'err'); return; }
     if (!AI || !AI.available()) { toast(function () { return errText({ code: 'unavailable' }); }, 'err'); return; }
-    var list = jobs(), done = 0, refId = state.ref ? state.ref.id : null, ref = null;
-    var model = refId ? 'quality' : state.model;
+    var refId = state.ref ? state.ref.id : null, model = refId ? 'quality' : state.model;
+    var ratio = state.preset === 'free' && model === 'quality' ? state.ratio : null;
+    var seed = model === 'quality' ? state.seed : null;
+    var list = [], done = 0, ctx = {};
+    for (var rep = 0; rep < state.count; rep++) modesOf().forEach(function (m) {
+      var j = { key: ++seq, prompt: prompt, preset: state.preset, mode: m, model: model, ratio: ratio, seed: rep === 0 ? seed : null, refId: refId, status: 'queued', err: null };
+      list.push(j); state.pending.push(j);
+    });
     progress = null;
-    state.busy = true; renderControls();
-    function next() {
-      if (done >= list.length) return Promise.resolve();
-      progress = { n: done + 1, total: list.length };
+    state.busy = true; renderControls(); renderGrid();
+    function next(i) {
+      if (i >= list.length) return Promise.resolve();
+      var job = list[i];
+      job.status = 'busy'; job.n = i + 1; job.total = list.length;
+      progress = { n: job.n, total: job.total };
       $('genTxt').textContent = T('working', progress);
-      var opts = { prompt: prompt, preset: state.preset, mode: list[done], model: model };
-      if (ref) opts.ref = ref;
-      return AI.image(opts).then(function (r) {
-        var row = {
-          id: r.id, preset: r.preset, mode: r.preset === 'background' ? r.mode : null, model: model, modelId: r.model, seed: r.seed,
-          prompt: prompt, fullPrompt: r.prompt, name: r.name, mime: r.mime, w: r.width, h: r.height, createdAt: Date.now()
-        };
-        if (refId) row.refId = refId;
-        addItem(row);
-        done++;
+      renderGrid();
+      return runJob(job, ctx).then(function () {
+        done++; dropPending(job.key); renderGrid();
+        return loadQuota().then(function () { return next(i + 1); });
+      }, function (e) {
+        job.status = 'err'; job.err = e;
+        list.slice(i + 1).forEach(function (q) { dropPending(q.key); }); // ที่เหลือในคิวไม่ถูกสร้าง — ลองใหม่ได้เฉพาะภาพที่ล้ม
         renderGrid();
-        return loadQuota().then(next);
+        throw e;
       });
     }
-    (refId ? loadRef(refId).then(function (b) { ref = b; }) : Promise.resolve()).then(next).then(function () {
+    next(0).then(function () {
       toast(function () { return T('made', { n: done }); }, 'ok');
     }, function (e) {
       toast(function () { return (done ? T('madeStop', { n: done }) : '') + errText(e); }, 'err');
       loadQuota();
     }).then(function () {
-      state.busy = false; progress = null; $('genTxt').textContent = T('generate'); renderControls();
+      state.busy = false; progress = null; $('genTxt').textContent = T('generate'); renderControls(); renderGrid();
     });
+  }
+  function retry(key) {
+    var job = pendingOf(key);
+    if (!job || job.status !== 'err' || state.busy) return;
+    job.status = 'busy'; job.err = null; job.n = 1; job.total = 1;
+    state.busy = true; renderControls(); renderGrid();
+    runJob(job, {}).then(function () {
+      dropPending(key);
+      toast(function () { return T('made', { n: 1 }); }, 'ok');
+      return loadQuota();
+    }, function (e) {
+      job.status = 'err'; job.err = e;
+      toast(function () { return errText(e); }, 'err');
+      loadQuota();
+    }).then(function () { state.busy = false; renderControls(); renderGrid(); });
   }
 
   /* ── คลังภาพ ── */
@@ -259,13 +314,31 @@
   }
   function renderGrid() {
     var items = sorted();
-    $('empty').hidden = items.length > 0;
-    $('grid').innerHTML = items.map(function (x) {
+    $('empty').hidden = items.length > 0 || state.pending.length > 0;
+    $('grid').innerHTML = state.pending.map(cardHtml).join('') + items.map(function (x) {
       return '<button type="button" class="btn ig-item" data-id="' + esc(x.id) + '" aria-label="' + esc(presetName(x.preset)) + ' ' + esc(x.prompt || '') + '">' +
         '<img loading="lazy" alt="" src="' + fileUrl(x.id) + '"><span class="badge">' + esc(presetName(x.preset) || x.preset) + (x.mode ? ' · ' + esc(modeName(x.mode)) : '') + '</span></button>';
     }).join('');
+    renderRecent();
     if (state.openId && !readItems().some(function (x) { return x && x.id === state.openId; })) closeView();
     if (state.ref && !state.busy && !findItem(state.ref.id)) clearRef(); // ภาพอ้างอิงถูกลบ (เครื่องนี้หรือเครื่องอื่น)
+  }
+  function cardHtml(j) {
+    if (j.status === 'err') {
+      return '<div class="ig-fail" data-key="' + j.key + '"><div class="ig-fail-msg">' + icon('circle-alert') + '<span>' + esc(errText(j.err)) + '</span></div>' +
+        '<div class="ig-fail-acts"><button type="button" class="btn sm" data-act="retry" data-key="' + j.key + '"' + (state.busy ? ' disabled' : '') + '>' + icon('rotate-ccw') + '<span>' + esc(T('retry')) + '</span></button>' +
+        '<button type="button" class="btn sm ghost" data-act="dismiss" data-key="' + j.key + '"><span>' + esc(T('close')) + '</span></button></div></div>';
+    }
+    var txt = j.status === 'busy' ? T('working', { n: j.n, total: j.total }) : T('queued');
+    return '<div class="ig-pend" role="group" aria-busy="true" aria-label="' + esc(txt) + '"><i class="ig-skel"></i><i class="ig-skel s"></i><span>' + esc(txt) + '</span></div>';
+  }
+  function renderRecent() {
+    recentList = C.recentPrompts(readItems());
+    $('recentBox').hidden = !recentList.length;
+    if (!recentInit && recentList.length) { recentInit = true; $('recentBox').open = !(window.matchMedia && matchMedia('(max-width:700px)').matches); } // จอแคบพับไว้ (6 แถว ยาวเกิน)
+    $('recent').innerHTML = recentList.map(function (p, i) {
+      return '<li><button type="button" class="btn ghost ig-rp" data-i="' + i + '" title="' + esc(p) + '"><span>' + esc(p) + '</span></button></li>';
+    }).join('');
   }
   function findItem(id) {
     var a = readItems();
@@ -302,7 +375,9 @@
     if (PRESET_KEY[x.preset]) state.preset = x.preset;
     if (x.mode) state.mode = x.mode;
     if (x.model === 'fast' || x.model === 'quality') state.model = x.model;
+    if (x.preset === 'free' && C.ratioOf(x.w, x.h)) state.ratio = C.ratioOf(x.w, x.h);
     if (x.refId && findItem(x.refId)) { state.ref = null; setRef(x.refId); } else { state.ref = null; state.prevModel = null; }
+    state.seed = state.model === 'quality' && Number.isInteger(x.seed) ? x.seed : null; // fast ไม่มี seed
     saveUi(); renderControls(); closeView();
     $('prompt').focus();
   }
@@ -313,8 +388,17 @@
     if (PRESET_KEY[x.preset]) state.preset = x.preset;
     if (x.mode) state.mode = x.mode;
     setRef(x.id);
+    state.seed = null; renderControls();
     saveUi(); closeView();
     $('prompt').focus();
+  }
+  function copyPrompt() {
+    var x = findItem(state.openId);
+    if (!x) return;
+    var txt = x.prompt || x.fullPrompt || '';
+    var p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(txt) : Promise.reject(new Error('no clipboard'));
+    p.then(function () { toast(function () { return T('copied'); }, 'ok', 'vToasts'); },
+      function () { toast(function () { return T('copyFail'); }, 'err', 'vToasts'); });
   }
   function del() {
     var id = state.openId, x = findItem(id);
@@ -333,13 +417,28 @@
   function init() {
     loadUi();
     $('prompt').value = '';
-    bindSeg('preset', 'preset'); bindSeg('mode', 'mode'); bindSeg('model', 'model'); bindSeg('count', 'count', true); bindSeg('filter', 'filter');
+    bindSeg('preset', 'preset'); bindSeg('mode', 'mode'); bindSeg('model', 'model'); bindSeg('count', 'count', true); bindSeg('filter', 'filter'); bindSeg('ratio', 'ratio');
     $('genBtn').addEventListener('click', generate);
     $('trBtn').addEventListener('click', translate);
     $('grid').addEventListener('click', function (e) {
+      var a = e.target.closest('[data-act]');
+      if (a) {
+        var key = Number(a.getAttribute('data-key'));
+        if (a.getAttribute('data-act') === 'retry') retry(key);
+        else { dropPending(key); renderGrid(); }
+        return;
+      }
       var b = e.target.closest('.ig-item');
       if (b) openView(b.getAttribute('data-id'));
     });
+    $('recent').addEventListener('click', function (e) {
+      var b = e.target.closest('button[data-i]');
+      if (!b) return;
+      $('prompt').value = String(recentList[Number(b.getAttribute('data-i'))] || '').slice(0, 1500);
+      $('prompt').focus();
+    });
+    $('seedDel').addEventListener('click', function () { if (!state.busy) { state.seed = null; renderControls(); $('prompt').focus(); } });
+    $('vCopy').addEventListener('click', copyPrompt);
     $('vClose').addEventListener('click', closeView);
     $('vAgain').addEventListener('click', again);
     $('vEdit').addEventListener('click', edit);

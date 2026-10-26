@@ -215,12 +215,16 @@ function imageGen(h) {
     items.push({ id: 'img' + i, preset, mode: preset === 'background' ? (i % 2 ? 'dark' : 'light') : null, model: i % 2 ? 'quality' : 'fast', modelId: 'flux', seed: 100 + i,
       prompt: 'Calm mountain lake at dawn, soft light ' + i, fullPrompt: 'Calm mountain lake at dawn, soft light ' + i + ', wide composition, quiet mood', name: 'img' + i + '.png', mime: 'image/png', w: 1024, h: preset === 'background' ? 576 : 1024, createdAt: NOW - i * 3600e3 });
   }
+  items.push({ id: 'imgq', preset: 'free', mode: null, model: 'quality', modelId: 'flux2', seed: 4294967295, prompt: 'ภาพวาดทะเลสาบยามเช้า mountain lake ' + 'verylongunbrokenprompt'.repeat(12), fullPrompt: 'x', name: 'q.png', mime: 'image/png', w: 576, h: 1024, createdAt: NOW + 1000 });
+  items.push({ id: 'imgq2', preset: 'free', mode: null, model: 'quality', modelId: 'flux2', seed: 42, prompt: 'Calm mountain lake at dawn, soft light 0', fullPrompt: 'x', name: 'q2.png', mime: 'image/png', w: 1024, h: 576, createdAt: NOW + 2000 });
+  let failImage = false;
   const PNG = Buffer.from(pngB64, 'base64');
   const route = async (page) => {
     await page.route('**/api/**', (route) => {
       const u = new URL(route.request().url());
       if (u.pathname === '/api/files') return route.request().method() === 'DELETE' ? route.fulfill({ status: 200, body: '{}' }) : route.fulfill({ contentType: 'image/png', body: PNG });
       if (u.pathname === '/api/ai/usage') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ day: '2026-10-03', limit: 10000, used: 8200, remaining: 1800, byKind: [] }) });
+      if (u.pathname === '/api/ai/image' && failImage) return route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: 'quota', code: 'quota' }) });
       if (u.pathname === '/api/ai/image') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: 'img-new' + Date.now(), name: 'n.png', mime: 'image/png', size: 70, model: 'flux', seed: 5, width: 1024, height: 576, preset: 'background', mode: 'light', prompt: 'x, full' }) });
       if (u.pathname === '/api/ai/chat') return route.fulfill({ contentType: 'text/event-stream', body: 'data:{"t":"A calm lake at dawn"}\n\ndata:{"done":true}\n\n' });
       return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
@@ -239,13 +243,25 @@ function imageGen(h) {
     ['view-close', async (p) => { await h.dom(p, '#vClose'); await h.settle(p, 250); }],
     ['view-again', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item').click()); await h.settle(p, 300); await h.dom(p, '#vAgain'); await h.settle(p, 300); }],
     ['view-delete', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item').click()); await h.settle(p, 300); await h.dom(p, '#vDel'); await h.settle(p, 400); }],
-    ['confirm-ok', async (p) => { await p.evaluate(() => { const b = [...document.querySelectorAll('dialog[open] .btn.danger, dialog[open] .btn.primary')].pop(); if (b) b.click(); }); await h.settle(p, 900); }]
+    ['confirm-ok', async (p) => { await p.evaluate(() => { const b = [...document.querySelectorAll('dialog[open] .btn.danger, dialog[open] .btn.primary')].pop(); if (b) b.click(); }); await h.settle(p, 900); }],
+    ['view-copy', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item[data-id="imgq"]').click()); await h.settle(p, 300); await h.dom(p, '#vCopy'); await h.settle(p, 400); }],
+    ['view-long-close', async (p) => { await h.dom(p, '#vClose'); await h.settle(p, 250); }],
+    ['recent-open', async (p) => { await p.evaluate(() => { document.getElementById('recentBox').open = true; }); await h.settle(p, 250); }],
+    ['seed-chip', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item[data-id="imgq"]').click()); await h.settle(p, 300); await h.dom(p, '#vAgain'); await h.settle(p, 300); }],
+    ['ratio-free-quality', async (p) => { await p.evaluate(() => document.querySelector('#ratio [data-v="9:16"]').click()); await h.settle(p, 250); }],
+    ['fail-card', async (p) => { failImage = true; await p.fill('#prompt', 'A quiet lake'); await p.evaluate(() => { document.getElementById('count').querySelector('[data-v="3"]').click(); }); await h.dom(p, '#genBtn'); await h.settle(p, 700); }],
+    ['fail-retry-fails', async (p) => { await h.dom(p, '.ig-fail [data-act="retry"]'); await h.settle(p, 700); }],
+    ['fail-retry-ok', async (p) => { failImage = false; await h.dom(p, '.ig-fail [data-act="retry"]'); await h.settle(p, 900); }],
+    ['fail-dismiss', async (p) => { failImage = true; await h.dom(p, '#genBtn'); await h.settle(p, 700); await h.dom(p, '.ig-fail [data-act="dismiss"]'); await h.settle(p, 300); failImage = false; }],
+    ['seed-chip-remove', async (p) => { await h.dom(p, '#seedDel'); await h.settle(p, 250); }]
   ];
   return {
     page: 'image-gen.html', overlay: '', route, states,
     init: 'window.TANOT_AI = { enabled: true };',
     seed: { 'tanot:images:items': items },
-    user: /Calm mountain|A quiet lake|A calm lake/
+    // state fail-card จำลอง 429 ของ /api/ai/image — Chromium log "Failed to load resource" เองทุกครั้งที่ fetch ได้ 4xx (ไม่ใช่ error ของโค้ด)
+    ignoreErrors: /status of 429 .*\/api\/ai\/image/,
+    user: /Calm mountain|A quiet lake|A calm lake|ภาพวาดทะเลสาบยามเช้า|mountain lake/
   };
 }
 
