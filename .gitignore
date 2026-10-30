@@ -4,3 +4,6 @@ test-results/
 tools/media-eval/local/
 # ไฟล์ทำงานของ taste-skill (ภาพ inspect, seed, direction) — สร้างใหม่ได้ ไม่ commit
 .taste-skill/
+# ไบต์โค้ด Python (สร้างใหม่เองตอนรัน รีวิวด้วยตาไม่ได้)
+__pycache__/
+*.pyc
