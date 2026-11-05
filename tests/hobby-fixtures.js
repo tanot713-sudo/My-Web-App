@@ -8,6 +8,33 @@ const DAY = 86400000;
 
 /* ───────── หน้าเรียนแบบแทร็ก (music · sports · cooking · coding) ───────── */
 const pngB64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+/* PNG RGB w×h: พื้นสีเรียบ + สี่เหลี่ยมกลาง (ภาพไอคอนสำหรับ "พื้นโปร่ง"/"ลบพื้นหลัง") — เข้ารหัสเองด้วย zlib */
+function iconPng(w, h) {
+  const zlib = require('zlib');
+  const crcT = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; crcT[n] = c >>> 0; }
+  const crc = (b) => { let c = 0xffffffff; for (const x of b) c = crcT[(c ^ x) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  const chunk = (type, data) => { const len = Buffer.alloc(4); len.writeUInt32BE(data.length); const td = Buffer.concat([Buffer.from(type, 'latin1'), data]); const c = Buffer.alloc(4); c.writeUInt32BE(crc(td)); return Buffer.concat([len, td, c]); };
+  const raw = Buffer.alloc((w * 3 + 1) * h);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const inside = x > w / 4 && x < w * 3 / 4 && y > h / 4 && y < h * 3 / 4, o = y * (w * 3 + 1) + 1 + x * 3;
+    raw[o] = inside ? 250 : 42; raw[o + 1] = inside ? 200 : 111; raw[o + 2] = inside ? 20 : 219;
+  }
+  const ihdr = Buffer.alloc(13); ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 2;
+  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), chunk('IHDR', ihdr), chunk('IDAT', zlib.deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
+}
+/* transformers.js ตัวหลอกของ "ลบพื้นหลัง" — โหมดถามจาก /__cutmode ทุกครั้งที่สร้าง pipeline (ok | missing) · ผล = ครึ่งซ้ายโปร่ง */
+const FAKE_BG = `
+export const env = { backends: { onnx: { wasm: {} } } };
+export class RawImage {
+  constructor(d, w, h, c) { this.data = d; this.width = w; this.height = h; this.channels = c; }
+  static async fromBlob(b) { const bmp = await createImageBitmap(b); const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0); return new RawImage(g.getImageData(0, 0, bmp.width, bmp.height).data, bmp.width, bmp.height, 4); }
+}
+export async function pipeline(task, model, o) {
+  const mode = await (await fetch('/__cutmode')).text();
+  if (mode === 'missing') throw new Error('Could not locate file: "onnx/model.onnx" (404)');
+  if (o.progress_callback) { o.progress_callback({ status: 'progress', file: 'onnx/model.onnx', loaded: 60e6, total: 224e6 }); await new Promise((r) => setTimeout(r, 300)); }
+  return async (img) => { const d = new Uint8ClampedArray(img.data); for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width / 2; x++) d[(y * img.width + x) * 4 + 3] = 0; return new RawImage(d, img.width, img.height, 4); };
+}`;
 
 /** เติมความคืบหน้าทุกบท + XP/สตรีค/เหรียญตรา แล้วโหลดหน้าใหม่ — ใช้ฟังก์ชัน global ของหน้า (TRACKS/progressKey/saveProgress) */
 function lessonWait(prefix, opts) {
@@ -217,11 +244,14 @@ function imageGen(h) {
   }
   items.push({ id: 'imgq', preset: 'free', mode: null, model: 'quality', modelId: 'flux2', seed: 4294967295, prompt: 'ภาพวาดทะเลสาบยามเช้า mountain lake ' + 'verylongunbrokenprompt'.repeat(12), fullPrompt: 'x', name: 'q.png', mime: 'image/png', w: 576, h: 1024, createdAt: NOW + 1000 });
   items.push({ id: 'imgq2', preset: 'free', mode: null, model: 'quality', modelId: 'flux2', seed: 42, prompt: 'Calm mountain lake at dawn, soft light 0', fullPrompt: 'x', name: 'q2.png', mime: 'image/png', w: 1024, h: 576, createdAt: NOW + 2000 });
-  let failImage = false;
-  const PNG = Buffer.from(pngB64, 'base64');
+  let failImage = false, cutMode = 'ok';
+  const PNG = iconPng(96, 96);
   const route = async (page) => {
+    await page.route('**/vendor/transformers/transformers.web.min.js', (r) => r.fulfill({ contentType: 'text/javascript', body: FAKE_BG }));
+    await page.route('**/__cutmode', (r) => r.fulfill({ contentType: 'text/plain', body: cutMode }));
     await page.route('**/api/**', (route) => {
       const u = new URL(route.request().url());
+      if (u.pathname === '/api/files' && route.request().method() === 'POST') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ id: 'img-cut' + Date.now(), name: 'cut.png', size: 900, mime: 'image/png' }) });
       if (u.pathname === '/api/files') return route.request().method() === 'DELETE' ? route.fulfill({ status: 200, body: '{}' }) : route.fulfill({ contentType: 'image/png', body: PNG });
       if (u.pathname === '/api/ai/usage') return route.fulfill({ contentType: 'application/json', body: JSON.stringify({ day: '2026-10-03', limit: 10000, used: 8200, remaining: 1800, byKind: [] }) });
       if (u.pathname === '/api/ai/image' && failImage) return route.fulfill({ status: 429, contentType: 'application/json', body: JSON.stringify({ error: 'quota', code: 'quota' }) });
@@ -253,11 +283,20 @@ function imageGen(h) {
     ['fail-retry-fails', async (p) => { await h.dom(p, '.ig-fail [data-act="retry"]'); await h.settle(p, 700); }],
     ['fail-retry-ok', async (p) => { failImage = false; await h.dom(p, '.ig-fail [data-act="retry"]'); await h.settle(p, 900); }],
     ['fail-dismiss', async (p) => { failImage = true; await h.dom(p, '#genBtn'); await h.settle(p, 700); await h.dom(p, '.ig-fail [data-act="dismiss"]'); await h.settle(p, 300); failImage = false; }],
-    ['seed-chip-remove', async (p) => { await h.dom(p, '#seedDel'); await h.settle(p, 250); }]
+    ['seed-chip-remove', async (p) => { await h.dom(p, '#seedDel'); await h.settle(p, 250); }],
+    // พื้นโปร่ง / ลบพื้นหลัง (กล่อง #cut)
+    ['view-icon', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item[data-id="img1"]').click()); await h.settle(p, 300); }],
+    ['transparent', async (p) => { await h.dom(p, '#vTrans'); await h.settle(p, 800); }],
+    ['transparent-tol', async (p) => { await p.evaluate(() => { const r = document.getElementById('cTol'); r.value = '40'; r.dispatchEvent(new Event('input', { bubbles: true })); document.getElementById('cSoft').click(); }); await h.settle(p, 600); }],
+    ['transparent-save', async (p) => { await h.dom(p, '#cSave'); await h.settle(p, 800); }],
+    ['view-derived', async (p) => { await p.evaluate(() => document.querySelector('#grid .ig-item[data-kind]').click()); await h.settle(p, 300); }],
+    ['cutout-fail', async (p) => { cutMode = 'missing'; await h.dom(p, '#vCutout'); await h.settle(p, 1500); }],
+    ['cutout-retry-ok', async (p) => { cutMode = 'ok'; await h.dom(p, '#cRetry'); await h.settle(p, 1500); }],
+    ['cutout-cancel', async (p) => { await h.dom(p, '#cCancel'); await h.settle(p, 300); }]
   ];
   return {
     page: 'image-gen.html', overlay: '', route, states,
-    init: 'window.TANOT_AI = { enabled: true };',
+    init: 'window.TANOT_AI = { enabled: true }; window.TANOT_FILES = { enabled: true };',
     seed: { 'tanot:images:items': items },
     // state fail-card จำลอง 429 ของ /api/ai/image — Chromium log "Failed to load resource" เองทุกครั้งที่ fetch ได้ 4xx (ไม่ใช่ error ของโค้ด)
     ignoreErrors: /status of 429 .*\/api\/ai\/image/,
