@@ -7,3 +7,6 @@ tools/media-eval/local/
 # ไบต์โค้ด Python (สร้างใหม่เองตอนรัน รีวิวด้วยตาไม่ได้)
 __pycache__/
 *.pyc
+
+# skill อยู่ในบัญชี Claude ไม่เก็บใน repo (เจ้าของสั่ง 2026-11)
+.claude/skills/
