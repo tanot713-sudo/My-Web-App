@@ -5,6 +5,9 @@
 //   node tools/media-eval/check-models.mjs --paddle  → เฉพาะโมเดลของ "อ่านแบบใหม่" (PaddleOCR — repo ทางการ PaddlePaddle/*_onnx, public ไม่ต้องมี token):
 //                                                     มีไฟล์ครบที่ revision ในตาราง + ขนาดจริง + commit ล่าสุดของ main
 //   node tools/media-eval/check-models.mjs --paddle --pin → เขียน commit ล่าสุดของแต่ละ repo ลง ocr-paddle-calc.js (MODELS[].revision) แล้ว commit + bump CACHE ใน sw.js
+//   node tools/media-eval/check-models.mjs --cutout  → เฉพาะโมเดล "ลบพื้นหลัง" ของหน้าสร้างภาพ (TanotCutout.BG_MODEL ใน image-cutout-calc.js — public ไม่ต้องมี token):
+//                                                     config + ไฟล์ dtype ที่ใช้ (fp16 WebGPU / fp32 WASM) ที่ revision ในตาราง + ขนาดจริง + license + commit ล่าสุดของ main
+//   node tools/media-eval/check-models.mjs --cutout --pin → เขียน commit ล่าสุดลง image-cutout-calc.js (BG_MODEL.revision) แล้ว commit + bump CACHE ใน sw.js
 // กฎชื่อไฟล์ของ transformers.js: onnx/<ส่วนประกอบ><คำต่อท้ายของ dtype>.onnx · fp32 '' · fp16 _fp16 · q8 _quantized · int8 _int8 · uint8 _uint8 · q4 _q4 · bnb4 _bnb4
 import { readFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
@@ -36,8 +39,9 @@ async function files(repo, rev = 'main') {
 }
 
 let bad = 0;
-const ONLY_PADDLE = process.argv.includes('--paddle'), PIN = process.argv.includes('--pin');
-for (const m of ONLY_PADDLE ? [] : models) {
+const ONLY_PADDLE = process.argv.includes('--paddle'), ONLY_CUTOUT = process.argv.includes('--cutout'), PIN = process.argv.includes('--pin');
+const SKIP_MEDIA = ONLY_PADDLE || ONLY_CUTOUT;
+for (const m of SKIP_MEDIA ? [] : models) {
   const need = [...CONFIGS];
   for (const [kind, dt] of [['WebGPU', m.gpu], ['WASM', m.wasm]]) {
     if (!dt) continue;
@@ -54,7 +58,7 @@ for (const m of ONLY_PADDLE ? [] : models) {
 /* เสียงพูด MMS-TTS (Section 5): WASM ใช้ dtype ตาม TTS_DTYPE_OVERRIDES (ไม่มี = q8 → model_quantized.onnx) · WebGPU ใช้ ttsGpuDtype (fp32 → model.onnx) — ไฟล์ fp32 ของแต่ละ repo ยังไม่เคยตรวจจริง */
 const M = sandbox.self.TanotMediaModels;
 /* เสียงไทย 2 ตัว (Jori / Riko — fp32 เท่านั้น ที่ commit ใน TTS_REVISION) */
-const voices = ONLY_PADDLE ? [] : [...M.TTS_VOICE_IDS];
+const voices = SKIP_MEDIA ? [] : [...M.TTS_VOICE_IDS];
 for (const id of voices) {
   const need = ['config.json'];
   for (const d of [M.ttsDtype(id) || 'q8', M.ttsGpuDtype(id)]) need.push('onnx/model' + SUFFIX[d] + '.onnx');
@@ -94,5 +98,41 @@ if (ONLY_PADDLE) {
     console.log('\nเขียน revision ลง ocr-paddle-calc.js แล้ว — อย่าลืม bump CACHE ใน sw.js');
   } else if (PIN) console.log('\nไม่เขียน revision เพราะมีรายการไม่ผ่าน');
 }
-console.log(bad ? '\nมี ' + bad + ' รายการไม่ผ่าน — แก้ตารางใน ' + (ONLY_PADDLE ? 'ocr-paddle-calc.js' : 'media-models.js') + ' (หรือถอดตัวนั้นออกจากรายการ) ก่อนปล่อย' : '\nผ่านทั้งหมด');
+/* ลบพื้นหลัง (หน้าสร้างภาพ): BG_MODEL ใน image-cutout-calc.js */
+if (ONLY_CUTOUT) {
+  const C = (await import(pathToFileURL(join(ROOT, 'image-cutout-calc.js')).href)).default;
+  const m = C.BG_MODEL;
+  try {
+    const info = await fetch('https://huggingface.co/api/models/' + m.id, { headers });
+    if (!info.ok) { console.log('✗  ' + m.id + ' — HTTP ' + info.status + ' (ไม่พบ repo)'); bad++; }
+    else {
+      const j = await info.json();
+      const lic = (j.cardData && j.cardData.license) || ((j.tags || []).find((t) => /^license:/.test(t)) || '').replace('license:', '') || '?';
+      const tree = await fetch('https://huggingface.co/api/models/' + m.id + '/tree/' + encodeURIComponent(m.revision) + '/onnx', { headers });
+      const root = await fetch('https://huggingface.co/api/models/' + m.id + '/tree/' + encodeURIComponent(m.revision), { headers });
+      if (!tree.ok || !root.ok) { console.log('✗  ' + m.id + '@' + m.revision + ' — HTTP ' + tree.status + '/' + root.status + ' (ไม่พบ revision)'); bad++; }
+      else {
+        const list = [...(await root.json()), ...(await tree.json())];
+        const byPath = new Map(list.map((f) => [f.path, f]));
+        const need = ['config.json', 'preprocessor_config.json', ...['webgpu', 'wasm'].flatMap((d) => [true, false].map((f16) => 'onnx/model' + SUFFIX[C.bgDtype(d, f16)] + '.onnx'))];
+        const missing = [...new Set(need)].filter((f) => !byPath.has(f));
+        for (const f of [...new Set(need)].filter((x) => x.endsWith('.onnx') && byPath.has(x))) {
+          const it = byPath.get(f), size = (it.lfs && it.lfs.size) || it.size;
+          const dt = f.includes('_fp16') ? 'fp16' : 'fp32';
+          console.log('   ' + f + '  ' + (size / 1e6).toFixed(1) + ' MB (ตาราง ' + (m.bytes[dt] / 1e6).toFixed(0) + ' MB)');
+        }
+        if (missing.length) { console.log('✗  ' + m.id + '@' + m.revision + ' — ขาด: ' + missing.join(', ')); bad++; }
+        else console.log('✓  ' + m.id + '  license=' + lic + '  main=' + j.sha + (/^[0-9a-f]{40}$/.test(m.revision) ? (m.revision === j.sha ? '  [ล็อกตรงกับ main]' : '  [ล็อก ' + m.revision.slice(0, 10) + '… — main ใหม่กว่า]') : '  [ยังไม่ล็อก]'));
+        if (!/^mit$|^apache-2\.0$|^bsd/i.test(lic)) console.log('⚠  license "' + lic + '" — ตรวจก่อนใช้ (เว็บนี้ใช้เฉพาะ MIT/Apache/BSD)');
+        if (PIN && !missing.length) {
+          const file = join(ROOT, 'image-cutout-calc.js');
+          const src = await readFile(file, 'utf8');
+          await writeFile(file, src.replace(/(revision: ')[^']*(')/, '$1' + j.sha + '$2'));
+          console.log('\nเขียน revision ลง image-cutout-calc.js แล้ว — อย่าลืม bump CACHE ใน sw.js');
+        }
+      }
+    }
+  } catch (e) { console.log('?? ' + m.id + ' — ตรวจไม่ได้: ' + e.message); bad++; }
+}
+console.log(bad ? '\nมี ' + bad + ' รายการไม่ผ่าน — แก้ตารางใน ' + (ONLY_PADDLE ? 'ocr-paddle-calc.js' : ONLY_CUTOUT ? 'image-cutout-calc.js' : 'media-models.js') + ' (หรือถอดตัวนั้นออกจากรายการ) ก่อนปล่อย' : '\nผ่านทั้งหมด');
 process.exit(bad ? 1 : 0);

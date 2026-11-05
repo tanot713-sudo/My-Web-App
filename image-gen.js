@@ -9,6 +9,12 @@
    การ์ด "กำลังสร้าง"/"ล้มเหลว" ในคลังอยู่ในหน่วยความจำของหน้า (state.pending) เท่านั้น — ไม่เขียนลง tanot:images:items, ไม่ซิงก์, ไม่ค้างข้ามการเปิดหน้า
    ลองใหม่ = งานเดิมด้วยพารามิเตอร์เดิมทั้งหมด (รวม refId/seed/ratio) · seed (ชิป) ใช้กับภาพแรกของแต่ละโหมดในชุด ภาพรอบถัดไปของชุดสุ่มใหม่
    ตรรกะล้วน (อัตราส่วน, prompt ล่าสุด) อยู่ใน image-gen-calc.js
+   "พื้นโปร่ง"/"ลบพื้นหลัง" (ปุ่มใน dialog ดูภาพ — เฉพาะเมื่ออัปโหลดได้: *.pages.dev หรือ window.TANOT_FILES):
+     พื้นโปร่ง = flood fill จาก 4 มุม (image-cutout-calc.js) ใน image-cutout-worker.js (ไม่มี Worker/OffscreenCanvas = เธรดหลักหลัง yield) · ปรับค่าความต่าง/ขอบนุ่มแล้วดูผลบนลายตาราง
+     ลบพื้นหลัง = pipeline 'background-removal' ใน image-bgremove-worker.js (โมเดลใน TanotCutout.BG_MODEL) · ซ่อนบนมือถือ (โมเดลหนัก) · TanotMedia.budget id 'cutout'
+       WebGPU เมื่อ TanotMedia.webgpuPlan() ได้ (ล้ม = Worker ถอย WASM เอง 1 ครั้ง) · ล้ม = ข้อความในกล่อง + problem log kind 'image' (ไม่มีภาพ/ชื่อไฟล์/prompt)
+     ผล = PNG ใหม่ POST /api/files?ns=images → แถวใหม่ใน tanot:images:items (คัดลอกข้อมูลกำกับของต้นทาง + srcId + kind:'transparent'|'cutout')
+       ไม่ทับแถวเดิม · ลบภาพต้นทางไม่ลบภาพที่ได้ (แถวแยกกัน ไฟล์แยกกัน)
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -29,7 +35,13 @@
       refLoad: 'โหลดภาพอ้างอิงไม่ได้ — เปิดภาพนั้นแล้วลองใหม่', refType: 'ภาพอ้างอิงต้องเป็น PNG หรือ JPEG', refSize: 'ภาพอ้างอิงใหญ่เกิน {n}px',
       refBytes: 'ภาพอ้างอิงใหญ่เกิน 1 MB', refModel: 'ภาพอ้างอิงใช้ได้กับโมเดลคุณภาพเท่านั้น', refRejected: 'โมเดลไม่รับภาพอ้างอิงนี้',
       recent: 'prompt ล่าสุด', seedRemove: 'เอา seed ออก', ratio: 'สัดส่วนภาพ', copy: 'คัดลอก prompt', copied: 'คัดลอก prompt แล้ว', copyFail: 'คัดลอกไม่สำเร็จ',
-      queued: 'รอคิว', retry: 'ลองใหม่'
+      queued: 'รอคิว', retry: 'ลองใหม่',
+      transparent: 'พื้นโปร่ง', cutout: 'ลบพื้นหลัง', preview: 'ตัวอย่างผล', tolerance: 'ค่าความต่างสี', soft: 'ขอบนุ่ม', cancel: 'ยกเลิก', saveNew: 'บันทึกเป็นภาพใหม่',
+      modelDl: 'โหลดโมเดลลบพื้นหลัง', mb: '{a} / {b} MB', cutReading: 'กำลังอ่านภาพ…', cutPreparing: 'กำลังเตรียมโมเดล…', cutWorking: 'กำลังลบพื้นหลัง…',
+      noBg: 'ไม่พบพื้นสีเรียบที่มุมภาพ — เพิ่มค่าความต่างสี', allGone: 'ทั้งภาพถูกลบ — ลดค่าความต่างสี', srcLoad: 'โหลดภาพนี้ไม่ได้ — ตรวจการเชื่อมต่อแล้วลองใหม่',
+      cutMissing: 'ไม่พบไฟล์โมเดลลบพื้นหลังบนเซิร์ฟเวอร์', cutNetwork: 'โหลดโมเดลลบพื้นหลังไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่',
+      cutMemory: 'หน่วยความจำของเบราว์เซอร์ไม่พอ — ปิดแท็บอื่นแล้วลองใหม่', cutFail: 'ลบพื้นหลังไม่สำเร็จ — ลองใหม่อีกครั้ง',
+      saveFail: 'บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อแล้วลองใหม่', savedNew: 'บันทึกเป็นภาพใหม่แล้ว'
     },
     en: {
       title: 'Image generator', quota: 'AI quota today', prompt: 'Prompt', preset: 'Type', mode: 'Mode', model: 'Model', count: 'Count',
@@ -44,12 +56,20 @@
       refLoad: 'Could not load the reference image. Open it again and retry', refType: 'The reference image must be PNG or JPEG', refSize: 'The reference image is larger than {n}px',
       refBytes: 'The reference image is larger than 1 MB', refModel: 'Reference images only work with the Quality model', refRejected: 'The image model rejected the reference image',
       recent: 'Recent prompts', seedRemove: 'Remove seed', ratio: 'Aspect ratio', copy: 'Copy prompt', copied: 'Prompt copied', copyFail: 'Could not copy',
-      queued: 'Queued', retry: 'Retry'
+      queued: 'Queued', retry: 'Retry',
+      transparent: 'Transparent', cutout: 'Remove background', preview: 'Result preview', tolerance: 'Color tolerance', soft: 'Soft edges', cancel: 'Cancel', saveNew: 'Save as new image',
+      modelDl: 'Downloading the background model', mb: '{a} / {b} MB', cutReading: 'Reading the image…', cutPreparing: 'Preparing the model…', cutWorking: 'Removing the background…',
+      noBg: 'No plain background found at the corners. Raise the color tolerance', allGone: 'The whole image was removed. Lower the color tolerance', srcLoad: 'Could not load this image. Check your connection and try again',
+      cutMissing: 'The background model files were not found on the server', cutNetwork: 'Could not download the background model. Check your connection and try again',
+      cutMemory: 'The browser ran out of memory. Close other tabs and try again', cutFail: 'Could not remove the background. Try again',
+      saveFail: 'Could not save. Check your connection and try again', savedNew: 'Saved as a new image'
     }
   });
   var PRESET_KEY = { background: 'pBackground', icon: 'pIcon', free: 'pFree' };
   var MODE_KEY = { light: 'mLight', dark: 'mDark' };
   var MODEL_KEY = { fast: 'fast', quality: 'quality' };
+  var KIND_KEY = { transparent: 'transparent', cutout: 'cutout' };
+  var kindName = function (k) { return KIND_KEY[k] ? T(KIND_KEY[k]) : ''; };
   var presetName = function (k) { return PRESET_KEY[k] ? T(PRESET_KEY[k]) : ''; };
   var modeName = function (k) { return MODE_KEY[k] ? T(MODE_KEY[k]) : ''; };
   var lastUsage = null, progress = null;
@@ -316,8 +336,9 @@
     var items = sorted();
     $('empty').hidden = items.length > 0 || state.pending.length > 0;
     $('grid').innerHTML = state.pending.map(cardHtml).join('') + items.map(function (x) {
-      return '<button type="button" class="btn ig-item" data-id="' + esc(x.id) + '" aria-label="' + esc(presetName(x.preset)) + ' ' + esc(x.prompt || '') + '">' +
-        '<img loading="lazy" alt="" src="' + fileUrl(x.id) + '"><span class="badge">' + esc(presetName(x.preset) || x.preset) + (x.mode ? ' · ' + esc(modeName(x.mode)) : '') + '</span></button>';
+      var kn = kindName(x.kind);
+      return '<button type="button" class="btn ig-item" data-id="' + esc(x.id) + '"' + (kn ? ' data-kind="' + esc(x.kind) + '"' : '') + ' aria-label="' + esc(presetName(x.preset)) + (kn ? ' · ' + esc(kn) : '') + ' ' + esc(x.prompt || '') + '">' +
+        '<img loading="lazy" alt="" src="' + fileUrl(x.id) + '"><span class="badge">' + esc(presetName(x.preset) || x.preset) + (x.mode ? ' · ' + esc(modeName(x.mode)) : '') + (kn ? ' · ' + esc(kn) : '') + '</span></button>';
     }).join('');
     renderRecent();
     if (state.openId && !readItems().some(function (x) { return x && x.id === state.openId; })) closeView();
@@ -347,7 +368,7 @@
   }
   function paintMeta(x) {
     var d = new Date(x.createdAt || 0);
-    $('vMeta').textContent = [presetName(x.preset), x.mode ? modeName(x.mode) : '', MODEL_KEY[x.model] ? T(MODEL_KEY[x.model]) : '', x.w && x.h ? x.w + '×' + x.h : '',
+    $('vMeta').textContent = [presetName(x.preset), x.mode ? modeName(x.mode) : '', kindName(x.kind), MODEL_KEY[x.model] ? T(MODEL_KEY[x.model]) : '', x.w && x.h ? x.w + '×' + x.h : '',
       'seed ' + (x.seed == null ? '–' : x.seed), isNaN(d) ? '' : OME_I18N.date(d, { dateStyle: 'medium', timeStyle: 'short' })].filter(Boolean).join(' · ');
   }
   function openView(id) {
@@ -358,6 +379,10 @@
     $('vImg').alt = x.prompt || '';
     $('vPrompt').textContent = x.fullPrompt || x.prompt || '';
     paintMeta(x);
+    var canCut = filesOn() && !!window.TanotCutout;
+    $('vCutActs').hidden = !canCut;
+    $('vTrans').className = 'btn' + (x.preset === 'icon' ? '' : ' ghost'); // ไอคอน (พื้นสีเรียบตาม preset) = ปุ่มเด่น · ภาพอื่นใช้ได้แต่ไม่เด่น
+    $('vCutout').hidden = isMobile();
     $('vDl').href = fileUrl(id, true);
     $('vDl').setAttribute('download', x.name || 'image');
     var dlg = $('view');
@@ -414,6 +439,218 @@
     });
   }
 
+  /* ── พื้นโปร่ง / ลบพื้นหลัง ── */
+  function filesOn() {
+    try { if (window.TANOT_FILES) return !!window.TANOT_FILES.enabled; return /\.pages\.dev$/.test(location.hostname); } catch (e) { return false; }
+  }
+  function isMobile() { return !!(window.TanotMedia && TanotMedia.isMobile && TanotMedia.isMobile()); }
+  var cut = null, cutSeq = 0, floodW = null, bgW = null, bgBusy = false, tolTimer = 0;
+  var MODEL_ID = function () { return window.TanotCutout ? TanotCutout.BG_MODEL.id : ''; };
+  function cutLive(id, fn) { OME_I18N.live($(id), fn); }
+  function cutStatus(key) { cutLive('cStatus', key ? function () { return T(key); } : function () { return ''; }); }
+  function cutError(key) { cutLive('cMsg', key ? function () { return T(key); } : function () { return ''; }); }
+  function fetchBlob(id) {
+    return fetch(fileUrl(id), { credentials: 'same-origin', redirect: 'manual' }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.blob();
+    });
+  }
+  function openCut(mode) {
+    var x = findItem(state.openId);
+    if (!x || !window.TanotCutout) return;
+    closeView();
+    cut = { mode: mode, src: x, id: ++cutSeq, seq: 0, ready: false, w: 0, h: 0, pixels: null, saving: false };
+    $('cTitle').textContent = T(mode === 'transparent' ? 'transparent' : 'cutout');
+    $('cTolBox').hidden = $('cSoftBox').hidden = mode !== 'transparent';
+    $('cTol').value = String(TanotCutout.DEFAULT_TOLERANCE); $('cTolOut').textContent = $('cTol').value;
+    $('cSoft').checked = true;
+    $('cBar').hidden = true; $('cRetry').hidden = true;
+    var c = $('cCanvas'); c.width = 1; c.height = 1;
+    cutError(null); cutStatus('cutReading'); paintSave();
+    var dlg = $('cut');
+    if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    startCut();
+  }
+  function startCut() {
+    var job = cut;
+    cutError(null); $('cRetry').hidden = true;
+    fetchBlob(job.src.id).then(function (blob) {
+      if (cut !== job) return;
+      job.blob = blob;
+      if (job.mode === 'transparent') floodLoad(job); else bgRun(job);
+    }, function () {
+      if (cut !== job) return;
+      cutStatus(null); cutError('srcLoad'); $('cRetry').hidden = false;
+    });
+  }
+  function paintSave() { $('cSave').disabled = !cut || !cut.ready || cut.saving; }
+  function paintResult(job, data, w, h, kept, removed) {
+    if (cut !== job) return;
+    var c = $('cCanvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').putImageData(new ImageData(data, w, h), 0, 0);
+    job.w = w; job.h = h;
+    job.ready = kept > 0 && removed > 0;
+    cutStatus(kept === 0 ? 'allGone' : removed === 0 ? 'noBg' : null);
+    paintSave();
+  }
+  /* พื้นโปร่ง: Worker ถอดภาพ + เก็บพิกเซลไว้ (เลื่อนแถบแล้วส่งแค่ค่า) · ไม่มี Worker/OffscreenCanvas = เธรดหลัก */
+  function canFloodWorker() { return typeof Worker === 'function' && typeof OffscreenCanvas === 'function' && typeof createImageBitmap === 'function'; }
+  function floodWorker() {
+    if (floodW) return floodW;
+    floodW = new Worker('image-cutout-worker.js');
+    floodW.onmessage = function (e) {
+      var m = e.data || {}, job = cut;
+      if (!job || m.id !== job.id) return;
+      if (m.type === 'loaded') { job.loaded = true; runFlood(); }
+      else if (m.type === 'result') { if (m.seq === job.seq) paintResult(job, m.data, m.w, m.h, m.kept, m.removed); }
+      else if (m.type === 'error') { cutStatus(null); cutError('srcLoad'); $('cRetry').hidden = false; }
+    };
+    floodW.onerror = function () { floodW = null; if (cut) { cutStatus(null); cutError('srcLoad'); $('cRetry').hidden = false; } };
+    return floodW;
+  }
+  function floodLoad(job) {
+    if (canFloodWorker()) {
+      try { floodWorker().postMessage({ type: 'load', id: job.id, blob: job.blob }); return; } catch (e) { floodW = null; }
+    }
+    var url = URL.createObjectURL(job.blob), im = new Image();
+    im.onload = function () {
+      URL.revokeObjectURL(url);
+      if (cut !== job) return;
+      var c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight;
+      var g = c.getContext('2d'); g.drawImage(im, 0, 0);
+      job.pixels = { w: c.width, h: c.height, data: g.getImageData(0, 0, c.width, c.height).data };
+      job.loaded = true; runFlood();
+    };
+    im.onerror = function () { URL.revokeObjectURL(url); if (cut === job) { cutStatus(null); cutError('srcLoad'); $('cRetry').hidden = false; } };
+    im.src = url;
+  }
+  function runFlood() {
+    var job = cut;
+    if (!job || job.mode !== 'transparent' || !job.loaded) return;
+    var seq = ++job.seq, tol = Number($('cTol').value), soft = $('cSoft').checked;
+    job.ready = false; paintSave();
+    if (!job.pixels) { floodWorker().postMessage({ type: 'flood', id: job.id, seq: seq, tolerance: tol, soft: soft }); return; }
+    setTimeout(function () { // yield ให้หน้าวาดก่อนคำนวณบนเธรดหลัก
+      if (cut !== job || job.seq !== seq) return;
+      var px = job.pixels, r = TanotCutout.floodTransparent(px.data, px.w, px.h, { tolerance: tol, soft: soft });
+      paintResult(job, r.data, px.w, px.h, r.kept, r.removed);
+    }, 16);
+  }
+  /* ลบพื้นหลัง: Module Worker + transformers.js */
+  function killBg() {
+    if (bgW) { try { bgW.terminate(); } catch (e) {} }
+    bgW = null; bgBusy = false;
+    if (window.TanotMedia) TanotMedia.budget.release('cutout');
+  }
+  function mb(n) { return OME_I18N.number((n || 0) / 1e6, { maximumFractionDigits: 0 }); }
+  function bgFail(job, code, ctx) {
+    var key = code === 'missing' ? 'cutMissing' : code === 'network' ? 'cutNetwork' : code === 'memory' ? 'cutMemory' : code === 'session' ? null : 'cutFail';
+    if (code === 'memory' || code === 'crash') killBg(); // หน่วยความจำ WASM หดไม่ได้ — ครั้งหน้าสร้าง Worker ใหม่
+    bgBusy = false;
+    if (cut !== job) return;
+    $('cBar').hidden = true; cutStatus(null);
+    if (key) cutError(key); else cutLive('cMsg', function () { return window.TanotMedia ? TanotMedia.errorText({ code: 'session', name: 'SessionError' }) : T('cutFail'); });
+    $('cRetry').hidden = false;
+  }
+  function bgWorker() {
+    if (bgW) return bgW;
+    if (window.TanotMedia) TanotMedia.budget.acquire('cutout', function () { if (bgW) { try { bgW.terminate(); } catch (e) {} } bgW = null; if (bgBusy && cut) bgFail(cut, 'evicted'); });
+    bgW = new Worker('image-bgremove-worker.js', { type: 'module' });
+    bgW.onmessage = function (e) {
+      var m = e.data || {}, job = cut, TM = window.TanotMedia;
+      var ctx = { engine: 'local', model: MODEL_ID(), device: job && job.device || '' };
+      if (m.type === 'fallback') {
+        if (TM) TM.logError('image', { name: m.name, message: m.message }, { stage: 'cutout-webgpu-' + m.stage, engine: 'local', model: MODEL_ID(), device: 'webgpu' });
+        if (job) job.device = 'wasm';
+        return;
+      }
+      if (m.type === 'retry') { if (TM) TM.logNote('image', { stage: 'load-retry', engine: 'local', model: MODEL_ID() }, 'retry=1 network'); return; }
+      if (!job || m.id !== job.id) return;
+      if (m.type === 'progress') {
+        $('cBar').hidden = false;
+        var pct = m.total ? Math.min(100, Math.round(m.loaded / m.total * 100)) : 0;
+        $('cBarMeter').firstElementChild.style.width = pct + '%';
+        $('cBarMeter').setAttribute('aria-valuenow', String(pct));
+        cutLive('cBarVal', function () { return T('mb', { a: mb(m.loaded), b: mb(m.total) }); });
+        cutStatus(pct >= 100 ? 'cutWorking' : null);
+      } else if (m.type === 'result') {
+        bgBusy = false;
+        $('cBar').hidden = true;
+        var kept = 0, d = m.data;
+        for (var i = 3; i < d.length; i += 4) if (d[i] > 0) kept++;
+        paintResult(job, d, m.w, m.h, kept, m.w * m.h - kept);
+      } else if (m.type === 'error') {
+        ctx.stage = 'cutout-' + (m.stage || 'load');
+        if (TM) TM.logError('image', { name: m.name, message: m.message }, ctx);
+        bgFail(job, m.code, ctx);
+      }
+    };
+    bgW.onerror = function (ev) {
+      if (ev && ev.preventDefault) ev.preventDefault();
+      var job = cut;
+      if (window.TanotMedia) TanotMedia.logError('image', { name: 'WorkerError', message: 'worker crashed' }, { stage: 'cutout-crash', engine: 'local', model: MODEL_ID(), device: job && job.device || '' });
+      killBg();
+      if (job) bgFail(job, 'crash');
+    };
+    return bgW;
+  }
+  function bgRun(job) {
+    cutStatus('cutPreparing');
+    var TM = window.TanotMedia;
+    var plan = TM && TM.webgpuPlan ? TM.webgpuPlan() : Promise.resolve({ ok: false, f16: false });
+    plan.then(function (p) {
+      if (cut !== job) return;
+      job.device = p.ok ? 'webgpu' : 'wasm';
+      var w;
+      try { w = bgWorker(); } catch (e) {
+        if (TM) TM.logError('image', e, { stage: 'cutout-worker', engine: 'local', model: MODEL_ID() });
+        return bgFail(job, 'other');
+      }
+      bgBusy = true;
+      w.postMessage({ type: 'run', id: job.id, blob: job.blob, device: job.device, f16: !!p.f16 });
+    });
+  }
+  function closeCut() {
+    var dlg = $('cut');
+    if (dlg.open) { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); }
+  }
+  function onCutClosed() {
+    if (bgBusy) killBg(); // ยกเลิกระหว่างโหลด/รันโมเดล — WASM หยุดกลางทางได้ทางเดียวคือ terminate
+    cut = null; clearTimeout(tolTimer);
+  }
+  function baseName(n) { return String(n || 'image').replace(/\.[a-z0-9]{2,5}$/i, '').slice(0, 80) || 'image'; }
+  function saveCut() {
+    var job = cut;
+    if (!job || !job.ready || job.saving) return;
+    job.saving = true; paintSave(); cutError(null);
+    var x = job.src, name = baseName(x.name) + '-' + job.mode + '.png';
+    new Promise(function (resolve, reject) {
+      $('cCanvas').toBlob(function (b) { if (b) resolve(b); else reject(new Error('png')); }, 'image/png');
+    }).then(function (blob) {
+      return fetch('/api/files?ns=images&ref=' + encodeURIComponent(x.preset || 'free') + '&name=' + encodeURIComponent(name), {
+        method: 'POST', body: blob, headers: { 'Content-Type': 'image/png' }, credentials: 'same-origin', redirect: 'manual'
+      });
+    }).then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }).then(function (f) {
+      if (!f || !f.id) throw new Error('bad response');
+      var row = {
+        id: f.id, preset: x.preset, mode: x.mode || null, model: x.model, modelId: x.modelId, seed: x.seed == null ? null : x.seed,
+        prompt: x.prompt || '', fullPrompt: x.fullPrompt || '', name: f.name || name, mime: 'image/png', w: job.w, h: job.h, createdAt: Date.now(),
+        srcId: x.id, kind: job.mode
+      };
+      addItem(row);
+      job.saving = false;
+      closeCut(); renderGrid();
+      toast(function () { return T('savedNew'); }, 'ok');
+    }).catch(function () {
+      job.saving = false; paintSave();
+      if (cut === job) cutError('saveFail');
+    });
+  }
+
   function init() {
     loadUi();
     $('prompt').value = '';
@@ -445,6 +682,18 @@
     $('refDel').addEventListener('click', function () { if (!state.busy) { clearRef(); $('prompt').focus(); } });
     $('vDel').addEventListener('click', del);
     $('view').addEventListener('close', function () { state.openId = null; });
+    $('vTrans').addEventListener('click', function () { openCut('transparent'); });
+    $('vCutout').addEventListener('click', function () { openCut('cutout'); });
+    $('cClose').addEventListener('click', closeCut);
+    $('cCancel').addEventListener('click', closeCut);
+    $('cRetry').addEventListener('click', function () { if (cut) startCut(); });
+    $('cSave').addEventListener('click', saveCut);
+    $('cut').addEventListener('close', onCutClosed);
+    $('cTol').addEventListener('input', function () {
+      $('cTolOut').textContent = $('cTol').value;
+      clearTimeout(tolTimer); tolTimer = setTimeout(runFlood, 120);
+    });
+    $('cSoft').addEventListener('change', runFlood);
     if (TD && TD.onChange) TD.onChange(function (keys) { if (!keys.length || keys.indexOf(K.items) >= 0) renderGrid(); });
     renderControls(); renderGrid(); loadQuota();
     window.OME_PAGE_LIVE_LANG = true;
@@ -452,6 +701,7 @@
       renderGrid(); paintQuota();
       if (progress) $('genTxt').textContent = T('working', progress);
       if (state.openId) { var x = findItem(state.openId); if (x) paintMeta(x); }
+      if (cut) $('cTitle').textContent = T(cut.mode === 'transparent' ? 'transparent' : 'cutout');
     });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
