@@ -295,10 +295,148 @@ test.describe('image-gen-calc.js (ฟังก์ชันล้วน)', () => 
 });
 
 
+/* ── พื้นโปร่ง (image-cutout-calc.js): flood fill จากมุมภาพ — known-answer บน RGBA ที่สร้างเอง ── */
+const Cut = require('../image-cutout-calc.js');
+function img(w, h, fn) {
+  const d = new Uint8ClampedArray(w * h * 4);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { const c = fn(x, y); const i = (y * w + x) * 4; d[i] = c[0]; d[i + 1] = c[1]; d[i + 2] = c[2]; d[i + 3] = c.length > 3 ? c[3] : 255; }
+  return d;
+}
+const px = (d, w, x, y) => Array.from(d.slice((y * w + x) * 4, (y * w + x) * 4 + 4));
+const alphaCount = (d, pred) => { let n = 0; for (let i = 3; i < d.length; i += 4) if (pred(d[i])) n++; return n; };
+
+test.describe('image-cutout-calc.js (พื้นโปร่ง — ฟังก์ชันล้วน)', () => {
+  test('พื้นสีเดียว + สี่เหลี่ยมกลาง: พื้นโปร่งหมด · วัตถุคงสี/alpha เดิม · ไม่แก้ต้นฉบับ', () => {
+    const W = 20, H = 20, BG = [10, 120, 200], FG = [220, 30, 30];
+    const src = img(W, H, (x, y) => (x >= 6 && x <= 13 && y >= 6 && y <= 13 ? FG : BG));
+    const before = Array.from(src);
+    const r = Cut.floodTransparent(src, W, H);
+    expect(r.removed).toBe(W * H - 64);
+    expect(r.kept).toBe(64);
+    expect(px(r.data, W, 0, 0)[3]).toBe(0);
+    expect(px(r.data, W, 19, 10)[3]).toBe(0);
+    expect(px(r.data, W, 6, 6)).toEqual([...FG, 255]);
+    expect(px(r.data, W, 10, 10)).toEqual([...FG, 255]);
+    expect(alphaCount(r.data, (a) => a === 255)).toBe(64);
+    expect(Array.from(src)).toEqual(before);
+    expect(r.seeds).toEqual([0, 1, 2, 3]);
+  });
+
+  test('พื้นไล่สีเล็กน้อย: ค่าเริ่มต้นลบได้ทั้งพื้น · วงกลมกลางคงอยู่ · ค่าความต่าง 0 = ลบเฉพาะสีที่ตรงมุมเป๊ะ', () => {
+    const W = 40, H = 30;
+    const bg = (x, y) => [240 - Math.round(x * 15 / 39), 240 - Math.round(y * 12 / 29), 240 - Math.round((x + y) * 8 / 67)];
+    const inCircle = (x, y) => (x - 20) ** 2 + (y - 15) ** 2 <= 36;
+    const src = img(W, H, (x, y) => (inCircle(x, y) ? [20, 160, 60] : bg(x, y)));
+    let circle = 0; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (inCircle(x, y)) circle++;
+    const r = Cut.floodTransparent(src, W, H);
+    expect(r.removed).toBe(W * H - circle);
+    expect(px(r.data, W, 20, 15)).toEqual([20, 160, 60, 255]);
+    const r0 = Cut.floodTransparent(src, W, H, { tolerance: 0 });
+    expect(r0.removed).toBeLessThan((W * H - circle) / 4);
+    expect(Cut.DEFAULT_TOLERANCE).toBeGreaterThanOrEqual(5);
+    expect(Cut.DEFAULT_TOLERANCE).toBeLessThanOrEqual(25);
+  });
+
+  test('มุมไม่ตรงกัน (วัตถุทับมุมซ้ายบน): ไม่ใช้มุมที่ต่างจากมุมอื่น → วัตถุที่มุมคงอยู่ พื้นที่เหลือโปร่ง', () => {
+    const W = 16, H = 16, WHITE = [250, 250, 250], INK = [15, 15, 15];
+    const src = img(W, H, (x, y) => (x < 4 && y < 4 ? INK : WHITE));
+    const r = Cut.floodTransparent(src, W, H);
+    expect(r.seeds).toEqual([1, 2, 3]);
+    expect(px(r.data, W, 0, 0)).toEqual([...INK, 255]);
+    expect(px(r.data, W, 3, 3)).toEqual([...INK, 255]);
+    expect(px(r.data, W, 15, 15)[3]).toBe(0);
+    expect(r.removed).toBe(W * H - 16);
+  });
+
+  test('มุมต่างกันหมด 4 สี: ใช้ทุกมุม (แต่ละมุมลบเฉพาะสีของตัวเอง)', () => {
+    const W = 10, H = 10, Q = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]];
+    const src = img(W, H, (x, y) => Q[(y < 5 ? 0 : 2) + (x < 5 ? 0 : 1)]);
+    const r = Cut.floodTransparent(src, W, H);
+    expect(r.seeds).toEqual([0, 1, 2, 3]);
+    expect(r.removed).toBe(100);
+  });
+
+  test('วัตถุแตะขอบ (แถบชิดขอบซ้ายกลางภาพ): ไม่ถูกลบ · รูภายในวงแหวนที่ไม่ต่อกับขอบไม่ถูกลบ', () => {
+    const W = 24, H = 24, WHITE = [255, 255, 255], BAR = [30, 60, 200];
+    const ring = (x, y) => { const d = Math.max(Math.abs(x - 15), Math.abs(y - 12)); return d >= 3 && d <= 5; };
+    const src = img(W, H, (x, y) => ((x <= 4 && y >= 9 && y <= 14) || ring(x, y) ? BAR : WHITE));
+    const r = Cut.floodTransparent(src, W, H, { soft: false });
+    expect(px(r.data, W, 0, 10)).toEqual([...BAR, 255]);
+    expect(px(r.data, W, 15, 12)).toEqual([...WHITE, 255]); // ใจกลางวงแหวน (ไม่ต่อกับขอบ)
+    expect(px(r.data, W, 0, 0)[3]).toBe(0);
+    expect(px(r.data, W, 23, 23)[3]).toBe(0);
+  });
+
+  test('ขอบนุ่ม: พิกเซลกึ่งกลางระหว่างพื้นกับวัตถุได้ alpha ครึ่งเดียว + สีถูกแยกพื้นออก (ไม่มีขอบขาว) · ปิดขอบนุ่ม = ทึบ', () => {
+    const W = 12, H = 5, WHITE = [255, 255, 255], BLUE = [0, 0, 255], MID = [128, 128, 255];
+    const src = img(W, H, (x) => (x < 4 ? WHITE : x === 4 ? MID : x <= 7 ? BLUE : WHITE));
+    const r = Cut.floodTransparent(src, W, H);
+    const m = px(r.data, W, 4, 2);
+    expect(m[3]).toBeGreaterThanOrEqual(120); expect(m[3]).toBeLessThanOrEqual(135);
+    expect(m[0]).toBeLessThanOrEqual(8); expect(m[1]).toBeLessThanOrEqual(8); expect(m[2]).toBe(255);
+    expect(px(r.data, W, 5, 2)).toEqual([...BLUE, 255]);
+    expect(r.partial).toBe(H);
+    const hard = Cut.floodTransparent(src, W, H, { soft: false });
+    expect(px(hard.data, W, 4, 2)).toEqual([...MID, 255]);
+    expect(hard.partial).toBe(0);
+  });
+
+  test('ภาพโปร่งอยู่แล้ว: พื้นโปร่งคงโปร่ง วัตถุคงเดิม · ภาพขาวล้วน: ลบทั้งภาพ (kept 0) · ภาพ 1×1 ไม่พัง', () => {
+    const W = 8, H = 8;
+    const src = img(W, H, (x, y) => (x >= 3 && x <= 4 && y >= 3 && y <= 4 ? [0, 0, 0, 255] : [12, 34, 56, 0]));
+    const r = Cut.floodTransparent(src, W, H);
+    expect(r.kept).toBe(4);
+    expect(px(r.data, W, 3, 3)).toEqual([0, 0, 0, 255]);
+    expect(alphaCount(r.data, (a) => a === 0)).toBe(60);
+    const white = Cut.floodTransparent(img(W, H, () => [255, 255, 255]), W, H);
+    expect(white.kept).toBe(0); expect(white.removed).toBe(64);
+    const one = Cut.floodTransparent(img(1, 1, () => [1, 2, 3]), 1, 1);
+    expect(one.removed).toBe(1);
+  });
+
+  test('ค่าผิดรูปแบบ: ขนาดไม่ตรงกับข้อมูล = throw · tolerance นอกช่วงถูกบีบเข้า 0–100', () => {
+    expect(() => Cut.floodTransparent(new Uint8ClampedArray(12), 2, 2)).toThrow();
+    const src = img(4, 4, (x) => (x < 2 ? [0, 0, 0] : [255, 255, 255]));
+    expect(Cut.floodTransparent(src, 4, 4, { tolerance: 999 }).removed).toBe(16);
+    const g = img(6, 6, (x, y) => [200 + x * 5, 200 + y * 5, 200]);
+    expect(Cut.floodTransparent(g, 6, 6, { tolerance: -5 }).removed).toBe(Cut.floodTransparent(g, 6, 6, { tolerance: 0 }).removed);
+    expect(Cut.floodTransparent(g, 6, 6, { tolerance: 'x' }).removed).toBe(Cut.floodTransparent(g, 6, 6).removed);
+  });
+
+  test('ภาพ 1024×1024 เสร็จภายใน 1.5 วินาที (Node)', () => {
+    const W = 1024, H = 1024;
+    const src = img(W, H, (x, y) => ((x - 512) ** 2 + (y - 512) ** 2 < 300 ** 2 ? [200, 40, 90] : [245, 245, 240]));
+    const t = Date.now();
+    const r = Cut.floodTransparent(src, W, H);
+    expect(Date.now() - t).toBeLessThan(1500);
+    expect(r.kept).toBeGreaterThan(280000);
+  });
+
+  test('ตารางโมเดลลบพื้นหลัง: id/revision/dtype ที่เดียว · WebGPU+f16 = fp16 · อื่นๆ = fp32 · ไม่ใช่ briaai/Tanotfin', () => {
+    const M = Cut.BG_MODEL;
+    expect(M.id).toMatch(/^onnx-community\//);
+    expect(M.id).not.toMatch(/briaai|RMBG|Tanotfin/i);
+    expect(M.revision === 'main' || /^[0-9a-f]{40}$/.test(M.revision)).toBe(true);
+    expect(Cut.bgDtype('webgpu', true)).toBe('fp16');
+    expect(Cut.bgDtype('webgpu', false)).toBe('fp32');
+    expect(Cut.bgDtype('wasm', true)).toBe('fp32');
+    expect(M.dtype).toEqual({ gpuF16: 'fp16', gpu: 'fp32', wasm: 'fp32' });
+    // สลับ dtype ได้ที่ตารางบรรทัดเดียว — bgDtype อ่านจากตารางเสมอ · WebGPU ไม่มี shader-f16 (เช่น Pascal) ห้ามได้ dtype ตระกูล f16
+    const keep = { ...M.dtype };
+    M.dtype.wasm = 'q8'; M.dtype.gpu = 'uint8';
+    expect(Cut.bgDtype('wasm', true)).toBe('q8');
+    expect(Cut.bgDtype('webgpu', false)).toBe('uint8');
+    Object.assign(M.dtype, keep);
+    expect(keep.gpu).not.toMatch(/f16/);
+    expect(M.bytes.fp16).toBeGreaterThan(1e6);
+    expect(M.bytes.fp32).toBeGreaterThan(M.bytes.fp16);
+  });
+});
+
 /* ── หน้าเว็บ (mock ทุก /api/*) ── */
 async function setup(page, { theme = 'light' } = {}) {
   const errors = await prepare(page, { theme });
-  const st = { used: 100, imageCalls: [], deletes: [], chatCalls: 0, n: 0, imageStatus: 200, delStatus: 200, fileStatus: 200, filePng: null, detail: '' };
+  const st = { used: 100, imageCalls: [], deletes: [], chatCalls: 0, n: 0, imageStatus: 200, delStatus: 200, fileStatus: 200, filePng: null, detail: '', uploads: [], upStatus: 200 };
   await page.addInitScript(() => { window.TANOT_AI = { enabled: true }; });
   await page.route('**/api/ai/usage', (r) => r.fulfill({ json: { day: '2026-09-30', limit: 10000, used: st.used, remaining: 10000 - st.used, byKind: [] } }));
   await page.route('**/api/ai/image', (r) => {
@@ -319,6 +457,12 @@ async function setup(page, { theme = 'light' } = {}) {
     if (req.method() === 'DELETE') {
       st.deletes.push(new URL(req.url()).searchParams.get('id'));
       return r.fulfill({ status: st.delStatus, json: st.delStatus === 200 ? { ok: true } : { error: 'x' } });
+    }
+    if (req.method() === 'POST') {
+      const u = new URL(req.url()), body = req.postDataBuffer();
+      st.uploads.push({ ns: u.searchParams.get('ns'), ref: u.searchParams.get('ref'), name: u.searchParams.get('name'), type: req.headers()['content-type'], body });
+      if (st.upStatus !== 200) return r.fulfill({ status: st.upStatus, json: { error: 'x' } });
+      return r.fulfill({ json: { id: 'up' + st.uploads.length, name: u.searchParams.get('name'), size: body.length, mime: 'image/png' } });
     }
     if (st.fileStatus !== 200) return r.fulfill({ status: st.fileStatus, json: { error: 'x' } });
     return r.fulfill({ status: 200, contentType: 'image/png', body: st.filePng || PNG });
@@ -904,6 +1048,329 @@ test.describe('หน้า image-gen.html', () => {
       await page.waitForSelector('nav.ome-nav');
       expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       expect(await page.evaluate(() => (window.OME_MENU || []).some(function f(m) { return m.href === 'image-gen.html' || (m.children || []).some(f); }))).toBe(true);
+      expect(errors).toEqual([]);
+    });
+  }
+});
+
+/* ── พื้นโปร่ง / ลบพื้นหลัง (หน้า) ──
+   ภาพต้นทางสร้างด้วย canvas ในหน้า (พื้นสีเรียบ + สี่เหลี่ยมกลาง) · ลบพื้นหลังใช้ transformers.js ตัวหลอก (route vendor/transformers ทั้งหน้าและ Worker — CI ไม่โหลดโมเดลจริง)
+   โมดูลหลอกรายงานการเรียก pipeline ผ่าน fetch('/__fake?…') ให้เทสต์ตรวจ task/model/dtype/device/revision */
+const CUT_SEED = () => {
+  if (localStorage.getItem('tanot:images:items')) return;
+  localStorage.setItem('tanot:images:items', JSON.stringify([
+    { id: 'ic1', preset: 'icon', mode: null, model: 'quality', modelId: 'm', seed: 5, prompt: 'leaf secret prompt', fullPrompt: 'leaf secret prompt, app icon', name: 'my-private-icon.png', mime: 'image/png', w: 256, h: 256, createdAt: 2000 },
+    { id: 'bg1', preset: 'background', mode: 'light', model: 'fast', seed: null, prompt: 'hills', fullPrompt: 'hills, soft', name: 'bg1.png', mime: 'image/png', w: 256, h: 256, createdAt: 1000 },
+  ]));
+};
+function fakeBgModule(mode) {
+  return `
+const MODE = ${JSON.stringify(mode)};
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+export const env = { backends: { onnx: { wasm: {} } } };
+export class RawImage {
+  constructor(data, width, height, channels) { this.data = data; this.width = width; this.height = height; this.channels = channels; }
+  static async fromBlob(b) {
+    const bmp = await createImageBitmap(b); const c = new OffscreenCanvas(bmp.width, bmp.height); const g = c.getContext('2d'); g.drawImage(bmp, 0, 0);
+    return new RawImage(g.getImageData(0, 0, bmp.width, bmp.height).data, bmp.width, bmp.height, 4);
+  }
+}
+export async function pipeline(task, model, o) {
+  await fetch('/__fake?' + new URLSearchParams({ task, model, device: o.device || 'wasm', dtype: o.dtype || '', revision: o.revision || '' }));
+  if (MODE === 'missing') throw new Error('Could not locate file: "https://huggingface.co/' + model + '/resolve/main/onnx/model.onnx" (404)');
+  if (MODE === 'gpufail' && o.device === 'webgpu') throw new Error('no available backend found: webgpu');
+  if (o.progress_callback) {
+    o.progress_callback({ status: 'progress', file: 'onnx/model.onnx', loaded: 50e6, total: 100e6 });
+    await sleep(MODE === 'slow' ? 4000 : 400);
+    o.progress_callback({ status: 'progress', file: 'onnx/model.onnx', loaded: 100e6, total: 100e6 });
+  }
+  return async (img) => {
+    if (MODE === 'oom') throw new RangeError('Array buffer allocation failed');
+    const d = new Uint8ClampedArray(img.data);
+    if (MODE === 'opaque') return new RawImage(d, img.width, img.height, 4);
+    if (MODE === 'empty') { for (let i = 3; i < d.length; i += 4) d[i] = 0; return new RawImage(d, img.width, img.height, 4); }
+    for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width / 2; x++) d[(y * img.width + x) * 4 + 3] = 0;
+    return new RawImage(d, img.width, img.height, 4);
+  };
+}`;
+}
+async function cutSetup(page, context, { mode = 'ok', files = true, lang, init = '', solid } = {}) {
+  const env = await setup(page);
+  env.fake = [];
+  await page.route('**/vendor/transformers/transformers.web.min.js', (r) => r.fulfill({ contentType: 'text/javascript', body: fakeBgModule(mode) }));
+  await page.route('**/__fake?**', (r) => { env.fake.push(Object.fromEntries(new URL(r.request().url()).searchParams)); return r.fulfill({ body: 'ok' }); });
+  await page.route('https://cdn.jsdelivr.net/**', (r) => r.abort());
+  await page.addInitScript(([files, lang, init]) => {
+    if (files) window.TANOT_FILES = { enabled: true };
+    if (lang) localStorage.setItem('ome:lang', lang);
+    if (init) (0, eval)(init);
+  }, [files, lang || '', init]);
+  await page.addInitScript(CUT_SEED);
+  await page.goto('/image-gen.html');
+  env.st.filePng = await page.evaluate((solid) => {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    const g = c.getContext('2d'); g.fillStyle = '#2a6fdb'; g.fillRect(0, 0, 256, 256);
+    if (!solid) { g.fillStyle = '#ffcc00'; g.fillRect(64, 64, 128, 128); }
+    return c.toDataURL('image/png').split(',')[1];
+  }, !!solid).then((b) => Buffer.from(b, 'base64'));
+  return env;
+}
+const canvasPx = (page, x, y) => page.evaluate(([x, y]) => Array.from(document.getElementById('cCanvas').getContext('2d').getImageData(x, y, 1, 1).data), [x, y]);
+const mediaLog = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:media:log') || '[]'));
+const items = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:images:items')));
+const thaiVisible = (page, sel) => page.evaluate((sel) => {
+  const out = [];
+  document.querySelectorAll(sel).forEach((root) => {
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    for (let n = w.nextNode(); n; n = w.nextNode()) {
+      const el = n.parentElement;
+      if (!el || el.closest('[data-i18n-skip],#vPrompt,#vImg')) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden' || !el.getClientRects().length) continue;
+      if (/[฀-๿]/.test(n.nodeValue)) out.push(n.nodeValue.trim());
+    }
+    root.querySelectorAll('[aria-label],[title]').forEach((el) => { for (const a of ['aria-label', 'title']) { const v = el.getAttribute(a); if (v && /[฀-๿]/.test(v) && el.id !== 'vImg') out.push(a + ':' + v); } });
+  });
+  return out;
+}, sel);
+
+test.describe('หน้า image-gen.html — พื้นโปร่ง / ลบพื้นหลัง', () => {
+  test('พื้นโปร่ง: ตัวอย่างบนลายตาราง (มุมโปร่ง วัตถุทึบ) · แถบค่าความต่าง/ขอบนุ่ม · บันทึก = อัปโหลด PNG ns images + แถวใหม่ (srcId/kind) ไม่ทับต้นทาง · ลบต้นทางไม่ลบภาพใหม่', async ({ page, context }) => {
+    const { errors, st } = await cutSetup(page, context);
+    await page.click('.ig-item[data-id="ic1"]');
+    await expect(page.locator('#vCutActs')).toBeVisible();
+    await expect(page.locator('#vTrans')).not.toHaveClass(/ghost/); // ไอคอน = ปุ่มเด่น
+    await page.click('#vTrans');
+    await expect(page.locator('#view')).toBeHidden();
+    await expect(page.locator('#cut')).toBeVisible();
+    await expect(page.locator('#cTitle')).toHaveText('พื้นโปร่ง');
+    await expect(page.locator('#cStage')).toHaveClass(/ig-alpha/);
+    await expect(page.locator('#cSave')).toBeEnabled();
+    expect(await page.locator('#cCanvas').evaluate((c) => [c.width, c.height])).toEqual([256, 256]);
+    expect((await canvasPx(page, 0, 0))[3]).toBe(0);
+    expect(await canvasPx(page, 128, 128)).toEqual([255, 204, 0, 255]);
+    await expect(page.locator('#cTolOut')).toHaveText('12');
+    await page.locator('#cTol').fill('30');
+    await expect(page.locator('#cTolOut')).toHaveText('30');
+    await page.uncheck('#cSoft');
+    await expect(page.locator('#cSave')).toBeEnabled();
+    expect((await canvasPx(page, 255, 255))[3]).toBe(0);
+    await page.click('#cSave');
+    await expect(page.locator('#cut')).toBeHidden();
+    expect(st.uploads).toHaveLength(1);
+    const up = st.uploads[0];
+    expect(up).toMatchObject({ ns: 'images', ref: 'icon', name: 'my-private-icon-transparent.png', type: 'image/png' });
+    expect(up.body.slice(1, 4).toString()).toBe('PNG');
+    expect(up.body[25]).toBe(6); // IHDR color type 6 = RGBA
+    const rows = await items(page);
+    expect(rows).toHaveLength(3);
+    expect(rows.find((x) => x.id === 'ic1')).toEqual(expect.not.objectContaining({ kind: expect.anything() }));
+    expect(rows.find((x) => x.id === 'up1')).toMatchObject({ srcId: 'ic1', kind: 'transparent', preset: 'icon', mime: 'image/png', w: 256, h: 256, prompt: 'leaf secret prompt', seed: 5 });
+    const card = page.locator('.ig-item[data-id="up1"]');
+    await expect(card).toHaveAttribute('data-kind', 'transparent');
+    await expect(card.locator('.badge')).toContainText('พื้นโปร่ง');
+    // ลบต้นทาง → ภาพใหม่ยังอยู่ (ไม่ DELETE ไฟล์ของมัน)
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vDel');
+    await page.locator('dialog[open] .btn.danger').last().click();
+    await expect(page.locator('.ig-item[data-id="ic1"]')).toHaveCount(0);
+    expect(st.deletes).toEqual(['ic1']);
+    await expect(page.locator('.ig-item[data-id="up1"]')).toHaveCount(1);
+    await page.click('.ig-item[data-id="up1"]');
+    await expect(page.locator('#vMeta')).toContainText('พื้นโปร่ง');
+    expect(errors).toEqual([]);
+  });
+
+  test('พื้นโปร่ง: ภาพสีเดียวทั้งภาพ = "ทั้งภาพถูกลบ" + บันทึกไม่ได้ · ภาพพื้นหลัง = ปุ่มไม่เด่น · อัปโหลดล้ม = ข้อความในกล่อง ไม่มีแถวใหม่', async ({ page, context }) => {
+    const { errors, st } = await cutSetup(page, context, { solid: true });
+    await page.click('.ig-item[data-id="bg1"]');
+    await expect(page.locator('#vTrans')).toHaveClass(/ghost/);
+    await page.click('#vTrans');
+    await expect(page.locator('#cStatus')).toHaveText('ทั้งภาพถูกลบ — ลดค่าความต่างสี');
+    await expect(page.locator('#cSave')).toBeDisabled();
+    await page.click('#cCancel');
+    await expect(page.locator('#cut')).toBeHidden();
+    // อัปโหลดล้ม
+    st.filePng = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 64; c.height = 64; const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 64, 64); g.fillStyle = '#c00'; g.fillRect(20, 20, 24, 24); return c.toDataURL('image/png').split(',')[1]; }).then((b) => Buffer.from(b, 'base64'));
+    st.upStatus = 500;
+    await page.click('.ig-item[data-id="bg1"]');
+    await page.click('#vTrans');
+    await expect(page.locator('#cSave')).toBeEnabled();
+    await page.click('#cSave');
+    await expect(page.locator('#cMsg')).toHaveText('บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อแล้วลองใหม่');
+    await expect(page.locator('#cut')).toBeVisible();
+    await expect(page.locator('#cSave')).toBeEnabled();
+    expect(await items(page)).toHaveLength(2);
+    expect(errors.filter((e) => !/status of 500/.test(e))).toEqual([]);
+  });
+
+  test('พื้นโปร่ง ไม่มี OffscreenCanvas: คำนวณบนเธรดหลัก ได้ผลเดียวกัน · ไม่มีการอัปโหลด (ไม่ใช่ pages.dev) = ไม่มีปุ่ม', async ({ page, context }) => {
+    const { errors } = await cutSetup(page, context, { init: 'delete window.OffscreenCanvas;' });
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vTrans');
+    await expect(page.locator('#cSave')).toBeEnabled();
+    expect((await canvasPx(page, 3, 250))[3]).toBe(0);
+    expect(await canvasPx(page, 100, 100)).toEqual([255, 204, 0, 255]);
+    expect(errors).toEqual([]);
+    const p2 = await context.newPage();
+    const e2 = await setup(p2);
+    await p2.addInitScript(CUT_SEED);
+    await p2.goto('/image-gen.html');
+    await p2.click('.ig-item[data-id="ic1"]');
+    await expect(p2.locator('#view')).toBeVisible();
+    await expect(p2.locator('#vCutActs')).toBeHidden();
+    expect(e2.errors).toEqual([]);
+  });
+
+  test('ลบพื้นหลัง: โมเดลจากตาราง (background-removal, BiRefNet_lite, fp32/WASM, revision) · แถบ MB ตอนโหลด · ผลโปร่งครึ่งซ้าย · บันทึกเป็นแถว kind cutout', async ({ page, context }) => {
+    const { errors, st } = await cutSetup(page, context);
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cTitle')).toHaveText('ลบพื้นหลัง');
+    await expect(page.locator('#cTolBox')).toBeHidden();
+    await expect(page.locator('#cBar')).toBeVisible();
+    await expect(page.locator('#cBarVal')).toHaveText(/50 \/ 224 MB/);
+    await expect(page.locator('#cSave')).toBeEnabled({ timeout: 10000 });
+    await expect(page.locator('#cBar')).toBeHidden();
+    expect((await canvasPx(page, 10, 128))[3]).toBe(0);
+    expect((await canvasPx(page, 200, 10))[3]).toBe(255);
+    expect(errors).toEqual([]);
+    await page.click('#cSave');
+    await expect(page.locator('#cut')).toBeHidden();
+    expect(st.uploads[0]).toMatchObject({ ns: 'images', name: 'my-private-icon-cutout.png' });
+    expect((await items(page)).find((x) => x.id === 'up1')).toMatchObject({ srcId: 'ic1', kind: 'cutout' });
+  });
+
+  test('ลบพื้นหลัง: การเรียก pipeline ตรงตาราง · ใช้ซ้ำไม่โหลดใหม่', async ({ page, context }) => {
+    const env = await cutSetup(page, context);
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cSave')).toBeEnabled({ timeout: 10000 });
+    expect(env.fake).toEqual([{ task: 'background-removal', model: 'onnx-community/BiRefNet_lite-ONNX', device: 'wasm', dtype: 'fp32', revision: 'main' }]);
+    await page.click('#cCancel');
+    await page.click('.ig-item[data-id="bg1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cSave')).toBeEnabled({ timeout: 10000 });
+    expect(env.fake).toHaveLength(1); // Worker เดิมถือโมเดลไว้
+    expect(env.errors).toEqual([]);
+  });
+
+  test('ลบพื้นหลัง: ยกเลิกระหว่างโหลดโมเดล = ปิด Worker ทันที (เปิดใหม่โหลดใหม่) · ไม่มีผลค้าง · ไม่ลง problem log', async ({ page, context }) => {
+    const env = await cutSetup(page, context, { mode: 'slow' });
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cBar')).toBeVisible();
+    await page.click('#cCancel');
+    await expect(page.locator('#cut')).toBeHidden();
+    expect(await page.evaluate(() => window.TanotMedia.budget.active())).toEqual([]);
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cSave')).toBeEnabled({ timeout: 10000 });
+    expect(env.fake).toHaveLength(2);
+    expect(await page.evaluate(() => window.TanotMedia.budget.active())).toEqual(['cutout']);
+    expect((await mediaLog(page)).filter((r) => r.kind === 'image')).toEqual([]);
+    expect(env.errors).toEqual([]);
+  });
+
+  test('ลบพื้นหลัง ล้ม: ไม่พบไฟล์โมเดล → ข้อความชัดเจน + ลองใหม่ + problem log ไม่มีภาพ/ชื่อไฟล์/prompt · หน่วยความจำไม่พอ → ข้อความหน่วยความจำ', async ({ page, context }) => {
+    const { errors } = await cutSetup(page, context, { mode: 'missing' });
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cMsg')).toHaveText('ไม่พบไฟล์โมเดลลบพื้นหลังบนเซิร์ฟเวอร์', { timeout: 10000 });
+    await expect(page.locator('#cRetry')).toBeVisible();
+    await expect(page.locator('#cSave')).toBeDisabled();
+    const log = await mediaLog(page);
+    const row = log.find((r) => r.kind === 'image');
+    expect(row).toMatchObject({ stage: 'cutout-load', engine: 'local', model: 'onnx-community/BiRefNet_lite-ONNX', device: 'wasm' });
+    const raw = JSON.stringify(log);
+    for (const bad of ['leaf secret prompt', 'my-private-icon', 'ic1', 'data:image']) expect(raw).not.toContain(bad);
+    expect(errors).toEqual([]);
+
+    const p2 = await context.newPage();
+    const env2 = await setup(p2);
+    await p2.route('**/vendor/transformers/transformers.web.min.js', (r) => r.fulfill({ contentType: 'text/javascript', body: fakeBgModule('oom') }));
+    await p2.route('**/__fake?**', (r) => r.fulfill({ body: 'ok' }));
+    await p2.addInitScript(() => { window.TANOT_FILES = { enabled: true }; });
+    await p2.addInitScript(CUT_SEED);
+    await p2.goto('/image-gen.html');
+    env2.st.filePng = PNG;
+    await p2.click('.ig-item[data-id="ic1"]');
+    await p2.click('#vCutout');
+    await expect(p2.locator('#cMsg')).toHaveText('หน่วยความจำของเบราว์เซอร์ไม่พอ — ปิดแท็บอื่นแล้วลองใหม่', { timeout: 10000 });
+    const l2 = await mediaLog(p2);
+    expect(l2.find((r) => r.kind === 'image' && r.stage === 'cutout-run')).toMatchObject({ code: 'oom' });
+    expect(env2.errors).toEqual([]);
+  });
+
+  for (const [mode, msg] of [['opaque', 'ไม่พบพื้นหลังที่ลบได้ในภาพนี้'], ['empty', 'ไม่พบวัตถุในภาพนี้']]) {
+    test(`ลบพื้นหลัง ผล${mode === 'opaque' ? 'ไม่ลบอะไร' : 'ลบทั้งภาพ'}: ข้อความของโหมดนี้ (ไม่ใช่คำแนะนำค่าความต่างสี) + บันทึกไม่ได้`, async ({ page, context }) => {
+      const { errors } = await cutSetup(page, context, { mode });
+      await page.click('.ig-item[data-id="ic1"]');
+      await page.click('#vCutout');
+      await expect(page.locator('#cStatus')).toHaveText(msg, { timeout: 10000 });
+      await expect(page.locator('#cSave')).toBeDisabled();
+      expect(errors).toEqual([]);
+    });
+  }
+
+  test('ลบพื้นหลัง WebGPU ล้ม → WASM 1 ครั้ง (fp16 → fp32) ได้ผล + problem log ของการถอย', async ({ page, context }) => {
+    const env = await cutSetup(page, context, { mode: 'gpufail', init: "Object.defineProperty(navigator, 'gpu', { configurable: true, value: { requestAdapter: async () => ({ features: new Set(['shader-f16']), isFallbackAdapter: false }) } });" });
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vCutout');
+    await expect(page.locator('#cSave')).toBeEnabled({ timeout: 10000 });
+    expect(env.fake.map((c) => c.device + '/' + c.dtype)).toEqual(['webgpu/fp16', 'wasm/fp32']);
+    expect((await mediaLog(page)).find((r) => r.kind === 'image')).toMatchObject({ stage: 'cutout-webgpu-load', device: 'webgpu' });
+    expect(env.errors).toEqual([]);
+  });
+
+  test('มือถือ: ไม่มีปุ่มลบพื้นหลัง (โมเดลหนัก) แต่มีพื้นโปร่ง', async ({ page, context }) => {
+    const { errors } = await cutSetup(page, context, { init: "Object.defineProperty(navigator, 'userAgent', { configurable: true, get: () => 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148' });" });
+    await page.click('.ig-item[data-id="ic1"]');
+    await expect(page.locator('#vTrans')).toBeVisible();
+    await expect(page.locator('#vCutout')).toBeHidden();
+    expect(errors).toEqual([]);
+  });
+
+  test('ภาษาอังกฤษ: ปุ่ม/กล่อง/ข้อความล้ม ไม่มีไทยหลุด · สลับภาษาสดระหว่างเปิดกล่อง', async ({ page, context }) => {
+    const { errors } = await cutSetup(page, context, { mode: 'missing', lang: 'en' });
+    await page.click('.ig-item[data-id="ic1"]');
+    await expect(page.locator('#vTrans')).toHaveText('Transparent');
+    expect(await thaiVisible(page, '#view')).toEqual([]);
+    await page.click('#vCutout');
+    await expect(page.locator('#cMsg')).toHaveText('The background model files were not found on the server', { timeout: 10000 });
+    expect(await thaiVisible(page, '#cut')).toEqual([]);
+    await page.evaluate(() => OME_LANG.set('th'));
+    await expect(page.locator('#cTitle')).toHaveText('ลบพื้นหลัง');
+    await expect(page.locator('#cMsg')).toHaveText('ไม่พบไฟล์โมเดลลบพื้นหลังบนเซิร์ฟเวอร์');
+    await page.click('#cCancel');
+    await page.click('.ig-item[data-id="ic1"]');
+    await page.click('#vTrans');
+    await page.evaluate(() => OME_LANG.set('en'));
+    await expect(page.locator('#cTitle')).toHaveText('Transparent');
+    expect(await thaiVisible(page, '#cut')).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+
+  for (const w of [360, 390]) {
+    test(`จอ ${w}px: ปุ่มใน dialog ดูภาพ + กล่องพื้นโปร่ง ไม่ล้นจอ · เป้ากด ≥ 40px`, async ({ page, context }) => {
+      await page.setViewportSize({ width: w, height: 760 });
+      const { errors } = await cutSetup(page, context);
+      await page.click('.ig-item[data-id="ic1"]');
+      for (const id of ['#vTrans', '#vCutout']) {
+        const b = await page.locator(id).boundingBox();
+        expect(b.height, id).toBeGreaterThanOrEqual(39.5);
+        expect(b.x + b.width, id).toBeLessThanOrEqual(w);
+      }
+      await page.click('#vTrans');
+      await expect(page.locator('#cSave')).toBeEnabled();
+      for (const id of ['#cClose', '#cCancel', '#cSave', '#cTol', '#cSoftBox']) {
+        const b = await page.locator(id).boundingBox();
+        expect(b.height, id).toBeGreaterThanOrEqual(39.5);
+        expect(b.x, id).toBeGreaterThanOrEqual(0);
+        expect(b.x + b.width, id).toBeLessThanOrEqual(w);
+        expect(b.y + b.height, id).toBeLessThanOrEqual(760);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)).toBeLessThanOrEqual(1);
       expect(errors).toEqual([]);
     });
   }

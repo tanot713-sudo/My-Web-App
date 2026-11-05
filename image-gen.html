@@ -19,6 +19,7 @@
 <script src="ai-client.js"></script>
 <script src="shell.js" defer></script>
 <script src="image-gen-calc.js" defer></script>
+<script src="image-cutout-calc.js" defer></script>
 <script src="image-gen.js" defer></script>
 <style>
 .ig-page{max-width:980px}
@@ -69,6 +70,16 @@
 .ig-big{display:block;width:100%;max-height:60dvh;object-fit:contain;border-radius:var(--ome-radius-md);background:var(--ome-surface-2)}
 .ig-prompt{white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--ome-fs-sm)}
 .ig-meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm);overflow-wrap:anywhere}
+.ig-alpha{background-color:var(--ome-surface-1);background-image:repeating-conic-gradient(var(--ome-border) 0 25%,transparent 0 50%);background-size:16px 16px} /* taste-skill-ignore: ลายตารางแสดงส่วนที่โปร่งของภาพผลลัพธ์ (ข้อมูล ไม่ใช่ของประดับ) */
+.ig-cutacts{display:flex;flex-wrap:wrap;gap:var(--ome-sp-2)}
+.ig-stage{display:flex;justify-content:center;align-items:center;min-height:160px;border:1px solid var(--ome-border);border-radius:var(--ome-radius-md);overflow:hidden}
+.ig-stage canvas,.ig-stage img{display:block;max-width:100%;max-height:50dvh;width:auto;height:auto}
+.ig-tol{display:flex;align-items:center;gap:var(--ome-sp-3)}
+.ig-tol input{flex:1;min-width:0;height:40px;accent-color:var(--ome-accent)}
+.ig-tol output{min-width:3ch;text-align:right;font-variant-numeric:tabular-nums;color:var(--ome-text-2)}
+.ig-cutmsg{font-size:var(--ome-fs-sm);color:var(--ome-text-2)}
+.ig-check{min-height:40px}
+.ig-check input{accent-color:var(--ome-accent)}
 [hidden]{display:none !important}
 @media (max-width:480px){.ig-grid{grid-template-columns:repeat(2,1fr)}.ig-opt .segmented{max-width:100%}
   .ig-dialog .dialog-foot{display:grid;grid-template-columns:1fr 1fr;gap:var(--ome-sp-2)}.ig-dialog .dialog-foot > :is(button,a){margin:0 !important;justify-content:center}}
@@ -150,6 +161,10 @@
     <div class="ig-pr"><div class="ig-prompt" id="vPrompt"></div>
       <button class="btn icon ghost" type="button" id="vCopy" data-i18n-attr="aria-label:ig.copy,title:ig.copy" aria-label="คัดลอก prompt" title="คัดลอก prompt"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-copy"/></svg></button></div>
     <div class="ig-meta" id="vMeta"></div>
+    <div class="ig-cutacts" id="vCutActs" hidden>
+      <button class="btn" type="button" id="vTrans"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-eraser"/></svg><span data-i18n="ig.transparent">พื้นโปร่ง</span></button>
+      <button class="btn" type="button" id="vCutout"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-scissors"/></svg><span data-i18n="ig.cutout">ลบพื้นหลัง</span></button>
+    </div>
   </div>
   <div class="dialog-foot">
     <button class="btn danger" type="button" id="vDel" style="margin-right:auto"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-trash-2"/></svg><span data-i18n="ig.del">ลบ</span></button>
@@ -158,6 +173,30 @@
     <a class="btn primary" id="vDl" href="#" download><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span data-i18n="ig.download">ดาวน์โหลด</span></a>
   </div>
   <div class="toast-region" id="vToasts" role="status" aria-live="polite"></div>
+</dialog>
+
+<dialog class="dialog dialog-form ig-dialog" id="cut" aria-labelledby="cTitle" data-keep-open>
+  <div class="dialog-head"><h2 id="cTitle"></h2><button class="btn icon ghost" type="button" id="cClose" data-i18n-attr="aria-label:ig.close" aria-label="ปิด"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-x"/></svg></button></div>
+  <div class="dialog-body">
+    <div class="ig-stage ig-alpha" id="cStage"><canvas id="cCanvas" width="1" height="1" role="img" data-i18n-attr="aria-label:ig.preview" aria-label="ตัวอย่างผล"></canvas></div>
+    <div class="field" id="cTolBox">
+      <label for="cTol" data-i18n="ig.tolerance">ค่าความต่างสี</label>
+      <div class="ig-tol"><input type="range" id="cTol" min="0" max="60" step="1" value="12"><output id="cTolOut" for="cTol">12</output></div>
+    </div>
+    <label class="check ig-check" id="cSoftBox"><input type="checkbox" id="cSoft" checked><span data-i18n="ig.soft">ขอบนุ่ม</span></label>
+    <div class="meter-row" id="cBar" hidden>
+      <span class="name" data-i18n="ig.modelDl">โหลดโมเดลลบพื้นหลัง</span>
+      <span class="val" id="cBarVal"></span>
+      <div class="meter" id="cBarMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-attr="aria-label:ig.modelDl" aria-label="โหลดโมเดลลบพื้นหลัง"><i></i></div>
+    </div>
+    <div class="ig-cutmsg" id="cStatus" aria-live="polite"></div>
+    <p class="form-msg" id="cMsg" role="alert"></p>
+  </div>
+  <div class="dialog-foot">
+    <button class="btn" type="button" id="cCancel" data-i18n="ig.cancel">ยกเลิก</button>
+    <button class="btn" type="button" id="cRetry" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-i18n="ig.retry">ลองใหม่</span></button>
+    <button class="btn primary" type="button" id="cSave" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-save"/></svg><span data-i18n="ig.saveNew">บันทึกเป็นภาพใหม่</span></button>
+  </div>
 </dialog>
 
 <div class="toast-region" id="toasts" role="status" aria-live="polite"></div>
