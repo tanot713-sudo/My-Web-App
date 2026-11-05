@@ -1079,6 +1079,8 @@ export async function pipeline(task, model, o) {
   return async (img) => {
     if (MODE === 'oom') throw new RangeError('Array buffer allocation failed');
     const d = new Uint8ClampedArray(img.data);
+    if (MODE === 'opaque') return new RawImage(d, img.width, img.height, 4);
+    if (MODE === 'empty') { for (let i = 3; i < d.length; i += 4) d[i] = 0; return new RawImage(d, img.width, img.height, 4); }
     for (let y = 0; y < img.height; y++) for (let x = 0; x < img.width / 2; x++) d[(y * img.width + x) * 4 + 3] = 0;
     return new RawImage(d, img.width, img.height, 4);
   };
@@ -1291,6 +1293,17 @@ test.describe('หน้า image-gen.html — พื้นโปร่ง / ล
     expect(l2.find((r) => r.kind === 'image' && r.stage === 'cutout-run')).toMatchObject({ code: 'oom' });
     expect(env2.errors).toEqual([]);
   });
+
+  for (const [mode, msg] of [['opaque', 'ไม่พบพื้นหลังที่ลบได้ในภาพนี้'], ['empty', 'ไม่พบวัตถุในภาพนี้']]) {
+    test(`ลบพื้นหลัง ผล${mode === 'opaque' ? 'ไม่ลบอะไร' : 'ลบทั้งภาพ'}: ข้อความของโหมดนี้ (ไม่ใช่คำแนะนำค่าความต่างสี) + บันทึกไม่ได้`, async ({ page, context }) => {
+      const { errors } = await cutSetup(page, context, { mode });
+      await page.click('.ig-item[data-id="ic1"]');
+      await page.click('#vCutout');
+      await expect(page.locator('#cStatus')).toHaveText(msg, { timeout: 10000 });
+      await expect(page.locator('#cSave')).toBeDisabled();
+      expect(errors).toEqual([]);
+    });
+  }
 
   test('ลบพื้นหลัง WebGPU ล้ม → WASM 1 ครั้ง (fp16 → fp32) ได้ผล + problem log ของการถอย', async ({ page, context }) => {
     const env = await cutSetup(page, context, { mode: 'gpufail', init: "Object.defineProperty(navigator, 'gpu', { configurable: true, value: { requestAdapter: async () => ({ features: new Set(['shader-f16']), isFallbackAdapter: false }) } });" });

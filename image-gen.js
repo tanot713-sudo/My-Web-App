@@ -38,7 +38,8 @@
       queued: 'รอคิว', retry: 'ลองใหม่',
       transparent: 'พื้นโปร่ง', cutout: 'ลบพื้นหลัง', preview: 'ตัวอย่างผล', tolerance: 'ค่าความต่างสี', soft: 'ขอบนุ่ม', cancel: 'ยกเลิก', saveNew: 'บันทึกเป็นภาพใหม่',
       modelDl: 'โหลดโมเดลลบพื้นหลัง', mb: '{a} / {b} MB', cutReading: 'กำลังอ่านภาพ…', cutPreparing: 'กำลังเตรียมโมเดล…', cutWorking: 'กำลังลบพื้นหลัง…',
-      noBg: 'ไม่พบพื้นสีเรียบที่มุมภาพ — เพิ่มค่าความต่างสี', allGone: 'ทั้งภาพถูกลบ — ลดค่าความต่างสี', srcLoad: 'โหลดภาพนี้ไม่ได้ — ตรวจการเชื่อมต่อแล้วลองใหม่',
+      noBg: 'ไม่พบพื้นสีเรียบที่มุมภาพ — เพิ่มค่าความต่างสี', allGone: 'ทั้งภาพถูกลบ — ลดค่าความต่างสี',
+      cutNone: 'ไม่พบพื้นหลังที่ลบได้ในภาพนี้', cutEmpty: 'ไม่พบวัตถุในภาพนี้', srcLoad: 'โหลดภาพนี้ไม่ได้ — ตรวจการเชื่อมต่อแล้วลองใหม่',
       cutMissing: 'ไม่พบไฟล์โมเดลลบพื้นหลังบนเซิร์ฟเวอร์', cutNetwork: 'โหลดโมเดลลบพื้นหลังไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่',
       cutMemory: 'หน่วยความจำของเบราว์เซอร์ไม่พอ — ปิดแท็บอื่นแล้วลองใหม่', cutFail: 'ลบพื้นหลังไม่สำเร็จ — ลองใหม่อีกครั้ง',
       saveFail: 'บันทึกไม่สำเร็จ — ตรวจการเชื่อมต่อแล้วลองใหม่', savedNew: 'บันทึกเป็นภาพใหม่แล้ว'
@@ -59,7 +60,8 @@
       queued: 'Queued', retry: 'Retry',
       transparent: 'Transparent', cutout: 'Remove background', preview: 'Result preview', tolerance: 'Color tolerance', soft: 'Soft edges', cancel: 'Cancel', saveNew: 'Save as new image',
       modelDl: 'Downloading the background model', mb: '{a} / {b} MB', cutReading: 'Reading the image…', cutPreparing: 'Preparing the model…', cutWorking: 'Removing the background…',
-      noBg: 'No plain background found at the corners. Raise the color tolerance', allGone: 'The whole image was removed. Lower the color tolerance', srcLoad: 'Could not load this image. Check your connection and try again',
+      noBg: 'No plain background found at the corners. Raise the color tolerance', allGone: 'The whole image was removed. Lower the color tolerance',
+      cutNone: 'No background to remove was found in this image', cutEmpty: 'No subject was found in this image', srcLoad: 'Could not load this image. Check your connection and try again',
       cutMissing: 'The background model files were not found on the server', cutNetwork: 'Could not download the background model. Check your connection and try again',
       cutMemory: 'The browser ran out of memory. Close other tabs and try again', cutFail: 'Could not remove the background. Try again',
       saveFail: 'Could not save. Check your connection and try again', savedNew: 'Saved as a new image'
@@ -491,7 +493,8 @@
     c.getContext('2d').putImageData(new ImageData(data, w, h), 0, 0);
     job.w = w; job.h = h;
     job.ready = kept > 0 && removed > 0;
-    cutStatus(kept === 0 ? 'allGone' : removed === 0 ? 'noBg' : null);
+    var flood = job.mode === 'transparent';
+    cutStatus(kept === 0 ? (flood ? 'allGone' : 'cutEmpty') : removed === 0 ? (flood ? 'noBg' : 'cutNone') : null);
     paintSave();
   }
   /* พื้นโปร่ง: Worker ถอดภาพ + เก็บพิกเซลไว้ (เลื่อนแถบแล้วส่งแค่ค่า) · ไม่มี Worker/OffscreenCanvas = เธรดหลัก */
