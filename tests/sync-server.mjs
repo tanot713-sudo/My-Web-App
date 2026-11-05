@@ -59,7 +59,8 @@ const AI = {
       // FLUX ตัวหลอก: schnell รับ JSON { prompt, steps }, klein รับ multipart — บันทึกฟิลด์ที่ได้รับลง aiLog แล้วตอบ PNG 1×1 เป็น base64
       if (input.multipart) {
         const fd = await new Response(input.multipart.body, { headers: { 'content-type': input.multipart.contentType } }).formData();
-        aiLog[aiLog.length - 1].fields = Object.fromEntries([...fd.entries()]);
+        // ฟิลด์ไฟล์ (input_image_0..3) เก็บแค่ {name,type,size} — Object.fromEntries ตรงๆ จะได้ {} เพราะ File แปลงเป็น JSON ไม่ได้
+        aiLog[aiLog.length - 1].fields = Object.fromEntries([...fd.entries()].map(([k, v]) => [k, typeof v === 'string' ? v : { name: v.name, type: v.type, size: v.size }]));
       }
       return { image: PNG_1X1 };
     }

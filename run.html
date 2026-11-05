@@ -201,6 +201,9 @@ const T = OME_I18N.scope('run', {
     stRead: 'กำลังอ่านข้อมูล…',
     stCalc: 'กำลังคำนวณ…',
     stWrite: 'กำลังเขียนไฟล์…',
+    stFill: 'กำลังเติมค่าสูตรในไฟล์…',
+    fillFail: 'เติมค่าสูตรในไฟล์ไม่สำเร็จ — พรีวิวบนมือถืออาจไม่เห็นยอดรวม',
+    fillPartial: 'เติมค่าสูตรไม่ครบ {n} เซลล์ — พรีวิวบนมือถืออาจไม่เห็นค่าเหล่านี้',
     noOutput: 'ไม่มีไฟล์ผลลัพธ์ — ดูรายละเอียดในบันทึกการทำงาน',
     mainFile: ' · ไฟล์หลัก',
     stDone: 'สร้างเอกสารเสร็จแล้ว',
@@ -289,6 +292,9 @@ const T = OME_I18N.scope('run', {
     stRead: 'Reading data…',
     stCalc: 'Calculating…',
     stWrite: 'Writing files…',
+    stFill: 'Filling formula values…',
+    fillFail: "Couldn't fill formula values — mobile previews may show blank totals",
+    fillPartial: '{n} formula cells have no value — mobile previews may show them blank',
     noOutput: 'No output files — see the activity log for details',
     mainFile: ' · main file',
     stDone: 'Documents created',
@@ -508,6 +514,20 @@ $('run').addEventListener('click', async ()=>{
     const paths = res.toJs(); res.destroy();
     if (!paths || !paths.length) throw new Error(T('noOutput'));
 
+    // openpyxl ไม่เก็บค่าของสูตร → เติม <v> ก่อนสร้างลิงก์ (พรีวิวบนมือถือ/แอปแชทไม่คำนวณสูตรเอง) · ล้ม = ใช้ไฟล์เดิม
+    const outs = [];
+    let fillWarn = 0;
+    for (const p of paths){
+      let data = pyodide.FS.readFile(p);
+      if (/\.xlsx$/i.test(p)){
+        setStatus(L('stFill'));
+        const r = await fillFormulaValues(data);
+        data = r.data; fillWarn = fillWarn || r.warn;
+      }
+      outs.push({ p, data });
+    }
+    if (fillWarn) $('files').appendChild(fillCallout(fillWarn));
+    setStatus(L('stWrite'));
     const list = document.createElement('div');
     list.className = 'list';
     $('files').appendChild(list);
@@ -515,8 +535,7 @@ $('run').addEventListener('click', async ()=>{
                   svg:'image/svg+xml', pdf:'application/pdf', docx:
                   'application/vnd.openxmlformats-officedocument.wordprocessingml.document'};
     pendingUpload = [{ name: inName, blob: new Blob([inBytes], {type: TYPE.xlsx}), kind: 'estcost_input' }];
-    paths.forEach((p,i)=>{
-      const data = pyodide.FS.readFile(p);
+    outs.forEach(({ p, data }, i)=>{
       const name = p.split('/').pop();
       const ext = name.split('.').pop().toLowerCase();
       const blob = new Blob([data], {type: TYPE[ext] || 'application/octet-stream'});
@@ -539,6 +558,49 @@ $('run').addEventListener('click', async ()=>{
     fail(L('stRunFail'), L('runFailHint'));
   }finally{ $('run').disabled = false; $('check').disabled = false; }
 });
+
+// ── เติมค่าสูตรในไฟล์ .xlsx (xlsx-recalc.js + GridCraft ใน Worker · wasm โหลดเฉพาะเมื่อมีเซลล์สูตรที่ไม่มีค่า) ──
+const JSZIP_URL = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+const FILL_TIMEOUT_MS = 60000;
+let recalcLibs = null;
+function loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('lib'));
+    document.head.appendChild(s);
+  });
+}
+function loadRecalcLibs(){
+  return recalcLibs || (recalcLibs = Promise.all([
+    window.JSZip ? 0 : loadScript(JSZIP_URL),
+    window.TanotXlsxRecalc ? 0 : loadScript('xlsx-recalc.js')
+  ]).catch(e => { recalcLibs = null; throw e; }));
+}
+// บันทึกปัญหา: รหัสสั้น + จำนวนเซลล์เท่านั้น (ไม่มีชื่อไฟล์/ชื่อชีต/ค่าในเซลล์)
+function logFill(code, info){
+  try{ window.TanotMedia && TanotMedia.logError('xlsx', { name: 'Error', message: code + (info ? ' ' + info : '') }, { stage: 'recalc' }); }catch(e){}
+}
+// → { data (Uint8Array ที่ใช้ดาวน์โหลด), warn: 0 = ครบ/ไม่มีสูตรค้าง · n = ขาด n เซลล์ · -1 = ล้มทั้งไฟล์ }
+async function fillFormulaValues(data){
+  try{
+    await loadRecalcLibs();
+    const r = await TanotXlsxRecalc.fillXlsx(JSZip, data, { timeout: FILL_TIMEOUT_MS });
+    const left = r.need - r.filled;
+    if (left) logFill('partial', r.filled + '/' + r.need);
+    return { data: r.bytes, warn: left };
+  }catch(e){
+    const m = String((e && e.message) || e);
+    logFill(m === 'timeout' || m === 'lib' ? m : 'recalc');
+    return { data, warn: -1 };
+  }
+}
+function fillCallout(warn){
+  const n = document.createElement('div');
+  n.className = 'callout warn';
+  n.setAttribute('role', 'status');
+  OME_I18N.live(n, warn < 0 ? L('fillFail') : L('fillPartial', { n: OME_I18N.number(warn) }));
+  return n;
+}
 
 // ── Google Drive (ไม่บังคับ) ───────────────────────────────────────────────
 // วิธีเปิดใช้งาน:
@@ -848,8 +910,13 @@ $('histList')?.addEventListener('click', async (ev) => {
   if (!f) return;
   btn.disabled = true;
   try{
-    const bytes = await downloadDriveFileBytes(f.id);
+    let bytes = await downloadDriveFileBytes(f.id);
     if (btn.dataset.act === 'dl'){
+      if (/\.xlsx$/i.test(f.name)){ // ไฟล์เก่าใน Drive ก่อนมีการเติมค่าสูตร
+        const r = await fillFormulaValues(bytes);
+        bytes = r.data;
+        if (r.warn) histSetStatus(r.warn < 0 ? L('fillFail') : L('fillPartial', { n: OME_I18N.number(r.warn) }), 'err');
+      }
       const a = document.createElement('a');
       a.href = URL.createObjectURL(new Blob([bytes]));
       a.download = f.name;

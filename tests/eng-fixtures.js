@@ -180,7 +180,8 @@ window.__pyOut = null; window.__pyFail = false;
 window.loadPyodide = async () => ({
   setStdout(o) { window.__pyOut = o.batched; }, setStderr() {},
   loadPackage: async () => {}, pyimport: () => ({ install: async () => {} }),
-  FS: { writeFile() {}, readFile: () => new Uint8Array(2048) },
+  // .xlsx = ไฟล์จริงที่ไม่มีสูตรค้าง (ไม่เรียก wasm) · __pyBadXlsx = ไฟล์เสีย → เติมค่าสูตรล้ม → ข้อความเตือน + ไฟล์เดิม
+  FS: { writeFile() {}, readFile: (p) => (/\.xlsx$/.test(p) && window.__pyXlsx && !window.__pyBadXlsx ? window.__pyXlsx : new Uint8Array(2048)) },
   runPythonAsync: async (code) => {
     if (code.indexOf('tool_run.check(') >= 0) { ['⚠️ row 12: hours missing', '❌ code ZZZ unknown', 'checked'].forEach((l) => window.__pyOut && window.__pyOut(l)); return; }
     if (code.indexOf('tool_run.run(') >= 0) {
@@ -201,7 +202,7 @@ function runPage(h) {
   const xl = () => { const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet([['a', 'b'], [1, 2]]), 'EQUIPMENT'); return Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' })); };
   return {
     page: 'run.html?tool=est-cost',
-    init: RUN_INIT,
+    init: RUN_INIT + (XLSX ? `window.__pyXlsx = Uint8Array.from(atob('${xl().toString('base64')}'), (c) => c.charCodeAt(0));` : ''),
     route: async (page) => {
       await page.route('https://www.googleapis.com/**', (route) => {
         const u = decodeURIComponent(route.request().url());
@@ -227,6 +228,7 @@ function runPage(h) {
       ['compare', async (p) => { await dom(p, '#cmpBtn'); await settle(p, 1200); }],
       ['history', async (p) => { await dom(p, '#histBtn'); await settle(p, 900); }],
       ['history-use', async (p) => { await dom(p, '[data-act="use"]'); await settle(p, 700); }],
+      ['run-fill-warn', async (p) => { await p.evaluate(() => { window.__pyBadXlsx = true; }); await dom(p, '#run'); await p.waitForSelector('#files .callout.warn', { timeout: 8000 }).catch(() => {}); await settle(p, 600); }],
       ['run-fail', async (p) => { await p.evaluate(() => { window.__pyFail = true; }); await dom(p, '#run'); await settle(p, 900); }]
     ]
   };

@@ -14,13 +14,13 @@ export const MODELS = {
   /* สร้างภาพ (/api/ai/image) — คิดเป็น Neurons ต่อภาพ ไม่ใช่ต่อโทเค็น · ราคา: https://developers.cloudflare.com/workers-ai/platform/pricing/
      flux-1-schnell: 4.80 neurons ต่อ tile 512×512 + 9.60 ต่อ step (รับแค่ prompt+steps ≤8, ภาพออกขนาดคงที่ 1024×1024 ไม่มี width/height/seed)
        https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/
-     flux-2-klein-4b: 26.05 neurons ต่อ tile 512×512 ของภาพออก (+5.37 ต่อ tile ภาพอ้างอิงขาเข้า — เราไม่ส่ง) · input เป็น multipart (prompt, width, height, seed)
+     flux-2-klein-4b: 26.05 neurons ต่อ tile 512×512 ของภาพออก + 5.37 ต่อ tile ของภาพอ้างอิงขาเข้า ("แก้ภาพนี้" — input_image_0) · input เป็น multipart (prompt, width, height, seed, input_image_0..3)
        https://developers.cloudflare.com/workers-ai/models/flux-2-klein-4b/
      (เลือก 4b ไม่ใช้ 9b: 9b คิด 1,363 neurons ต่อภาพ 1 MP ≈ 7 ภาพ/วันของโควตาฟรี)
      ⚠️ ชื่อฟิลด์ multipart/ขนาดสูงสุดของ klein อ่านจาก schema ใน repo เอกสารของ Cloudflare ซึ่งระบุแค่ { multipart } ยังไม่ได้ยิงกับ Workers AI จริง
      จึงใส่ margin ×IMAGE_MARGIN ให้คิดเผื่อสูงไว้ก่อน — ถ้าไม่ตรงให้แก้เฉพาะตารางนี้ที่เดียว */
-  imageFast: { id: '@cf/black-forest-labs/flux-1-schnell', perTile: 4.8, perStep: 9.6, steps: 4, sized: false, seed: false },
-  imageQuality: { id: '@cf/black-forest-labs/flux-2-klein-4b', perTile: 26.05, perStep: 0, steps: 0, sized: true, seed: true },
+  imageFast: { id: '@cf/black-forest-labs/flux-1-schnell', perTile: 4.8, perInputTile: 0, perStep: 9.6, steps: 4, sized: false, seed: false, refs: false },
+  imageQuality: { id: '@cf/black-forest-labs/flux-2-klein-4b', perTile: 26.05, perInputTile: 5.37, perStep: 0, steps: 0, sized: true, seed: true, refs: true },
 };
 export const IMAGE_MARGIN = 1.25;
 export const DEFAULT_DAILY_NEURONS = 10000;
@@ -66,10 +66,13 @@ export function validateMessages(raw) {
   return { messages, chars };
 }
 
-/* Neurons ที่ประเมินต่อภาพ (ปัดขึ้น + margin) — tile = 512×512 ปัดขึ้นทั้งสองแกน */
-export function imageNeurons(model, width, height) {
-  const tiles = Math.ceil(width / 512) * Math.ceil(height / 512);
-  return Math.ceil((tiles * model.perTile + model.steps * model.perStep) * IMAGE_MARGIN * 100) / 100;
+/* Neurons ที่ประเมินต่อภาพ (ปัดขึ้น + margin) — tile = 512×512 ปัดขึ้นทั้งสองแกน · refs = [{width,height}] ภาพอ้างอิงขาเข้า (perInputTile ต่อ tile) */
+const tilesOf = (w, h) => Math.ceil(w / 512) * Math.ceil(h / 512);
+export function imageNeurons(model, width, height, refs) {
+  let inTiles = 0;
+  for (const r of refs || []) inTiles += tilesOf(r.width, r.height);
+  const n = tilesOf(width, height) * model.perTile + inTiles * (model.perInputTile || 0) + model.steps * model.perStep;
+  return Math.ceil(n * IMAGE_MARGIN * 100) / 100;
 }
 
 export function pickModel(name) { return name === 'fast' ? MODELS.fast : MODELS.main; }
