@@ -239,7 +239,7 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
   const stale = tg.staleAllowList(cur);
   if (stale.length) fail('theme-static-allow', 'allowlist ใน theme-guards.mjs มีชื่อที่หน้าไม่ได้ใช้แล้ว (ลบออก): ' + stale.map((x) => x.page + ' ' + x.name).join(', '));
   if (worse.length) {
-    fail('theme-static', 'แย่ลงจาก tests/theme-baseline.json (ใช้ var(--ome-*)/คอมโพเนนต์กลางแทน — ดู .claude/skills/tanot-design): ' +
+    fail('theme-static', 'แย่ลงจาก tests/theme-baseline.json (ใช้ var(--ome-*)/คอมโพเนนต์กลางแทน — ดู skill tanot-design): ' +
       worse.map((w) => `${w.page} ${w.metric} ${w.base}→${w.now}${w.detail ? ' (' + w.detail + ')' : ''}`).join('; '));
   } else ok('theme-static', `${Object.keys(cur).length} หน้าไม่แย่ลงจาก baseline (สี hex / ปุ่มนิยามเอง)`);
 }
