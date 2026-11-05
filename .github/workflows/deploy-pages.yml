@@ -11,9 +11,12 @@ permissions:
   pages: write
   id-token: write
 
+# คิวแยกต่อ PR (push ใหม่ใน PR เดียวกันยกเลิกรอบเก่าของ PR นั้น) และต่อ ref สำหรับ push/workflow_dispatch
+# — เดิมทุก run อยู่คิว `pages` เดียว คิวรอได้ตัวเดียว run ใหม่จึงยกเลิก run ของ PR อื่น/deploy ที่รออยู่
+# · การ deploy ยังเข้าคิว `pages` ตัวเดียวที่ระดับ job (ด้านล่าง)
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: ci-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
@@ -137,6 +140,9 @@ jobs:
   deploy:
     if: github.event_name != 'pull_request'
     needs: [check, tests]
+    concurrency:
+      group: pages
+      cancel-in-progress: false
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
