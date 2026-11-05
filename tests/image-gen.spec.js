@@ -420,6 +420,14 @@ test.describe('image-cutout-calc.js (พื้นโปร่ง — ฟัง�
     expect(Cut.bgDtype('webgpu', true)).toBe('fp16');
     expect(Cut.bgDtype('webgpu', false)).toBe('fp32');
     expect(Cut.bgDtype('wasm', true)).toBe('fp32');
+    expect(M.dtype).toEqual({ gpuF16: 'fp16', gpu: 'fp32', wasm: 'fp32' });
+    // สลับ dtype ได้ที่ตารางบรรทัดเดียว — bgDtype อ่านจากตารางเสมอ · WebGPU ไม่มี shader-f16 (เช่น Pascal) ห้ามได้ dtype ตระกูล f16
+    const keep = { ...M.dtype };
+    M.dtype.wasm = 'q8'; M.dtype.gpu = 'uint8';
+    expect(Cut.bgDtype('wasm', true)).toBe('q8');
+    expect(Cut.bgDtype('webgpu', false)).toBe('uint8');
+    Object.assign(M.dtype, keep);
+    expect(keep.gpu).not.toMatch(/f16/);
     expect(M.bytes.fp16).toBeGreaterThan(1e6);
     expect(M.bytes.fp32).toBeGreaterThan(M.bytes.fp16);
   });

@@ -30,10 +30,14 @@
   var BG_MODEL = {
     id: 'onnx-community/BiRefNet_lite-ONNX',
     revision: 'main',
-    bytes: { fp16: 115e6, fp32: 224e6 }
+    /* dtype ต่ออุปกรณ์ — เปลี่ยนบรรทัดเดียว (ชื่อตาม transformers.js: fp32 '' · fp16 _fp16 · q8 _quantized · uint8 _uint8 · q4f16 _q4f16)
+       gpuF16 = WebGPU ที่ adapter มี shader-f16 จริง (TanotMedia.webgpuPlan().f16) · gpu = WebGPU ที่ไม่มี shader-f16 (เช่น GTX 1050 / Pascal) — ห้ามใช้ fp16/q4f16
+       ⚠️ ไฟล์ quantized (q8/uint8/q4f16) ของ repo นี้มีหรือไม่ยังยืนยันไม่ได้ (sandbox เข้า Hugging Face ไม่ได้) — รัน check-models.mjs --cutout ก่อนเปลี่ยนเป็น dtype อื่น */
+    dtype: { gpuF16: 'fp16', gpu: 'fp32', wasm: 'fp32' },
+    bytes: { fp16: 115e6, fp32: 224e6 } // ประมาณจากผลค้นเว็บ (ใช้กับแถบดาวน์โหลดก่อนรู้ Content-Length) — dtype ที่ไม่มีในนี้ = ไม่มีค่าประมาณ
   };
-  /* WebGPU ที่มี shader-f16 = fp16 (ครึ่งขนาด) · อื่นๆ (WASM / WebGPU ไม่มี f16) = fp32 — ORT บน WASM ไม่มี kernel fp16 ที่ดี */
-  function bgDtype(device, f16) { return device === 'webgpu' && f16 ? 'fp16' : 'fp32'; }
+  /* dtype ตามอุปกรณ์จริง: WebGPU + shader-f16 → dtype.gpuF16 · WebGPU ไม่มี f16 → dtype.gpu · WASM → dtype.wasm */
+  function bgDtype(device, f16) { var d = BG_MODEL.dtype; return device === 'webgpu' ? (f16 ? d.gpuF16 : d.gpu) : d.wasm; }
 
   function clampTol(t) {
     t = Number(t);

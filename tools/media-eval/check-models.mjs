@@ -16,7 +16,7 @@ import { writeFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
-const SUFFIX = { fp32: '', fp16: '_fp16', q8: '_quantized', int8: '_int8', uint8: '_uint8', q4: '_q4', bnb4: '_bnb4' };
+const SUFFIX = { fp32: '', fp16: '_fp16', q8: '_quantized', int8: '_int8', uint8: '_uint8', q4: '_q4', q4f16: '_q4f16', bnb4: '_bnb4' };
 const CONFIGS = ['config.json', 'generation_config.json', 'preprocessor_config.json', 'tokenizer.json'];
 
 const sandbox = { self: {} };
@@ -115,11 +115,13 @@ if (ONLY_CUTOUT) {
         const list = [...(await root.json()), ...(await tree.json())];
         const byPath = new Map(list.map((f) => [f.path, f]));
         const need = ['config.json', 'preprocessor_config.json', ...['webgpu', 'wasm'].flatMap((d) => [true, false].map((f16) => 'onnx/model' + SUFFIX[C.bgDtype(d, f16)] + '.onnx'))];
+        const extra = list.filter((f) => /^onnx\/.+\.onnx$/.test(f.path)).map((f) => f.path + ' ' + (((f.lfs && f.lfs.size) || f.size) / 1e6).toFixed(1) + ' MB');
+        console.log('   ไฟล์ใน onnx/ ทั้งหมด (ตัวเลือก dtype): ' + (extra.join(' · ') || '—'));
         const missing = [...new Set(need)].filter((f) => !byPath.has(f));
         for (const f of [...new Set(need)].filter((x) => x.endsWith('.onnx') && byPath.has(x))) {
           const it = byPath.get(f), size = (it.lfs && it.lfs.size) || it.size;
-          const dt = f.includes('_fp16') ? 'fp16' : 'fp32';
-          console.log('   ' + f + '  ' + (size / 1e6).toFixed(1) + ' MB (ตาราง ' + (m.bytes[dt] / 1e6).toFixed(0) + ' MB)');
+          const dt = Object.keys(SUFFIX).find((k) => f === 'onnx/model' + SUFFIX[k] + '.onnx') || '?';
+          console.log('   ' + f + '  ' + (size / 1e6).toFixed(1) + ' MB (ตาราง ' + (m.bytes[dt] ? (m.bytes[dt] / 1e6).toFixed(0) + ' MB' : 'ไม่มีค่าประมาณ') + ')');
         }
         if (missing.length) { console.log('✗  ' + m.id + '@' + m.revision + ' — ขาด: ' + missing.join(', ')); bad++; }
         else console.log('✓  ' + m.id + '  license=' + lic + '  main=' + j.sha + (/^[0-9a-f]{40}$/.test(m.revision) ? (m.revision === j.sha ? '  [ล็อกตรงกับ main]' : '  [ล็อก ' + m.revision.slice(0, 10) + '… — main ใหม่กว่า]') : '  [ยังไม่ล็อก]'));
