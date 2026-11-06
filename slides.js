@@ -32,7 +32,7 @@
       uploadFail: 'อัปโหลดรูปไม่สำเร็จ — จะลองใหม่เมื่อออนไลน์ ({msg})', slidesCount: '{n} สไลด์', dup: 'ทำซ้ำ', del: 'ลบ',
       delConfirm: 'ลบชุด "{name}" และรูปที่ไม่มีชุดอื่นใช้?', slideLayout: 'แบบสไลด์ {n}', auto: 'อัตโนมัติ · {name}', addImg: 'แทรกรูป', rmImg: 'เอารูปออก',
       notes: 'โน้ต', notesTitle: 'มีโน้ตผู้บรรยาย', tooBig15: '{name} ใหญ่เกิน 15 MB', imgFail: 'แทรกรูปไม่สำเร็จ',
-      onlyTxtDocx: 'รองรับเฉพาะ .txt และ .docx', tooBig: '{name} ใหญ่เกินไป', noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ', readFail: 'อ่านไฟล์ไม่สำเร็จ', reading: 'กำลังอ่าน {name}…',
+      onlyTxtDocx: 'รองรับเฉพาะ .txt .docx และ .pptx', pptxLocked: 'ไฟล์นี้ตั้งรหัสผ่านไว้ — เอารหัสผ่านออกใน PowerPoint ก่อน', pptxDamaged: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ .pptx หรือไฟล์เสียหาย', pptxEmpty: 'ไม่พบสไลด์ในไฟล์นี้', tooBig: '{name} ใหญ่เกินไป', noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ', readFail: 'อ่านไฟล์ไม่สำเร็จ', reading: 'กำลังอ่าน {name}…',
       aiChars: '{name} · {n} ตัวอักษร', aiPasteFirst: 'วางข้อความก่อน', aiDrafting: 'กำลังร่าง…', aiStopped: 'หยุดแล้ว',
       building: 'กำลังสร้างไฟล์…', exportedMissing: 'ส่งออกแล้ว แต่ใส่รูปไม่ได้ {n} รูป', exportFail: 'ส่งออกไม่สำเร็จ: {msg}',
       layout_cover: 'หน้าปก', layout_bullets: 'หัวข้อ + bullet', layout_two: '2 คอลัมน์', layout_image: 'รูป + ข้อความ', layout_table: 'ตาราง', layout_section: 'หัวข้อตอน',
@@ -48,7 +48,7 @@
       uploadFail: 'Image upload failed — will retry when online ({msg})', slidesCount: '{n} slides', dup: 'Duplicate', del: 'Delete',
       delConfirm: 'Delete deck "{name}" and images no other deck uses?', slideLayout: 'Slide {n} layout', auto: 'Auto · {name}', addImg: 'Insert image', rmImg: 'Remove image',
       notes: 'Notes', notesTitle: 'Has speaker notes', tooBig15: '{name} is larger than 15 MB', imgFail: 'Could not insert the image',
-      onlyTxtDocx: 'Only .txt and .docx are supported', tooBig: '{name} is too large', noReader: 'Could not load the file reader', readFail: 'Could not read the file', reading: 'Reading {name}…',
+      onlyTxtDocx: 'Only .txt, .docx and .pptx are supported', pptxLocked: 'This file is password-protected — remove the password in PowerPoint first', pptxDamaged: "Couldn't read this file — not a .pptx file, or it's corrupted", pptxEmpty: 'No slides found in this file', tooBig: '{name} is too large', noReader: 'Could not load the file reader', readFail: 'Could not read the file', reading: 'Reading {name}…',
       aiChars: '{name} · {n} characters', aiPasteFirst: 'Paste some text first', aiDrafting: 'Drafting…', aiStopped: 'Stopped',
       building: 'Building the file…', exportedMissing: 'Exported, but {n} image(s) could not be included', exportFail: 'Export failed: {msg}',
       layout_cover: 'Cover', layout_bullets: 'Title + bullets', layout_two: '2 columns', layout_image: 'Image + text', layout_table: 'Table', layout_section: 'Section title',
@@ -479,14 +479,43 @@
     });
   }
   $('importBtn').addEventListener('click', function () { $('importFile').click(); });
+  /* .pptx → DeckCraft (wasm) ใน slides-pptx-worker.js → SC.pptxToOutline · โหลดไลบรารีไม่ได้ = ข้อความกลาง + problem log ไม่สลับไปทางอื่น */
+  var PPTX_ERR = { encrypted: 'pptxLocked', damaged: 'pptxDamaged', empty: 'pptxEmpty' };
+  function readPptxOutline(f) {
+    if (f.size > MAX_FILE) return Promise.reject(new Error(T('tooBig', { name: f.name })));
+    return f.arrayBuffer().then(function (buf) {
+      return new Promise(function (resolve, reject) {
+        var w;
+        function done(err, data) { try { w.terminate(); } catch (e) {} if (err) reject(err); else resolve(data); }
+        try { w = new Worker('slides-pptx-worker.js'); } catch (e) { reject(e); return; }
+        w.onmessage = function (e) {
+          var d = e.data || {};
+          if (d.ok) return done(null, d.data);
+          if (d.craft && window.TanotCraft) {
+            var ce = TanotCraft.fromMessage(d.craft);
+            TanotCraft.report(ce, { stage: 'pptx' });
+            return done(new Error(TanotCraft.message(ce)));
+          }
+          done(new Error(T(PPTX_ERR[d.pptx] || 'readFail')));
+        };
+        w.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); done(new Error(T('readFail'))); };
+        w.postMessage({ bytes: buf }, [buf]);
+      });
+    }).then(function (data) {
+      var o = SC.pptxToOutline(data);
+      if (!o) throw new Error(T('pptxEmpty'));
+      return o;
+    });
+  }
   $('importFile').addEventListener('change', function () {
     var f = this.files && this.files[0];
     this.value = '';
     if (!f) return;
     setMsg(function () { return T('reading', { name: f.name }); });
-    readTextFile(f).then(function (text) {
+    var isPptx = /\.(pptx|ppsx|potx)$/i.test(f.name);
+    (isPptx ? readPptxOutline(f) : readTextFile(f)).then(function (text) {
       if (!cur) createDeck();
-      var add = SC.textToOutline(text), old = $('outline').value.trim();
+      var add = isPptx ? text : SC.textToOutline(text), old = $('outline').value.trim();
       setOutline(old ? old + '\n\n' + add : add);
       setMsg('');
     }).catch(function (e) { setMsg(e.message, true); });

@@ -117,6 +117,8 @@ jobs:
         run: npx playwright test pdf-pages.spec.js
       - name: cad-dxf (นำเข้า DXF ด้วย CADCraft wasm ตัวจริง — ชนิดพื้นฐาน/bulge/MTEXT/บล็อกซ้อนหมุนย่อขยาย/เลเยอร์+สี, R12 ANSI_874 ไทย + POLYLINE + extrusion −Z, ELLIPSE/SPLINE, binary DXF, ไฟล์เสีย/ว่าง = รหัส, ปุ่มใน cad.html + EN, wasm 404 = ข้อความ + problem log — DXF สร้างในเทสต์)
         run: npx playwright test cad-dxf.spec.js
+      - name: slides-pptx (นำเข้า .pptx ด้วย DeckCraft wasm ตัวจริง — pptxToOutline known-answer, ส่งออกจากหน้าแล้วนำเข้ากลับได้หัวข้อ/bullet/ระดับ/โน้ต/ตารางเดิม, ลำดับตาม sldIdLst + ข้ามสไลด์ซ่อน/ส่วนท้าย, ไฟล์เสีย = ข้อความ th/en, wasm 404 = ข้อความ + problem log — pptx สร้างในเทสต์)
+        run: npx playwright test slides-pptx.spec.js
       - name: slides (slides-calc.js known-answer — parse โครงเรื่อง/เลือกแบบสไลด์, หน้าสร้างสไลด์ + AI ปลอมไม่เรียก /api/ocr, ส่งออก pptx แกะด้วย jszip, รูป R2 + ลบชุด DELETE, ซิงก์ 2 เครื่อง, ออฟไลน์)
         run: npx playwright test slides.spec.js
       - name: cooking-plan (cooking-plan-calc.js known-answer — รวมวัตถุดิบ/แปลงหน่วย/ปรับจำนวนที่, แผนสัปดาห์ → รายการซื้อของ, ติ๊ก 2 เครื่องพร้อมกันไม่หาย, ส่ง budget ไม่ซ้ำ, AI ปลอมแยกสูตรและไม่เรียก /api/ocr, XP ครั้งเดียวต่อมื้อ, คีย์เดิมของบทเรียนไม่ถูกแตะ)
