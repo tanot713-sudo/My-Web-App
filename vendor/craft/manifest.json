@@ -72,6 +72,45 @@
           "brotli": 364705
         }
       }
+    },
+    "cadcraft": {
+      "name": "CADCraft",
+      "dir": "vendor/craft/cadcraft-fc157ea",
+      "source": "https://github.com/storytold/cadcraft",
+      "commit": "fc157ea91fd96bba6f7ff7611fb3465820f6530c",
+      "license": "MIT OR Apache-2.0",
+      "licenseFile": "LICENSE-MIT",
+      "crates": [
+        "cadcraft-io",
+        "cadcraft-doc",
+        "cadcraft-geom",
+        "cadcraft-render",
+        "cadcraft-fonts"
+      ],
+      "wrapper": "tools/wasm/cadcraft-dxf",
+      "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+      "wasmBindgen": "wasm-bindgen 0.2.129",
+      "wasmOpt": "wasm-opt version 132 (version_132)",
+      "files": {
+        "LICENSE-MIT": {
+          "sha256": "54b0fc87ed7b61b59c20340070dd2b8c7f9d0b53795347819c3bd7c67ea2508a",
+          "bytes": 1100
+        },
+        "THIRD-PARTY.txt": {
+          "sha256": "89f0948973970619851bdab584a4dcbe98d2b6ba51ee316fae9528ce747615c8",
+          "bytes": 176012
+        },
+        "cadcraft_dxf.js": {
+          "sha256": "954e6ae9206ffbc3e80103979744d881edf64893fcf793a074d6e6fc1f374537",
+          "bytes": 7514,
+          "brotli": 1866
+        },
+        "cadcraft_dxf_bg.wasm": {
+          "sha256": "b7ddfbdd69d4c6b5cf9de48fcd1c4915583953e0a3a9d3fe004a0bfe455dd4c1",
+          "bytes": 2232093,
+          "brotli": 977590
+        }
+      }
     }
   }
 }
