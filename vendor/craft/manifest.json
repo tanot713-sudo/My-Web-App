@@ -36,6 +36,42 @@
           "brotli": 578719
         }
       }
+    },
+    "pdfcraft": {
+      "name": "PdfCraft",
+      "dir": "vendor/craft/pdfcraft-9f04acc",
+      "source": "https://github.com/storytold/pdfcraft",
+      "commit": "9f04accceff67174fc2817035f8ab4577bef8285",
+      "license": "MIT OR Apache-2.0",
+      "licenseFile": "LICENSE-MIT",
+      "crates": [
+        "pdfcraft-organize",
+        "pdfcraft-cos"
+      ],
+      "wrapper": "tools/wasm/pdfcraft-pages",
+      "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+      "wasmBindgen": "wasm-bindgen 0.2.129",
+      "wasmOpt": "wasm-opt version 132 (version_132)",
+      "files": {
+        "LICENSE-MIT": {
+          "sha256": "cd7032ea33b71427f188e34ffb4aee9d6868a57fd196037c5c8b2be03a2a0352",
+          "bytes": 1100
+        },
+        "THIRD-PARTY.txt": {
+          "sha256": "78b994a2cbb99b6ce54e2847b5d616c3a9de2c097419c456977b243d62269df4",
+          "bytes": 87161
+        },
+        "pdfcraft_pages.js": {
+          "sha256": "2b907512ee53150e5ec220d411a89d5820985308899dceb5f78d16438ccf8e2d",
+          "bytes": 12332,
+          "brotli": 2568
+        },
+        "pdfcraft_pages_bg.wasm": {
+          "sha256": "aa750e00e25ecafbd5fcebb4e46a6b7cbb0eb99952108c6eef6af8b977a26126",
+          "bytes": 1177394,
+          "brotli": 364705
+        }
+      }
     }
   }
 }

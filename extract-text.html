@@ -95,8 +95,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-<!-- ใช้เฉพาะตอนกด "แยกหน้า PDF" (สร้างไฟล์ PDF รายหน้าใหม่) — คนละหน้าที่กับ pdfjsLib ที่ใช้แค่อ่าน -->
-<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<!-- ปุ่ม "แยกหน้า PDF": ข้อความ error/problem log ของไลบรารี wasm (ตัวแยกเองอยู่ใน pdf-pages-worker.js) -->
+<script src="craft-loader.js"></script>
 <script src="ai-client.js"></script>
 <script src="ocr-vision.js"></script>
 <script src="file-reader.js"></script>

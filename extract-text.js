@@ -3,8 +3,8 @@
    รองรับแค่ .pdf เท่านั้น — เขียนใหม่เป็นหน้าโค้ดเดี่ยว (JS ล้วน ไม่ต้องพึ่ง Pyodide ที่โหลดช้า/หนักกว่า
    มาก) ใช้ file-reader.js (ตัวเดียวกับหน้า "แปลงเสียง ↔ ข้อความ") เป็นแกนดึงข้อความ จึงรองรับทุกชนิดไฟล์
    ที่ file-reader.js รองรับไปด้วยในตัว: .txt/.docx/.xlsx/.xls/.csv/.pptx/.pdf/รูปภาพ (พร้อม OCR
-   สำหรับ PDF สแกนภาพและไฟล์รูปภาพ) — ส่วน "แยกหน้า PDF" (ฟีเจอร์เดิม) ใช้ pdf-lib สร้างไฟล์ PDF
-   รายหน้าใหม่แทน pypdf เดิม ผลลัพธ์หน้าตาเดียวกัน (page_001.pdf, page_002.pdf, ... zip เดียวกัน) */
+   สำหรับ PDF สแกนภาพและไฟล์รูปภาพ) — ส่วน "แยกหน้า PDF" (ฟีเจอร์เดิม) แยกด้วย PdfCraft (wasm) ใน
+   pdf-pages-worker.js ผลลัพธ์หน้าตาเดียวกัน (page_001.pdf, page_002.pdf, ... zip เดียวกัน) */
 (function () {
   'use strict';
 
@@ -23,6 +23,7 @@
       noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', readingFile: 'กำลังอ่านไฟล์ {name}…',
       empty: 'ไม่พบข้อความในไฟล์นี้', done: 'ดึงข้อความจาก {name} แล้ว ({n} ตัวอักษร)', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
       splitNoLib: 'โหลดไลบรารีแยกหน้า PDF ไม่สำเร็จ — เช็คอินเทอร์เน็ตแล้วลองรีเฟรชหน้าใหม่', splitting: 'กำลังแยกหน้า PDF…', splitNoPages: 'ไฟล์ PDF ไม่มีหน้าเลย',
+      splitLocked: 'ไฟล์ PDF นี้ล็อกด้วยรหัสผ่าน — ปลดล็อกก่อนแล้วลองใหม่', splitDamaged: 'อ่านโครงสร้างไฟล์ PDF นี้ไม่ได้ ไฟล์อาจเสียหาย',
       splitDone: 'แยกเป็น {n} ไฟล์ ดาวน์โหลด pages_{base}.zip แล้ว', splitFail: 'แยกหน้า PDF ไม่สำเร็จ: {msg}',
       copied: 'คัดลอกข้อความแล้ว', downloaded: 'ดาวน์โหลด text_{base}.txt แล้ว',
       paddle: 'อ่านแบบใหม่ (ทดลอง)', modelDl: 'โหลดโมเดลอ่านภาพ', mbOf: '{a} / {b} MB', legacy: 'อ่านด้วยแบบเดิม',
@@ -41,6 +42,7 @@
       noReader: 'Could not load the file reader (slow or blocked network?). Try reloading the page', readingFile: 'Reading {name}…',
       empty: 'No text found in this file', done: 'Extracted text from {name} ({n} characters)', readFail: 'Could not read the file: {msg}',
       splitNoLib: 'Could not load the PDF split library — check your connection and reload the page', splitting: 'Splitting PDF pages…', splitNoPages: 'This PDF has no pages',
+      splitLocked: 'This PDF is locked with a password — unlock it and try again', splitDamaged: 'Could not read the structure of this PDF — the file may be damaged',
       splitDone: 'Split into {n} files — downloaded pages_{base}.zip', splitFail: 'Could not split the PDF: {msg}',
       copied: 'Text copied', downloaded: 'Downloaded text_{base}.txt',
       paddle: 'New reader (experimental)', modelDl: 'Downloading the reading model', mbOf: '{a} / {b} MB', legacy: 'Read with the old method',
@@ -172,45 +174,55 @@
     });
   }
 
-  /* ── แยกหน้า PDF เป็นไฟล์รายหน้า (.zip) — ใช้ pdf-lib สร้างไฟล์ PDF ใหม่ทีละหน้า (ฟีเจอร์เดิมจากตอน
-     ยังเป็นเครื่องมือ Pyodide+pypdf ย้ายมาทำฝั่ง JS ล้วนแทน ผลลัพธ์หน้าตาเดียวกัน: page_001.pdf, ... ) */
+  /* ── แยกหน้า PDF เป็นไฟล์รายหน้า (.zip) — PdfCraft (wasm) แยกใน pdf-pages-worker.js (หน้าไม่ค้าง) แล้ว JSZip รวมเป็น zip
+     ไฟล์ละ 1 หน้า: page_001.pdf, ... (ชื่อเดิมตั้งแต่สมัย pypdf/pdf-lib) · ล้ม = บอกผู้ใช้ ไม่สลับไปทางอื่นเงียบๆ */
+  var PDF_ERR = { encrypted: 'splitLocked', damaged: 'splitDamaged', empty: 'splitNoPages' };
+  function splitInWorker(buf) {
+    return new Promise(function (resolve, reject) {
+      var w;
+      function done(err, parts) { try { w.terminate(); } catch (e) {} if (err) reject(err); else resolve(parts); }
+      try { w = new Worker('pdf-pages-worker.js'); } catch (e) { reject(e); return; }
+      w.onmessage = function (e) {
+        var d = e.data || {};
+        if (d.ok) return done(null, d.parts);
+        if (d.craft) return done(window.TanotCraft ? TanotCraft.fromMessage(d.craft) : new Error(d.craft.message || 'craft'));
+        var err = new Error('pdf:' + (d.pdf || 'other'));
+        err.pdf = d.pdf || 'other';
+        done(err);
+      };
+      w.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); done(new Error((e && e.message) || 'worker')); };
+      w.postMessage({ bytes: buf, every: 1 }, [buf]);
+    });
+  }
   function splitPdfPages() {
     if (!currentFile) return;
-    if (!window.PDFLib || !window.JSZip) {
+    if (!window.JSZip) {
       actionStatus(function () { return T('splitNoLib'); }, 'err');
       return;
     }
     $('splitPdfBtn').disabled = true;
     actionStatus(function () { return T('splitting'); }, '');
-    currentFile.arrayBuffer().then(function (bytes) {
-      return window.PDFLib.PDFDocument.load(bytes);
-    }).then(function (srcDoc) {
-      var n = srcDoc.getPageCount();
-      if (!n) throw new Error(T('splitNoPages'));
+    var base = currentFile.name.replace(/\.pdf$/i, '');
+    currentFile.arrayBuffer().then(splitInWorker).then(function (parts) {
+      var n = parts.length;
+      if (!n) throw Object.assign(new Error('pdf:empty'), { pdf: 'empty' });
       var zip = new window.JSZip();
-      var chain = Promise.resolve();
-      var base = currentFile.name.replace(/\.pdf$/i, '');
-      for (var i = 0; i < n; i++) {
-        (function (idx) {
-          chain = chain.then(function () {
-            return window.PDFLib.PDFDocument.create().then(function (newDoc) {
-              return newDoc.copyPages(srcDoc, [idx]).then(function (copied) {
-                newDoc.addPage(copied[0]);
-                return newDoc.save();
-              });
-            });
-          }).then(function (pdfBytes) {
-            var pageNum = String(idx + 1).padStart(3, '0');
-            zip.file('page_' + pageNum + '.pdf', pdfBytes);
-          });
-        })(i);
-      }
-      return chain.then(function () { return zip.generateAsync({ type: 'blob' }); }).then(function (blob) {
+      parts.forEach(function (bytes, idx) {
+        zip.file('page_' + String(idx + 1).padStart(3, '0') + '.pdf', bytes);
+      });
+      return zip.generateAsync({ type: 'blob' }).then(function (blob) {
         downloadBlob(blob, 'pages_' + base + '.zip');
         actionStatus(function () { return T('splitDone', { n: n, base: base }); }, 'ok');
       });
     }).catch(function (err) {
-      actionStatus(function () { return T('splitFail', { msg: errMsg(err) }); }, 'err');
+      if (err && err.craft && window.TanotCraft) {
+        TanotCraft.report(err, { stage: 'split' });
+        actionStatus(function () { return TanotCraft.message(err); }, 'err');
+      } else if (err && PDF_ERR[err.pdf]) {
+        actionStatus(function () { return T(PDF_ERR[err.pdf]); }, 'err');
+      } else {
+        actionStatus(function () { return T('splitFail', { msg: errMsg(err) }); }, 'err');
+      }
     }).finally(function () {
       $('splitPdfBtn').disabled = false;
     });

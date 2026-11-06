@@ -1,0 +1,37 @@
+# แยกหน้า PDF ในเบราว์เซอร์สำหรับ extract-text.html (ห่อ PdfCraft — https://github.com/storytold/pdfcraft)
+# ใช้เฉพาะ crate organize (แยก/จัดหน้า) + cos (อ่าน/เขียนไฟล์ PDF) — ไม่มี UI ไม่มี engine
+# build: ./build.sh → vendor/craft/pdfcraft-<commit>/ (อย่าแก้ไฟล์ใน vendor เอง)
+[package]
+name = "pdfcraft-pages"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# ล็อก commit เดียวกันทุกตัว — เปลี่ยน rev = build ใหม่ (โฟลเดอร์ใหม่ใน vendor/craft) + อัปเดต manifest
+pdfcraft-cos = { git = "https://github.com/storytold/pdfcraft", rev = "9f04accceff67174fc2817035f8ab4577bef8285" }
+pdfcraft-organize = { git = "https://github.com/storytold/pdfcraft", rev = "9f04accceff67174fc2817035f8ab4577bef8285" }
+# ต้องตรงกับ wasm-bindgen-cli ที่ build.sh ใช้ (build.sh อ่านเลขจาก Cargo.lock)
+wasm-bindgen = "=0.2.129"
+js-sys = "0.3"
+
+# PdfCraft แก้ hayro-* ไว้ใน vendor/ ของ repo ตัวเอง ([patch.crates-io] ของ workspace นั้น) — patch ไม่ส่งต่อผ่าน git
+# dependency จึงต้องชี้ซ้ำที่นี่ ไปที่ commit เดียวกัน ให้ได้โค้ดเดียวกับที่ PdfCraft ใช้จริง
+[patch.crates-io]
+hayro-syntax = { git = "https://github.com/storytold/pdfcraft", rev = "9f04accceff67174fc2817035f8ab4577bef8285" }
+hayro-jbig2 = { git = "https://github.com/storytold/pdfcraft", rev = "9f04accceff67174fc2817035f8ab4577bef8285" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+# crate นี้ไม่อยู่ใน workspace ไหน
+[workspace]
