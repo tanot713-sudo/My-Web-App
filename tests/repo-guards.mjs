@@ -10,7 +10,8 @@
 // 10. ไอคอนแอป: ทุกหน้าลิงก์ apple-touch-icon.png + favicon-32.png, manifest มี any/maskable แยกกัน, ไฟล์มีจริง
 // 11. ภาพพื้นหลังรายหน้า: ทุกกลุ่มใน theme-boot.js มีไฟล์ -light/-dark.webp และกฎใน theme.css
 // 12. ตัวตรวจธีม static (theme-guards.mjs): สี hex/ปุ่มนิยามเองต่อหน้าห้ามเพิ่มจาก tests/theme-baseline.json
-// 13. vendor/gridcraft (wasm คำนวณสูตรของ compare): sha256 ทุกไฟล์ตรง manifest.json + มีการ์ด GridCraft ใน credits.html
+// 13. vendor/craft (ไลบรารี wasm ตระกูล *Craft): ทุกไฟล์ตรง vendor/craft/manifest.json (sha256/ขนาด) · ≤ 25 MiB · มีที่มา/license/การ์ดใน credits.html
+//     · path ที่มีใน base แล้วห้ามเปลี่ยนเนื้อไฟล์ (รุ่นใหม่ = โฟลเดอร์ใหม่ เพราะ sw.js แคชแยกแบบ cache-first) · ไม่ precache · ห้ามชื่อ ArtCraft ในเมนู
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -128,27 +129,74 @@ const notCredited = [...used].filter((n) => !credits.includes((ALIAS[n] || n).to
 if (notCredited.length) fail('credits', `ไลบรารีที่ใช้แต่ไม่มีใน credits.html: ${notCredited.join(', ')}`);
 else ok('credits', `${used.size} ไลบรารีมีใน credits.html (หรืออยู่ใน baseline)`);
 
-/* ── 13. vendor/gridcraft: ไฟล์ตรงกับที่ tools/wasm/gridcraft-recalc/build.sh สร้าง (แก้ด้วยมือ/ลืม build ใหม่ = ล้ม) ── */
+/* ── 13. vendor/craft: ไลบรารี wasm ตระกูล *Craft (ตัวโหลด craft-loader.js, แคชแยก tanot-craft-v1 ใน sw.js) ── */
 {
-  const dir = 'vendor/gridcraft';
-  let man = null;
-  try { man = JSON.parse(read(dir + '/manifest.json')); } catch (e) {}
-  const onDisk = fs.existsSync(path.join(ROOT, dir)) ? fs.readdirSync(path.join(ROOT, dir)).filter((f) => f !== 'manifest.json').sort() : [];
+  const G = 'craft';
+  const MAN = 'vendor/craft/manifest.json';
   const bad = [];
-  if (!man || !man.files || !/^[0-9a-f]{40}$/.test(man.commit || '')) bad.push('อ่าน manifest.json ไม่ได้ / ไม่มี commit ต้นทาง');
+  let man = null;
+  try { man = JSON.parse(read(MAN)); } catch (e) {}
+  const listed = new Set([MAN]);
+  const sizeOf = (f) => fs.statSync(path.join(ROOT, f)).size;
+  if (!man || !man.libs || typeof man.libs !== 'object') bad.push(`อ่าน ${MAN} ไม่ได้ / ไม่มี libs`);
   else {
-    const listed = Object.keys(man.files).sort();
-    if (listed.join('|') !== onDisk.join('|')) bad.push(`ไฟล์ในโฟลเดอร์ (${onDisk.join(', ')}) ไม่ตรงกับ manifest (${listed.join(', ')})`);
-    for (const f of listed) {
-      if (!fs.existsSync(path.join(ROOT, dir, f))) continue;
-      const h = createHash('sha256').update(fs.readFileSync(path.join(ROOT, dir, f))).digest('hex');
-      if (h !== man.files[f].sha256) bad.push(`${f} sha256 ไม่ตรง manifest`);
+    const dirs = new Set();
+    for (const [key, L] of Object.entries(man.libs)) {
+      const where = `libs.${key}`;
+      if (!/^[a-z0-9-]+$/.test(key)) bad.push(`${where}: ชื่อไลบรารีต้องเป็น a-z 0-9 -`);
+      if (!L || typeof L !== 'object') { bad.push(`${where}: ไม่ใช่ object`); continue; }
+      if (typeof L.dir !== 'string' || !new RegExp(`^vendor/craft/${key}-[A-Za-z0-9._-]+$`).test(L.dir)) bad.push(`${where}.dir ต้องเป็น vendor/craft/${key}-<รุ่น> (ได้ ${L.dir})`);
+      else if (dirs.has(L.dir)) bad.push(`${where}.dir ซ้ำกับไลบรารีอื่น`);
+      else dirs.add(L.dir);
+      if (!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+$/.test(L.source || '')) bad.push(`${where}.source ต้องเป็น https://github.com/<owner>/<repo>`);
+      if (!/^[0-9a-f]{40}$/.test(L.commit || '')) bad.push(`${where}.commit ต้องเป็น commit 40 ตัว`);
+      if (!L.license || typeof L.license !== 'string') bad.push(`${where}.license ว่าง`);
+      if (!L.name || typeof L.name !== 'string') bad.push(`${where}.name ว่าง`);
+      if (/artcraft/i.test(L.name || '')) bad.push(`${where}.name ห้ามใช้ชื่อ ArtCraft (เครื่องหมายการค้า)`);
+      const files = L.files && typeof L.files === 'object' ? L.files : {};
+      if (!L.licenseFile || !files[L.licenseFile]) bad.push(`${where}.licenseFile ต้องชี้ไฟล์ license ที่อยู่ใน files`);
+      if (!Object.keys(files).some((f) => /\.wasm$/.test(f))) bad.push(`${where}: ไม่มีไฟล์ .wasm`);
+      for (const [f, meta] of Object.entries(files)) {
+        if (!/^[A-Za-z0-9._-]+$/.test(f)) { bad.push(`${where}.files["${f}"]: ชื่อไฟล์ต้องไม่มี / หรืออักขระพิเศษ`); continue; }
+        const p = `${L.dir}/${f}`;
+        listed.add(p);
+        if (!tracked.includes(p)) { bad.push(`${p} อยู่ใน manifest แต่ไม่มีไฟล์ใน repo`); continue; }
+        const h = createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');
+        if (!meta || h !== meta.sha256) bad.push(`${p} sha256 ไม่ตรง manifest`);
+        if (!meta || sizeOf(p) !== meta.bytes) bad.push(`${p} ขนาดไม่ตรง manifest`);
+        if (sizeOf(p) > LIMIT) bad.push(`${p} ใหญ่เกิน 25 MiB`);
+      }
+      const short = String(L.commit || '').slice(0, 7);
+      if (!credits.includes(`<span class="lib-name">${String(L.name || '').toLowerCase()}</span>`) || !credits.includes(`href="${String(L.source || '').toLowerCase()}"`) || !credits.includes(short)) {
+        bad.push(`credits.html ต้องมีการ์ด ${L.name} (lib-name + ลิงก์ ${L.source} + commit ${short})`);
+      }
     }
-    for (const need of ['gridcraft_recalc_bg.wasm', 'gridcraft_recalc.js', 'LICENSE-MIT', 'THIRD-PARTY.txt']) if (!man.files[need]) bad.push(`ไม่มี ${need}`);
   }
-  if (!/<span class="lib-name">gridcraft<\/span>/.test(credits) || !credits.includes('gridcraft by the artcraft team')) bad.push('ไม่มีการ์ด GridCraft ใน credits.html');
-  if (bad.length) fail('gridcraft', bad.join(' · '));
-  else ok('gridcraft', `vendor/gridcraft ${onDisk.length} ไฟล์ตรง manifest (commit ${man.commit.slice(0, 7)}) + มีใน credits.html`);
+  const extra = tracked.filter((f) => f.startsWith('vendor/craft/') && !listed.has(f));
+  if (extra.length) bad.push(`ไฟล์ใน vendor/craft ที่ไม่อยู่ใน manifest: ${extra.slice(0, 5).join(', ')}`);
+  const pre = precache.map((u) => u.replace(/^\.\//, '')).filter((u) => u.startsWith('vendor/craft/') && u !== MAN);
+  if (pre.length) bad.push(`ห้าม precache ไฟล์ของไลบรารี (ใช้แคชแยก tanot-craft-v1): ${pre.join(', ')}`);
+  const manPre = precache.includes('./' + MAN) || (/\bCRAFT_MANIFEST,/.test((precacheBlock || ['', ''])[1]) && /const CRAFT_MANIFEST = '\.\/vendor\/craft\/manifest\.json'/.test(swSrc));
+  if (!manPre) bad.push(`${MAN} ต้องอยู่ใน PRECACHE (เปลี่ยนพร้อมโค้ดทุก deploy)`);
+  // path ที่ deploy แล้วห้ามเปลี่ยนเนื้อไฟล์ — sw.js เสิร์ฟจาก CRAFT_CACHE แบบ cache-first ไม่ถูกล้างตอน bump CACHE
+  const base = process.env.GUARD_BASE || 'origin/main';
+  let baseMan = null;
+  try { baseMan = JSON.parse(execFileSync('git', ['show', `${base}:${MAN}`], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] })); } catch (e) {}
+  if (baseMan && baseMan.libs && man && man.libs) {
+    const now = new Map();
+    for (const L of Object.values(man.libs)) for (const [f, m] of Object.entries((L && L.files) || {})) now.set(`${L.dir}/${f}`, m && m.sha256);
+    for (const L of Object.values(baseMan.libs)) for (const [f, m] of Object.entries((L && L.files) || {})) {
+      const p = `${L.dir}/${f}`;
+      if (now.has(p) && now.get(p) !== (m && m.sha256)) bad.push(`${p} เปลี่ยนเนื้อไฟล์ทั้งที่ path เดิม deploy แล้ว — ใช้โฟลเดอร์รุ่นใหม่ (${L.dir.replace(/-[^-]+$/, '')}-<รุ่น>)`);
+    }
+  }
+  // ชื่อ ArtCraft เป็นเครื่องหมายการค้า — ห้ามเป็นชื่อเมนู/คำค้นใน MENU ของ shell.js
+  const menu = (read('shell.js').match(/var MENU = \[[\s\S]*?\n  \];/) || [''])[0];
+  if (!menu) bad.push('หา MENU ใน shell.js ไม่เจอ');
+  else if (/artcraft/i.test(menu)) bad.push('MENU ใน shell.js มีชื่อ "ArtCraft" (เครื่องหมายการค้า — ห้ามใช้เป็นชื่อเมนู)');
+  if (tracked.some((f) => f.startsWith('vendor/gridcraft/'))) bad.push('vendor/gridcraft/ ย้ายไป vendor/craft/ แล้ว — ห้ามเพิ่มกลับ');
+  if (bad.length) fail(G, bad.join(' · '));
+  else ok(G, `vendor/craft ${listed.size - 1} ไฟล์ ใน ${Object.keys(man.libs).length} ไลบรารีตรง manifest + credits · ไม่ precache · path เดิมไม่เปลี่ยน${baseMan ? '' : ` (ไม่มี manifest ใน ${base} — ข้ามข้อนี้)`}`);
 }
 
 /* ── 7. ทุกหน้าที่ใช้ theme.css ต้องโหลด theme-boot.js ก่อน (ไม่ defer) — ไม่งั้นจอกะพริบ และ shell.js ไม่มี OmeTheme ── */

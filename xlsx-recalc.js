@@ -2,7 +2,7 @@
    Tanot — คำนวณสูตรที่ไฟล์ .xlsx ไม่ได้เก็บค่าไว้ (window.TanotXlsxRecalc) · ใช้ใน compare.js
    ไฟล์ที่ openpyxl/SheetJS เขียนมีสูตรแต่ไม่มีค่าแคช (<v/> ว่างหรือไม่มี <v>) — SheetJS 0.18.5 ทิ้งเซลล์พวกนี้ทั้งเซลล์
    จึงนับจาก XML ของชีตเอง (wb.files จาก X.read(…, {bookFiles:true})) ไม่ใช่จาก wb.Sheets
-   ไม่มีเซลล์แบบนี้ = ไม่โหลด wasm · มี = ส่งไฟล์ให้ xlsx-recalc-worker.js (GridCraft, vendor/gridcraft/) ใน Worker เสมอ
+   ไม่มีเซลล์แบบนี้ = ไม่โหลด wasm · มี = ส่งไฟล์ให้ xlsx-recalc-worker.js (GridCraft, vendor/craft/gridcraft-* ผ่าน craft-loader.js) ใน Worker เสมอ
    แล้วเติมค่า "เฉพาะเซลล์ที่ SheetJS ไม่มีค่า" (dense) — ไม่ทับค่าที่มี ไม่เขียนไฟล์ใหม่ ไม่มีข้อมูลออกจากเครื่อง
    ค่าที่ได้เป็นค่าดิบ (ตัวเลข/ข้อความ/บูลีน/error) — ไม่ใช้ข้อความที่จัดรูปจาก GridCraft (ไม่รู้ปี พ.ศ./[$-th-TH]);
    ตัวเลขในเซลล์รูปแบบวันที่แปลงเป็น Date ด้วย SheetJS เอง (X.SSF) ให้เหมือนเซลล์ที่มีค่าแคชตอนอ่านด้วย cellDates
@@ -212,7 +212,12 @@
       timer = setTimeout(function () { done(new Error('timeout')); }, timeoutMs || TIMEOUT_MS);
       w.onmessage = function (e) {
         var d = e.data || {};
-        if (!d.ok) return done(new Error(d.error || 'recalc'));
+        if (!d.ok) {
+          // โหลดไลบรารีไม่ได้ (ไม่มีไฟล์/sha256 ไม่ตรง/เครือข่าย) → Error มี craft/code/lib ให้ผู้เรียกแสดงข้อความ + ลง problem log
+          var err = new Error(d.error || 'recalc');
+          if (d.craft) { err.craft = true; err.code = d.craft.code; err.lib = d.craft.lib; err.file = d.craft.file; }
+          return done(err);
+        }
         done(null, { cells: d.cells, ms: d.ms });
       };
       w.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); done(new Error((e && e.message) || 'worker')); };

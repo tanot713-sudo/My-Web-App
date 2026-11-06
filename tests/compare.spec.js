@@ -408,9 +408,9 @@ test.describe('หน้า compare.html — เทียบตาราง', ()
 
 /* ══════════ สูตรที่ไฟล์ไม่ได้เก็บค่าไว้ (xlsx-recalc.js + GridCraft wasm) ══════════ */
 const R = require(path.join(__dirname, '..', 'xlsx-recalc.js'));
-const GC = path.join(__dirname, '..', 'vendor', 'gridcraft');
+const GC = path.join(__dirname, '..', 'vendor', 'craft', JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'vendor', 'craft', 'manifest.json'), 'utf8')).libs.gridcraft.dir.split('/').pop());
 const RATE = 'อัตรา & ราคา';
-const wasmHits = (page) => { const hits = []; page.on('request', (r) => { if (/vendor\/gridcraft\/|xlsx-recalc-worker/.test(r.url())) hits.push(r.url()); }); return hits; };
+const wasmHits = (page) => { const hits = []; page.on('request', (r) => { if (/vendor\/craft\/|xlsx-recalc-worker/.test(r.url())) hits.push(r.url()); }); return hits; };
 // แบบไฟล์ประมาณราคาที่ openpyxl/run.html เขียน: สูตรไม่มีค่าแคช · ราคาวัสดุอยู่อีกชีต (ชื่อมี &) · emptyV = <v /> แบบ openpyxl (ไม่ใส่ = ไม่มี <v> แบบ SheetJS)
 async function estBook(price, { emptyV = false, cached = false } = {}) {
   const wb = XLSX.utils.book_new();
@@ -569,7 +569,7 @@ test.describe('หน้า compare.html — สูตรที่ไม่ม�
 
   test('wasm โหลดไม่ได้ → หน้าไม่พัง เทียบต่อได้ + ข้อความเตือนจำนวนเซลล์', async ({ page }) => {
     const errors = await openPage(page, '/compare.html');
-    await page.route('**/vendor/gridcraft/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    await page.route('**/vendor/craft/**/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
     await upload(page, '#fileA', 'est-v1.xlsx', await estBook(99));
     await upload(page, '#fileB', 'est-v2.xlsx', await estBook(100));
     const warn = 'มีสูตร 6 เซลล์ที่ไม่มีค่า — ผลเทียบช่องเหล่านี้อาจไม่ถูก';
@@ -581,6 +581,11 @@ test.describe('หน้า compare.html — สูตรที่ไม่ม�
     expect(await kpi(page)).toEqual([0, 0, 0, 3]); // ไม่มีค่าสูตร = ว่างทั้งคู่ → "เหมือน" ทุกแถว (ปัญหาเดิม) จึงต้องมีข้อความเตือน
     await page.evaluate(() => OME_LANG.set('en'));
     await expect(page.locator('#calcA')).toHaveText('6 formula cells have no saved value — results for these cells may be wrong');
+    // ตัวโหลดกลาง (craft-loader.js) บอกสาเหตุ → problem log รหัส craft-missing + จำนวนเซลล์ ไม่มีชื่อไฟล์ผู้ใช้
+    const log = await page.evaluate(() => localStorage.getItem('tanot:media:log') || '');
+    expect(log).toContain('"kind":"xlsx"');
+    expect(log).toContain('craft-missing 6');
+    expect(log).not.toContain('est-v1');
     expect(errors.filter((e) => !/404|Failed to load resource/.test(e))).toEqual([]);
   });
 
@@ -774,7 +779,7 @@ test.describe('หน้า run.html — ไฟล์ประมาณราค
   test('wasm โหลดไม่ได้ → ได้ไฟล์เดิม + ข้อความเตือน th/en + problem log ไม่มีชื่อไฟล์/เนื้อหา', async ({ page }) => {
     const src = await opxBook(99);
     const errors = await openRun(page, src);
-    await page.route('**/vendor/gridcraft/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
+    await page.route('**/vendor/craft/**/*.wasm', (r) => r.fulfill({ status: 404, body: 'nope' }));
     const got = await runAndDownload(page);
     expect(Buffer.compare(got, Buffer.from(src))).toBe(0);
     const warn = page.locator('#files .callout.warn');
@@ -784,6 +789,7 @@ test.describe('หน้า run.html — ไฟล์ประมาณราค
     await expect(warn).toHaveText("Couldn't fill formula values — mobile previews may show blank totals");
     const log = await page.evaluate(() => localStorage.getItem('tanot:media:log') || '');
     expect(log).toContain('"kind":"xlsx"');
+    expect(log).toContain('craft-missing');
     expect(log).not.toMatch(/estimate|input\.xlsx|สรุป|อัตรา/);
     expect(benign(errors)).toEqual([]);
   });

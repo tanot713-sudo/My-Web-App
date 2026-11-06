@@ -192,7 +192,10 @@
     return R.fillMissing(X, wb, b, need, { cellDates: true }).then(function (r) {
       var left = need.length - r.filled;
       return { wb: wb, calc: left ? { n: left, st: 'warn' } : { n: r.filled, st: 'ok' } };
-    }, function () {
+    }, function (err) {
+      // problem log: รหัสสั้น + จำนวนเซลล์เท่านั้น (ไม่มีชื่อไฟล์/ชื่อชีต/ค่าในเซลล์) — แบบเดียวกับ run.html
+      var code = err && err.craft ? 'craft-' + err.code : String((err && err.message) || err) === 'timeout' ? 'timeout' : 'recalc';
+      try { if (window.TanotMedia) TanotMedia.logError('xlsx', { name: 'Error', message: code + ' ' + need.length }, { stage: 'recalc' }); } catch (e) {}
       return { wb: wb, calc: { n: need.length, st: 'warn' } };
     });
   }

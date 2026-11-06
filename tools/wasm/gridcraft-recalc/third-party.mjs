@@ -1,4 +1,4 @@
-// THIRD-PARTY.txt ของ vendor/gridcraft — license ของทุก crate ที่ลิงก์เข้า .wasm (dependency ปกติบน wasm32 ไม่นับ proc-macro/build/dev)
+// THIRD-PARTY.txt ของ vendor/craft/gridcraft-<commit> — license ของทุก crate ที่ลิงก์เข้า .wasm (dependency ปกติบน wasm32 ไม่นับ proc-macro/build/dev)
 // GridCraft เอง = LICENSE-MIT ข้างกัน · เรียกจาก build.sh: node third-party.mjs > THIRD-PARTY.txt
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
