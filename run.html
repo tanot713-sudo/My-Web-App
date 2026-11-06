@@ -590,7 +590,7 @@ async function fillFormulaValues(data){
     return { data: r.bytes, warn: left };
   }catch(e){
     const m = String((e && e.message) || e);
-    logFill(m === 'timeout' || m === 'lib' ? m : 'recalc');
+    logFill(e && e.craft ? 'craft-' + e.code : m === 'timeout' || m === 'lib' ? m : 'recalc');
     return { data, warn: -1 };
   }
 }

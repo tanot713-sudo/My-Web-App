@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v664';
+const CACHE = 'ome-v665';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -20,6 +20,13 @@ const PADDLE_CACHE = 'tanot-paddle-models';
    ถูกลบ มือถือโหลดใหม่หมดทุก deploy) · แคชใหม่ที่ต้องอยู่รอดข้าม deploy ไม่ต้องมาแก้ที่นี่ แค่ไม่ใส่ในรายการนี้
    · ome-v<เลข> ที่ไม่ใช่ CACHE ปัจจุบัน = precache รุ่นเก่าของเราเอง
    · tanot-f5-models- = โมเดลหน้าทดลอง f5-lab ที่เอาออกแล้ว (#71) */
+/* ไลบรารี wasm ตระกูล *Craft (vendor/craft/<lib>-<รุ่น>/ — ดู CLAUDE.md "ไลบรารี wasm ตระกูล *Craft") — cache-first ในแคชแยกนี้
+   ไม่อยู่ใน PRECACHE และไม่ถูกล้างตอน bump CACHE (ไฟล์ละหลาย MB ไม่ต้องโหลดใหม่ทุก deploy) · path มีรุ่นในชื่อโฟลเดอร์และห้ามเปลี่ยนเนื้อไฟล์
+   (repo-guards) → รุ่นใหม่ = URL ใหม่ · activate ลบรายการที่ไม่อยู่ใน manifest ปัจจุบันแล้ว (รุ่นเก่า) · craft-loader.js ตรวจ sha256 ทุกครั้ง
+   ไม่ตรง → ขอใหม่ด้วย cache:'reload' ซึ่งที่นี่ไปเครือข่ายแล้วเขียนทับ · manifest.json เองอยู่ใน PRECACHE (เปลี่ยนพร้อมโค้ดทุก deploy) */
+const CRAFT_CACHE = 'tanot-craft-v1';
+const CRAFT_DIR = '/vendor/craft/';
+const CRAFT_MANIFEST = './vendor/craft/manifest.json';
 const OBSOLETE_CACHE_PREFIXES = ['tanot-f5-models-'];
 const isObsoleteCache = (k) => k !== CACHE && (/^ome-v\d+$/.test(k) || OBSOLETE_CACHE_PREFIXES.some((p) => k.indexOf(p) === 0));
 const PRECACHE = [
@@ -112,7 +119,9 @@ const PRECACHE = [
   './compare-calc.js',
   './xlsx-recalc.js',
   './xlsx-recalc-worker.js',
-  /* ตั้งใจไม่ precache './vendor/gridcraft/*' (wasm ~1.9MB ใช้เฉพาะไฟล์ที่มีสูตรไม่มีค่าแคช) — fetch handler แคชให้ตอนใช้ครั้งแรก */
+  './craft-loader.js',
+  CRAFT_MANIFEST,
+  /* ตั้งใจไม่ precache ไฟล์ใน vendor/craft/<lib>-<รุ่น>/ (เช่น wasm ของ GridCraft ~1.9MB) — fetch handler แคชลง CRAFT_CACHE ตอนใช้ครั้งแรก */
   './image-gen.html',
   './image-gen.js',
   './image-cutout-calc.js',
@@ -282,9 +291,26 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
       .then((keys) => Promise.all(keys.filter(isObsoleteCache).map((k) => caches.delete(k))))
+      .then(pruneCraftCache)
       .then(() => self.clients.claim())
   );
 });
+
+/* ลบไฟล์ใน CRAFT_CACHE ที่ manifest ของ CACHE ปัจจุบันไม่มีแล้ว (รุ่นเก่า) — อ่าน manifest ไม่ได้ = ไม่ลบอะไร */
+async function pruneCraftCache() {
+  try {
+    if (!(await caches.keys()).includes(CRAFT_CACHE)) return;
+    const res = await (await caches.open(CACHE)).match(new URL(CRAFT_MANIFEST, self.registration.scope).href);
+    const man = res && await res.json();
+    if (!man || !man.libs || typeof man.libs !== 'object') return;
+    const keep = new Set();
+    for (const lib of Object.values(man.libs)) {
+      for (const f of Object.keys((lib && lib.files) || {})) keep.add(new URL(lib.dir + '/' + f, self.registration.scope).pathname);
+    }
+    const c = await caches.open(CRAFT_CACHE);
+    for (const req of await c.keys()) if (!keep.has(new URL(req.url).pathname)) await c.delete(req);
+  } catch (e) {}
+}
 
 /* ── Cloudflare Access (เฉพาะโดเมน *.pages.dev) ──
    พอเซสชัน Access หมดอายุ การเปิดหน้าจะถูก redirect ไปหน้าล็อกอินที่โดเมนอื่น ซึ่งแอปบนหน้าจอโฮม iPhone
@@ -437,6 +463,16 @@ self.addEventListener('fetch', (e) => {
       if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
       return net;
     })));
+    return;
+  }
+
+  // vendor/craft/<lib>-<รุ่น>/* → CRAFT_CACHE (manifest.json อยู่ใน PRECACHE ใช้ทาง cache-first ปกติด้านล่าง)
+  if (url.pathname.indexOf(CRAFT_DIR) !== -1 && !url.pathname.endsWith('/manifest.json')) {
+    const reload = req.cache === 'reload' || req.cache === 'no-cache';
+    e.respondWith(caches.open(CRAFT_CACHE).then((c) => (reload ? Promise.resolve(undefined) : c.match(req)).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok && res.type === 'basic') e.waitUntil(c.put(req, res.clone()));
+      return res;
+    }))));
     return;
   }
 

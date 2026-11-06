@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
-# build GridCraft recalc (wasm) → vendor/gridcraft/ ของเว็บ
+# build GridCraft recalc (wasm) → vendor/craft/gridcraft-<commit 7 ตัว><CRAFT_SUFFIX>/ ของเว็บ + ลงทะเบียนใน vendor/craft/manifest.json
 # ต้องมี: rustup (rust-toolchain.toml ติดตั้ง 1.97.0 + wasm32 ให้เอง), node,
 #         wasm-bindgen-cli เวอร์ชันเดียวกับ Cargo.lock (cargo install wasm-bindgen-cli --version <เลข> --locked)
 # ไม่บังคับ: wasm-opt (binaryen) — ไม่มี = ข้าม -Oz (ไฟล์ใหญ่ขึ้น), WASM_OPT=<path> ชี้ตัวที่ติดตั้งไว้ที่อื่นได้
+# path ที่ deploy แล้วห้ามเปลี่ยนเนื้อไฟล์ (repo-guards ตรวจ) — build ใหม่จาก commit เดิม (แก้ wrapper) ให้ตั้ง CRAFT_SUFFIX=-2 ฯลฯ
+#   แล้วลบโฟลเดอร์รุ่นเก่า + แก้ path ใน xlsx-recalc-worker.js
 # หลัง build: bump CACHE ใน sw.js + รัน tests/repo-guards.mjs + tests/compare.spec.js
 set -euo pipefail
 
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../../.." && pwd)"
-out="$root/vendor/gridcraft"
 target="${CARGO_TARGET_DIR:-$here/target}"
 export CARGO_TARGET_DIR="$target"
 cd "$here"
 
 rev="$(sed -n 's/.*rev = "\([0-9a-f]\{40\}\)".*/\1/p' Cargo.toml | head -1)"
+out="$root/vendor/craft/gridcraft-${rev:0:7}${CRAFT_SUFFIX:-}"
 wbg="$(awk '/^name = "wasm-bindgen"$/ { getline; gsub(/version = |"/, ""); print; exit }' Cargo.lock)"
 command -v wasm-bindgen >/dev/null || { echo "ไม่พบ wasm-bindgen — cargo install wasm-bindgen-cli --version $wbg --locked" >&2; exit 1; }
 have="$(wasm-bindgen --version | awk '{ print $2 }')"
@@ -50,5 +52,5 @@ src="$(cargo metadata --format-version 1 --locked | node -e '
 # บรรทัดลิขสิทธิ์ตามต้นฉบับ (ไม่แก้ข้อความ)
 cp "$src/LICENSE-MIT" "$out/LICENSE-MIT"
 node "$here/third-party.mjs" > "$out/THIRD-PARTY.txt"
-node "$here/manifest.mjs" "$out" "$rev" "$(rustc --version)" "wasm-bindgen $have" "$optver"
+node "$here/manifest.mjs" "$root" "$out" "$rev" "$(rustc --version)" "wasm-bindgen $have" "$optver"
 echo "→ $out"
