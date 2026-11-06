@@ -90,7 +90,9 @@
       popupBlocked: 'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองใหม่',
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
-      importDxfEmpty: 'ไม่พบเอนทิตี้ที่รองรับในไฟล์ DXF นี้ (รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
+      importDxfEmpty: 'ไม่พบสิ่งที่นำเข้าได้ในไฟล์ DXF นี้',
+      importDxfSkipped: 'ข้ามชนิดที่ยังไม่รองรับ: {types}',
+      importDxfTruncated: 'ไฟล์ใหญ่มาก — นำเข้าเฉพาะ {n} ชิ้นแรก',
       toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolTextLeader: 'ข้อความ+เส้นชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
       toolBalloon: 'ป้ายบอลลูน', toolMultileader: 'เส้นชี้หลายจุด', toolSurfaceFinish: 'ความหยาบผิว',
       hatchSpacingLbl: 'ระยะห่างลาย (มม.)', hatchAngleLbl: 'มุมลาย (°)', hatchApplyBtn: 'แรเงา',
@@ -176,7 +178,9 @@
       popupBlocked: 'Your browser blocked the print window — please allow pop-ups for this site and try again',
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
-      importDxfEmpty: 'No supported entities found in this DXF file (supports LINE/CIRCLE/ARC/LWPOLYLINE/TEXT)',
+      importDxfEmpty: 'Nothing to import in this DXF file',
+      importDxfSkipped: 'Skipped unsupported types: {types}',
+      importDxfTruncated: 'Very large file — imported only the first {n} items',
       toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolTextLeader: 'Text-Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
       toolBalloon: 'Balloon', toolMultileader: 'Multileader', toolSurfaceFinish: 'Surface finish',
       hatchSpacingLbl: 'Line spacing (mm)', hatchAngleLbl: 'Line angle (°)', hatchApplyBtn: 'Hatch',
@@ -3383,70 +3387,74 @@
     downloadBlob(lines.join('\r\n') + '\r\n', exportFilenameBase() + '.dxf', 'application/dxf');
   }
 
-  /* นำเข้า DXF: อ่านเฉพาะ ENTITIES section รองรับ LINE/CIRCLE/ARC/LWPOLYLINE/TEXT (ชนิดที่ตัวส่งออกของเราเองสร้าง
-     และเป็นชุดพื้นฐานที่สุดที่โปรแกรม CAD อื่นก็ใช้กันทั่วไป) — เอนทิตี้ที่นำเข้าจะถูก "เพิ่ม" ต่อท้ายแบบปัจจุบัน
-     (ไม่ล้างของเดิม) ลงเลเยอร์ที่ใช้งานอยู่ตอนนี้ทั้งหมด (ไฟล์ DXF ต้นทางอาจมีเลเยอร์ที่ไม่ตรงกับของเรา) */
-  function isFiniteNum(v) { return typeof v === 'number' && isFinite(v); }
-  function parseDxf(text) {
-    var lines = text.split(/\r\n|\r|\n/);
-    var pairs = [];
-    for (var i = 0; i + 1 < lines.length; i += 2) pairs.push({ code: (lines[i] || '').trim(), value: (lines[i + 1] || '').replace(/\r$/, '') });
-    var idx = 0;
-    while (idx < pairs.length - 1 && !(pairs[idx].code === '0' && pairs[idx].value.trim() === 'SECTION' &&
-      pairs[idx + 1].code === '2' && pairs[idx + 1].value.trim() === 'ENTITIES')) idx++;
-    idx += 2; // ข้าม 0/SECTION + 2/ENTITIES ไปยังเอนทิตี้แรก
-    var out = [];
-    while (idx < pairs.length) {
-      if (pairs[idx].code !== '0') { idx++; continue; }
-      var typeVal = pairs[idx].value.trim();
-      if (typeVal === 'ENDSEC' || !typeVal) break;
-      idx++;
-      var g = {}, verts = [];
-      while (idx < pairs.length && pairs[idx].code !== '0') {
-        var code = pairs[idx].code, val = pairs[idx].value;
-        if (typeVal === 'LWPOLYLINE' && code === '10') verts.push({ x: parseFloat(val), y: 0 });
-        else if (typeVal === 'LWPOLYLINE' && code === '20' && verts.length) verts[verts.length - 1].y = parseFloat(val);
-        else g[code] = val;
-        idx++;
-      }
-      var ent = null;
-      if (typeVal === 'LINE') {
-        var p1 = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, p2 = { x: parseFloat(g['11']), y: parseFloat(g['21']) };
-        if (isFiniteNum(p1.x) && isFiniteNum(p1.y) && isFiniteNum(p2.x) && isFiniteNum(p2.y)) ent = { type: 'line', layer: state.activeLayer, p1: p1, p2: p2 };
-      } else if (typeVal === 'CIRCLE') {
-        var cc = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, r = parseFloat(g['40']);
-        if (isFiniteNum(cc.x) && isFiniteNum(cc.y) && isFiniteNum(r) && r > 0) ent = { type: 'circle', layer: state.activeLayer, center: cc, radius: r };
-      } else if (typeVal === 'ARC') {
-        var ac = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, ar = parseFloat(g['40']);
-        var a0 = parseFloat(g['50']), a1 = parseFloat(g['51']);
-        if (isFiniteNum(ac.x) && isFiniteNum(ac.y) && isFiniteNum(ar) && ar > 0 && isFiniteNum(a0) && isFiniteNum(a1))
-          ent = { type: 'arc', layer: state.activeLayer, center: ac, radius: ar, startAngle: a0 * Math.PI / 180, endAngle: a1 * Math.PI / 180 };
-      } else if (typeVal === 'LWPOLYLINE') {
-        var validVerts = verts.filter(function (p) { return isFiniteNum(p.x) && isFiniteNum(p.y); });
-        if (validVerts.length >= 2) ent = { type: 'polyline', layer: state.activeLayer, points: validVerts, closed: g['70'] === '1' };
-      } else if (typeVal === 'TEXT') {
-        var tp = { x: parseFloat(g['10']), y: parseFloat(g['20']) }, th = parseFloat(g['40']);
-        if (isFiniteNum(tp.x) && isFiniteNum(tp.y) && (g['1'] || '').length) ent = { type: 'text', layer: state.activeLayer, p: tp, text: g['1'], height: (isFiniteNum(th) && th > 0) ? th : 3 };
-      }
-      if (ent) { ent.id = genId(); out.push(ent); }
-    }
-    return out;
+  /* นำเข้า DXF: อ่านด้วย CADCraft (wasm) ใน cad-dxf-worker.js — ASCII/binary, ข้อความไทยตาม $DWGCODEPAGE (ANSI_874),
+     บล็อก (INSERT ซ้อน/หมุน/ย่อขยาย) ระเบิดเป็นเส้น, มิติ/MTEXT/แรเงา/วงรี/สไปลน์/ส่วนโค้งใน polyline แปลงเป็นชนิดที่หน้านี้มี
+     (เส้น/วงกลม/ส่วนโค้ง/โพลีไลน์/ข้อความ) · เอนทิตี้ถูก "เพิ่ม" ต่อท้ายของเดิม ลงเลเยอร์ชื่อเดียวกับในไฟล์ (ไม่มี = สร้างใหม่ สีตามไฟล์)
+     โหลดไลบรารีไม่ได้ = บอกผู้ใช้ด้วยข้อความของตัวโหลดกลาง ไม่สลับไปตัวอ่านอื่นเงียบๆ */
+  var DXF_ERR = { damaged: 'importDxfError', empty: 'importDxfEmpty' };
+  function readDxfInWorker(buf) {
+    return new Promise(function (resolve, reject) {
+      var w;
+      function done(err, data) { try { w.terminate(); } catch (e) {} if (err) reject(err); else resolve(data); }
+      try { w = new Worker('cad-dxf-worker.js'); } catch (e) { reject(e); return; }
+      w.onmessage = function (e) {
+        var d = e.data || {};
+        if (d.ok) return done(null, d.data);
+        if (d.craft) return done(window.TanotCraft ? TanotCraft.fromMessage(d.craft) : new Error(d.craft.message || 'craft'));
+        var err = new Error('dxf:' + (d.dxf || 'other'));
+        err.dxf = d.dxf || 'other';
+        done(err);
+      };
+      w.onerror = function (e) { if (e && e.preventDefault) e.preventDefault(); done(new Error((e && e.message) || 'worker')); };
+      w.postMessage({ bytes: buf }, [buf]);
+    });
+  }
+  /* ชื่อเลเยอร์ในไฟล์ → id ในหน้า: "0" = เลเยอร์ 0 เดิม, ชื่อตรงกับเลเยอร์ที่มี = ใช้อันนั้น, ไม่มี = สร้างใหม่ */
+  function dxfLayerId(ly) {
+    if (ly.n === '0') return '0';
+    var ids = Object.keys(state.layers);
+    for (var i = 0; i < ids.length; i++) if (!state.layers[ids[i]].isFolder && state.layers[ids[i]].name === ly.n) return ids[i];
+    var id = String(state.layerSeq++);
+    while (state.layers[id]) id = String(state.layerSeq++);
+    state.layers[id] = { name: ly.n, color: ly.c || null, visible: true, locked: false, parentId: null };
+    state.layerOrder.push(id);
+    return id;
+  }
+  function dxfEntity(e, lid) {
+    var P = function (a) { return { x: a[0], y: a[1] }; };
+    if (e.t === 'line') return { type: 'line', layer: lid, p1: P(e.a), p2: P(e.b) };
+    if (e.t === 'circle') return { type: 'circle', layer: lid, center: P(e.c), radius: e.r };
+    if (e.t === 'arc') return { type: 'arc', layer: lid, center: P(e.c), radius: e.r, startAngle: e.a0, endAngle: e.a1 };
+    if (e.t === 'poly') return { type: 'polyline', layer: lid, points: e.p.map(P), closed: !!e.c };
+    if (e.t === 'text') return { type: 'text', layer: lid, p: P(e.p), text: e.s, height: e.h };
+    return null;
   }
   function importDXF(file) {
-    var reader = new FileReader();
-    reader.onload = function () {
-      var ents;
-      try { ents = parseDxf(String(reader.result)); } catch (err) { ents = null; }
-      if (ents === null) { alert(t('importDxfError')); return; }
+    var btn = $('importDxfBtn');
+    btn.disabled = true;
+    file.arrayBuffer().then(readDxfInWorker).then(function (data) {
+      var lids = (data.layers || []).map(dxfLayerId);
+      var ents = [];
+      (data.entities || []).forEach(function (e) {
+        var ent = dxfEntity(e, lids[e.l] || '0');
+        if (ent) { ent.id = genId(); ents.push(ent); }
+      });
       if (!ents.length) { alert(t('importDxfEmpty')); return; }
       pushHistory();
       state.entities = state.entities.concat(ents);
       state.selectedIds = ents.map(function (e) { return e.id; });
-      updateCountUI(); updateSelectionUI(); scheduleSave(); render();
-      alert(t('importDxfSuccess', { n: ents.length }));
-    };
-    reader.onerror = function () { alert(t('importDxfError')); };
-    reader.readAsText(file);
+      renderLayersPanel(); updateCountUI(); updateSelectionUI(); scheduleSave(); zoomFit();
+      var msg = t('importDxfSuccess', { n: ents.length });
+      var skipped = Object.keys(data.skipped || {});
+      if (skipped.length) msg += '\n' + t('importDxfSkipped', { types: skipped.map(function (k) { return k + ' ×' + data.skipped[k]; }).join(', ') });
+      if (data.truncated) msg += '\n' + t('importDxfTruncated', { n: ents.length });
+      alert(msg);
+    }).catch(function (err) {
+      if (err && err.craft && window.TanotCraft) {
+        TanotCraft.report(err, { stage: 'dxf' });
+        alert(TanotCraft.message(err));
+      } else alert(t(DXF_ERR[err && err.dxf] || 'importDxfError'));
+    }).finally(function () { btn.disabled = false; });
   }
   /* ══════════════════ จัดพิมพ์ตามมาตราส่วนจริง (Stage 5b): PDF เวกเตอร์ด้วย jsPDF (โหลดจาก CDN ใน cad.html
      เหมือนที่ word.html/excel.html ใช้อยู่แล้ว — เวอร์ชันเดียวกันเป๊ะ) เลือกกระดาษมาตรฐาน (A4/A3/A1) + แนว

@@ -1,0 +1,41 @@
+# อ่านไฟล์ DXF ในเบราว์เซอร์สำหรับปุ่ม "นำเข้า DXF" ของ cad.html (ห่อ CADCraft — https://github.com/storytold/cadcraft)
+# ใช้ crate io (อ่าน DXF ASCII/binary + code page) + doc (แบบ) + geom + render (เฉพาะเรขาคณิตของมิติ) + fonts (ล้างโค้ด MTEXT)
+# ไม่ใช้ UI/engine และไม่ใช้ CADCraft วาดตัวอักษร (cad.js วาดข้อความด้วยฟอนต์ของเว็บ) · DWG ไม่อยู่ใน wasm32 (crate dwg ตัดเอง)
+# build: ./build.sh → vendor/craft/cadcraft-<commit>/ (อย่าแก้ไฟล์ใน vendor เอง)
+[package]
+name = "cadcraft-dxf-wasm"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "cadcraft_dxf_wasm"
+crate-type = ["cdylib"]
+
+[dependencies]
+# ล็อก commit เดียวกันทุกตัว — เปลี่ยน rev = build ใหม่ (โฟลเดอร์ใหม่ใน vendor/craft) + อัปเดต manifest
+cadcraft-io = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+cadcraft-doc = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+cadcraft-geom = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+cadcraft-render = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+cadcraft-fonts = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+serde_json = "1"
+# ต้องตรงกับ wasm-bindgen-cli ที่ build.sh ใช้ (build.sh อ่านเลขจาก Cargo.lock)
+wasm-bindgen = "=0.2.129"
+
+# [patch.crates-io] ของ workspace CADCraft (krilla จาก craft-libs; hayro-* ไม่อยู่ในกราฟของ crate ที่ใช้) — patch ไม่ส่งต่อผ่าน git dependency
+# จึงต้องชี้ซ้ำที่นี่ ไปที่ commit เดียวกับที่ CADCraft ใช้
+[patch.crates-io]
+krilla = { version = "=0.8.2", git = "https://github.com/storytold/craft-libs", rev = "92d392cff132eaf53e13afff77f38b5c11b73aa0" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+# crate นี้ไม่อยู่ใน workspace ไหน
+[workspace]
