@@ -1,0 +1,30 @@
+# ตัวห่อ DeckCraft (storytold/deckcraft) สำหรับปุ่ม "นำเข้าไฟล์" ของ slides.html — อ่าน .pptx เป็นโครงเรื่อง
+# ใช้เฉพาะ deckcraft-pptx + deckcraft-model (ไม่เอา render/fonts/text — ไม่มีการวาดตัวอักษร)
+# build: ./build.sh → vendor/craft/deckcraft-<commit 7 ตัว>/ + vendor/craft/manifest.json
+[package]
+name = "deckcraft-pptx-wasm"
+version = "0.1.0"
+edition = "2024"
+publish = false
+license = "MIT OR Apache-2.0"
+
+[lib]
+name = "deckcraft_pptx_wasm"
+crate-type = ["cdylib"]
+
+[dependencies]
+deckcraft-pptx = { git = "https://github.com/storytold/deckcraft", rev = "9a95c3a63942377b1a4c8d79844a94a54ffac370" }
+deckcraft-model = { git = "https://github.com/storytold/deckcraft", rev = "9a95c3a63942377b1a4c8d79844a94a54ffac370" }
+serde_json = "1"
+# ต้องตรงกับ wasm-bindgen-cli ที่ build.sh ใช้ (build.sh อ่านเลขจาก Cargo.lock)
+wasm-bindgen = "=0.2.129"
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true
+debug = false
+
+[workspace]

@@ -111,6 +111,42 @@
           "brotli": 977590
         }
       }
+    },
+    "deckcraft": {
+      "name": "DeckCraft",
+      "dir": "vendor/craft/deckcraft-9a95c3a",
+      "source": "https://github.com/storytold/deckcraft",
+      "commit": "9a95c3a63942377b1a4c8d79844a94a54ffac370",
+      "license": "MIT OR Apache-2.0",
+      "licenseFile": "LICENSE-MIT",
+      "crates": [
+        "deckcraft-pptx",
+        "deckcraft-model"
+      ],
+      "wrapper": "tools/wasm/deckcraft-pptx",
+      "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+      "wasmBindgen": "wasm-bindgen 0.2.129",
+      "wasmOpt": "wasm-opt version 132 (version_132)",
+      "files": {
+        "LICENSE-MIT": {
+          "sha256": "90e96fef569474cd526350e716e4b05dd32f179ca96d39d61e6b928485e35406",
+          "bytes": 1101
+        },
+        "THIRD-PARTY.txt": {
+          "sha256": "694ab545c0f2fa76d58b4b9b24d3d04cc3fe1538166773dd0af6bd1f3aa7f59a",
+          "bytes": 53470
+        },
+        "deckcraft_pptx.js": {
+          "sha256": "902493cbb91f7aa4f06d0e716d657c4a601c4502dfb074b558a20727961847db",
+          "bytes": 7503,
+          "brotli": 1846
+        },
+        "deckcraft_pptx_bg.wasm": {
+          "sha256": "3a1a6dd6bc3ce07c5ec4ec6d3ab535b08a2027956c383a86fb4fcf2a7029aa6f",
+          "bytes": 685031,
+          "brotli": 258035
+        }
+      }
     }
   }
 }

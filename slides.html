@@ -20,6 +20,8 @@
 <script src="ai-client.js"></script>
 <script src="slides-calc.js" defer></script>
 <script src="file-reader.js" defer></script>
+<!-- นำเข้า .pptx: ข้อความ error/problem log ของไลบรารี wasm (ตัวอ่านเองอยู่ใน slides-pptx-worker.js) -->
+<script src="craft-loader.js"></script>
 <script src="slides.js" defer></script>
 <style>
 @page{size:13.333in 7.5in;margin:0}
@@ -129,7 +131,7 @@
     <div class="segmented" id="themeSeg" role="group" data-i18n-attr="aria-label:sl.themeLabel" aria-label="ธีมสไลด์"></div>
     <button class="btn sm" id="aiBtn" type="button" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="sl.aiDraft">ร่างด้วย AI</span></button>
     <button class="btn sm" id="importBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-paperclip"/></svg><span data-i18n="sl.import">นำเข้าไฟล์</span></button>
-    <input type="file" id="importFile" accept=".txt,.docx" hidden>
+    <input type="file" id="importFile" accept=".txt,.docx,.pptx,.ppsx,.potx" hidden>
     <span class="sl-spacer"></span>
     <button class="btn sm" id="presentBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-play"/></svg><span data-i18n="sl.present">นำเสนอ</span></button>
     <button class="btn sm primary" id="pptxBtn" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-download"/></svg><span>.pptx</span></button>

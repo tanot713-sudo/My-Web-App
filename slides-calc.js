@@ -355,6 +355,32 @@
     return out.join('\n').trim();
   }
 
+  /* ผลอ่าน .pptx (DeckCraft wasm ใน slides-pptx-worker.js: {slides:[{title, paras:[[ระดับ, ข้อความ, มีจุด 0|1]], tables:[[[เซลล์]]], notes:[], hidden}]})
+     → โครงเรื่อง: # หัวข้อ · - bullet (ระดับ ≥ 1 = ย่อหน้า 2 ช่องว่าง; p[2] === 0 = ย่อหน้าธรรมดาไม่มีจุด) · | ตาราง | (ตารางแรกของสไลด์) · > โน้ต · ข้ามสไลด์ซ่อน + เลขหน้า
+     ข้อความทุกช่องตัดช่องว่างซ้ำ/ขึ้นบรรทัดเป็นช่องว่างเดียว และ | ในเซลล์เป็น / (ไม่ให้แตกเซลล์) */
+  function pptxToOutline(data) {
+    var one = function (x) { return String(x == null ? '' : x).replace(/\s+/g, ' ').trim(); };
+    var out = [];
+    ((data && data.slides) || []).forEach(function (sl, idx) {
+      if (!sl || sl.hidden) return;
+      var title = one(sl.title);
+      out.push(title ? '# ' + title : '#');
+      (sl.paras || []).forEach(function (p) {
+        var t = one(p && p[1]);
+        if (!t || (p[2] === 0 && t === String(idx + 1))) return; // เลขหน้าที่เป็นกล่องข้อความธรรมดา (ไฟล์ที่หน้านี้ส่งออกเอง ฯลฯ)
+        if (p[2] === 0) out.push(t); // ย่อหน้าธรรมดา — shortcut: บรรทัดที่บังเอิญขึ้นต้นด้วย # > @ - | จะถูกอ่านเป็นคำสั่งของโครงเรื่อง (ผู้ใช้แก้ในช่องได้)
+        else out.push(((+p[0] || 0) >= 1 ? '  - ' : '- ') + t);
+      });
+      var tb = (sl.tables || [])[0];
+      if (tb && tb.length) tb.forEach(function (row) {
+        out.push('| ' + (row || []).map(function (c) { return one(c).replace(/\|/g, '/'); }).join(' | ') + ' |');
+      });
+      (sl.notes || []).forEach(function (n) { var t = one(n); if (t) out.push('> ' + t); });
+      out.push('');
+    });
+    return out.join('\n').trim();
+  }
+
   /* ══════════ ชุดสไลด์ (เรคคอร์ด) ══════════ */
   function cleanImages(raw) {
     var out = {};
@@ -422,7 +448,7 @@
     normHex: normHex, onColor: onColor, palette: palette,
     parseOutline: parseOutline, layoutOf: layoutOf, setDirective: setDirective,
     fitSize: fitSize, fitRect: fitRect, slideShapes: slideShapes, buildModel: buildModel,
-    aiMessages: aiMessages, cleanOutline: cleanOutline, textToOutline: textToOutline,
+    aiMessages: aiMessages, cleanOutline: cleanOutline, textToOutline: textToOutline, pptxToOutline: pptxToOutline,
     cleanDeck: cleanDeck, newDeck: newDeck, dupDeck: dupDeck, deckTitle: deckTitle, slideCount: slideCount, matches: matches,
     exclusiveIds: exclusiveIds
   };
