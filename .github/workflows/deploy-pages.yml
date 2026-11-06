@@ -113,6 +113,8 @@ jobs:
         run: npx playwright test compare.spec.js
       - name: craft (ไลบรารี wasm ตระกูล Craft — ตัวโหลดกลางตรวจ sha256 ตาม manifest, sha256 ไม่ตรง/404/เครือข่ายล้ม → error + ข้อความ th/en + problem log, bindgen ใน Worker, sw.js แคชแยกไม่ precache ไม่ถูกลบตอน bump CACHE + ลบรุ่นเก่า — wasm ตัวหลอกสร้างในเทสต์)
         run: npx playwright test craft.spec.js
+      - name: pdf-pages (แยกหน้า PDF ด้วย PdfCraft wasm ตัวจริง — 3 หน้า → 3 ไฟล์ตรงลำดับ/ขนาด/การหมุน + ไบต์เดิมเมื่อแยกซ้ำ, page tree ซ้อนชั้น, ไฟล์เสีย/ไม่มีหน้า = รหัส, ปุ่มใน extract-text ได้ zip + ไม่โหลด pdf-lib, wasm 404 = ข้อความ + problem log — PDF สร้างในเทสต์)
+        run: npx playwright test pdf-pages.spec.js
       - name: slides (slides-calc.js known-answer — parse โครงเรื่อง/เลือกแบบสไลด์, หน้าสร้างสไลด์ + AI ปลอมไม่เรียก /api/ocr, ส่งออก pptx แกะด้วย jszip, รูป R2 + ลบชุด DELETE, ซิงก์ 2 เครื่อง, ออฟไลน์)
         run: npx playwright test slides.spec.js
       - name: cooking-plan (cooking-plan-calc.js known-answer — รวมวัตถุดิบ/แปลงหน่วย/ปรับจำนวนที่, แผนสัปดาห์ → รายการซื้อของ, ติ๊ก 2 เครื่องพร้อมกันไม่หาย, ส่ง budget ไม่ซ้ำ, AI ปลอมแยกสูตรและไม่เรียก /api/ocr, XP ครั้งเดียวต่อมื้อ, คีย์เดิมของบทเรียนไม่ถูกแตะ)
