@@ -150,10 +150,10 @@
     },
     "pdfcraft-app": {
       "name": "PdfCraft",
-      "dir": "vendor/craft/pdfcraft-app-645016a",
+      "dir": "vendor/craft/pdfcraft-app-f42fda7",
       "source": "https://github.com/storytold/pdfcraft",
-      "commit": "645016addcfb9078c557f0189559ab47cdcee057",
-      "version": "0.9.0",
+      "commit": "f42fda734243b66f54db87923d7c981d5221419e",
+      "version": "0.18.1",
       "license": "MIT OR Apache-2.0",
       "licenseFile": "LICENSE-MIT",
       "app": "apps/pdfcraft-web",
@@ -166,6 +166,11 @@
         "commit": "b076417b5880bd4154bd22f00695b1d28c6bea83",
         "license": "OFL-1.1"
       },
+      "i18n": {
+        "source": "https://github.com/storytold/craft-i18n",
+        "commit": "575cfdef63227b14daf173b8cc87928bfdfa325e",
+        "license": "MIT OR Apache-2.0"
+      },
       "wrapper": "tools/wasm/pdfcraft-app",
       "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
       "wasmBindgen": "wasm-bindgen 0.2.129",
@@ -173,24 +178,29 @@
       "wasm": {
         "parts": [
           "pdfcraft_app_bg.1.wasm",
-          "pdfcraft_app_bg.2.wasm"
+          "pdfcraft_app_bg.2.wasm",
+          "pdfcraft_app_bg.3.wasm"
         ],
-        "sha256": "b32c0e1f65a9d74ca86197973b1895c3d1620d039a1c4b3686c6c2ac49c4e02e",
-        "bytes": 44912317,
-        "brotli": 12719402
+        "sha256": "38e3972444982f817bb655f8a377413fa98a0f7fda40bf4b629157344d8d583d",
+        "bytes": 62082326,
+        "brotli": 15740528
       },
       "files": {
         "ATTRIBUTION.md": {
-          "sha256": "a63e1627deda938b9c201dcce0e18cecaa2393d093abe755258e875931151aa8",
-          "bytes": 88183
+          "sha256": "df1a632163c3f0a0ff9c5fce7e19aa709080a2a9c964ed7794d01577431a017e",
+          "bytes": 86466
         },
         "LICENSE-MIT": {
           "sha256": "cd7032ea33b71427f188e34ffb4aee9d6868a57fd196037c5c8b2be03a2a0352",
           "bytes": 1100
         },
+        "LICENSE-MIT-craft-i18n.txt": {
+          "sha256": "55c6959261d5cc6c6234c7e636383c2d1ea65b21abcddc181fad1c8a2d2bea5b",
+          "bytes": 1102
+        },
         "NOTICE.txt": {
-          "sha256": "496946cff190a3fec32fe0241ea60d40539c73a9da1865073eb0c73ee822c8d5",
-          "bytes": 4184
+          "sha256": "9f854f730719af962cd840529324d089e05e68a30bd245c50e33f96e009b4314",
+          "bytes": 5651
         },
         "OFL-biz-ud-pgothic.txt": {
           "sha256": "e753d7155d53c747d037a445e584c8ecfca6dd79846db610417e282a736b28bc",
@@ -209,23 +219,28 @@
           "bytes": 4380
         },
         "THIRD-PARTY.txt": {
-          "sha256": "8b6085bb1d60785e3b03a4ca1176c0d9bb5533818f3321c1d90f7fabd5e80376",
-          "bytes": 631349
+          "sha256": "bf1a6672bf97cc464eb1e03991a33a7f8517ca1bd3d54cee82e682b3baac7bce",
+          "bytes": 749728
         },
         "pdfcraft_app.js": {
-          "sha256": "03d6e4a5a160b809cab3154d1de488ff57377e7b6b8492bda71f772bbf205db0",
-          "bytes": 168396,
-          "brotli": 20504
+          "sha256": "d0f8e97ac359fb6635274149e32657cc1475fa24bdaa0478f0b5974c17c1b252",
+          "bytes": 178531,
+          "brotli": 21451
         },
         "pdfcraft_app_bg.1.wasm": {
-          "sha256": "cb44a641152c66c564e5cd5ea487fa26134ebcc26dcf7f1f60c0bb78ed88a43c",
-          "bytes": 22456159,
-          "brotli": 5036981
+          "sha256": "32d44ccee613e7e6319c0cff5a3685d5fd30852977c2fa913b5e195783b2878b",
+          "bytes": 20694109,
+          "brotli": 4559097
         },
         "pdfcraft_app_bg.2.wasm": {
-          "sha256": "4af3d29694d33ee1cd1efef786017196e76bf6e35bd7d1e8ca047524499a239f",
-          "bytes": 22456158,
-          "brotli": 7724246
+          "sha256": "802d6921134429ed59851df81974322f1a1b8a819e2f497c427959df15dc8525",
+          "bytes": 20694109,
+          "brotli": 6107637
+        },
+        "pdfcraft_app_bg.3.wasm": {
+          "sha256": "226dae6c2517abf1158d7b8f29c298f4a243609d5b8d024e2c52bcc51a046081",
+          "bytes": 20694108,
+          "brotli": 5227429
         }
       }
     }

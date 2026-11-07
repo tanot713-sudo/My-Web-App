@@ -67,6 +67,8 @@ trap 'rm -rf "$tmp"' EXIT
 # --target web = ES module (หน้า import แบบ module); ชื่อไฟล์คงที่ — รุ่นอยู่ในชื่อโฟลเดอร์แทน hash ของ trunk
 wasm-bindgen --target web --no-typescript --out-dir "$tmp" --out-name pdfcraft_app \
   "$CARGO_TARGET_DIR/wasm32-unknown-unknown/release/pdfcraft-web.wasm"
+# glue ต้องเป็นไฟล์เดียว (craft-frame.js import จาก Blob URL) — รวม snippets/*.js ของ eframe เข้าไป
+node "$here/inline-snippets.mjs" "$tmp" pdfcraft_app.js
 
 opt="${WASM_OPT:-$(command -v wasm-opt || true)}"
 optver=""
