@@ -18,6 +18,17 @@
     } catch (e) {}
     HTMLElement.prototype.focus.call(this, opts);
   };
+  // eframe ยัง focus ช่องรับข้อความที่ซ่อนอยู่ (ไม่ใช่ canvas) ได้ด้วย → ถ้า focus เข้า iframe ขณะลิ้นชักเมนู/แผงตั้งค่าเปิด
+  // (ฉากหลังบังแอปอยู่ ผู้ใช้คลิกเข้ามาไม่ได้ = ถูกดึงมา) คืน focus ให้หน้าแม่
+  window.addEventListener('focus', function () {
+    try {
+      var o = parentWin.document.querySelector('.ome-drawer.open, .ome-settings-panel.open');
+      if (!o) return;
+      var t = o.querySelector('a[href], button, [tabindex]:not([tabindex="-1"])') || parentWin.document.body;
+      parentWin.focus();
+      t.focus({ preventScroll: true });
+    } catch (e) {}
+  }, true);
   var booted = false;
   function fail() { parentWin.postMessage({ type: 'craft:boot-failed' }, location.origin); }
   window.addEventListener('message', function (ev) {
