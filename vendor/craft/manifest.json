@@ -157,6 +157,10 @@
       "license": "MIT OR Apache-2.0",
       "licenseFile": "LICENSE-MIT",
       "app": "apps/pdfcraft-web",
+      "patches": [
+        "0001-remove-artcraft-marks.patch"
+      ],
+      "buildLabel": "tanot",
       "fonts": {
         "source": "https://github.com/storytold/craft-fonts",
         "commit": "b076417b5880bd4154bd22f00695b1d28c6bea83",
@@ -171,9 +175,9 @@
           "pdfcraft_app_bg.1.wasm",
           "pdfcraft_app_bg.2.wasm"
         ],
-        "sha256": "ae4393c95e73c5bfe72823fd3c10d8069e181b275023596758eea8e2485f9dbb",
-        "bytes": 44929344,
-        "brotli": 12722473
+        "sha256": "b32c0e1f65a9d74ca86197973b1895c3d1620d039a1c4b3686c6c2ac49c4e02e",
+        "bytes": 44912317,
+        "brotli": 12719402
       },
       "files": {
         "ATTRIBUTION.md": {
@@ -209,19 +213,19 @@
           "bytes": 631349
         },
         "pdfcraft_app.js": {
-          "sha256": "8f4fe23bf56a1e76442587f8efc00c3190cc1cd9619eeaa5e2979afd7e6ec6ae",
+          "sha256": "03d6e4a5a160b809cab3154d1de488ff57377e7b6b8492bda71f772bbf205db0",
           "bytes": 168396,
-          "brotli": 20501
+          "brotli": 20504
         },
         "pdfcraft_app_bg.1.wasm": {
-          "sha256": "4a319b0ff76ad28cb318724ead0b4876cded65fb3b8986b9fefabc6987cf1415",
-          "bytes": 22464672,
-          "brotli": 5040944
+          "sha256": "cb44a641152c66c564e5cd5ea487fa26134ebcc26dcf7f1f60c0bb78ed88a43c",
+          "bytes": 22456159,
+          "brotli": 5036981
         },
         "pdfcraft_app_bg.2.wasm": {
-          "sha256": "4c49f91bfb35869e555cd5642fc1b15d17f7dfe8d06d0dfa2e797993677db383",
-          "bytes": 22464672,
-          "brotli": 7730349
+          "sha256": "4af3d29694d33ee1cd1efef786017196e76bf6e35bd7d1e8ca047524499a239f",
+          "bytes": 22456158,
+          "brotli": 7724246
         }
       }
     }
