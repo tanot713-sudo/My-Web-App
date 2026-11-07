@@ -35,6 +35,8 @@ man.libs['pdfcraft-app'] = {
   license: 'MIT OR Apache-2.0',
   licenseFile: 'LICENSE-MIT',
   app: 'apps/pdfcraft-web',
+  patches: fs.readdirSync(path.join(root, 'tools/wasm/pdfcraft-app/patches')).filter((f) => f.endsWith('.patch')).sort(),
+  buildLabel: 'tanot',
   fonts: { source: 'https://github.com/storytold/craft-fonts', commit: fontsRev, license: 'OFL-1.1' },
   wrapper: 'tools/wasm/pdfcraft-app',
   rustc,

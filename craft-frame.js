@@ -14,6 +14,16 @@
     var d = ev.data || {};
     if (d.type !== 'craft:boot' || booted || !(d.glue instanceof ArrayBuffer) || !(d.wasm instanceof ArrayBuffer)) return;
     booted = true;
+    // โหมดสว่าง/มืดตามเว็บ: แก้ค่า "theme" ในค่าที่แอปบันทึกเอง (localStorage[id] — eframe storage) ก่อนแอปเริ่ม
+    if (d.theme === 'Light' || d.theme === 'Dark') {
+      try {
+        var saved = {};
+        try { saved = JSON.parse(localStorage.getItem(id) || '{}') || {}; } catch (e) {}
+        if (typeof saved !== 'object' || Array.isArray(saved)) saved = {};
+        saved.theme = d.theme;
+        localStorage.setItem(id, JSON.stringify(saved));
+      } catch (e) {}
+    }
     var u = URL.createObjectURL(new Blob([d.glue], { type: 'text/javascript' }));
     new Function('u', 'return import(u)')(u).then(function (mod) {
       URL.revokeObjectURL(u);

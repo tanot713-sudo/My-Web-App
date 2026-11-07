@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # build PdfCraft แบบโปรแกรมเต็ม (apps/pdfcraft-web, egui/eframe → wasm) → vendor/craft/pdfcraft-app-<commit 7 ตัว><CRAFT_SUFFIX>/
 # + ลงทะเบียนใน vendor/craft/manifest.json (libs["pdfcraft-app"]) — หน้า pdf-pro.html โหลดผ่าน craft-loader.js
-# build จากซอร์สต้นฉบับที่ล็อก commit โดยไม่แก้โค้ด (โลโก้ในแอปเป็นของต้นฉบับ — docs/brand/LICENSE-brand.txt)
+# build จากซอร์สต้นฉบับที่ล็อก commit + patches/*.patch (เจ้าของสั่ง 2026-11: เอาการ์ด/ปุ่มชุมชน ArtCraft ออก) — รุ่นที่แก้ไขแล้ว
+# จึงต้องไม่มีเครื่องหมาย ArtCraft เลย (docs/brand/LICENSE-brand.txt "Forks and modified versions"): patch ลบโลโก้/ชื่อออกทุกจุดใน UI
+# + PDFCRAFT_BUILD_LABEL=tanot ให้หน้า About บอกว่าไม่ใช่รุ่นทางการ
 # ต้องมี: rustup (ติดตั้ง rust ตาม RUST ด้านล่าง + wasm32 ให้เอง), git, node,
 #         wasm-bindgen-cli เวอร์ชันเดียวกับ Cargo.lock ของ PdfCraft (cargo install wasm-bindgen-cli --version <เลข> --locked)
 # ไม่บังคับ: wasm-opt (binaryen 132) — WASM_OPT=<path>; ไม่มี = ข้าม -Oz (ไฟล์ใหญ่ขึ้น)
@@ -32,6 +34,9 @@ fetch() { # <url> <dir> <rev>
 }
 fetch https://github.com/storytold/pdfcraft "$src" "$REV"
 fetch https://github.com/storytold/craft-fonts "$fonts" "$FONTS_REV"
+for p in "$here"/patches/*.patch; do git -C "$src" apply --whitespace=nowarn "$p"; done
+# ห้ามเหลือไฟล์ของ docs/brand/ ที่ฝังเข้า wasm
+! grep -rn 'docs/brand/' "$src/crates" "$src/apps" --include=*.rs | grep -v '/tests/' || { echo "ยังมีการฝังไฟล์ docs/brand/" >&2; exit 1; }
 [ -f "$fonts/fonts/noto-sans-thai/NotoSansThai.ttf" ] || { echo "craft-fonts ไม่มี Noto Sans Thai" >&2; exit 1; }
 
 rustup toolchain install "$RUST" --profile minimal --target wasm32-unknown-unknown >/dev/null
@@ -45,6 +50,7 @@ export CARGO_TARGET_DIR="$work/cargo"
 export CRAFT_FONTS_DIR="$fonts"
 export SOURCE_DATE_EPOCH="$(git -C "$src" log -1 --format=%ct)"
 export PDFCRAFT_BUILD_SHA="$REV"
+export PDFCRAFT_BUILD_LABEL=tanot
 export PDFCRAFT_BUILD_DATE="$(date -u -d "@$SOURCE_DATE_EPOCH" +%Y-%m-%d)"
 export RUSTFLAGS="--remap-path-prefix=$src=/pdfcraft --remap-path-prefix=$fonts=/craft-fonts --remap-path-prefix=$cargo_home=/cargo --remap-path-prefix=$HOME/.rustup=/rustup"
 (cd "$src" && cargo "+$RUST" build --release --locked --target wasm32-unknown-unknown -p pdfcraft-web)
