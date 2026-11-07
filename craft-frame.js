@@ -6,7 +6,18 @@
   var id = new URLSearchParams(location.search).get('id') || '';
   var parentWin = window.parent;
   if (!/^[a-z][a-z0-9-]{0,40}$/.test(id) || parentWin === window) return;
-  document.querySelector('canvas').id = id; // แอปหา canvas ด้วย id นี้
+  var canvas = document.querySelector('canvas');
+  canvas.id = id; // แอปหา canvas ด้วย id นี้
+  // แอป (eframe) focus canvas เองตอนเริ่ม/ระหว่างทำงาน — ถ้าผู้ใช้กำลังใช้ส่วนอื่นของหน้าแม่ (ลิ้นชักเมนู, แผงตั้งค่า, ปุ่ม)
+  // อย่าดึง focus เข้า iframe ไม่งั้นแป้น Escape ฯลฯ ไปไม่ถึงหน้าแม่ · คลิกใน canvas ยังได้ focus ตามปกติ
+  canvas.focus = function (opts) {
+    try {
+      var pd = parentWin.document, ae = pd.activeElement;
+      if (ae && ae !== pd.body && ae !== window.frameElement) return;
+      if (pd.querySelector('.ome-drawer.open, .ome-settings-panel.open')) return;
+    } catch (e) {}
+    HTMLElement.prototype.focus.call(this, opts);
+  };
   var booted = false;
   function fail() { parentWin.postMessage({ type: 'craft:boot-failed' }, location.origin); }
   window.addEventListener('message', function (ev) {
