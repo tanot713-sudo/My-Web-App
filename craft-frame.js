@@ -14,13 +14,17 @@
     var d = ev.data || {};
     if (d.type !== 'craft:boot' || booted || !(d.glue instanceof ArrayBuffer) || !(d.wasm instanceof ArrayBuffer)) return;
     booted = true;
-    // โหมดสว่าง/มืดตามเว็บ: แก้ค่า "theme" ในค่าที่แอปบันทึกเอง (localStorage[id] — eframe storage) ก่อนแอปเริ่ม
-    if (d.theme === 'Light' || d.theme === 'Dark') {
+    // ธีม (สว่าง/มืด) และภาษาเมนู (ไทย/อังกฤษ) ตามเว็บ: แก้ค่า "theme"/"language" ในค่าที่แอปบันทึกเอง
+    // (localStorage[id] — eframe storage) ก่อนแอปเริ่ม · ค่าอื่นที่ผู้ใช้ตั้งในแอปคงเดิม
+    var theme = d.theme === 'Light' || d.theme === 'Dark' ? d.theme : null;
+    var lang = d.lang === 'th' || d.lang === 'en' ? d.lang : null;
+    if (theme || lang) {
       try {
         var saved = {};
         try { saved = JSON.parse(localStorage.getItem(id) || '{}') || {}; } catch (e) {}
         if (typeof saved !== 'object' || Array.isArray(saved)) saved = {};
-        saved.theme = d.theme;
+        if (theme) saved.theme = theme;
+        if (lang) saved.language = lang;
         localStorage.setItem(id, JSON.stringify(saved));
       } catch (e) {}
     }

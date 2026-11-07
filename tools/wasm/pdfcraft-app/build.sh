@@ -8,13 +8,15 @@
 #         wasm-bindgen-cli เวอร์ชันเดียวกับ Cargo.lock ของ PdfCraft (cargo install wasm-bindgen-cli --version <เลข> --locked)
 # ไม่บังคับ: wasm-opt (binaryen 132) — WASM_OPT=<path>; ไม่มี = ข้าม -Oz (ไฟล์ใหญ่ขึ้น)
 # ฟอนต์: craft-fonts ที่ commit เดียวกับรุ่นทางการของ PdfCraft (มี Noto Sans Thai, OFL) → CRAFT_FONTS_DIR
+# คำแปลเมนู: craft-i18n ที่ commit ใน craft-i18n.rev ของ PdfCraft (MIT OR Apache-2.0) → CRAFT_I18N_DIR
 # build ซ้ำได้ไบต์เดิม: ซอร์สอยู่ใต้ target/src และ path ถูก remap เป็น /pdfcraft, /cargo (ไม่ขึ้นกับเครื่อง)
 # path ที่ deploy แล้วห้ามเปลี่ยนเนื้อไฟล์ — build ใหม่จาก commit เดิมให้ตั้ง CRAFT_SUFFIX=-2 แล้วลบโฟลเดอร์เก่า
 # หลัง build: bump CACHE ใน sw.js + tests/repo-guards.mjs + tests/pdf-pro.spec.js
 set -euo pipefail
 
-REV=645016addcfb9078c557f0189559ab47cdcee057        # PdfCraft v0.9.0
-FONTS_REV=b076417b5880bd4154bd22f00695b1d28c6bea83  # storytold/craft-fonts (ตาม .github/workflows/release.yml ของ v0.9.0)
+REV=f42fda734243b66f54db87923d7c981d5221419e        # PdfCraft main (0.18.1) — เจ้าของเลือก 2026-11: ต้องการเมนูไทยจาก craft-i18n
+FONTS_REV=b076417b5880bd4154bd22f00695b1d28c6bea83  # storytold/craft-fonts (ตาม .github/workflows/release.yml ของ REV)
+I18N_REV=575cfdef63227b14daf173b8cc87928bfdfa325e   # storytold/craft-i18n (= craft-i18n.rev ของ REV) — คำแปลไทยของเมนู
 RUST=1.97.0
 
 here="$(cd "$(dirname "$0")" && pwd)"
@@ -22,6 +24,7 @@ root="$(cd "$here/../../.." && pwd)"
 work="$here/target"
 src="$work/src/pdfcraft"
 fonts="$work/src/craft-fonts"
+i18n="$work/src/craft-i18n"
 out="$root/vendor/craft/pdfcraft-app-${REV:0:7}${CRAFT_SUFFIX:-}"
 mkdir -p "$work/src"
 
@@ -34,6 +37,9 @@ fetch() { # <url> <dir> <rev>
 }
 fetch https://github.com/storytold/pdfcraft "$src" "$REV"
 fetch https://github.com/storytold/craft-fonts "$fonts" "$FONTS_REV"
+fetch https://github.com/storytold/craft-i18n "$i18n" "$I18N_REV"
+[ "$(cat "$src/craft-i18n.rev")" = "$I18N_REV" ] || { echo "I18N_REV ไม่ตรงกับ craft-i18n.rev ของ PdfCraft" >&2; exit 1; }
+[ -f "$i18n/locales/th/pdfcraft.tsv" ] || { echo "craft-i18n ไม่มีคำแปลไทยของ PdfCraft" >&2; exit 1; }
 for p in "$here"/patches/*.patch; do git -C "$src" apply --whitespace=nowarn "$p"; done
 # ห้ามเหลือไฟล์ของ docs/brand/ ที่ฝังเข้า wasm
 ! grep -rn 'docs/brand/' "$src/crates" "$src/apps" --include=*.rs | grep -v '/tests/' || { echo "ยังมีการฝังไฟล์ docs/brand/" >&2; exit 1; }
@@ -48,11 +54,12 @@ have="$(wasm-bindgen --version | awk '{ print $2 }')"
 cargo_home="${CARGO_HOME:-$HOME/.cargo}"
 export CARGO_TARGET_DIR="$work/cargo"
 export CRAFT_FONTS_DIR="$fonts"
+export CRAFT_I18N_DIR="$i18n" CRAFT_I18N_REQUIRED=1
 export SOURCE_DATE_EPOCH="$(git -C "$src" log -1 --format=%ct)"
 export PDFCRAFT_BUILD_SHA="$REV"
 export PDFCRAFT_BUILD_LABEL=tanot
 export PDFCRAFT_BUILD_DATE="$(date -u -d "@$SOURCE_DATE_EPOCH" +%Y-%m-%d)"
-export RUSTFLAGS="--remap-path-prefix=$src=/pdfcraft --remap-path-prefix=$fonts=/craft-fonts --remap-path-prefix=$cargo_home=/cargo --remap-path-prefix=$HOME/.rustup=/rustup"
+export RUSTFLAGS="--remap-path-prefix=$src=/pdfcraft --remap-path-prefix=$fonts=/craft-fonts --remap-path-prefix=$i18n=/craft-i18n --remap-path-prefix=$cargo_home=/cargo --remap-path-prefix=$HOME/.rustup=/rustup"
 (cd "$src" && cargo "+$RUST" build --release --locked --target wasm32-unknown-unknown -p pdfcraft-web)
 
 tmp="$(mktemp -d)"
@@ -92,11 +99,12 @@ done
 cp "$src/LICENSE-MIT" "$out/LICENSE-MIT"
 cp "$src/NOTICE" "$out/NOTICE.txt"
 cp "$src/ATTRIBUTION.md" "$out/ATTRIBUTION.md"
+cp "$i18n/LICENSE-MIT" "$out/LICENSE-MIT-craft-i18n.txt"
 # เฉพาะฟอนต์ที่ build.rs ของ crates/fonts ฝังใน wasm32 (BIZ UDPGothic Regular + หน้าฟอนต์ที่มีสคริปต์ Arab/Telu/Hebr/Thai)
 awk -F' [|] ' '!/^#/ && NF >= 4 && (($1 == "BIZ UDPGothic" && $2 == "Regular") || $4 ~ /(^|,) *(Arab|Telu|Hebr|Thai) *(,|$)/) { print $3 }' \
   "$fonts/fonts/manifest.txt" | while read -r f; do d="$(basename "$(dirname "$f")")"; cp "$fonts/fonts/$d/OFL.txt" "$out/OFL-$d.txt"; done
 [ -f "$out/OFL-noto-sans-thai.txt" ] || { echo "ไม่มี OFL ของ Noto Sans Thai" >&2; exit 1; }
 node "$here/third-party.mjs" "$src" > "$out/THIRD-PARTY.txt"
-node "$here/manifest.mjs" "$root" "$out" "$whole" "$REV" "$FONTS_REV" "$(rustc "+$RUST" --version)" "wasm-bindgen $have" "$optver"
+node "$here/manifest.mjs" "$root" "$out" "$whole" "$REV" "$FONTS_REV" "$I18N_REV" "$(awk '/^\[/ { p = ($0 == "[workspace.package]"); next } p && $1 == "version" { gsub(/[" ]/, "", $3); print $3; exit }' "$src/Cargo.toml")" "$(rustc "+$RUST" --version)" "wasm-bindgen $have" "$optver"
 ls -l "$out"
 echo "→ $out"

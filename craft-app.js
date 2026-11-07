@@ -160,7 +160,9 @@
         started = true;
         set('starting');
         var dark = G.OmeTheme && typeof G.OmeTheme.get === 'function' ? G.OmeTheme.get('theme') === 'dark' : document.documentElement.getAttribute('data-theme') === 'dark';
-        post({ type: 'craft:boot', glue: r[0], wasm: r[1], theme: dark ? 'Dark' : 'Light' }, [r[0], r[1]]);
+        var lang = 'th';
+        try { lang = G.OME_LANG && G.OME_LANG.get() === 'en' ? 'en' : 'th'; } catch (e) {}
+        post({ type: 'craft:boot', glue: r[0], wasm: r[1], theme: dark ? 'Dark' : 'Light', lang: lang }, [r[0], r[1]]);
       }).catch(function (err) { fail(err, 'load'); });
     }
 

@@ -82,6 +82,10 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
     // เปิดไฟล์ = ส่ง pdfcraft:open ให้แอป (ดักที่ canvas) แล้วแอปยังทำงานอยู่
     const app = page.frame({ url: /craft-frame\.html\?id=pdfcraft&host=parent$/ });
     expect(app).toBeTruthy();
+    // ภาษาเมนู/ธีมของแอปตามเว็บ (ome:lang ค่าเริ่มต้น th, ธีมสว่าง) — ใส่ในค่าที่แอปบันทึกเองก่อนเริ่ม
+    const prefs = await app.evaluate(() => JSON.parse(localStorage.getItem('pdfcraft') || '{}'));
+    expect(prefs.language).toBe('th');
+    expect(prefs.theme).toBe('Light');
     await app.evaluate(() => {
       window.__opened = [];
       window.addEventListener('message', (e) => { if (e.data && e.data.type === 'pdfcraft:open') window.__opened.push(e.data.name + ':' + e.data.bytes.byteLength); });
