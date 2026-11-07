@@ -68,7 +68,7 @@
     var L = own.call(m.libs, lib) ? m.libs[lib] : null;
     var f = L && L.files && own.call(L.files, file) ? L.files[file] : null;
     if (!f || typeof L.dir !== 'string' || !/^[0-9a-f]{64}$/.test(f.sha256 || '')) throw CraftError('missing', lib, file);
-    return { url: abs(L.dir + '/' + file), sha256: f.sha256 };
+    return { url: abs(L.dir + '/' + file), sha256: f.sha256, bytes: f.bytes || 0 };
   }
   /* URL เต็มของไฟล์ (ไม่โหลด) — สำหรับไลบรารีที่ต้องการ path เอง */
   function url(lib, file) { return manifest().then(function (m) { return entry(m, lib, file).url; }); }
@@ -84,20 +84,37 @@
     return sub.digest('SHA-256', buf).then(hex);
   }
 
-  function get(u, lib, file, reload) {
+  /* onProgress(ได้แล้ว, ทั้งหมด) — ทั้งหมด = ขนาดใน manifest (Content-Length อาจเป็นขนาดที่บีบอัด) */
+  function get(u, lib, file, reload, total, onProgress) {
     return fetch(u, reload ? { cache: 'reload' } : undefined).then(function (res) {
       if (res.status === 404 || res.status === 410) throw CraftError('missing', lib, file, 'HTTP ' + res.status);
       if (!res.ok) throw CraftError('network', lib, file, 'HTTP ' + res.status);
-      return res.arrayBuffer();
-    }, function (err) { throw CraftError('network', lib, file, err); });
+      if (!onProgress || !res.body || typeof res.body.getReader !== 'function') return res.arrayBuffer();
+      var reader = res.body.getReader(), parts = [], got = 0;
+      onProgress(0, total);
+      return (function pump() {
+        return reader.read().then(function (r) {
+          if (r.done) {
+            var out = new Uint8Array(got), at = 0;
+            for (var i = 0; i < parts.length; i++) { out.set(parts[i], at); at += parts[i].length; }
+            return out.buffer;
+          }
+          parts.push(r.value);
+          got += r.value.length;
+          onProgress(got, Math.max(total || 0, got));
+          return pump();
+        });
+      })();
+    }).catch(function (err) { throw err && err.craft ? err : CraftError('network', lib, file, err); });
   }
 
-  /* ไฟล์ที่ตรวจ sha256 แล้ว → Promise<ArrayBuffer> */
-  function fetchFile(lib, file) {
+  /* ไฟล์ที่ตรวจ sha256 แล้ว → Promise<ArrayBuffer> · opts.onProgress(ได้แล้ว, ทั้งหมด) ไม่บังคับ */
+  function fetchFile(lib, file, opts) {
+    var onProgress = opts && typeof opts.onProgress === 'function' ? opts.onProgress : null;
     return manifest().then(function (m) {
       var e = entry(m, lib, file);
       function attempt(reload) {
-        return get(e.url, lib, file, reload).then(function (buf) {
+        return get(e.url, lib, file, reload, e.bytes, onProgress).then(function (buf) {
           return sha256(buf).then(function (h) {
             if (h === e.sha256) return buf;
             if (!reload) return attempt(true);
@@ -137,6 +154,18 @@
     });
   }
 
+  /* wasm-bindgen --target web (ES module) บนหน้า: glue ที่ตรวจ sha256 แล้ว → Promise<module namespace>
+     import จาก Blob URL (glue ต้องไม่มี import ภายนอก — build ไม่มี snippets) · ผู้เรียกส่ง wasm ที่ fetchFile แล้วให้ init เอง */
+  function esm(lib, glue) {
+    return fetchFile(lib, glue).then(function (buf) {
+      var u = URL.createObjectURL(new Blob([buf], { type: 'text/javascript' }));
+      // new Function: ให้ไฟล์ UMD นี้ยังพาร์สได้ในเบราว์เซอร์เก่า/Worker แบบ classic ที่ไม่รู้จัก import()
+      return Promise.resolve().then(function () { return new Function('u', 'return import(u)')(u); })
+        .then(function (mod) { URL.revokeObjectURL(u); return mod; },
+          function (err) { URL.revokeObjectURL(u); throw CraftError('init', lib, glue, err); });
+    });
+  }
+
   var TEXT = {
     th: {
       missing: 'ไม่พบไฟล์ของเครื่องมือนี้บนเซิร์ฟเวอร์ — โหลดหน้าใหม่แล้วลองอีกครั้ง',
@@ -171,7 +200,7 @@
   }
 
   return {
-    MANIFEST: MANIFEST, manifest: manifest, url: url, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen,
+    MANIFEST: MANIFEST, manifest: manifest, url: url, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen, esm: esm,
     CraftError: CraftError, toMessage: toMessage, fromMessage: fromMessage, message: message, report: report, sha256: sha256
   };
 });

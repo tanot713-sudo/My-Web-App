@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title data-i18n="pp.title">โปรแกรมแก้ไข PDF | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<style>
+/* หน้าแม่แบบของโปรแกรมเต็มตระกูล *Craft (craft-app.js) — แอปวาดเองบน canvas เต็มพื้นที่ใต้แถบหัว */
+.cra-bar{display:flex;align-items:center;flex-wrap:wrap;gap:var(--ome-sp-2) var(--ome-sp-3);padding:var(--ome-sp-2) var(--ome-sp-4)}
+.cra-bar .crumb{margin:0}
+.cra-bar h1{margin:0;font-size:var(--ome-fs-lg);line-height:1.3}
+.cra-bar .status{margin:0 0 0 auto;min-width:0}
+.cra-stage{position:relative;flex:1;min-height:0;border-top:1px solid var(--ome-border);background:var(--ome-surface-1)}
+.cra-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
+.cra-stage canvas:focus-visible{outline:2px solid var(--ome-accent);outline-offset:-2px}
+.cra-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--ome-sp-4);background:var(--ome-surface-0)}
+.cra-over[hidden]{display:none}
+.cra-card{width:min(420px,100%)}
+.cra-card > * + *{margin-top:var(--ome-sp-3)}
+.cra-card .row{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap}
+@media (max-width:700px){
+  .cra-bar{padding:var(--ome-sp-2) var(--ome-sp-3)}
+  .cra-bar .status{flex-basis:100%;margin-left:0}
+}
+</style>
+</head>
+<body data-layout="app">
+
+<main class="page">
+<div class="cra-bar">
+  <nav class="crumb"><a href="area.html?a=work" data-i18n="pp.crumb">งาน</a></nav>
+  <h1 data-i18n="pp.h1">โปรแกรมแก้ไข PDF</h1>
+  <button class="btn" id="craOpen" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span data-i18n="pp.open">เปิดไฟล์</span></button>
+  <input type="file" id="craFile" accept=".pdf,application/pdf" hidden>
+  <span class="status" id="craStatus" aria-live="polite"></span>
+</div>
+<div class="cra-stage">
+  <canvas id="pdfcraft" data-host="page" tabindex="0" data-i18n-attr="aria-label:pp.h1" aria-label="โปรแกรมแก้ไข PDF"></canvas>
+  <div class="cra-over" id="craOver">
+    <div class="card cra-card">
+      <div class="meter-row" id="craLoad" hidden>
+        <span class="name" data-ome-t="craftapp.loading">กำลังโหลดโปรแกรม</span>
+        <span class="val" id="craLoadVal"></span>
+        <div class="meter" id="craLoadMeter" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" data-i18n-attr="aria-label:craftapp.loading" aria-label="กำลังโหลดโปรแกรม"><i style="width:0"></i></div>
+      </div>
+      <div id="craGate" hidden>
+        <p class="status" id="craGateText"></p>
+        <div class="row"><button class="btn primary" id="craGo" type="button" data-ome-t="craftapp.go">เปิดต่อ</button></div>
+      </div>
+      <div id="craErr" hidden>
+        <div class="callout err" id="craErrText" role="alert"></div>
+        <div class="row"><button class="btn" id="craRetry" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-rotate-ccw"/></svg><span data-ome-t="craftapp.retry">ลองใหม่</span></button></div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<script src="craft-loader.js"></script>
+<script src="craft-app.js"></script>
+<script src="pdf-pro.js" defer></script>
+</body>
+</html>

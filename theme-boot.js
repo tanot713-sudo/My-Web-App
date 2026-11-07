@@ -29,7 +29,7 @@
      หน้าที่ไม่อยู่ในแผนที่ = ไม่มีภาพ · invest*.html ทุกหน้าใช้กลุ่ม invest (ดู bgGroup) */
   var BG_GROUPS = {
     today: ['index'],
-    documents: ['word', 'excel', 'slides', 'extract-text', 'doc-check', 'doc-check-file', 'compare'],
+    documents: ['word', 'excel', 'slides', 'extract-text', 'doc-check', 'doc-check-file', 'compare', 'pdf-pro'],
     engineering: ['cad', 'electrical', 'maintenance', 'run'],
     report: ['report-dashboard'],
     law: ['legal', 'classroom-law'],
