@@ -154,18 +154,6 @@
     });
   }
 
-  /* wasm-bindgen --target web (ES module) บนหน้า: glue ที่ตรวจ sha256 แล้ว → Promise<module namespace>
-     import จาก Blob URL (glue ต้องไม่มี import ภายนอก — build ไม่มี snippets) · ผู้เรียกส่ง wasm ที่ fetchFile แล้วให้ init เอง */
-  function esm(lib, glue) {
-    return fetchFile(lib, glue).then(function (buf) {
-      var u = URL.createObjectURL(new Blob([buf], { type: 'text/javascript' }));
-      // new Function: ให้ไฟล์ UMD นี้ยังพาร์สได้ในเบราว์เซอร์เก่า/Worker แบบ classic ที่ไม่รู้จัก import()
-      return Promise.resolve().then(function () { return new Function('u', 'return import(u)')(u); })
-        .then(function (mod) { URL.revokeObjectURL(u); return mod; },
-          function (err) { URL.revokeObjectURL(u); throw CraftError('init', lib, glue, err); });
-    });
-  }
-
   var TEXT = {
     th: {
       missing: 'ไม่พบไฟล์ของเครื่องมือนี้บนเซิร์ฟเวอร์ — โหลดหน้าใหม่แล้วลองอีกครั้ง',
@@ -200,7 +188,7 @@
   }
 
   return {
-    MANIFEST: MANIFEST, manifest: manifest, url: url, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen, esm: esm,
+    MANIFEST: MANIFEST, manifest: manifest, url: url, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen,
     CraftError: CraftError, toMessage: toMessage, fromMessage: fromMessage, message: message, report: report, sha256: sha256
   };
 });

@@ -71,11 +71,26 @@ fi
 
 rm -rf "$out"
 mkdir -p "$out"
-cp "$tmp/pdfcraft_app.js" "$tmp/pdfcraft_app_bg.wasm" "$out/"
+cp "$tmp/pdfcraft_app.js" "$out/"
+# Cloudflare Pages รับไฟล์ละ ≤ 25 MiB — wasm ของแอปเต็ม (~43 MiB) แบ่งเป็นส่วนเท่าๆ กัน ≤ 24 MiB (pdfcraft_app_bg.<n>.wasm)
+# ส่วนย่อยไม่ใช่ wasm ที่รันเองได้: craft-app.js โหลดทุกส่วน (ตรวจ sha256 ทีละไฟล์) ต่อกัน แล้วตรวจ sha256 ของทั้งก้อนตาม manifest ก่อน init
+whole="$tmp/pdfcraft_app_bg.wasm"
+cap=$((24 * 1024 * 1024))
+size="$(stat -c %s "$whole")"
+n=$(( (size + cap - 1) / cap ))
+chunk=$(( (size + n - 1) / n ))
+for i in $(seq 1 "$n"); do
+  dd if="$whole" of="$out/pdfcraft_app_bg.$i.wasm" bs="$chunk" skip=$((i - 1)) count=1 status=none
+done
 # license ตามต้นฉบับ (ไม่แก้ข้อความ) + OFL ของฟอนต์ที่ฝังใน wasm (ตามแบบ packaging/env.sh copy_font_licences)
 cp "$src/LICENSE-MIT" "$out/LICENSE-MIT"
-for f in "$fonts"/fonts/*/OFL.txt; do cp "$f" "$out/OFL-$(basename "$(dirname "$f")").txt"; done
+cp "$src/NOTICE" "$out/NOTICE.txt"
+cp "$src/ATTRIBUTION.md" "$out/ATTRIBUTION.md"
+# เฉพาะฟอนต์ที่ build.rs ของ crates/fonts ฝังใน wasm32 (BIZ UDPGothic Regular + หน้าฟอนต์ที่มีสคริปต์ Arab/Telu/Hebr/Thai)
+awk -F' [|] ' '!/^#/ && NF >= 4 && (($1 == "BIZ UDPGothic" && $2 == "Regular") || $4 ~ /(^|,) *(Arab|Telu|Hebr|Thai) *(,|$)/) { print $3 }' \
+  "$fonts/fonts/manifest.txt" | while read -r f; do d="$(basename "$(dirname "$f")")"; cp "$fonts/fonts/$d/OFL.txt" "$out/OFL-$d.txt"; done
+[ -f "$out/OFL-noto-sans-thai.txt" ] || { echo "ไม่มี OFL ของ Noto Sans Thai" >&2; exit 1; }
 node "$here/third-party.mjs" "$src" > "$out/THIRD-PARTY.txt"
-node "$here/manifest.mjs" "$root" "$out" "$REV" "$FONTS_REV" "$(rustc "+$RUST" --version)" "wasm-bindgen $have" "$optver"
+node "$here/manifest.mjs" "$root" "$out" "$whole" "$REV" "$FONTS_REV" "$(rustc "+$RUST" --version)" "wasm-bindgen $have" "$optver"
 ls -l "$out"
 echo "→ $out"

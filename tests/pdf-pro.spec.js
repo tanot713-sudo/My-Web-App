@@ -10,7 +10,7 @@ const { PDFDocument, StandardFonts } = require('pdf-lib');
 const ROOT = path.resolve(__dirname, '..');
 const MAN = JSON.parse(fs.readFileSync(path.join(ROOT, 'vendor/craft/manifest.json'), 'utf8'));
 const LIB = MAN.libs['pdfcraft-app'];
-const WASM_RE = /\/vendor\/craft\/pdfcraft-app-[^/]+\/pdfcraft_app_bg\.wasm$/;
+const WASM_RE = /\/vendor\/craft\/pdfcraft-app-[^/]+\/pdfcraft_app_bg\.\d+\.wasm$/;
 
 async function samplePdf() {
   const doc = await PDFDocument.create();
@@ -48,7 +48,12 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
       expect(crypto.createHash('sha256').update(b).digest('hex'), f).toBe(m.sha256);
       expect(b.length, f).toBeLessThanOrEqual(25 * 1024 * 1024);
     }
-    expect(Object.keys(LIB.files)).toEqual(expect.arrayContaining(['pdfcraft_app.js', 'pdfcraft_app_bg.wasm', 'LICENSE-MIT', 'THIRD-PARTY.txt', 'OFL-noto-sans-thai.txt']));
+    expect(Object.keys(LIB.files)).toEqual(expect.arrayContaining(['pdfcraft_app.js', 'LICENSE-MIT', 'THIRD-PARTY.txt', 'OFL-noto-sans-thai.txt', ...LIB.wasm.parts]));
+    // ส่วนของ wasm ต่อกันตามลำดับ = wasm ทั้งก้อนตาม manifest และขึ้นต้นด้วย magic ของ WebAssembly
+    const whole = Buffer.concat(LIB.wasm.parts.map((f) => fs.readFileSync(path.join(ROOT, LIB.dir, f))));
+    expect(whole.length).toBe(LIB.wasm.bytes);
+    expect(crypto.createHash('sha256').update(whole).digest('hex')).toBe(LIB.wasm.sha256);
+    expect(whole.subarray(0, 4).toString('hex')).toBe('0061736d');
     // glue ต้องไม่ import ไฟล์อื่น (craft-loader.esm import จาก Blob URL)
     const glue = fs.readFileSync(path.join(ROOT, LIB.dir, 'pdfcraft_app.js'), 'utf8');
     expect(glue).not.toMatch(/^\s*import\s.+from\s/m);
@@ -59,22 +64,41 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
     const { errors, wasmHits } = await setup(context, page);
     await page.goto('/pdf-pro.html');
     await page.waitForFunction(() => window.__craftApp && window.__craftApp.isReady(), null, { timeout: 150000 });
-    expect(wasmHits.length).toBe(1);
+    expect(wasmHits.length).toBe(LIB.wasm.parts.length);
     await expect(page.locator('#craOver')).toBeHidden();
     await expect(page.locator('#craOpen')).toBeEnabled();
-    const box = await page.locator('#pdfcraft').boundingBox();
+    const box = await page.frameLocator('#craFrame').locator('canvas#pdfcraft').boundingBox();
     expect(box && box.width).toBeGreaterThan(1000);
     expect(box && box.height).toBeGreaterThan(500);
     // แอปวาดจริง: ภาพของ canvas ไม่ใช่สีเดียวทั้งผืน
-    await page.waitForTimeout(1500);
-    const shot = await page.locator('#pdfcraft').screenshot();
-    const uniq = new Set();
-    for (let i = 0; i < shot.length; i += 997) uniq.add(shot[i]);
-    expect(uniq.size).toBeGreaterThan(8);
+    const variety = async () => {
+      const shot = await page.locator('#craFrame').screenshot();
+      const uniq = new Set();
+      for (let i = 0; i < shot.length; i += 997) uniq.add(shot[i]);
+      return uniq.size;
+    };
+    await expect.poll(variety, { timeout: 30000 }).toBeGreaterThan(8);
 
-    await page.locator('#craFile').setInputFiles({ name: 'sample.pdf', mimeType: 'application/pdf', buffer: await samplePdf() });
-    await page.waitForTimeout(1500);
+    // เปิดไฟล์ = ส่ง pdfcraft:open ให้แอป (ดักที่ canvas) แล้วแอปยังทำงานอยู่
+    const app = page.frame({ url: /craft-frame\.html\?id=pdfcraft&host=parent$/ });
+    expect(app).toBeTruthy();
+    await app.evaluate(() => {
+      window.__opened = [];
+      window.addEventListener('message', (e) => { if (e.data && e.data.type === 'pdfcraft:open') window.__opened.push(e.data.name + ':' + e.data.bytes.byteLength); });
+    });
+    const pdf = await samplePdf();
+    await page.locator('#craFile').setInputFiles({ name: 'sample.pdf', mimeType: 'application/pdf', buffer: pdf });
+    await expect.poll(() => app.evaluate(() => window.__opened)).toEqual(['sample.pdf:' + pdf.length]);
     expect(await page.evaluate(() => window.__craftApp.state())).toBe('ready');
+    // บันทึก (Ctrl+S ในแอป) = แอปส่ง pdfcraft:save ให้หน้า → ดาวน์โหลดเป็นไฟล์ PDF ในเครื่อง
+    await expect(page.frameLocator('#craFrame').locator('canvas#pdfcraft')).toBeVisible();
+    await page.locator('#craFrame').click({ position: { x: 700, y: 400 } });
+    const dl = page.waitForEvent('download');
+    await page.keyboard.press('Control+s');
+    const file = await dl;
+    expect(file.suggestedFilename()).toBe('sample.pdf');
+    const saved = fs.readFileSync(await file.path());
+    expect(saved.subarray(0, 5).toString('latin1')).toBe('%PDF-');
     expect(errors).toEqual([]);
   });
 
@@ -83,10 +107,10 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
     const { wasmHits } = await setup(context, page, { wasm: '404' });
     await page.goto('/pdf-pro.html');
     await expect(page.locator('#craGate')).toBeVisible();
-    const mb = ((LIB.files['pdfcraft_app.js'].bytes + LIB.files['pdfcraft_app_bg.wasm'].bytes) / 1048576).toFixed(1);
+    const mb = ((LIB.files['pdfcraft_app.js'].bytes + LIB.wasm.bytes) / 1048576).toFixed(1);
     await expect(page.locator('#craGateText')).toContainText(mb + ' MB');
-    await page.waitForTimeout(500);
     expect(wasmHits).toEqual([]);
+    expect(await page.locator('#craFrame').getAttribute('src')).toBeNull(); // ยังไม่โหลดกรอบของแอปด้วย
     await page.locator('#craGo').click();
     await expect(page.locator('#craErr')).toBeVisible();
     expect(wasmHits.length).toBeGreaterThan(0);
@@ -99,7 +123,7 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
     await expect(page.locator('#craErrText')).toContainText('ไม่พบไฟล์ของเครื่องมือนี้');
     await expect(page.locator('#craRetry')).toBeVisible();
     const log = await page.evaluate(() => localStorage.getItem('tanot:media:log') || '');
-    expect(log).toContain('pdfcraft-app/pdfcraft_app_bg.wasm');
+    expect(log).toContain('pdfcraft-app/pdfcraft_app_bg.1.wasm');
     await page.evaluate(() => window.OME_LANG.set('en'));
     await expect(page.locator('#craErrText')).toContainText('were not found');
     await expect(page.locator('h1')).toHaveText('PDF editor');
@@ -111,6 +135,6 @@ test.describe('โปรแกรมแก้ไข PDF (PdfCraft ตัวจ�
     const { wasmHits } = await setup(context, page, { wasm: 'bad' });
     await page.goto('/pdf-pro.html');
     await expect(page.locator('#craErrText')).toContainText('เสียหายหรือไม่ครบ');
-    expect(wasmHits.length).toBe(2); // ลองใหม่แบบ cache:'reload' 1 ครั้ง
+    expect(wasmHits).toEqual([wasmHits[0], wasmHits[0]]); // ส่วนแรกลองใหม่แบบ cache:'reload' 1 ครั้งแล้วหยุด ไม่โหลดส่วนถัดไป
   });
 });

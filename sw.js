@@ -124,6 +124,8 @@ const PRECACHE = [
   './slides-pptx-worker.js',
   './craft-loader.js',
   './craft-app.js',
+  './craft-frame.html',
+  './craft-frame.js',
   './pdf-pro.html',
   './pdf-pro.js',
   CRAFT_MANIFEST,

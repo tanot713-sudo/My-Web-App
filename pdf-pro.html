@@ -22,18 +22,20 @@
 .cra-bar{display:flex;align-items:center;flex-wrap:wrap;gap:var(--ome-sp-2) var(--ome-sp-3);padding:var(--ome-sp-2) var(--ome-sp-4)}
 .cra-bar .crumb{margin:0}
 .cra-bar h1{margin:0;font-size:var(--ome-fs-lg);line-height:1.3}
-.cra-bar .status{margin:0 0 0 auto;min-width:0}
+/* แถบสถานะท้ายจอ — เว้นมุมขวาล่างให้ปุ่มแชท AI ลอย (.ome-ai-fab 56px + ระยะ 16px) ไม่ทับปุ่มของแอป */
+.cra-foot{display:flex;align-items:center;min-height:40px;padding:var(--ome-sp-2) calc(56px + var(--ome-sp-6)) var(--ome-sp-2) var(--ome-sp-4);border-top:1px solid var(--ome-border);background:var(--ome-surface-0)}
+.cra-foot .status{margin:0;min-width:0}
+html.ome-has-fab .cra-foot{min-height:88px}
 .cra-stage{position:relative;flex:1;min-height:0;border-top:1px solid var(--ome-border);background:var(--ome-surface-1)}
-.cra-stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;outline:none}
-.cra-stage canvas:focus-visible{outline:2px solid var(--ome-accent);outline-offset:-2px}
+.cra-stage iframe{position:absolute;inset:0;width:100%;height:100%;display:block;border:0}
+.cra-stage iframe:focus-visible{outline:2px solid var(--ome-accent);outline-offset:-2px}
 .cra-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--ome-sp-4);background:var(--ome-surface-0)}
 .cra-over[hidden]{display:none}
 .cra-card{width:min(420px,100%)}
 .cra-card > * + *{margin-top:var(--ome-sp-3)}
 .cra-card .row{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap}
 @media (max-width:700px){
-  .cra-bar{padding:var(--ome-sp-2) var(--ome-sp-3)}
-  .cra-bar .status{flex-basis:100%;margin-left:0}
+  html.ome-has-fab .cra-foot{min-height:40px} /* ≤ 700px: .page เว้นที่ให้ปุ่มแชทแล้ว (ai-chat-widget.js) */
 }
 </style>
 </head>
@@ -45,10 +47,9 @@
   <h1 data-i18n="pp.h1">โปรแกรมแก้ไข PDF</h1>
   <button class="btn" id="craOpen" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span data-i18n="pp.open">เปิดไฟล์</span></button>
   <input type="file" id="craFile" accept=".pdf,application/pdf" hidden>
-  <span class="status" id="craStatus" aria-live="polite"></span>
 </div>
 <div class="cra-stage">
-  <canvas id="pdfcraft" data-host="page" tabindex="0" data-i18n-attr="aria-label:pp.h1" aria-label="โปรแกรมแก้ไข PDF"></canvas>
+  <iframe id="craFrame" allow="fullscreen; clipboard-read; clipboard-write" allowfullscreen data-i18n-attr="title:pp.h1" title="โปรแกรมแก้ไข PDF"></iframe>
   <div class="cra-over" id="craOver">
     <div class="card cra-card">
       <div class="meter-row" id="craLoad" hidden>
@@ -67,6 +68,7 @@
     </div>
   </div>
 </div>
+<div class="cra-foot"><span class="status" id="craStatus" aria-live="polite"></span></div>
 </main>
 
 <script src="craft-loader.js"></script>

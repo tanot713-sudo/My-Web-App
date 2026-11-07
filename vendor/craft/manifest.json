@@ -147,6 +147,83 @@
           "brotli": 258035
         }
       }
+    },
+    "pdfcraft-app": {
+      "name": "PdfCraft",
+      "dir": "vendor/craft/pdfcraft-app-645016a",
+      "source": "https://github.com/storytold/pdfcraft",
+      "commit": "645016addcfb9078c557f0189559ab47cdcee057",
+      "version": "0.9.0",
+      "license": "MIT OR Apache-2.0",
+      "licenseFile": "LICENSE-MIT",
+      "app": "apps/pdfcraft-web",
+      "fonts": {
+        "source": "https://github.com/storytold/craft-fonts",
+        "commit": "b076417b5880bd4154bd22f00695b1d28c6bea83",
+        "license": "OFL-1.1"
+      },
+      "wrapper": "tools/wasm/pdfcraft-app",
+      "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+      "wasmBindgen": "wasm-bindgen 0.2.129",
+      "wasmOpt": "wasm-opt version 132 (version_132)",
+      "wasm": {
+        "parts": [
+          "pdfcraft_app_bg.1.wasm",
+          "pdfcraft_app_bg.2.wasm"
+        ],
+        "sha256": "ae4393c95e73c5bfe72823fd3c10d8069e181b275023596758eea8e2485f9dbb",
+        "bytes": 44929344,
+        "brotli": 12722473
+      },
+      "files": {
+        "ATTRIBUTION.md": {
+          "sha256": "a63e1627deda938b9c201dcce0e18cecaa2393d093abe755258e875931151aa8",
+          "bytes": 88183
+        },
+        "LICENSE-MIT": {
+          "sha256": "cd7032ea33b71427f188e34ffb4aee9d6868a57fd196037c5c8b2be03a2a0352",
+          "bytes": 1100
+        },
+        "NOTICE.txt": {
+          "sha256": "496946cff190a3fec32fe0241ea60d40539c73a9da1865073eb0c73ee822c8d5",
+          "bytes": 4184
+        },
+        "OFL-biz-ud-pgothic.txt": {
+          "sha256": "e753d7155d53c747d037a445e584c8ecfca6dd79846db610417e282a736b28bc",
+          "bytes": 4408
+        },
+        "OFL-noto-sans-arabic.txt": {
+          "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96",
+          "bytes": 4382
+        },
+        "OFL-noto-sans-hebrew.txt": {
+          "sha256": "9b9fe028b5ba74d231659a1bbaf0ed09b11e759d1ca6a070999e16d151616b47",
+          "bytes": 4382
+        },
+        "OFL-noto-sans-thai.txt": {
+          "sha256": "2e98fd23a52d253db8612cd5942c8f2ff4111b21d2367050fdca91d8ccc374a0",
+          "bytes": 4380
+        },
+        "THIRD-PARTY.txt": {
+          "sha256": "8b6085bb1d60785e3b03a4ca1176c0d9bb5533818f3321c1d90f7fabd5e80376",
+          "bytes": 631349
+        },
+        "pdfcraft_app.js": {
+          "sha256": "8f4fe23bf56a1e76442587f8efc00c3190cc1cd9619eeaa5e2979afd7e6ec6ae",
+          "bytes": 168396,
+          "brotli": 20501
+        },
+        "pdfcraft_app_bg.1.wasm": {
+          "sha256": "4a319b0ff76ad28cb318724ead0b4876cded65fb3b8986b9fefabc6987cf1415",
+          "bytes": 22464672,
+          "brotli": 5040944
+        },
+        "pdfcraft_app_bg.2.wasm": {
+          "sha256": "4c49f91bfb35869e555cd5642fc1b15d17f7dfe8d06d0dfa2e797993677db383",
+          "bytes": 22464672,
+          "brotli": 7730349
+        }
+      }
     }
   }
 }
