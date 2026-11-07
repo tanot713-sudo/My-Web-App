@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v668';
+const CACHE = 'ome-v670';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -123,6 +123,11 @@ const PRECACHE = [
   './cad-dxf-worker.js',
   './slides-pptx-worker.js',
   './craft-loader.js',
+  './craft-app.js',
+  './craft-frame.html',
+  './craft-frame.js',
+  './pdf-pro.html',
+  './pdf-pro.js',
   CRAFT_MANIFEST,
   /* ตั้งใจไม่ precache ไฟล์ใน vendor/craft/<lib>-<รุ่น>/ (เช่น wasm ของ GridCraft ~1.9MB) — fetch handler แคชลง CRAFT_CACHE ตอนใช้ครั้งแรก */
   './image-gen.html',
