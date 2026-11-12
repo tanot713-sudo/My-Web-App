@@ -30,19 +30,29 @@ from google.colab import drive
 drive.mount("/content/drive")
 IN, OUT = pathlib.Path(DRIVE_DIR) / "เข้า", pathlib.Path(DRIVE_DIR) / "ออก"
 IN.mkdir(parents=True, exist_ok=True); OUT.mkdir(parents=True, exist_ok=True)
-files = sorted(p for p in IN.iterdir() if p.is_file() and re.search(r"\.(jpe?g|png|heic|heif|webp|bmp|tiff?|pdf)$", p.name, re.I))
-if not files: raise SystemExit(f"❌ ไม่มีไฟล์ใน {IN}")
-print(f"พบในโฟลเดอร์ เข้า: {sorted(x.name for x in IN.iterdir())} → ประมวลผลได้ {len(files)} ไฟล์ (รูป/PDF เท่านั้น) · ถ้าไม่ครบ: รัน drive.mount('/content/drive', force_remount=True) แล้วรันใหม่")
-
 subprocess.run("pip -q install pillow-heif pymupdf openpyxl", shell=True)
 from PIL import Image, ImageOps
 import pillow_heif; pillow_heif.register_heif_opener()
+
+def kind(p):   # ดูจากเนื้อไฟล์ ไม่ใช่นามสกุล (Drive อาจมีไฟล์ไม่มีนามสกุล) → "pdf" | "image" | None
+    if not p.is_file() or re.search(r"\.(xlsx?|csv|txt|md|docx?|json|zip|gsheet|gdoc)$", p.name, re.I): return None
+    if p.open("rb").read(5) == b"%PDF-": return "pdf"
+    try:
+        with Image.open(p) as im: im.verify()
+        return "image"
+    except Exception: return None
+
+kinds = {x: kind(x) for x in sorted(IN.iterdir())}
+files = [x for x, k in kinds.items() if k]
+print(f"พบในโฟลเดอร์ เข้า: {[x.name for x in kinds]} → ประมวลผลได้ {len(files)} ไฟล์ · ข้าม (ไม่ใช่รูป/PDF): {[x.name for x, k in kinds.items() if not k]} · ถ้าไม่ครบ: รัน drive.mount('/content/drive', force_remount=True) แล้วรันใหม่")
+if not files: raise SystemExit(f"❌ ไม่มีรูป/PDF ใน {IN}")
+
 import fitz
 from openpyxl import Workbook
 from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
 
 def pages_of(p):
-    if p.suffix.lower() == ".pdf":
+    if kinds[p] == "pdf":
         for i, pg in enumerate(fitz.open(p), 1):
             px = pg.get_pixmap(dpi=PDF_DPI, alpha=False)
             yield i, Image.frombytes("RGB", (px.width, px.height), px.samples)
@@ -57,7 +67,7 @@ failed = []   # (ไฟล์, หน้า/สาเหตุ)
 for p in files:
     md_path = OUT / (p.name + ".md")
     if md_path.exists(): print("ข้าม", p.name); continue
-    t0, md_parts, sheets, nwarn, multi = time.time(), [], [], 0, p.suffix.lower() == ".pdf"
+    t0, md_parts, sheets, nwarn, multi = time.time(), [], [], 0, kinds[p] == "pdf"
     try:
         for n, im in pages_of(p):
             try: md, tables, warns = runner.ocr(im)
