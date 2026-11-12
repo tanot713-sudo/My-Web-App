@@ -5,6 +5,7 @@
 #   tesseract       = โหมดฟรีของเว็บ (file-reader.js ตัวจริง: เตรียมภาพ + Tesseract.js tha+eng) เปิดหน้าเว็บใน Chromium
 #   paddle          = PaddleOCR PP-OCRv5 รุ่นภาษาไทย (th_PP-OCRv5_mobile_rec) — ตัวเลือกที่จะเอาเข้าเบราว์เซอร์ได้ (PaddleOCR.js)
 #   paddle-unwarp   = เหมือนกัน + ตัวหมุน/คลี่หน้ากระดาษโค้ง (UVDoc) ก่อนอ่าน
+#   iapp            = iapp/OpenThai2.0-OCR-Markdown (0.63B) บน GPU — ใช้ tanot_iapp_runner.py (ต้องรัน tanot_ocr_iapp.py โหมด PROBE_ONLY ผ่านก่อน) · IAPP_REF = branch ของ repo
 #   typhoon         = Typhoon OCR 1.5 (2B) บน GPU — โมเดลไทยเฉพาะทาง ใหญ่เกินเบราว์เซอร์ (ไว้ดูเพดานของโมเดลเปิด)
 #   claude-*        = /api/ocr ของเว็บจริง (ย่อรูปแบบเดียวกับเว็บ) — เสียค่า Claude API (20 ภาพ × 3 รุ่น ≈ 1–3 USD) · ต้องตั้ง Secret 2 ตัว (ด้านล่าง)
 # ผล: "_ผลวัด-OCR/report-OCR.txt" (CER รวม/ตามประเภท/รายภาพ + จำนวนครั้งที่วนซ้ำ) · ข้อความที่แต่ละตัวอ่านได้ "_ผลวัด-OCR/ผล/<ตัว>/<ชื่อ>.txt"
@@ -14,11 +15,12 @@
 #           DevTools → Application → Cookies → my-web-app-5w2.pages.dev → CF_Authorization) · ไม่ตั้ง = ข้าม Claude · ห้ามวางค่าลงโค้ด/แชท
 #   ข้อควรรู้: เฉลยส่วนใหญ่แก้จากร่างของ Typhoon (ถ่าย 1 จากร่างของ Claude) → ถ้ามีจุดที่หลุดตาไม่ได้แก้ ตัวนั้นจะได้เปรียบเล็กน้อย
 
-ENGINES = ["typhoon", "paddle", "paddle-unwarp", "tesseract", "claude-sonnet-5", "claude-sonnet-5-5", "claude-haiku-5-5"]
+ENGINES = ["typhoon", "iapp", "paddle", "paddle-unwarp", "tesseract", "claude-sonnet-5", "claude-sonnet-5-5", "claude-haiku-5-5"]
 SITE = "https://my-web-app-5w2.pages.dev"
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง"
 TYPHOON = "typhoon-ai/typhoon-ocr1.5-2b"
+IAPP_REF = "main"   # branch ที่มี tanot_iapp_runner.py (ก่อน merge ใส่ชื่อ branch)
 
 import base64, html, io, json, os, pathlib, re, shutil, subprocess, time, unicodedata
 
@@ -124,6 +126,26 @@ if "typhoon" in ENGINES and todo("typhoon"):
             except Exception as e: put("typhoon", key, None, time.time() - t0, f"{type(e).__name__}: {e}")
         del model; torch.cuda.empty_cache()
     except Exception as e: FAIL["typhoon"] = str(e)[-600:]; print(f"⚠️ ข้าม typhoon: {e}")
+
+# ── 1b) iApp OpenThai2.0-OCR-Markdown (GPU · ตัวรันกลางใน tanot_iapp_runner.py) ──
+if "iapp" in ENGINES and todo("iapp"):
+    try:
+        import sys
+        IR = W / "iapp_repo"
+        if not IR.exists(): run(f"git clone -q --depth 1 --branch {IAPP_REF} {REPO} '{IR}'")
+        sys.path.insert(0, str(IR / "tools" / "ocr-eval")); import tanot_iapp_runner as IAPP
+        runner = IAPP.load()
+        for key, cat, ref, full, small in todo("iapp"):
+            t0 = time.time()
+            try:
+                im = Image.open(small).convert("RGB")   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
+                text, _tr = runner.ocr(im)
+                put("iapp", key, to_plain(text), time.time() - t0)
+            except Exception as e: put("iapp", key, None, time.time() - t0, f"{type(e).__name__}: {e}")
+        print(f"VRAM สูงสุดของ iapp {IAPP.peak_vram():.1f} GiB")
+        del runner
+        import gc, torch; gc.collect(); torch.cuda.empty_cache()
+    except Exception as e: FAIL["iapp"] = str(e)[-600:]; print(f"⚠️ ข้าม iapp: {e}")
 
 # ── 2) PaddleOCR รุ่นไทย (CPU · venv แยก Python 3.11 กันชนกับ Colab) ──
 PADDLE_CFG = "mobile_det+th_PP-OCRv5_mobile_rec · 2000px"   # เปลี่ยนค่านี้ = วัด PaddleOCR ใหม่ทั้งหมด
