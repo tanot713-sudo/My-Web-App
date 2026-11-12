@@ -54,7 +54,11 @@ class Runner:
                     if rows and all(re.fullmatch(r"column_\d+", c) for c in rows[0]): rows = rows[1:]   # แถวหัวปลอมที่ตัวช่วยเติมเมื่อตารางไม่มีหัว
                     out.append(rows)
                 except Exception as e: warns.append(f"ตาราง {i + 1}: {type(e).__name__}: {str(e)[:120]}")
-        return doc["markdown"], out, warns
+        return fix_sara_am(doc["markdown"]), [[[fix_sara_am(c) for c in row] for row in t] for t in out], warns
+
+def fix_sara_am(t):
+    """โมเดลให้ "ํา" (นิคหิต U+0E4D + สระอา) แทน "ำ" (U+0E33) — แก้กลับ ให้ค้น/เทียบข้อความได้ (วรรณยุกต์ที่คั่นย้ายไปอยู่หน้า ำ แบบ file-reader.js fixThaiOcr)"""
+    return re.sub("\u0E4D([\u0E48-\u0E4B]?)\u0E32", lambda m: m.group(1) + "\u0E33", t)
 
 def peak_vram():
     import torch
