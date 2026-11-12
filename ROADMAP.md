@@ -24,7 +24,7 @@
 ## Phase 1–2 — ปิดแล้ว ยกเว้นรายการค้างท้ายหัวข้อ
 - ✅ **Phase 1 ชั้นข้อมูล local-first** (2026-09-30) — `tanot-data.js` + `data-registry.js` + `/api/sync` (D1), `migrate.html`/`migrate-export.html` ย้ายข้อมูลข้ามโดเมน, `drive-backup.js`, ถอด Firebase (2026-10-02) — CLAUDE.md "Data layer / sync"
 - ✅ **Phase 2 ย้ายทุกหน้าเข้าธีมกลาง** (2026-09-30 → 10-03, 6 รอบ): หน้ารวม · ตระกูล invest 16 หน้า · classroom-law/music/sports/cooking/coding/typing · budget/text-to-speech/doc-check/extract-text · word/excel/cad/sim-objects/report-dashboard · React 4 หน้า (build local `./build-react.sh`)
-- **ค้าง (รอเจ้าของตัดสิน ทำต่อหรือเลิก):** (e) ลบ DriveSync รายหน้า — ยังเหลือ 5 หน้า (classroom-law, languages, legal, classroom-business, classroom-engineering) และ CLAUDE.md เขียนว่า "The per-page DriveSync copies stay" ซึ่งขัดกับแผนเดิม · (f) ไฟล์ 3D ย้าย/สำรองได้แต่ไม่ซิงก์ (รอ R2) — `data-registry.js` ยังเป็น `sync: []`
+- **ค้าง (เจ้าของตัดสินแล้ว 2026-11-12):** (e) ลบ DriveSync รายหน้าตามแผนเดิม → แถว 14 (ยังเหลือ 5 หน้า: classroom-law, languages, legal, classroom-business, classroom-engineering; CLAUDE.md "The per-page DriveSync copies stay" ต้องแก้ตอนลบ) · (f) ไฟล์ 3D ซิงก์ผ่าน R2 → แถว 18 (`data-registry.js` ยังเป็น `sync: []`)
 
 ## งานแก้ธีม + ภาษา (หลัง Phase 2 — ปิดแล้วทุกรอบ) · กฎ/วิธีตรวจ: skill `tanot-design`
 ทุกรอบ merge แล้ว · ตัวตรวจ/กฎอยู่ใน skill `tanot-design` + CLAUDE.md "Commands" (`theme-audit`, `theme-guards`, `lang-round2`, `*-audit.spec.js`)
@@ -56,7 +56,7 @@
 - ✅ **Phase 3** หน้า "วันนี้" (`index.html`/`index.js`/`home-calc.js`) + ค้นหาด่วน `palette.js` + Web Push/เตือน (`notifications.html`, scheduler Worker) — CLAUDE.md "Shared shell", "Web Push + reminders"
 - ✅ **Phase 4** AI บนคลาวด์ (`ai-client.js`, `functions/api/ai/*`, โควตา Neurons ใน D1) โมเดลในเบราว์เซอร์เป็นตัวสำรอง — CLAUDE.md "Cloud AI"
 - ✅ **Phase 5** ระบบเรียนรวม (`learn-core.js`, `fsrs.js`, `review.html`; แหล่งการ์ด กฎหมาย/ภาษา/ธุรกิจ/วิศวะ/หนังสือ) — CLAUDE.md "Learning system"
-- **ค้าง:** ซ่อนตัวนับ XP/streak เดิมในแต่ละหน้า → แถว 8 ของตารางงานถัดไป · **รอเจ้าของตัดสิน ทำต่อหรือเลิก:** (a) นัดหมายบนหน้าวันนี้ (ยังไม่มีข้อมูลต้นทาง) · (b) `palette.js` ยังไม่ค้น "ข้อมูลในเครื่อง" และไม่มีคำสั่ง "ตั้งการแจ้งเตือน" (มีแค่ add-expense/add-income/theme) · (c) `/api/ai/embed` ยังไม่มีหน้าไหนเรียกใช้ (เตรียมไว้ค้นตามความหมาย) · (d) `languages.jsx` ยังเรียก `ai-chat-worker.js` ในเครื่องตรงๆ ยังไม่ผ่านคลาวด์
+- **ค้าง:** ซ่อนตัวนับ XP/streak เดิมในแต่ละหน้า → แถว 8 · **เจ้าของตัดสินแล้ว 2026-11-12 ว่าทำต่อ:** (a) นัดหมายบนหน้าวันนี้ → แถว 15 · (b) `palette.js` ค้น "ข้อมูลในเครื่อง" + คำสั่ง "ตั้งการแจ้งเตือน" → แถว 16 · (c) `/api/ai/embed` ค้นตามความหมาย → แถว 17 · (d) `languages.jsx` ย้ายจาก `ai-chat-worker.js` ในเครื่องไปคลาวด์ → แถว 19
 
 ## Phase 6+ — ฟีเจอร์ใหม่และหน้าที่ยังไม่ทำ (สลับด้าน; P1 = ทำก่อน … P4 = ความสำคัญต่ำ)
 
@@ -299,8 +299,14 @@ skill ที่ทุก session ใช้เสมอ (ไม่เขียน
 | 11 | **แอป *Craft ตัวถัดไปแบบโปรแกรมเต็ม** (แม่แบบ `pdf-pro.html`) — เฉพาะเมื่อเจ้าของสั่ง | รอเจ้าของสั่ง | Sonnet 5.5 | high | `tanot-design`, `performance` | CLAUDE.md "ไลบรารี wasm ตระกูล *Craft" |
 | 12 | **Lamport clock ใน `tanot-data.js`** — ทำเมื่อเจออาการจริงเท่านั้น 🔍 | พักไว้ | Opus 5.5 | xhigh | `test-driven-development`, `systematic-debugging` | PR #33, CLAUDE.md "Data layer / sync" |
 | 13 | เกมฝึกทักษะ / เกมแข่งรถ / RPG / วิดีโอ / 3D / จำลองคน | พักไว้ | ออกแบบ Opus 5.5 high → ลงมือ Sonnet 5.5 medium | — | `grilling` (ตอนออกแบบ), `tanot-design` | หัวข้อ "ทำทีหลัง" |
+| 14 | **ลบ DriveSync รายหน้า** 5 หน้า (เจ้าของสั่ง 2026-11-12) — เหลือ D1 sync + `drive-backup.js`; ห้ามลบคีย์ `*:driveConnected` เดิม; แก้ย่อหน้า DriveSync ใน CLAUDE.md + `credits.html` ถ้าไม่ใช้ Google Identity แล้ว; แก้ `.jsx` ต้อง `./build-react.sh` | ยังไม่ทำ | Sonnet 5.5 | high | `react-best-practices`, `systematic-debugging` | CLAUDE.md "Common conventions", "The 4 React pages" |
+| 15 | **นัดหมายบนหน้าวันนี้** — ต้องออกแบบข้อมูลต้นทาง (คีย์ sync ใหม่ + `HomeCalc` + reminders) ก่อนทำ UI | ยังไม่ทำ | Opus 5.5 ออกแบบ → Sonnet 5.5 medium ลงมือ | high | `grilling`, `tanot-design`, `test-driven-development` | CLAUDE.md "Shared shell" (หน้าวันนี้), "Web Push + reminders" |
+| 16 | **palette**: ค้น "ข้อมูลในเครื่อง" + คำสั่ง "ตั้งการแจ้งเตือน" | ยังไม่ทำ | Sonnet 5.5 | medium | `tanot-design`, `test-driven-development` | `palette.js`, CLAUDE.md "Shared shell" |
+| 17 | **ค้นตามความหมายด้วย `/api/ai/embed`** (bge-m3) — เลือกว่าค้นอะไร (โน้ต/หนังสือ/ไฮไลต์) ก่อน | ยังไม่ทำ | Sonnet 5.5 | high | `grilling`, `tanot-design` | CLAUDE.md "Cloud AI" |
+| 18 | **ไฟล์ 3D ซิงก์ผ่าน R2** (`sim-objects`) — Blob ห้ามอยู่ใน registry sync; ใช้แบบ outbox + `/api/files` (เพิ่ม ns) 🔍 | ยังไม่ทำ | Opus 5.5 | high | `test-driven-development`, `security-and-hardening` | CLAUDE.md "Data layer / sync", "Cloudflare Pages backend" |
+| 19 | **languages ใช้ AI คลาวด์** แทน `ai-chat-worker.js` ในเครื่อง (รูปแบบ `AiClient.available()` → cloud → fallback ไม่ใช่ iOS) | ยังไม่ทำ | Sonnet 5.5 | medium | `react-best-practices` | CLAUDE.md "Cloud AI" |
 
-ลำดับที่เสนอ: 0 (เจ้าของ) ∥ 1 → 2 → 3a → 4 → 5 → 3b (ถ้าผลวัดคุ้ม) → 7 → 8 → 10 → 6 · งาน 9/11/12/13 ตามที่เจ้าของสั่ง
+ลำดับที่เสนอ: 0 (เจ้าของ) ∥ 1 → 2 → 3a → 4 → 5 → 3b (ถ้าผลวัดคุ้ม) → 7 → 8 → 10 → 6 · งาน 9/11/12/13 ตามที่เจ้าของสั่ง · งานที่เจ้าของสั่งทำต่อ 2026-11-12: 14 → 16 → 19 → 15 → 17 → 18
 
 ### ตัวเลือก OCR ไทยจาก iApp (ค้นข้อมูล 2026-11-12 — ยังไม่ได้ทดลองเอง)
 ข้อมูลจากหน้าของ iApp ผ่านผลค้นเว็บ (sandbox เปิด huggingface.co / iapp.co.th ตรงไม่ได้ — **ต้องเปิด model card ยืนยันก่อนลงมือ**) ตัวเลข benchmark เป็นของผู้ผลิตเอง
