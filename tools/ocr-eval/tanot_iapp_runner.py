@@ -33,7 +33,15 @@ class Runner:
         """PIL.Image → (markdown, tables, warnings) · tables = list ของตาราง (list ของแถว = list ของข้อความ ขยายช่องที่ merge แล้ว)
         tables=False = ข้ามการแปลงตาราง (ใช้ตอนวัด CER) · ตารางที่แปลงไม่ได้ (span ผิด / ตัวช่วยคืน LaTeX เดิม) = ข้าม + เพิ่มคำเตือน ไม่ทำให้ทั้งหน้าล้ม
         หน้าถูกตัด/สร้างไม่ได้ = raise GenerationError (ผู้เรียกต้องนับว่าล้ม ห้ามเขียนผลครึ่งๆ)"""
-        doc = self.parser.parse(img, mode="single")
+        doc = None
+        for attempt in range(4):   # GPU เต็ม (T4 15 GiB กับภาพความละเอียดสูง) = ย่อภาพ 30% แล้วลองใหม่ สูงสุด 3 ครั้ง
+            try:
+                doc = self.parser.parse(img, mode="single"); break
+            except self.torch.cuda.OutOfMemoryError:
+                if attempt == 3: raise
+                print(f"  ⚠️ GPU เต็มที่ภาพ {img.width}×{img.height} — ย่อแล้วลองใหม่")
+            import gc; gc.collect(); self.torch.cuda.empty_cache()   # ปล่อยหลังออกจาก except (traceback ยังถือหน่วยความจำอยู่ข้างใน)
+            img = img.resize((int(img.width * 0.7), int(img.height * 0.7)))
         out, warns = [], []
         if tables:
             from postprocessing import postprocess_text
