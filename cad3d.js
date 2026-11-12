@@ -135,6 +135,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     sketchPoly: 'เส้นหลายจุด',
     sketchFinish: 'เสร็จ (ปิดรูป)',
     cancel: 'ยกเลิก',
+    dimUnit: 'มม.',
     hintRect1: 'คลิกมุมแรกของสี่เหลี่ยม',
     h4: '4) คุณสมบัติขั้นสูงและวัสดุ',
     propObject: 'วัตถุ',
@@ -278,6 +279,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     sketchPoly: 'Polyline',
     sketchFinish: 'Done (close shape)',
     cancel: 'Cancel',
+    dimUnit: 'mm',
     hintRect1: 'Click the first corner of the rectangle',
     h4: '4) Properties and materials',
     propObject: 'Object',
@@ -403,6 +405,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   var liveSketchPlaneSnapshot = null; // { raw, normal:THREE.Vector3, origin:THREE.Vector3 } ล็อกไว้ตอนเริ่มร่าง กันระนาบเปลี่ยนกลางคัน
   var liveSketchPreviewGroup = null; // THREE.Group เส้น/จุด preview ระหว่างวาด (คนละก้อนกับ previewAnchor ของรูปทรงพื้นฐาน)
   var liveSketchDownPos = null; // แยกคลิกจริงจากการลากเล็กน้อย (เมาส์สั่น) เหมือน pickDownPos ของ Stage 10d
+  var liveSketchCursor = null; // (u,v) ล่าสุดของเคอร์เซอร์ (หลัง snap) — ใช้วาด preview ใหม่หลัง Backspace
   var liveSketchProfiles = []; // เส้นขอบที่ร่างในวิว 3 มิติสะสมไว้ (รอดจากการกด "โหลดใหม่" ซึ่งอ่านจากแบบ 2 มิติเท่านั้น)
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
@@ -1393,12 +1396,40 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var thPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(liveSketchPlaneSnapshot.normal, liveSketchPlaneSnapshot.origin);
     var hit = new THREE.Vector3();
     if (!raycaster.ray.intersectPlane(thPlane, hit)) return null;
-    return unmapPlanePoint(liveSketchPlaneSnapshot.raw, { x: hit.x, y: hit.y, z: hit.z });
+    return snapLiveUV(unmapPlanePoint(liveSketchPlaneSnapshot.raw, { x: hit.x, y: hit.y, z: hit.z }));
   }
+  /* snap ใช้ค่าเดียวกับแท็บ 2D (ปุ่ม #snapToggleBtn + ระยะ #snapStepSel) — ปัดทั้ง u และ v เข้าหาขั้นกริดที่ใกล้สุด */
+  function snapLiveUV(uv) {
+    var tg = $('snapToggleBtn');
+    if (!uv || !tg || !tg.classList.contains('active')) return uv;
+    var sel = $('snapStepSel'), step = (sel && +sel.value) || 10;
+    return { x: (Math.round(uv.x / step) * step) || 0, y: (Math.round(uv.y / step) * step) || 0 };
+  }
+  function fmtDim(n) { return String(Math.round(n * 10) / 10); }
+  /* ป้ายขนาดจริงลอยตามเคอร์เซอร์ระหว่างลาก (feedback ตามสถานะ ไม่ใช่คำอธิบาย) */
+  function updateLiveDimReadout(uv, clientX, clientY) {
+    var el = $('c3SketchDim');
+    if (!el) return;
+    var a = liveSketchPts[liveSketchPts.length - 1], txt = '';
+    if (uv && a) {
+      var u = T('dimUnit');
+      if (liveSketchTool === 'rect' && liveSketchPts.length === 1) txt = fmtDim(Math.abs(uv.x - a.x)) + ' × ' + fmtDim(Math.abs(uv.y - a.y)) + ' ' + u;
+      else if (liveSketchTool === 'circle' && liveSketchPts.length === 1) txt = 'R' + fmtDim(Math.hypot(uv.x - a.x, uv.y - a.y)) + ' ' + u;
+      else if (liveSketchTool === 'polyline') txt = fmtDim(Math.hypot(uv.x - a.x, uv.y - a.y)) + ' ' + u;
+    }
+    if (!txt) { el.hidden = true; return; }
+    var r = viewportEl.getBoundingClientRect();
+    el.textContent = txt;
+    el.style.left = Math.max(0, Math.min(clientX - r.left + 14, r.width - 110)) + 'px';
+    el.style.top = Math.max(0, Math.min(clientY - r.top + 14, r.height - 30)) + 'px';
+    el.hidden = false;
+  }
+  function hideLiveDimReadout() { var el = $('c3SketchDim'); if (el) el.hidden = true; }
   function setLiveSketchTool(tool) {
     liveSketchTool = tool;
     liveSketchPts = [];
     clearLiveSketchPreview();
+    hideLiveDimReadout();
     ['rect', 'circle', 'polyline'].forEach(function (t) {
       var btn = $(t === 'rect' ? 'sketchToolRectBtn' : (t === 'circle' ? 'sketchToolCircleBtn' : 'sketchToolPolylineBtn'));
       btn.classList.toggle('active', t === tool);
@@ -1442,7 +1473,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     liveSketchPts.push(uv);
     if (liveSketchTool === 'rect' && liveSketchPts.length === 2) finishRectShape();
     else if (liveSketchTool === 'circle' && liveSketchPts.length === 2) finishCircleShape();
-    else { updateLiveSketchHint(); updateLiveSketchPreview(uv); }
+    else { updateLiveSketchHint(); updateLiveSketchPreview(uv); liveSketchCursor = uv; updateLiveDimReadout(uv, clientX, clientY); }
   }
   /* เริ่มร่างภาพ: ล็อกระนาบปัจจุบัน (จาก sketchPlaneSel/pickedPlaneBasis) ไว้เป็น snapshot กันสับสนถ้าผู้ใช้
      ดันไปเปลี่ยน dropdown ระนาบระหว่างที่กำลังวาดค้างอยู่ (ซึ่งเป็นไปไม่ได้อยู่แล้วเพราะซ่อนฟอร์มไว้ทั้งหมด
@@ -1465,23 +1496,26 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   function exitLiveSketch() {
     liveSketchActive = false;
     liveSketchPts = [];
+    liveSketchCursor = null;
+    hideLiveDimReadout();
     controls.enabled = true;
     viewportEl.classList.remove('c3-pick-cursor');
     $('c3SketchToolbar').hidden = true;
     clearLiveSketchPreview();
   }
-  function onLiveSketchPointerDown(e) { if (liveSketchActive) liveSketchDownPos = { x: e.clientX, y: e.clientY }; }
+  function inSketchToolbar(e) { var t = $('c3SketchToolbar'); return !!(t && e.target && t.contains(e.target)); } // กดปุ่มในแถบเครื่องมือ ไม่นับเป็นคลิกวางจุด
+  function onLiveSketchPointerDown(e) { if (liveSketchActive && !inSketchToolbar(e)) liveSketchDownPos = { x: e.clientX, y: e.clientY }; }
   function onLiveSketchPointerUp(e) {
-    if (!liveSketchActive || !liveSketchDownPos) return;
+    if (!liveSketchActive || !liveSketchDownPos || inSketchToolbar(e)) return;
     var dx = e.clientX - liveSketchDownPos.x, dy = e.clientY - liveSketchDownPos.y;
     liveSketchDownPos = null;
     if (Math.hypot(dx, dy) > 5) return; // มือสั่น/ลากเล็กน้อย ไม่นับเป็นคลิกวางจุด
     handleLiveSketchClick(e.clientX, e.clientY);
   }
   function onLiveSketchPointerMove(e) {
-    if (!liveSketchActive) return;
+    if (!liveSketchActive || inSketchToolbar(e)) return;
     var uv = liveSketchRayHit(e.clientX, e.clientY);
-    if (uv) updateLiveSketchPreview(uv);
+    if (uv) { liveSketchCursor = uv; updateLiveSketchPreview(uv); updateLiveDimReadout(uv, e.clientX, e.clientY); }
   }
 
   /* ══════════════════ ผูกปุ่ม + boot ══════════════════ */
@@ -1522,12 +1556,23 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     $('c3Viewport').addEventListener('pointerdown', onLiveSketchPointerDown);
     $('c3Viewport').addEventListener('pointerup', onLiveSketchPointerUp);
     $('c3Viewport').addEventListener('pointermove', onLiveSketchPointerMove);
+    $('c3Viewport').addEventListener('pointerleave', hideLiveDimReadout);
     document.addEventListener('keydown', function (e) {
+      if (e.key === 'Backspace' && liveSketchActive && liveSketchTool === 'polyline' && liveSketchPts.length) {
+        var tg = e.target, tn = tg && tg.tagName;
+        if (tn === 'INPUT' || tn === 'TEXTAREA' || tn === 'SELECT' || (tg && tg.isContentEditable)) return;
+        e.preventDefault();
+        liveSketchPts.pop();
+        updateLiveSketchHint();
+        updateLiveSketchPreview(liveSketchPts.length ? liveSketchCursor : null);
+        if (!liveSketchPts.length) hideLiveDimReadout();
+        return;
+      }
       if (e.key !== 'Escape') return;
       if (pickMode) exitPickMode();
       if (liveSketchActive) {
         // Esc ครั้งแรก (มีจุดวางค้างอยู่) แค่ล้างรูปที่วาดค้าง — Esc อีกครั้ง (ไม่มีจุดค้างแล้ว) ถึงจะออกจากโหมดร่างทั้งหมด
-        if (liveSketchPts.length) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint(); }
+        if (liveSketchPts.length) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint(); hideLiveDimReadout(); }
         else exitLiveSketch();
       }
     });
