@@ -16,16 +16,17 @@
 ---
 
 ## Phase 0 — ฐานราก ✅ ปิดแล้ว (รายละเอียดอยู่ใน CLAUDE.md "Cloudflare Pages backend")
-- ✅ **0a แพลตฟอร์ม Cloudflare** (2026-09-28 → 10-02): แก้ build (wasm ไม่เก็บใน repo) · `wrangler.toml` (D1/R2/AI, ไม่มี `package.json` ที่ root) · Pages Functions + `_middleware.js` ตรวจ JWT ของ Access · D1 `migrations/` · Scheduler Worker `workers/scheduler/` · GitHub Pages เหลือเป็น redirect — งานที่เจ้าของต้องทำเองอยู่ใน "สิ่งที่เจ้าของต้องทำเอง"
+- ✅ **0a แพลตฟอร์ม Cloudflare** (2026-09-28 → 10-02): (1) แก้ build (wasm ไม่เก็บใน repo) · (2) `wrangler.toml` (D1/R2/AI, ไม่มี `package.json` ที่ root) · (3) Pages Functions + `_middleware.js` ตรวจ JWT ของ Access (proxy/asr/ocr) · (4) Cloudflare Access (Zero Trust) ครอบ `my-web-app-5w2.pages.dev` + `auth-gate.js` ข้ามตัวเองบน pages.dev · (5) D1 `migrations/` · (6) Scheduler Worker `workers/scheduler/` · (7) GitHub Pages เหลือเป็น redirect — งานที่เจ้าของต้องทำเองอยู่ใน "สิ่งที่เจ้าของต้องทำเอง"
 - ✅ **0b ชุดทดสอบ** (2026-09-30): `tests/` (Playwright + `repo-guards.mjs`) รันบน PR
 - ✅ **0c ธีม v2 แกนกลาง** (2026-09-30): `theme.css` (`@layer` + compat), tokens, คอมโพเนนต์กลาง, `data-layout`, `chart-theme.js`, `icons.svg`, `theme-boot.js`
 - ✅ **0d จัดเมนูตาม 4 ด้านของชีวิต** (2026-09-30): `MENU` ใน `shell.js` + `area.html`; ฟอนต์หลัก Prompt
 
-## Phase 1–2 — ปิดแล้ว
+## Phase 1–2 — ปิดแล้ว ยกเว้นรายการค้างท้ายหัวข้อ
 - ✅ **Phase 1 ชั้นข้อมูล local-first** (2026-09-30) — `tanot-data.js` + `data-registry.js` + `/api/sync` (D1), `migrate.html`/`migrate-export.html` ย้ายข้อมูลข้ามโดเมน, `drive-backup.js`, ถอด Firebase (2026-10-02) — CLAUDE.md "Data layer / sync"
 - ✅ **Phase 2 ย้ายทุกหน้าเข้าธีมกลาง** (2026-09-30 → 10-03, 6 รอบ): หน้ารวม · ตระกูล invest 16 หน้า · classroom-law/music/sports/cooking/coding/typing · budget/text-to-speech/doc-check/extract-text · word/excel/cad/sim-objects/report-dashboard · React 4 หน้า (build local `./build-react.sh`)
+- **ค้าง (รอเจ้าของตัดสิน ทำต่อหรือเลิก):** (e) ลบ DriveSync รายหน้า — ยังเหลือ 5 หน้า (classroom-law, languages, legal, classroom-business, classroom-engineering) และ CLAUDE.md เขียนว่า "The per-page DriveSync copies stay" ซึ่งขัดกับแผนเดิม · (f) ไฟล์ 3D ย้าย/สำรองได้แต่ไม่ซิงก์ (รอ R2) — `data-registry.js` ยังเป็น `sync: []`
 
-## งานแก้ธีม + ภาษา (หลัง Phase 2 — ทยอยเป็นรอบ) · กฎ/วิธีตรวจ: skill `tanot-design`
+## งานแก้ธีม + ภาษา (หลัง Phase 2 — ปิดแล้วทุกรอบ) · กฎ/วิธีตรวจ: skill `tanot-design`
 ทุกรอบ merge แล้ว · ตัวตรวจ/กฎอยู่ใน skill `tanot-design` + CLAUDE.md "Commands" (`theme-audit`, `theme-guards`, `lang-round2`, `*-audit.spec.js`)
 1. ✅ **รอบ 1 รากฐาน** (2026-10-04) — token สี/ฟอนต์ผ่านเกณฑ์ contrast, ภาพพื้นหลังรายหน้า, ไอคอนแอป, ตัวตรวจ, `i18n.js`, skill `tanot-design`
 2. ✅ **รอบ 2** (2026-10-04) — พื้นหลัง 4 ระดับ + แปลอังกฤษ 6 หน้า (index/budget/health/car/receipts/insurance), `OME_I18N.scope`
@@ -35,29 +36,27 @@
 6. ✅ **รอบ 6 วิศวกรรม/รายงาน/ภาษี** (2026-10-08) — cad/electrical/maintenance/run/report-dashboard/tax (`eng-audit.spec.js`)
 7. ✅ **รอบ 7A การศึกษา** (2026-10-09) — review/books/classroom ทั้ง 3 (`edu-audit.spec.js`)
 8. ✅ **รอบ 7B งานอดิเรก + ตั้งค่า** (2026-10-09) — music/sports/cooking/coding/typing/image-gen/notifications/data/credits (`hobby-audit.spec.js`)
-9. ✅ **รอบ 8** (2026-10) — languages/legal/sim-objects + หน้าตัวอย่างธีม
-10. ✅ **รอบ 9 ตรวจมือถือทั้งเว็บ** (2026-10) — เก็บตก 68 → 0, ลบ `theme-preview`, ปุ่มแชท AI ลอย, 360/390/412/430 + แนวนอน, `mobileDialog`/`mobileInput`, safe-area
+9. ✅ **รอบ 8** (2026-10-09) — languages/legal/sim-objects + หน้าตัวอย่างธีม
+10. ✅ **รอบ 9 ตรวจมือถือทั้งเว็บ** (2026-10-09) — เก็บตก 68 → 0, ลบ `theme-preview`, ปุ่มแชท AI ลอย, 360/390/412/430 + แนวนอน, `mobileDialog`/`mobileInput`, safe-area
 
 ## สรุปงานแก้ธีม + ภาษา + มือถือ (รอบ 1–9 — ปิดแล้ว)
 ยอดรวมของ baseline (runtime + static) ณ สิ้นแต่ละรอบ: **R1 2,272 → R2 2,105 → R3 4,375 (เพิ่มกฎมือถือ 6 ตัว ทำให้ตัวเลขพุ่ง) → R4 3,533 → R5 2,250 → R6 1,835 → R7A 1,438 → R7B 945 → R8 68 → R9 0** (เพิ่มกฎใหม่รอบ 9 อีก 3 ตัวชี้วัด + แนวนอน + กล่อง ล้วนเริ่มที่ 0 หลังแก้) · ทั้งเว็บ 51 หน้า + กลุ่มหน้าตอนมีข้อมูล 6 ชุดตัวตรวจ · ภาษาไทย/อังกฤษสลับสดทุกหน้า · ธีม token เดียว · กฎ/วิธีทำงานต่อเนื่องอยู่ใน skill `tanot-design` (หัวข้อ 7–9) — **งานต่อไปไม่ต้องมี "รอบแก้ธีม" อีก**: หน้าใหม่/แก้หน้าให้ตาม checklist หัวข้อ 9 แล้วต้องผ่านตัวตรวจ (ratchet = 0) ก่อน merge
 
 ## ปรับปรุงเสียง/OCR (Section 0–5) — ปิดแล้ว (รายละเอียดอยู่ใน CLAUDE.md "Heavy client-side ML", "OCR / Claude Vision")
-- ✅ **S0 ชุดวัดผล + บันทึกการล่ม** (2026-10-09) — `tools/media-eval/`, problem log `tanot:media:log`
-- ✅ **S1 ไม่ให้ล่ม** (2026-10-09) — Worker แยก, `decode16k`, งบโมเดลบนมือถือ, พูล TTS ทยอยโหลด (`media-core.js`)
-- ✅ **S2 OCR + รหัส `OCR_PIN`** (2026-10-10) — ย่อรูปกลาง, PDF สแกนส่ง Claude ทั้งไฟล์, Tesseract เตรียมภาพ (`ocr-prep.js`), เลือกโมเดล Claude
-- ✅ **S3 ถอดเสียง** — คลาวด์ท่อนเหลื่อมขนาน, WebGPU/WASM, Thonburian, ย่อหน้า/เวลา (`asr-calc.js`, `asr-cloud.js`)
-- ✅ **S4 ข้อความก่อนพูด** — `tts-normalize.js` ใช้ร่วมหน้า + วิดเจ็ตแชท (❌ เสียงคลาวด์เสียเงิน: เจ้าของไม่เอา)
+- ✅ **S0 ชุดวัดผล + บันทึกการล่ม** (2026-10-09) — `tools/media-eval/`, problem log `tanot:media:log` (#52)
+- ✅ **S1 ไม่ให้ล่ม** (2026-10-09) — Worker แยก, `decode16k`, งบโมเดลบนมือถือ, พูล TTS ทยอยโหลด (`media-core.js`) (#52)
+- ✅ **S2 OCR + รหัส `OCR_PIN`** (2026-10-10) — ย่อรูปกลาง, PDF สแกนส่ง Claude ทั้งไฟล์, Tesseract เตรียมภาพ (`ocr-prep.js`), เลือกโมเดล Claude (#53)
+- ✅ **S3 ถอดเสียง** — คลาวด์ท่อนเหลื่อมขนาน, WebGPU/WASM, Thonburian, ย่อหน้า/เวลา (`asr-calc.js`, `asr-cloud.js`) (#54, #55)
+- ✅ **S4 ข้อความก่อนพูด** — `tts-normalize.js` ใช้ร่วมหน้า + วิดเจ็ตแชท (❌ เสียงคลาวด์เสียเงิน: เจ้าของไม่เอา) (#56)
 - ✅ **S5 เสียงพูดยาว** — คำอ่านของฉัน, พจนานุกรม, ข้ามอังกฤษในวงเล็บ, ท่อน 60, งานยาวเป็นส่วนๆ + Wake Lock (`tts-long.js`)
 - ✅ **เสียงไทย** — stable → stable2 → เหลือ Jori/Riko ล็อกรุ่นด้วย `TTS_REVISION`; low-pass, ปรับความดัง `audio-gain.js`, ถอดเสียงในเบราว์เซอร์ไม่ซ้ำที่รอยต่อ, ลองโหลดใหม่เมื่อเครือข่ายสะดุด
-- ⏳ **รอเจ้าของ:** ผลวัด/ฟังเสียง/`check-models.mjs` ทั้งหมด → แถว 0 ของตารางงานถัดไป
+- ⏳ **รอเจ้าของ** (ตรวจจาก sandbox ไม่ได้ — มีสคริปต์ใน `tools/media-eval`; รายการเต็มที่แถว 0 ของตารางงานถัดไป): ชื่อ repo/ไฟล์ onnx-community + Thonburian (S3), ถอดเสียงไทยจริงบน WASM/WebGPU, ไฟล์ fp32 + ความเร็ว WebGPU ของเสียงพูด (S5), OCR กับ Claude/Tesseract จริง (S2) · ภาพรวม "อะไรอยู่ที่ไหน" ใน CLAUDE.md "ปรับปรุงเสียง/OCR ทั้งชุด"
 
-**สรุปงานเสียง/OCR ทั้งชุด (Section 0–5 — ปิดแล้ว)** — S0–1 ชุดวัดผล + problem log + Worker แยก/งบหน่วยความจำ (#52) · S2 รหัส `OCR_PIN` + OCR แม่นขึ้น (ย่อรูป, PDF ทั้งไฟล์, Tesseract เตรียมภาพ, เลือกโมเดล Claude) (#53) · S3 ถอดเสียง: คลาวด์ท่อนเหลื่อมขนาน, WebGPU/WASM, Thonburian, ย่อหน้า/เวลา (#54, #55) · S4 ข้อความก่อนพูด (`tts-normalize.js`) + วิดเจ็ตแชทพูดไม่พัง (#56) · S5 เสียงพูดยาว (งานนี้) · รายละเอียดของแต่ละส่วนอยู่ด้านบน และภาพรวม "อะไรอยู่ที่ไหน" ใน CLAUDE.md หัวข้อ "ปรับปรุงเสียง/OCR ทั้งชุด" · **สิ่งที่ตรวจจาก sandbox ไม่ได้และรอเจ้าของ**: ชื่อ repo/ไฟล์ของ onnx-community + Thonburian (S3), ถอดเสียงไทยจริงบน WASM/WebGPU, ไฟล์ fp32 + ความเร็ว WebGPU ของเสียงพูด (S5), OCR กับ Claude/Tesseract จริง (S2) — ทั้งหมดมีสคริปต์ใน `tools/media-eval`
-
-## Phase 3–5 — ปิดแล้ว (รายละเอียดอยู่ใน CLAUDE.md)
+## Phase 3–5 — ปิดแล้ว ยกเว้นรายการค้างท้ายหัวข้อ (รายละเอียดอยู่ใน CLAUDE.md)
 - ✅ **Phase 3** หน้า "วันนี้" (`index.html`/`index.js`/`home-calc.js`) + ค้นหาด่วน `palette.js` + Web Push/เตือน (`notifications.html`, scheduler Worker) — CLAUDE.md "Shared shell", "Web Push + reminders"
 - ✅ **Phase 4** AI บนคลาวด์ (`ai-client.js`, `functions/api/ai/*`, โควตา Neurons ใน D1) โมเดลในเบราว์เซอร์เป็นตัวสำรอง — CLAUDE.md "Cloud AI"
 - ✅ **Phase 5** ระบบเรียนรวม (`learn-core.js`, `fsrs.js`, `review.html`; แหล่งการ์ด กฎหมาย/ภาษา/ธุรกิจ/วิศวะ/หนังสือ) — CLAUDE.md "Learning system"
-- **ค้าง:** ซ่อนตัวนับ XP/streak เดิมในแต่ละหน้า → แถว 8 ของตารางงานถัดไป
+- **ค้าง:** ซ่อนตัวนับ XP/streak เดิมในแต่ละหน้า → แถว 8 ของตารางงานถัดไป · **รอเจ้าของตัดสิน ทำต่อหรือเลิก:** (a) นัดหมายบนหน้าวันนี้ (ยังไม่มีข้อมูลต้นทาง) · (b) `palette.js` ยังไม่ค้น "ข้อมูลในเครื่อง" และไม่มีคำสั่ง "ตั้งการแจ้งเตือน" (มีแค่ add-expense/add-income/theme) · (c) `/api/ai/embed` ยังไม่มีหน้าไหนเรียกใช้ (เตรียมไว้ค้นตามความหมาย) · (d) `languages.jsx` ยังเรียก `ai-chat-worker.js` ในเครื่องตรงๆ ยังไม่ผ่านคลาวด์
 
 ## Phase 6+ — ฟีเจอร์ใหม่และหน้าที่ยังไม่ทำ (สลับด้าน; P1 = ทำก่อน … P4 = ความสำคัญต่ำ)
 
