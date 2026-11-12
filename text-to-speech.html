@@ -186,6 +186,24 @@
         <button class="btn sm" id="asrCopyBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-copy"/></svg><span data-i18n="tts.copy">คัดลอกข้อความ</span></button>
         <button class="btn primary sm" id="meetingSumBtn" type="button"><svg class="ome-icon"><use href="icons.svg#i-sparkles"/></svg><span data-i18n="tts.sumMeeting">สรุปประชุมด้วย AI</span></button>
       </div>
+      <div class="frow">
+        <div class="field" id="lecSubjField" hidden><label for="lecSubject" data-i18n="lec.subject">วิชา</label><input class="input" id="lecSubject" maxlength="40" autocomplete="off"></div>
+        <button class="btn sm" id="lecBtn" type="button" hidden><svg class="ome-icon"><use href="icons.svg#i-notebook-pen"/></svg><span data-i18n="lec.make">ทำเป็นโน้ตเรียน</span></button>
+      </div>
+      <div class="status" id="lecStatus"></div>
+      <div id="lecWrap" hidden>
+        <div class="stack">
+          <div class="field"><label for="lecTitle" data-i18n="lec.title">ชื่อบทเรียน</label><input class="input" id="lecTitle" maxlength="120" autocomplete="off"></div>
+          <div class="field"><label for="lecSummary" data-i18n="lec.summary">สรุป</label><textarea class="textarea" id="lecSummary" rows="5"></textarea></div>
+          <div class="field"><label for="lecPoints" data-i18n="lec.points">ประเด็นสำคัญ (บรรทัดละข้อ)</label><textarea class="textarea" id="lecPoints" rows="5"></textarea></div>
+          <div class="sub-head" data-i18n="lec.cards">การ์ดทบทวน</div>
+          <div class="list plain" id="lecCards"></div>
+          <div class="frow">
+            <button class="btn primary sm" id="lecSave" type="button"><svg class="ome-icon"><use href="icons.svg#i-check"/></svg><span data-i18n="lec.save">บันทึกโน้ต</span></button>
+            <a class="btn sm" id="lecOpen" href="lecture.html" hidden data-i18n="lec.open">เปิดโน้ต</a>
+          </div>
+        </div>
+      </div>
       <div class="status" id="meetingSumStatus"></div>
       <div id="meetingSumWrap" style="display:none">
         <div class="stack">
@@ -235,6 +253,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="audio-gain.js"></script>
 <script src="tts-long.js"></script>
 <script src="tts-misread.js"></script>
+<script src="lecture-calc.js"></script>
+<script src="lecture-gen.js"></script>
 <script src="text-to-speech.js" defer></script>
 <dialog class="dialog dialog-form" id="mrDialog" aria-labelledby="mrDlgTitle">
   <form method="dialog" id="mrForm" novalidate>

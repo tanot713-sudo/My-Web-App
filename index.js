@@ -30,7 +30,7 @@
       'dot.done': 'ฝึกแล้ว', 'dot.rest': 'วันพัก', 'dot.miss': 'ขาด', 'dot.today': 'วันนี้ยังไม่ฝึก',
       cont: 'ต่อ', nextT: 'บทถัดไป: {t}', doneN: 'เรียนแล้ว {n} บท', readN: 'อ่านแล้ว {n} หัวข้อ', phrasesN: 'ฝึกแล้ว {n} วลี', xpN: 'XP {n}', openedAt: 'เปิดล่าสุด {when}',
       emptyLearn: 'ยังไม่ได้เริ่มเรียน', openLearn: 'เริ่มเรียน', allDone: 'ครบทุกบทแล้ว',
-      'src.law': 'กฎหมาย', 'src.lang': 'ภาษา', 'src.biz': 'ธุรกิจ', 'src.eng': 'วิศวกรรม', 'src.books': 'หนังสือ', 'src.music': 'ดนตรี', 'src.sports': 'กีฬา', 'src.cooking': 'ทำอาหาร',
+      'src.law': 'กฎหมาย', 'src.lang': 'ภาษา', 'src.biz': 'ธุรกิจ', 'src.eng': 'วิศวกรรม', 'src.books': 'หนังสือ', 'src.lecture': 'โน้ตจากเสียง', 'src.music': 'ดนตรี', 'src.sports': 'กีฬา', 'src.cooking': 'ทำอาหาร',
       'lang.lang-en': 'ภาษาอังกฤษ', 'lang.lang-jp': 'ภาษาญี่ปุ่น', 'lang.lang-cn': 'ภาษาจีนกลาง', 'lang.lang-yue': 'ภาษาจีนกวางตุ้ง', 'lang.lang-kr': 'ภาษาเกาหลี', 'lang.lang-de': 'ภาษาเยอรมัน',
       'lang.lang-in': 'ภาษาฮินดี', 'lang.lang-fr': 'ภาษาฝรั่งเศส', 'lang.lang-it': 'ภาษาอิตาลี', 'lang.lang-mm': 'ภาษาพม่า', 'lang.lang-kh': 'ภาษาเขมร', 'lang.lang-la': 'ภาษาลาว',
       'lang.lang-vn': 'ภาษาเวียดนาม', 'lang.lang-my': 'ภาษามลายู', 'lang.lang-ar': 'ภาษาอาหรับ', 'lang.lang-es': 'ภาษาสเปน', 'lang.lang-pt': 'ภาษาโปรตุเกส', 'lang.lang-ru': 'ภาษารัสเซีย',
@@ -63,7 +63,7 @@
       'dot.done': 'Practised', 'dot.rest': 'Rest day', 'dot.miss': 'Missed', 'dot.today': 'Not practised yet today',
       cont: 'Continue', nextT: 'Next: {t}', doneN: '{n} lessons done', readN: '{n} topics read', phrasesN: '{n} phrases practised', xpN: '{n} XP', openedAt: 'Opened {when}',
       emptyLearn: 'Nothing started yet', openLearn: 'Start learning', allDone: 'All lessons done',
-      'src.law': 'Law', 'src.lang': 'Languages', 'src.biz': 'Business', 'src.eng': 'Engineering', 'src.books': 'Books', 'src.music': 'Music', 'src.sports': 'Sports', 'src.cooking': 'Cooking',
+      'src.law': 'Law', 'src.lang': 'Languages', 'src.biz': 'Business', 'src.eng': 'Engineering', 'src.books': 'Books', 'src.lecture': 'Lecture notes', 'src.music': 'Music', 'src.sports': 'Sports', 'src.cooking': 'Cooking',
       'lang.lang-en': 'English', 'lang.lang-jp': 'Japanese', 'lang.lang-cn': 'Mandarin Chinese', 'lang.lang-yue': 'Cantonese', 'lang.lang-kr': 'Korean', 'lang.lang-de': 'German',
       'lang.lang-in': 'Hindi', 'lang.lang-fr': 'French', 'lang.lang-it': 'Italian', 'lang.lang-mm': 'Burmese', 'lang.lang-kh': 'Khmer', 'lang.lang-la': 'Lao',
       'lang.lang-vn': 'Vietnamese', 'lang.lang-my': 'Malay', 'lang.lang-ar': 'Arabic', 'lang.lang-es': 'Spanish', 'lang.lang-pt': 'Portuguese', 'lang.lang-ru': 'Russian',
@@ -300,7 +300,7 @@
   function renderLearn() {
     var el = $('learnBody');
     if (!LC) return;
-    var sum = LC.summary(), counts = studyCounts || { lang: 0, law: 0, biz: 0, eng: 0, books: 0 };
+    var sum = LC.summary(), counts = studyCounts || { lang: 0, law: 0, biz: 0, eng: 0, books: 0, lecture: 0 };
     var total = 0;
     Object.keys(counts).forEach(function (k) { total += counts[k]; });
     var st = sum.streak, st2 = studyRows(sum);
@@ -404,7 +404,7 @@
   function collectTodos(ctx) {
     var out = [], now = new Date(), nowMs = now.getTime(), mk = now.getFullYear() + '-' + pad2(now.getMonth() + 1);
     // การ์ดถึงรอบ แยกตามวิชา
-    HM.reviewTodos(ctx.counts, ['lang', 'law', 'biz', 'eng', 'books']).forEach(function (r) {
+    HM.reviewTodos(ctx.counts, ['lang', 'law', 'biz', 'eng', 'books', 'lecture']).forEach(function (r) {
       out.push({ kind: 'review', urgency: r.urgency, sort: r.sort, pill: T('pill.review'), title: T('todo.review', { src: T('src.' + r.src), n: num(r.n) }), meta: T('todo.minutes', { m: num(r.minutes) }),
         act: { href: 'review.html#' + r.src, label: T('act.review') } });
     });
@@ -542,7 +542,7 @@
     renderMore();
     applyLayout();
     Promise.all([rdIdb('tanot-barprep', 'notes'), readPm()]).catch(function () { return [[], null]; }).then(function (r) {
-      var counts = LC ? LC.dueCounts(r[0] || []) : { lang: 0, law: 0, biz: 0, eng: 0, books: 0 }, n = 0;
+      var counts = LC ? LC.dueCounts(r[0] || []) : { lang: 0, law: 0, biz: 0, eng: 0, books: 0, lecture: 0 }, n = 0;
       studyCounts = counts;
       Object.keys(counts).forEach(function (k) { n += counts[k]; });
       $('qaReviewN').textContent = num(n);

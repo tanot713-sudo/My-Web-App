@@ -39,7 +39,8 @@
     cooking: { area: 'hobby', label: 'ทำอาหาร',   href: 'cooking.html',               icon: 'chef-hat' },
     coding:  { area: 'hobby', label: 'เขียนโค้ด',  href: 'coding.html',                icon: 'code' },
     typing:  { area: 'hobby', label: 'พิมพ์ดีด',   href: 'typing.html',                icon: 'keyboard' },
-    books:   { area: 'edu',   label: 'หนังสือ',   href: 'books.html',                 icon: 'book-open' }
+    books:   { area: 'edu',   label: 'หนังสือ',   href: 'books.html',                 icon: 'book-open' },
+    lecture: { area: 'edu',   label: 'โน้ตจากเสียง', href: 'lecture.html',            icon: 'notebook-pen' }
   };
   var SRC_ORDER = Object.keys(SOURCES);
 
@@ -329,7 +330,8 @@
       lang: countDue(read('lang-practice:srs', {}), 'dueAt', now),
       biz: countDue(read('lbe:business:srs', {}), 'due', now),
       eng: countDue(read('lbe:engineering:srs', {}), 'due', now),
-      books: countDueList(list('tanot:books:cards'), 'dueAt', now)
+      books: countDueList(list('tanot:books:cards'), 'dueAt', now),
+      lecture: countDueList(list('tanot:lecture:cards'), 'dueAt', now)
     };
   }
   function lawNotes() {

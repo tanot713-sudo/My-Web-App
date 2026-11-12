@@ -80,7 +80,7 @@ function describe_calc() {
     });
 
     test('learn-core: เพิ่มแหล่ง books ต่อท้าย (area edu) · แถว legacy เก่าที่ไม่มีคีย์ books = 0 และยอดเดิมไม่เปลี่ยน', () => {
-      expect(LCORE.SRC_ORDER[LCORE.SRC_ORDER.length - 1]).toBe('books');
+      expect(LCORE.SRC_ORDER.slice(-2)).toEqual(['books', 'lecture']); // lecture (โน้ตจากเสียง) ต่อท้ายหนังสืออีกที
       expect(LCORE.SRC_ORDER.slice(0, 9)).toEqual(['law', 'lang', 'biz', 'eng', 'music', 'sports', 'cooking', 'coding', 'typing']);
       expect(LCORE.SOURCES.books).toMatchObject({ area: 'edu', href: 'books.html' });
       const old = { id: 'legacy|d1', xp: { law: 0, lang: 500, biz: 300, eng: 0, music: 120, sports: 40, cooking: 0, coding: 60, typing: 0 }, streak: {} };
