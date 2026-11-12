@@ -71,7 +71,7 @@ def load(selftest=True):
         import glob
         fonts = glob.glob("/usr/share/fonts/**/*Thai*.ttf", recursive=True) + glob.glob("/usr/share/fonts/**/Loma*.ttf", recursive=True)
         im = Image.new("RGB", (900, 260), "white"); dr = ImageDraw.Draw(im)
-        f = ImageFont.truetype(fonts[0], 44) if fonts else ImageFont.load_default()
+        f = ImageFont.truetype(fonts[0], 44) if fonts else ImageFont.load_default(size=44)
         dr.text((40, 40), "Tanot OCR test 12345" + ("  ทดสอบการอ่านภาษาไทย" if fonts else ""), fill="black", font=f)
         md = r.ocr(im, tables=False)[0]
         print(f"ภาพทดสอบ → {md.strip()[:200]!r}")
