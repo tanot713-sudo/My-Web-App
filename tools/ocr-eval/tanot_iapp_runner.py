@@ -56,6 +56,8 @@ def load(selftest=True):
     """โหลดตามตัวช่วยของ repo โมเดล แล้ว "อ่านภาพทดสอบ 1 ภาพจริง" ก่อนบอกว่าสำเร็จ (ไม่ใช่แค่โหลดน้ำหนักได้)"""
     install()
     import torch
+    if not torch.cuda.is_available():
+        raise RuntimeError("ไม่พบ GPU — Runtime → Change runtime type → T4 GPU → Save แล้วรันใหม่ (รันไทม์ปัจจุบันเป็น CPU)")
     from huggingface_hub import snapshot_download
     d = snapshot_download(MODEL, revision=REVISION)   # มี postprocessing.py, latex2html.py, nemotron_parse/**
     if d not in sys.path: sys.path.insert(0, d)
