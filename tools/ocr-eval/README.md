@@ -6,6 +6,8 @@
 |---|---|---|
 | `tanot_ocr_draft.py` (สคริปต์ 10) | ร่างเฉลยด้วย Typhoon OCR 1.5 → `<ชื่อ>.ร่าง.txt` ให้เจ้าของแก้แล้วบันทึกเป็น `<ชื่อ>.txt` | GPU L4 |
 | `tanot_ocr_eval.py` (สคริปต์ 11) | วัด CER: Tesseract ของเว็บจริง, PaddleOCR (th_PP-OCRv5_mobile_rec ± UVDoc), Typhoon, Claude (`/api/ocr`, ต้องมี Secret `OCR_PIN` + `TANOT_COOKIE`) → `report-OCR.txt` | GPU L4 |
+| `tanot_ocr_iapp.py` (สคริปต์ 12) | อ่านรูป/PDF ทั้งโฟลเดอร์ `_OCR-iApp/เข้า/` ด้วย iApp OpenThai2.0-OCR-Markdown → `ออก/<ชื่อไฟล์>.md` + `.xlsx` (ตาราง 1 ตาราง = 1 ชีต) · `PROBE_ONLY=True` ก่อน · **ยังไม่ได้รันจริง** | GPU T4 |
+| `tanot_iapp_runner.py` | ตัวรันกลางของ iApp (ล็อก commit โมเดล `REVISION`, ติดตั้งไลบรารีตามที่โมเดลกำหนด) ใช้โดย 2 สคริปต์ข้างบนและ engine `iapp` ของ `tanot_ocr_eval.py` | — |
 
 ผลล่าสุด (2026-10, 20 ภาพ, CER รวม): PaddleOCR + คลี่หน้า 20.4% · PaddleOCR ไม่คลี่ 42.9% · Tesseract 45.5% (โหมดแม่นยำ tessdata_best 45.5% — เอาออกแล้ว #80)
 · ตัวเลข Typhoon สูงเกินจริงเพราะเฉลยแก้จากร่างของ Typhoon · บทเรียน: ใน Python ถ้าระบุชื่อตัวหาบรรทัดของ PaddleOCR เอง ต้องระบุ
