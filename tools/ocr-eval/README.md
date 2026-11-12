@@ -9,6 +9,8 @@
 | `tanot_ocr_iapp.py` (สคริปต์ 12) | อ่านรูป/PDF ทั้งโฟลเดอร์ `_OCR-iApp/เข้า/` ด้วย iApp OpenThai2.0-OCR-Markdown → `ออก/<ชื่อไฟล์>.md` + `.xlsx` (ตาราง 1 ตาราง = 1 ชีต) · `PROBE_ONLY=True` ก่อน · **ยังไม่ได้รันจริง** | GPU T4 |
 | `tanot_iapp_runner.py` | ตัวรันกลางของ iApp (ล็อก commit โมเดล `REVISION`, ติดตั้งไลบรารีตามที่โมเดลกำหนด) ใช้โดย 2 สคริปต์ข้างบนและ engine `iapp` ของ `tanot_ocr_eval.py` | — |
 
-ผลล่าสุด (2026-10, 20 ภาพ, CER รวม): PaddleOCR + คลี่หน้า 20.4% · PaddleOCR ไม่คลี่ 42.9% · Tesseract 45.5% (โหมดแม่นยำ tessdata_best 45.5% — เอาออกแล้ว #80)
+ผลล่าสุด (2026-11-12): iApp OpenThai2.0-OCR-Markdown (T4, ภาพย่ออัตโนมัติเมื่อ GPU เต็ม) CER รวม 13.8% — ถ่าย 11.8 · ใบเสร็จ 7.2 · ลายมือ 6.6 · สแกน 15.9 · จอ 22.7 · VRAM สูงสุด 11.3 GiB · เทียบตัวอื่นด้านล่าง
+
+ผลก่อนหน้า (2026-10, 20 ภาพ, CER รวม): PaddleOCR + คลี่หน้า 20.4% · PaddleOCR ไม่คลี่ 42.9% · Tesseract 45.5% (โหมดแม่นยำ tessdata_best 45.5% — เอาออกแล้ว #80)
 · ตัวเลข Typhoon สูงเกินจริงเพราะเฉลยแก้จากร่างของ Typhoon · บทเรียน: ใน Python ถ้าระบุชื่อตัวหาบรรทัดของ PaddleOCR เอง ต้องระบุ
 `text_recognition_model_name="th_PP-OCRv5_mobile_rec"` ด้วย ไม่งั้น `lang="th"` ถูกเมิน · ภาพเต็ม 12 MP + ตัวหาบรรทัดรุ่น server บน CPU = แรมหมด (ใช้ภาพ 2000px + mobile_det)
