@@ -32,6 +32,7 @@ IN, OUT = pathlib.Path(DRIVE_DIR) / "เข้า", pathlib.Path(DRIVE_DIR) / "�
 IN.mkdir(parents=True, exist_ok=True); OUT.mkdir(parents=True, exist_ok=True)
 files = sorted(p for p in IN.iterdir() if p.is_file() and re.search(r"\.(jpe?g|png|heic|heif|webp|bmp|tiff?|pdf)$", p.name, re.I))
 if not files: raise SystemExit(f"❌ ไม่มีไฟล์ใน {IN}")
+print(f"พบในโฟลเดอร์ เข้า: {sorted(x.name for x in IN.iterdir())} → ประมวลผลได้ {len(files)} ไฟล์ (รูป/PDF เท่านั้น) · ถ้าไม่ครบ: รัน drive.mount('/content/drive', force_remount=True) แล้วรันใหม่")
 
 subprocess.run("pip -q install pillow-heif pymupdf openpyxl", shell=True)
 from PIL import Image, ImageOps
