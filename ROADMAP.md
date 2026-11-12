@@ -439,7 +439,45 @@
 - ข้อมูล: ทดสอบย้ายข้อมูลด้วยข้อมูลจำลอง; แก้ไขบนเครื่อง A แล้วต้องเห็นบนเครื่อง B (Playwright 2 context); ออฟไลน์ → คิวรอส่ง → กลับมาออนไลน์แล้วซิงก์ครบ
 - ทำงานบน branch `claude/web-app-ui-colors-99x34a` แล้ว push
 
-## โมเดล Claude + ระดับ effort ที่แนะนำต่อ phase (เน้นประหยัด token)
+## งานถัดไป — โมเดล / effort / skill ต่อ session (อัปเดต 2026-11-12)
+
+**ทุก session เริ่มที่ skill `tanot-session`** (อยู่ในบัญชี Claude ของเจ้าของ) — อ่านแถวของงานตัวเองในตารางนี้ + หัวข้อที่เกี่ยวใน CLAUDE.md + แหล่งข้อมูลในคอลัมน์ขวา แล้วโหลด skill ตามคอลัมน์ "skill" ก่อนลงมือ · จบงานตรวจตาม `tanot-pr-review` + `verification-before-completion` แล้วแก้สถานะแถวนั้นในตารางนี้ใน PR เดียวกัน · งานที่เครื่องหมาย 🔍 ให้เจ้าของส่งเลข PR กลับมาให้ session รีวิว (Fable 5.2, high, `ponytail-review` + `tanot-pr-review`) ก่อน merge
+
+โมเดลปัจจุบัน: Haiku 5.5 (ค้นไฟล์/งานซ้ำ) · Sonnet 5.5 (ค่าเริ่มต้น) · Opus 5.5 (ออกแบบ/สูตร/ความปลอดภัย) · Fable 5.2 (รีวิวงานเสี่ยงสูง ครั้งเดียวต่อ PR) — ตารางเก่าด้านล่างใช้ชื่อรุ่นก่อน (Sonnet 5 → Sonnet 5.5, Haiku 4.5 → Haiku 5.5, Fable 5.1 → Fable 5.2) หลักการเดิมยังใช้
+
+skill ที่ทุก session ใช้เสมอ (ไม่เขียนซ้ำในตาราง): `tanot-session`, `ponytail`, `verification-before-completion`, `tanot-pr-review`
+
+| # | งาน | สถานะ | โมเดล | effort | skill เพิ่ม | แหล่งข้อมูล |
+|---|---|---|---|---|---|---|
+| 0 | **เจ้าของทำเอง** (ไม่ใช้ session): ข้อ 9 ใน "สิ่งที่เจ้าของต้องทำเอง" (`OCR_PIN` + `0003_ocr_pin.sql`) · `node tools/media-eval/check-models.mjs` (+ `--paddle --pin`) · วัด `tts:wasm-60,tts:wasm-100,tts:webgpu-100` · ลองถอดเสียง Thonburian 2 รุ่นบน WASM/WebGPU · วัด `ocr:paddle` vs `ocr:tesseract` บนเว็บจริง | ⏳ | — | — | — | `tools/media-eval/README.md` |
+| 1 | **จัด ROADMAP ให้ตรงของจริง**: เพิ่มงานที่ทำแล้วแต่ไม่มีในไฟล์นี้ (ไลบรารี *Craft งาน A–C, PaddleOCR ทดลอง, เสียง Jori/Riko, `/api/hf/`, บันทึกคำอ่านผิด, แก้ภาพ/ลบพื้นหลัง) · แก้ "PR รอตรวจ" ที่ merge แล้ว · ย่อส่วนที่ปิดแล้วให้เหลือบรรทัดเดียว (รายละเอียดอยู่ CLAUDE.md) · ตรวจว่าแถว "doc-check: OCR ไฟล์ PDF สแกน" ทำไปแล้วหรือยัง | ยังไม่ทำ | Sonnet 5.5 | medium | `writing-for-agents` | CLAUDE.md, `git log`, รายการ PR |
+| 2 | **PaddleOCR → ค่าเริ่มต้น?** ล็อก revision (`MODELS[].revision`) + bump `CACHE` แล้วตัดสินจากผลวัดข้อ 0 (เกณฑ์: CER ดีกว่า Tesseract ชัดเจนและเวลาบน iPhone รับได้) | รอข้อ 0 | Sonnet 5.5 | medium | `transformers-js`, `tanot-design` (ถ้าแตะหน้า) | CLAUDE.md "อ่านแบบใหม่ (ทดลอง)" |
+| 3 | **OCR ไทยของ iApp (OpenThai 2.0 OCR Text / Markdown)** — ดูหัวข้อ "ตัวเลือก OCR ไทยจาก iApp" ด้านล่าง · ขั้น 3a วัดก่อน (Colab ของเจ้าของ 20 ภาพเดิม) · ขั้น 3b ออกแบบทางที่เลือก · ขั้น 3c ลงมือ 🔍 | ยังไม่เริ่ม (รอเจ้าของตอบ 3 ข้อ) | 3a Sonnet 5.5 · 3b Opus 5.5 · 3c Sonnet 5.5 | 3a medium · 3b high · 3c medium | `transformers-js`, `security-and-hardening`, `workers-best-practices`, `test-driven-development`, `tanot-design` | ลิงก์ในหัวข้อด้านล่าง, CLAUDE.md "OCR / Claude Vision" |
+| 4 | **เสียงบรรยาย → โน้ต** (P1, M): ข้อความถอดเสียง → สรุปด้วย AI (`/api/ai/summarize`) → โน้ตวิศวกรรม + การ์ดทบทวน (FSRS) | ยังไม่ทำ | Sonnet 5.5 | high | `tanot-design`, `test-driven-development`, `break-ui` | CLAUDE.md "Cloud AI", "Learning system", "ถอดเสียง Section 3" |
+| 5 | **CAD ข้อเล็ก** 2.1 ขนาดจริงตอนลาก · 2.2 grid snap 3 มิติ · 2.4 Backspace ลบจุด | ยังไม่ทำ | Sonnet 5.5 | medium | `tanot-design`, `systematic-debugging` | `CAD_ROADMAP.md` ข้อ 2 |
+| 6 | **CAD 2.5 fillet/chamfer** (L) 🔍 | ยังไม่ทำ | Opus 5.5 | xhigh | `test-driven-development`, `tanot-design` | `CAD_ROADMAP.md` 2.5 |
+| 7 | **report-dashboard**: เปลี่ยนชื่อไฟล์ `final43/62`, โหลดโมดูลเมื่อใช้ (M) | ยังไม่ทำ | Sonnet 5.5 | high | `performance`, `tanot-design`, `systematic-debugging` | CLAUDE.md "Report dashboard" |
+| 8 | **ซ่อนตัวนับ XP/streak เดิม** ในแต่ละหน้าเรียน (Phase 5 ที่ค้าง) | ยังไม่ทำ | Sonnet 5.5 | medium | `tanot-design`, `react-best-practices` (หน้า React) | CLAUDE.md "Learning system" |
+| 9 | **วิชากฎหมายเพิ่ม** (L ต่อเนื่อง — จากเอกสารของเจ้าของ) | ทำเมื่อเจ้าของส่งเอกสาร | Opus 5.5 | high | `tanot-design` | `internal-notes/` |
+| 10 | **ตั้งภาพจาก image-gen เป็นพื้นหลังรายหน้า** | ยังไม่ทำ | Sonnet 5.5 | medium | `tanot-design`, `accessibility` (contrast) | CLAUDE.md "Per-page background images" |
+| 11 | **แอป *Craft ตัวถัดไปแบบโปรแกรมเต็ม** (แม่แบบ `pdf-pro.html`) — เฉพาะเมื่อเจ้าของสั่ง | รอเจ้าของสั่ง | Sonnet 5.5 | high | `tanot-design`, `performance` | CLAUDE.md "ไลบรารี wasm ตระกูล *Craft" |
+| 12 | **Lamport clock ใน `tanot-data.js`** — ทำเมื่อเจออาการจริงเท่านั้น 🔍 | พักไว้ | Opus 5.5 | xhigh | `test-driven-development`, `systematic-debugging` | PR #33, CLAUDE.md "Data layer / sync" |
+| 13 | เกมฝึกทักษะ / เกมแข่งรถ / RPG / วิดีโอ / 3D / จำลองคน | พักไว้ | ออกแบบ Opus 5.5 high → ลงมือ Sonnet 5.5 medium | — | `grilling` (ตอนออกแบบ), `tanot-design` | หัวข้อ "ทำทีหลัง" |
+
+ลำดับที่เสนอ: 0 (เจ้าของ) ∥ 1 → 2 → 3a → 4 → 5 → 3b/3c (ถ้าผลวัดคุ้ม) → 7 → 8 → 10 → 6 · งาน 9/11/12/13 ตามที่เจ้าของสั่ง
+
+### ตัวเลือก OCR ไทยจาก iApp (ค้นข้อมูล 2026-11-12 — ยังไม่ได้ทดลองเอง)
+ข้อมูลจากหน้าของ iApp ผ่านผลค้นเว็บ (sandbox เปิด huggingface.co / iapp.co.th ตรงไม่ได้ — **ต้องเปิด model card ยืนยันก่อนลงมือ**) ตัวเลข benchmark เป็นของผู้ผลิตเอง
+- **OpenThai 2.0 OCR Markdown** (`iapp/OpenThai2.0-OCR-Markdown`): 0.63B พารามิเตอร์ ต่อยอดจาก NVIDIA Nemotron 3.5 Parse · อ่านหน้าเอกสารไทย/อังกฤษเป็น Markdown ตารางเป็น HTML · license OpenMDW-1.1 (permissive ของ Linux Foundation; OSI ยังไม่รับรอง ณ ส.ค. 2026) · iApp รายงานความถูกต้องระดับตัวอักษร 96.7% บนราชกิจจานุเบกษา 339 หน้า (Typhoon OCR V2 2B = 94.6%) และ 93.6 บนเอกสารราชการ/มหาวิทยาลัยที่มีตาราง 65 หน้า
+- **OpenThai 2.0 OCR Text** (`iapp/OpenThai2.0-OCR-Text`): รุ่นข้อความล้วนคู่กัน — **ยังไม่ได้รายละเอียด (ขนาด/license/ผลวัด) ต้องเปิด model card**
+- **API ของ iApp** (`iapp.co.th/docs/ocr/document-markdown`, `…/docs/ocr/document`): ข้อความล้วน 0.049 IC/หน้า (≈ 0.05–0.06 บาท), layout/Word/Excel/PDF ค้นได้ 0.15 IC/หน้า · จ่ายเป็นเครดิต · ยังไม่ได้ยืนยันราคา endpoint Markdown, ขีดจำกัดไฟล์ และนโยบายเก็บข้อมูล
+- อย่าสับสนกับ OpenThai 2.0 ตัวหลัก (27B, Apache-2.0) ที่ต้อง GPU 24–80 GB — ไม่เกี่ยวกับเว็บนี้
+- **ข้อเท็จจริงที่กระทบเว็บ**: (1) ภาพที่เว็บอ่านส่วนใหญ่เป็น**ภาพถ่าย**ใบเสร็จ/เอกสาร — ผลของ iApp วัดกับหน้าสแกนสะอาด จึงต้องวัดกับ 20 ภาพจริงของเจ้าของก่อน (PaddleOCR + คลี่หน้า = CER 20.4%, Tesseract 45.5%) (2) โมเดล 0.63B ไม่มี ONNX ทางการ — รันในเบราว์เซอร์ต้องแปลงเอง ไฟล์น่าจะหลายร้อย MB ใช้ได้อย่างมากบนคอมที่มี WebGPU ไม่ใช่ iPhone (3) ใช้ผ่าน API = รูปออกจากเครื่องไปบริษัทไทยและเสียเงินต่อหน้า → ตามกฎเดิมต้องเป็นปุ่มที่ผู้ใช้กดเอง ค่าเริ่มต้นฟรีเสมอ คีย์เป็น Secret (`IAPP_API_KEY`) (4) ผล Markdown/ตารางเป็นของใหม่ที่ทั้ง Tesseract/Paddle ทำไม่ได้ — มีประโยชน์กับ extract-text → Word/Excel
+- **ทางเลือกหลังวัด**: ก) ปุ่ม "อ่านด้วย iApp" คู่กับ Claude Vision ผ่าน Pages Function (ถูกกว่า Claude มาก, ได้ตาราง) · ข) รันโมเดลเองบน Colab/เครื่องเจ้าของสำหรับงานเป็นชุด (ไม่แตะเว็บ) · ค) แปลง ONNX รันในเบราว์เซอร์บนคอม (งานใหญ่ เสี่ยงไม่สำเร็จ) · ง) ไม่ทำ ถ้าไม่ชนะ PaddleOCR บนภาพถ่าย
+- **คำถามถึงเจ้าของก่อนเริ่ม 3b**: ยอมให้รูปเอกสารส่งไป iApp ไหม · ยอมจ่ายต่อหน้าไหม · ต้องการผลเป็นตาราง/Markdown หรือข้อความล้วนพอ
+- แหล่งข้อมูล: https://huggingface.co/iapp/OpenThai2.0-OCR-Markdown · https://huggingface.co/iapp/OpenThai2.0-OCR-Text · https://iapp.co.th/docs/ocr/document-markdown · https://iapp.co.th/blog/openthai2p0-ocr-how-to-run · https://iapp.co.th/en/docs/ocr/document · https://iapp.co.th/en/pricing · https://github.com/OpenMDW/openmdw · https://huggingface.co/typhoon-ai/typhoon-ocr2-2b (คู่เทียบ)
+
+## โมเดล Claude + ระดับ effort ที่แนะนำต่อ phase — ตารางเดิมของงานที่ปิดแล้ว (เน้นประหยัด token)
 ราคาต่อ 1M token (input/output): Haiku 4.5 $1/$5 · Sonnet 5 $2/$10 · Opus 5.5 $4/$20 · Fable 5.1 $10/$50 (เก่งที่สุด แพงสุด)
 ระดับ effort: low → medium → high → xhigh → max (ยิ่งสูงยิ่งคิดนาน ใช้ token มากขึ้น)
 
