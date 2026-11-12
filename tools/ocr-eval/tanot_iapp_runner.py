@@ -3,9 +3,9 @@
 # สถานะ: ยังไม่ได้รันจริง (ไม่มี GPU ตอนเขียน) — วิธีเรียกโมเดลมาจากโค้ดใน repo โมเดลที่ REVISION ด้านล่าง
 #   (config.json auto_map มีแค่ AutoModel/AutoProcessor, model_type nemotron_parse · ตัวช่วย nemotron_parse/inference.py:
 #    DocumentParser + TransformersBackend ใส่ prompt "</s><s><predict_bbox><predict_classes><output_markdown><predict_text_in_pic>",
-#    add_special_tokens=False, repetition_penalty 1.1, max_new_tokens 8744 ให้เอง · postprocessing.py แปลง LaTeX ของตารางเป็น HTML/CSV)
+#    add_special_tokens=False ให้เอง · ค่า generate = GenerationSettings เริ่มต้นใน nemotron_parse/inference.py: temperature 0.2 (สุ่ม seed 0), repetition_penalty 1.05, max_tokens 8744 — คงค่านี้ไว้ (ทางที่ model card ทดสอบแล้ว) · postprocessing.py แปลง LaTeX ของตารางเป็น HTML/CSV)
 # trust_remote_code รันโค้ดจาก repo โมเดลในเครื่องที่ mount Drive → ล็อก commit ด้วย REVISION (เปลี่ยนเลข = ตรวจโค้ดใหม่ก่อน)
-import csv, io, pathlib, subprocess, sys
+import csv, io, re, subprocess, sys
 
 MODEL = "iapp/OpenThai2.0-OCR-Markdown"
 REVISION = "7a153712e5b50fac7e4a9d42ccf9ec41fb4202f0"
@@ -29,17 +29,24 @@ class Runner:
     def __init__(self, parser, torch, GenerationError):
         self.parser, self.torch, self.GenerationError = parser, torch, GenerationError
 
-    def ocr(self, img):
-        """PIL.Image → (markdown, tables) · tables = list ของตาราง (แต่ละตาราง = list ของแถว = list ของข้อความ, ขยายช่องที่ merge แล้ว)
+    def ocr(self, img, tables=True):
+        """PIL.Image → (markdown, tables, warnings) · tables = list ของตาราง (list ของแถว = list ของข้อความ ขยายช่องที่ merge แล้ว)
+        tables=False = ข้ามการแปลงตาราง (ใช้ตอนวัด CER) · ตารางที่แปลงไม่ได้ (span ผิด / ตัวช่วยคืน LaTeX เดิม) = ข้าม + เพิ่มคำเตือน ไม่ทำให้ทั้งหน้าล้ม
         หน้าถูกตัด/สร้างไม่ได้ = raise GenerationError (ผู้เรียกต้องนับว่าล้ม ห้ามเขียนผลครึ่งๆ)"""
-        from postprocessing import postprocess_text
         doc = self.parser.parse(img, mode="single")
-        tables = []
-        for b in doc.get("blocks", []):
-            if b.get("class") == "Table":
-                csv_text = postprocess_text(b["text"], cls="Table", table_format="csv")
-                tables.append([row for row in csv.reader(io.StringIO(csv_text))])
-        return doc["markdown"], tables
+        out, warns = [], []
+        if tables:
+            from postprocessing import postprocess_text
+            for i, b in enumerate(x for x in doc.get("blocks", []) if x.get("class") == "Table"):
+                try:
+                    csv_text = postprocess_text(b["text"], cls="Table", table_format="csv")
+                    if "\\begin{tabular}" in csv_text or "\\begin{tabular}" in (b.get("content") or ""):
+                        raise ValueError("ตัวช่วยคืน LaTeX เดิม (แปลงตารางไม่ได้)")
+                    rows = [row for row in csv.reader(io.StringIO(csv_text))]
+                    if rows and all(re.fullmatch(r"column_\d+", c) for c in rows[0]): rows = rows[1:]   # แถวหัวปลอมที่ตัวช่วยเติมเมื่อตารางไม่มีหัว
+                    out.append(rows)
+                except Exception as e: warns.append(f"ตาราง {i + 1}: {type(e).__name__}: {str(e)[:120]}")
+        return doc["markdown"], out, warns
 
 def peak_vram():
     import torch
@@ -66,7 +73,7 @@ def load(selftest=True):
         im = Image.new("RGB", (900, 260), "white"); dr = ImageDraw.Draw(im)
         f = ImageFont.truetype(fonts[0], 44) if fonts else ImageFont.load_default()
         dr.text((40, 40), "Tanot OCR test 12345" + ("  ทดสอบการอ่านภาษาไทย" if fonts else ""), fill="black", font=f)
-        md, _ = r.ocr(im)
+        md = r.ocr(im, tables=False)[0]
         print(f"ภาพทดสอบ → {md.strip()[:200]!r}")
         if "12345" not in md: raise RuntimeError("อ่านภาพทดสอบไม่ได้ (ไม่พบ '12345' ในผล) — โหลดผ่านแต่ผลใช้ไม่ได้ ส่งข้อความด้านบนกลับมาให้แก้")
         print("✅ โมเดลอ่านภาพทดสอบได้")

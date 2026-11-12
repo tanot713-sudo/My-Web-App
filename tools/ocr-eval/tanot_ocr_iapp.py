@@ -1,6 +1,12 @@
 # Tanot — สคริปต์ 12: OCR ไทยด้วย iapp/OpenThai2.0-OCR-Markdown บน Colab → ไฟล์ .md + ตารางเป็น .xlsx (แถว 3a ของแผน)
 #
-# เข้าใช้: Colab → รันไทม์ T4 GPU (ฟรี) → วางทั้งไฟล์ → Run · ครั้งแรกจะ "หยุดหลังพิมพ์ README ของโมเดล" ถ้า PROBE_ONLY = True
+# เข้าใช้: Colab → รันไทม์ T4 GPU (ฟรี) → วางทั้งไฟล์ → Run
+#   ขั้น 1: PROBE_ONLY = True → โหลดโมเดล + อ่านภาพทดสอบ 1 ภาพ + พิมพ์ VRAM แล้วหยุด (ไม่ประมวลผลไฟล์) — ผ่านแล้วค่อยขั้น 2
+#   ขั้น 2: ตั้ง PROBE_ONLY = False แล้วรันซ้ำ → อ่านทุกรูป/PDF ในโฟลเดอร์ "เข้า"
+# อินพุต : Drive "Tanot หนังสือเสียง/_OCR-iApp/เข้า/" (รูป .jpg .png .heic .webp … และ .pdf)
+# เอาต์พุต: "_OCR-iApp/ออก/<ชื่อไฟล์เต็ม>.md" + ".xlsx" เช่น a.jpg.md (1 ตารางในเอกสาร = 1 ชีต; ไม่มีตาราง = ชีต "ข้อความ") — ไฟล์ที่ทำเสร็จแล้วข้ามเมื่อรันซ้ำ ไฟล์ที่ล้มทำใหม่
+# ข้อมูลทั้งหมดอยู่ใน Drive ของเจ้าของ — ห้ามคัดลอกเอกสารจริง/ผลลัพธ์ลง repo · ไม่เรียก API ของ iApp (โมเดลรันในเครื่อง Colab)
+PROBE_ONLY = True
 REF = "main"     # branch/tag ของ repo ที่มี tools/ocr-eval/tanot_iapp_runner.py (ก่อน merge ให้ใส่ชื่อ branch)
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง/_OCR-iApp"
@@ -50,11 +56,12 @@ failed = []   # (ไฟล์, หน้า/สาเหตุ)
 for p in files:
     md_path = OUT / (p.name + ".md")
     if md_path.exists(): print("ข้าม", p.name); continue
-    t0, md_parts, sheets, multi = time.time(), [], [], p.suffix.lower() == ".pdf"
+    t0, md_parts, sheets, nwarn, multi = time.time(), [], [], 0, p.suffix.lower() == ".pdf"
     try:
         for n, im in pages_of(p):
-            try: md, tables = runner.ocr(im)
+            try: md, tables, warns = runner.ocr(im)
             except Exception as e: raise RuntimeError(f"หน้า {n}: {type(e).__name__}: {str(e)[:200]}")   # หน้าล้ม/ถูกตัด = ไม่เขียนผลของไฟล์นี้
+            nwarn += len(warns)
             md_parts.append((f"[[หน้า {n}]]\n" if multi else "") + md)
             sheets += [((f"หน้า{n}-" if multi else "") + f"ตาราง{i}", t) for i, t in enumerate(tables, 1)]
         wb = Workbook(); wb.remove(wb.active)
@@ -68,7 +75,7 @@ for p in files:
             for r, line in enumerate("\n\n".join(md_parts).splitlines(), 1): put(ws, r, 1, line)
         wb.save(OUT / (p.name + ".xlsx"))
         md_path.write_text("\n\n".join(md_parts), encoding="utf-8")   # .md เป็นขั้นสุดท้าย = ตัวบอกว่าไฟล์นี้เสร็จจริง
-        print(f"{p.name}: {time.time() - t0:.0f} วิ · ตาราง {len(sheets)}")
+        print(f"{p.name}: {time.time() - t0:.0f} วิ · ตาราง {len(sheets)}" + (f" · ⚠️ ตารางแปลงไม่ได้ {nwarn} (ต้นฉบับของตารางนั้นยังอยู่ใน .md)" if nwarn else ""))
     except Exception as e:
         failed.append((p.name, f"{type(e).__name__}: {str(e)[:200]}")); print(f"⚠️ {p.name} ล้ม — {failed[-1][1]} (จะทำใหม่ในรอบหน้า)")
 print(f"\nเสร็จ {len(files) - len(failed)}/{len(files)} ไฟล์ · ผลอยู่ที่ {OUT} · VRAM สูงสุด {R.peak_vram():.1f} GiB (ส่งตัวเลขนี้ + เวลาต่อหน้ากลับมาเพื่อยืนยันว่า T4 พอ)")

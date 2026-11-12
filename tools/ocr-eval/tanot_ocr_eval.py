@@ -107,9 +107,9 @@ def put(engine, key, text=None, sec=0.0, err=None):
 # ── 0b) iApp ต้องติดตั้ง transformers 5.x ก่อน import transformers ครั้งแรก (ไม่งั้นต้อง Restart session) ──
 if "iapp" in ENGINES and todo("iapp"):
     try:
-        import sys; _IR = W / "iapp_repo0"; shutil.rmtree(_IR, ignore_errors=True)
+        import sys, importlib; _IR = W / "iapp_repo"; shutil.rmtree(_IR, ignore_errors=True)   # clone ครั้งเดียว ใช้ทั้งขั้น 0b และ 1b
         run(f"git clone -q --depth 1 --branch {IAPP_REF} {REPO} '{_IR}'")
-        sys.path.insert(0, str(_IR / "tools" / "ocr-eval")); import tanot_iapp_runner as _I0; _I0.install()
+        sys.path.insert(0, str(_IR / "tools" / "ocr-eval")); import tanot_iapp_runner as IAPP; importlib.reload(IAPP); IAPP.install()
     except Exception as e: FAIL["iapp"] = str(e)[-600:]; ENGINES = [x for x in ENGINES if x != "iapp"]; print(f"⚠️ ข้าม iapp: {e}")
 
 # ── 1) Typhoon OCR 1.5 (GPU) ──
@@ -138,16 +138,11 @@ if "typhoon" in ENGINES and todo("typhoon"):
 # ── 1b) iApp OpenThai2.0-OCR-Markdown (GPU · ตัวรันกลางใน tanot_iapp_runner.py · ต้องติดตั้งก่อน import transformers ครั้งแรก) ──
 if "iapp" in ENGINES and todo("iapp"):
     try:
-        import sys, importlib
-        IR = W / "iapp_repo"
-        shutil.rmtree(IR, ignore_errors=True)   # clone ใหม่ทุกครั้ง กันได้ตัวรันเก่า
-        run(f"git clone -q --depth 1 --branch {IAPP_REF} {REPO} '{IR}'")
-        sys.path.insert(0, str(IR / "tools" / "ocr-eval")); import tanot_iapp_runner as IAPP; importlib.reload(IAPP)
         runner = IAPP.load()
         for key, cat, ref, full, small in todo("iapp"):
             t0 = time.time()
             try:
-                md, _tables = runner.ocr(Image.open(small).convert("RGB"))   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
+                md = runner.ocr(Image.open(small).convert("RGB"), tables=False)[0]   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
                 put("iapp", key, to_plain(md), time.time() - t0)
             except Exception as e: put("iapp", key, None, time.time() - t0, f"{type(e).__name__}: {e}")
         print(f"VRAM สูงสุดของ iapp {IAPP.peak_vram():.1f} GiB")
