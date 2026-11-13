@@ -21,6 +21,7 @@ TEST_IMAGES = ["ถ่าย 1", "ใบเสร็จ 1", "สแกน 1", "�
 BLOCK = 32
 STEP3 = True        # False = ข้ามขั้น [3] — รอบ 2026-11-13 ผ่านแล้ว: wrapper ≡ ต้นฉบับ fp32 (cosine 1.00000, ต่าง 0.0000)
 CHUNK_Q = 512       # >0 = ส่งออกอีกไฟล์ที่ attention แบ่ง query ทีละ CHUNK_Q (ขนาด N คงที่ = N ของภาพทดสอบแรก) กัน buffer ของคะแนน attention ใหญ่เกินบน WebGPU/iPhone · 0 = ไม่ทำ
+SPLIT_K = 3         # >0 = ส่งออกเพิ่มเป็น K ก้อนตามชั้น (model-q4-p0..pK-1.onnx, ราว 270/K MiB ต่อก้อน, N คงที่เหมือนไฟล์แบบแบ่ง query) ให้หน้าทดสอบสร้าง/รัน/ปล่อยทีละก้อน — ลดช่วงพีคตอนสร้าง session บน iPhone · 0 = ไม่ทำ
 REEXPORT = False    # False = ใช้ไฟล์ fp32 ที่ export ไว้แล้วในรันไทม์นี้ (/content/tanot_iapp_onnx/vit-fp32.onnx) ถ้ามี — รอบ 2026-11-13 export ผ่านและตรงกับ wrapper (ORT cosine 1.000000)
 REF = "main"     # branch/tag ของ repo ที่มี tools/ocr-eval/tanot_iapp_runner.py (ก่อน merge ให้ใส่ชื่อ branch)
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
@@ -91,6 +92,27 @@ class VitOnnx(torch.nn.Module):
         f = e.layer_norm2(f.reshape(1, -1, 4 * f.shape[-1]) @ self.w2.T)                # conv (1,4) stride (1,4) = matmul ของ 4 token ติดกัน
         s = e.layer_norm3(e.sum_proj(summary)).unsqueeze(1)
         return torch.cat((f, s), dim=1)
+def _embed(self, patches, pos):
+    x = self.pg.embedder(patches).unsqueeze(0) + pos
+    return torch.cat((self.pg.cls_token.token.unsqueeze(0), x), dim=1)
+def _blocks(self, hidden, a, b):
+    for block in self.vit.blocks[a:b]: hidden = block(hidden)
+    return hidden
+def _head(self, hidden):
+    e = self.enc
+    summary = hidden[:, self.radio.summary_idxs].flatten(1)
+    f = e.layer_norm1(e.conv1(hidden[:, 10:].transpose(1, 2)).transpose(1, 2))
+    f = e.layer_norm2(f.reshape(1, -1, 4 * f.shape[-1]) @ self.w2.T)
+    return torch.cat((f, e.layer_norm3(e.sum_proj(summary)).unsqueeze(1)), dim=1)
+VitOnnx.embed, VitOnnx.blocks_range, VitOnnx.head = _embed, _blocks, _head   # ใช้ส่งออกเป็นก้อน (SPLIT_K) — forward เดิมไม่เปลี่ยน
+class Piece(torch.nn.Module):
+    """ก้อนที่ i ของ ViT: (ก้อนแรกรับ patches+pos) → บล็อก a..b → (ก้อนสุดท้ายต่อ neck)"""
+    def __init__(self, w, a, b, first, last):
+        super().__init__(); self.w, self.a, self.b, self.first, self.last = w, a, b, first, last
+    def forward(self, *x):
+        h = self.w.embed(*x) if self.first else x[0]
+        h = self.w.blocks_range(h, self.a, self.b)
+        return self.w.head(h) if self.last else h
 wrap = VitOnnx(enc32).eval()
 
 def prep(im):
@@ -159,6 +181,7 @@ if not reused:   # ตรวจ ORT fp32 เทียบ wrapper เฉพาะ
 
 # ── 4b) attention แบบแบ่ง query (ขนาด N คงที่) ──
 CHUNK_FILE = None
+PIECE_FILES = []
 if CHUNK_Q:
     import types
     n1 = imgs[0][0]; pvc, hc, wc, chc, cwc = ref[n1]; Nc = pvc.shape[0]
@@ -181,6 +204,20 @@ if CHUNK_Q:
             CHUNK_FILE = W / f"vit-fp32-n{Nc}-q{CHUNK_Q}.onnx"
             for f in W.glob("vit-fp32-n*"): f.unlink()
             torch.onnx.export(HOLD["wrap"], (pvc.float(), posc), str(CHUNK_FILE), dynamo=False, input_names=["patches", "pos"], output_names=["features"], opset_version=17)
+            if SPLIT_K:
+                bounds = [round(len(blocks) * i / SPLIT_K) for i in range(SPLIT_K + 1)]
+                for f in W.glob("vit-fp32-p*"): f.unlink()
+                x_in = (pvc.float(), posc)
+                for i in range(SPLIT_K):
+                    pc = Piece(HOLD["wrap"], bounds[i], bounds[i + 1], i == 0, i == SPLIT_K - 1).eval()
+                    last = i == SPLIT_K - 1
+                    f = W / f"vit-fp32-p{i}.onnx"
+                    torch.onnx.export(pc, x_in, str(f), dynamo=False, input_names=["patches", "pos"] if i == 0 else ["hidden"],
+                                      output_names=["features"] if last else ["hidden"], opset_version=17)
+                    x_in = (pc(*x_in),)
+                    PIECE_FILES.append(f)
+                po = x_in[0].numpy()
+                say(f"  {SPLIT_K} ก้อน (บล็อก {bounds}) เทียบแบบเต็ม cosine {cos(co, po)[0]:.6f} / {cos(co, po)[1]:.6f} · ไฟล์ fp32 {[round(f.stat().st_size / 2 ** 20) for f in PIECE_FILES]} MiB")
     except Exception as e:
         say(f"  ❌ export แบบแบ่ง query ล้ม: {type(e).__name__}: {str(e)[:400]}"); CHUNK_FILE = None
     finally:
@@ -222,6 +259,14 @@ if CHUNK_FILE:
     qc = W / f"model-q4-n{Nc}-q{CHUNK_Q}.onnx"; quantize(CHUNK_FILE, qc)
     t0 = time.time(); oc = session(qc).run(None, {"patches": pvc.float().numpy(), "pos": positions(hc, wc, chc, cwc, Nc).numpy()})[0]
     ou = run_ort(s4, n1)
+    if PIECE_FILES:
+        qp = []
+        for i, f in enumerate(PIECE_FILES):
+            q = W / f"model-q4-p{i}.onnx"; quantize(f, q); qp.append(q)
+        x = {"patches": pvc.float().numpy(), "pos": positions(hc, wc, chc, cwc, Nc).numpy()}
+        for q in qp:
+            o = session(q).run(None, x); x = {"hidden": o[0]}
+        say(f"  {len(qp)} ก้อน 4-bit ต่อกันบน ORT CPU เทียบ 4-bit แบบเต็ม cosine {cos(ou, o[0])[0]:.6f} / {cos(ou, o[0])[1]:.6f} · ไฟล์ {[round(q.stat().st_size / 2 ** 20) for q in qp]} MiB")
     say(f"  {n1}: 4-bit แบบแบ่ง query เทียบ 4-bit แบบเต็ม cosine {cos(ou, oc)[0]:.6f} / {cos(ou, oc)[1]:.6f} · {qc.stat().st_size / 2**20:.0f} MiB · {time.time() - t0:.0f} วิ (CPU)")
 
 def save_outputs():   # เรียกทันทีหลังขั้น 5 และใน finally — ขั้น 6–8 ล้มก็ยังได้ไฟล์ 4-bit กับ report.txt
