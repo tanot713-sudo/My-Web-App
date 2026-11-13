@@ -140,10 +140,11 @@ if "typhoon" in ENGINES and todo("typhoon"):
     except Exception as e: FAIL["typhoon"] = str(e)[-600:]; print(f"⚠️ ข้าม typhoon: {e}")
 
 # ── 1b) iApp OpenThai2.0-OCR-Markdown (GPU · ตัวรันกลางใน tanot_iapp_runner.py · ต้องติดตั้งก่อน import transformers ครั้งแรก) ──
+IAPP_EARLY = (8, 45.0)   # ล้มเร็ว: วัดไปแล้ว ≥ 8 ภาพ และ CER สะสมเกิน 45% = หยุด engine นั้นทันที (ภาพที่เหลือไม่ถูกบันทึก → รันซ้ำจะทำต่อ) · ตั้งเป็น None = วัดครบทุกภาพ
 IAPP_ALIAS = {"q4vit": "vit4", "q4dec": "dec4+lm4", "q4both": "vit4+dec4+lm4"}   # ชื่อเดิมของด่าน 0b (q4dec/q4both บีบ lm_head ด้วย)
 def iapp_spec(name):   # "iapp" → ไม่ย่อ/ไม่บีบ/สุ่มตามค่าเริ่มต้น · "iapp-896-vit4+dec8" → (896, "vit4+dec8") greedy
     if name == "iapp": return None, None, False
-    m = re.fullmatch(r"iapp-(\d+)-(bf16|q4vit|q4dec|q4both|(?:(?:vit|dec|lm)[48])(?:\+(?:vit|dec|lm)[48])*)", name)
+    m = re.fullmatch(r"iapp-(\d+)-(bf16|q4vit|q4dec|q4both|(?:(?:vit|dec|lm)[2-8])(?:\+(?:vit|dec|lm)[2-8])*)", name)
     if not m: raise ValueError(f"ชื่อ engine ไม่ถูกต้อง: {name} (รูปแบบ iapp-<ด้านยาว>-<bf16|โทเค็นบีบ เช่น vit4+dec8+lm8>)")
     q = m.group(2)
     return int(m.group(1)), (None if q == "bf16" else IAPP_ALIAS.get(q, q)), True
@@ -155,7 +156,10 @@ for greedy in (False, True):   # โหลดโมเดลแยกตาม�
         for eng in group:
             cap, quant, _ = iapp_spec(eng)
             if greedy: print(f"{eng}: Linear ที่ถูกบีบ {runner.set_quant(quant) or 'ไม่มี (bf16 เดิม)'} · ด้านยาว ≤ {cap}", flush=True)   # set_quant(None) คืนน้ำหนักเดิมเสมอ กันค่าค้างจาก engine ก่อนหน้า
+            acc = [0, 0, 0]   # [ตัวอักษรผิดสะสม, ตัวอักษรเฉลยสะสม, ภาพที่วัดแล้ว]
             for key, cat, ref, full, small in todo(eng):
+                if greedy and IAPP_EARLY and acc[2] >= IAPP_EARLY[0] and acc[0] / max(1, acc[1]) * 100 > IAPP_EARLY[1]:
+                    FAIL[eng] = f"หยุดก่อน: CER สะสม {acc[0] / acc[1] * 100:.1f}% เกิน {IAPP_EARLY[1]}% หลัง {acc[2]} ภาพ (ภาพที่เหลือไม่ได้วัด)"; print("⛔ " + FAIL[eng], flush=True); break
                 t0 = time.time()
                 try:
                     im = Image.open(small).convert("RGB")   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
@@ -163,6 +167,8 @@ for greedy in (False, True):   # โหลดโมเดลแยกตาม�
                     meta = {"w": im.width, "h": im.height, "patches": -(-im.height // 16) * -(-im.width // 16)}   # คำนวณเอง ไม่ใช่ค่าจาก processor
                     md, _tables, _w = runner.ocr(im, tables=False)
                     put(eng, key, to_plain(md), time.time() - t0, meta=meta)
+                    ed, nn = cer_parts(ref, to_plain(md)); acc[0] += ed; acc[1] += nn; acc[2] += 1
+                    print(f"     CER สะสม {acc[0] / max(1, acc[1]) * 100:5.1f}% ({acc[2]} ภาพ)", flush=True)
                 except Exception as ex: put(eng, key, None, time.time() - t0, f"{type(ex).__name__}: {ex}")
             print(f"VRAM สูงสุดของ {eng} {IAPP.peak_vram():.1f} GiB", flush=True)
         del runner
@@ -299,7 +305,7 @@ if CL:
 
 # ── 5) รายงาน ──
 cats = list(dict.fromkeys(c for _, c, *_ in items))
-EW = max([18] + [len(x) for x in ENGINES])
+EW = max([18] + [len(x) + 1 for x in ENGINES])
 L = [f"Tanot · สคริปต์ 11 · OCR {len(items)} ภาพ · CER = อัตราตัวอักษรผิด (ยิ่งต่ำยิ่งดี; ไม่นับช่องว่าง/วรรคตอน · เกิน 100% ได้ถ้าอ่านเกิน/วนซ้ำ)", "",
      f"{'ตัว':<{EW}} {'รวม':>7} " + " ".join(f"{c:>8}" for c in cats) + f" {'วนซ้ำ':>6} {'ล้ม':>4} {'วิ/ภาพ':>7}"]
 per = {}
@@ -315,7 +321,8 @@ for eng in ENGINES:
         loops += looped(r["text"]); secs.append(r["sec"]); per.setdefault(key, {})[eng] = e / n
         f = OUTD / eng; f.mkdir(exist_ok=True); (f / f"{key}.txt").write_text(r["text"] or "", encoding="utf-8")
     pc = lambda a: f"{a[0] / a[1] * 100:6.1f}%" if a[1] else "      —"
-    L.append(f"{eng:<{EW}} {pc(tot):>7} " + " ".join(f"{pc(bycat[c]):>8}" for c in cats) + f" {loops:>6} {errs:>4} {sum(secs) / max(1, len(secs)):7.0f}")
+    ndone = sum(1 for k, *_ in items if d.get(k) and not d[k]["err"])
+    L.append(f"{eng + ('*' if ndone < len(items) else ''):<{EW}} {pc(tot):>7} " + " ".join(f"{pc(bycat[c]):>8}" for c in cats) + f" {loops:>6} {errs:>4} {sum(secs) / max(1, len(secs)):7.0f}")
 L += ["", "รายภาพ (CER):", f"{'ภาพ':<12} " + " ".join(f"{e:>{max(10, len(e))}}" for e in ENGINES if res.get(e))]
 for key, *_ in items:
     L.append(f"{key:<12} " + " ".join((f"{per[key][e] * 100:{max(10, len(e)) - 1}.1f}%" if e in per.get(key, {}) else f"{'—':>{max(10, len(e))}}") for e in ENGINES if res.get(e)))
@@ -323,6 +330,7 @@ pt = [(e, [r["meta"]["patches"] for r in res[e].values() if r.get("meta") and no
 pt = [(e, v) for e, v in pt if v]
 if pt: L += ["", "ขนาดภาพที่ส่งเข้าโมเดล (patch 16×16 = ceil(สูง/16)×ceil(กว้าง/16), คำนวณเอง ไม่ใช่ค่าจาก processor): เฉลี่ย / มากสุด"] + [f"  {e}: {sum(v) / len(v):.0f} / {max(v)}" for e, v in pt]
 errs = [(e, k, r["err"]) for e in ENGINES for k, r in res.get(e, {}).items() if r["err"]]
+if any(res.get(x) and sum(1 for k, *_ in items if res[x].get(k) and not res[x][k]["err"]) < len(items) for x in ENGINES): L += ["", "* = วัดไม่ครบทุกภาพ (หยุดก่อนเพราะ CER สูงเกินเส้นล้มเร็ว) CER ของแถวนั้นคิดเฉพาะภาพที่วัด เทียบกับแถวอื่นไม่ได้"]
 if FAIL: L += ["", "ตัวที่ไม่ได้รัน/ล้มทั้งตัว:"] + [f"  {e}: {m}" for e, m in FAIL.items()]
 if errs: L += ["", "ที่ล้ม:"] + [f"  {e} · {k}: {m[:200]}" for e, k, m in errs]
 L += ["", "หมายเหตุ: tesseract = หน้าเว็บจริง (เตรียมภาพ + Tesseract.js) · claude-* ส่งรูปย่อ 2000px แบบเว็บ · เฉลยส่วนใหญ่แก้จากร่าง Typhoon (ถ่าย 1 จาก Claude)",

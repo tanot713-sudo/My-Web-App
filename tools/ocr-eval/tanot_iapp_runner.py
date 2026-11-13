@@ -66,14 +66,14 @@ class Runner:
         return out
 
     def set_quant(self, spec, block=32, sym=False):
-        """spec: None (bf16 เดิม) หรือสตริงโทเค็นต่อด้วย + เช่น "vit4+dec8+lm4" (vit/dec/lm × 4 หรือ 8 บิต; ส่วนที่ไม่ใส่ = ไม่บีบ)
+        """spec: None (bf16 เดิม) หรือสตริงโทเค็นต่อด้วย + เช่น "vit4+dec8+lm4" (vit/dec/lm × 2–8 บิต — ช่วง 2–3 ไว้หาขีดจำกัดเท่านั้น ยังไม่ได้ตรวจว่า onnxruntime-web WebGPU รองรับกี่บิต; ส่วนที่ไม่ใส่ = ไม่บีบ)
         เรียกซ้ำได้ — คืนน้ำหนักเดิมก่อนบีบใหม่ทุกครั้ง · lm_head ผูกน้ำหนักกับ embed_tokens: ถ้าบีบตรงๆ จะบีบตารางคำไปด้วย
         (ซึ่งใน ONNX ไม่ถูกบีบ) → แยกสำเนาให้ lm_head ก่อน · คืน {ส่วน: (บิต, จำนวน Linear)} ไว้พิมพ์ตรวจ"""
         import re, torch.nn as nn
         plan = {}
         for tok in (spec.split("+") if spec else []):
-            mt = re.fullmatch(r"(vit|dec|lm)([48])", tok)
-            if not mt: raise ValueError(f"โทเค็นบีบไม่ถูกต้อง: {tok!r} (ใช้ vit|dec|lm ตามด้วย 4 หรือ 8)")
+            mt = re.fullmatch(r"(vit|dec|lm)([2-8])", tok)
+            if not mt: raise ValueError(f"โทเค็นบีบไม่ถูกต้อง: {tok!r} (ใช้ vit|dec|lm ตามด้วย 2–8)")
             plan[mt.group(1)] = int(mt.group(2))
         m = self.model
         if self._orig is None:   # เก็บของเดิมครั้งเดียว (bf16 ~1.3 GB บน CPU)
