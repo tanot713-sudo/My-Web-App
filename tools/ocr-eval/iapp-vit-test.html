@@ -36,6 +36,7 @@
   <option value="disabled">disabled</option>
 </select>
 <label><input id="allowcpu" type="checkbox"> อนุญาตให้ node ที่ WebGPU ไม่รับถอยไป CPU (ใช้กับไฟล์ N เปลี่ยนได้ ซึ่งมี node คำนวณ shape — ผลเวลาที่วัดจึงไม่ใช่ WebGPU ล้วน)</label>
+<label><input id="verbose" type="checkbox"> log ละเอียดของ onnxruntime (เก็บบรรทัดล่าสุด 400 บรรทัด — ถ้าเด้ง บรรทัดสุดท้ายบอกว่าไปถึงขั้นไหน)</label>
 <label><input id="noarena" type="checkbox"> ปิด CPU memory arena + mem pattern (ลดหน่วยความจำที่จองค้าง)</label>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
@@ -57,11 +58,12 @@ const V = new URL('../../vendor/transformers/', location.href).href;
 const ASYNC_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
 const $ = (id) => document.getElementById(id);
 const out = [];
+const rawLog = console.log.bind(console);   // say() ใช้ตัวนี้ ไม่ผ่านตัวดัก console (กันวนซ้ำ)
 let prefix = [];   // บันทึกจากรอบก่อน — แสดงอย่างเดียว ไม่เขียนกลับ localStorage (กันซ้อนทับสะสม)
 const LS = 'iapp-vit-test:log';
 // บันทึกทุกบรรทัดลง localStorage ทันที (เขียนแบบซิงก์) เพื่อให้เห็นว่าหน้าไปถึงขั้นไหนก่อนเด้ง/ถูกฆ่า (iPhone ฆ่าแท็บเมื่อหน่วยความจำเกิน)
 function say(...a) {
-  const t = a.join(' '); out.push(t); $('log').textContent = [...prefix, ...out].join('\n'); console.log(t);
+  const t = a.join(' '); out.push(t); $('log').textContent = [...prefix, ...out].join('\n'); rawLog(t);
   try { localStorage.setItem(LS, JSON.stringify(out.slice(-300))); } catch { /* เขียนไม่ได้ = ข้าม */ }
 }
 (function showPrevious() {
@@ -88,13 +90,24 @@ async function probe() {
 // ผลที่ได้จะถูกต้องแต่ไม่ใช่ผลของ WebGPU และเวลาที่วัดก็ไม่ใช่ของ WebGPU · เปิดโหมดนี้แล้วสร้าง session ล้ม = op นั้นรันบน WebGPU ไม่ได้ (พิมพ์ข้อความ error ทั้งก้อน อย่าปิดโหมดเงียบๆ)
 function sessionOptions(backend, extra) {
   const o = { executionProviders: [backend], ...extra };
+  if ($('verbose').checked) o.logSeverityLevel = 0;
   const strict = backend === 'webgpu' && !$('allowcpu').checked;
   if (strict) o.extra = { session: { disable_cpu_ep_fallback: '1' } };
   say(strict ? 'โหมดปิดทางถอยไป CPU: เปิด (disable_cpu_ep_fallback = 1)' : backend === 'webgpu' ? '⚠️ อนุญาตถอยไป CPU (บาง node อาจรันบน CPU)' : 'ตัวรัน WASM = CPU อยู่แล้ว (ไม่มีทางถอย)');
   return o;
 }
 
+let hooked = false;
+function hookConsole() {   // ส่ง console ของ onnxruntime เข้า log ของหน้า (ซึ่งบันทึกลง localStorage ทุกบรรทัด)
+  if (hooked) return; hooked = true;
+  for (const k of ['log', 'info', 'warn', 'debug']) {
+    const orig = console[k].bind(console);
+    console[k] = (...a) => { orig(...a); if ($('verbose').checked) { const t = '· ' + a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' ').slice(0, 300); if (out.length > 400) out.splice(0, out.length - 400); say(t); } };
+  }
+}
 function configure(backend) {
+  hookConsole();
+  if ($('verbose').checked) { ort.env.logLevel = 'verbose'; ort.env.debug = true; }
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.wasmPaths = backend === 'webgpu'
     ? { mjs: V + 'ort-wasm-simd-threaded.asyncify.mjs', wasm: ASYNC_WASM }
