@@ -37,6 +37,7 @@
 </select>
 <label><input id="allowcpu" type="checkbox"> อนุญาตให้ node ที่ WebGPU ไม่รับถอยไป CPU (ใช้กับไฟล์ N เปลี่ยนได้ ซึ่งมี node คำนวณ shape — ผลเวลาที่วัดจึงไม่ใช่ WebGPU ล้วน)</label>
 <label><input id="verbose" type="checkbox"> log ละเอียดของ onnxruntime (เก็บบรรทัดล่าสุด 400 บรรทัด — ถ้าเด้ง บรรทัดสุดท้ายบอกว่าไปถึงขั้นไหน)</label>
+<label><input id="slow" type="checkbox"> หน่วง 4 วินาทีหลังบรรทัดสำคัญ (ให้ Safari เขียน log ลงดิสก์ทัน ก่อนงานหนักที่อาจทำให้แท็บถูกฆ่า)</label>
 <label><input id="noarena" type="checkbox"> ปิด CPU memory arena + mem pattern (ลดหน่วยความจำที่จองค้าง)</label>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
@@ -58,6 +59,7 @@ const V = new URL('../../vendor/transformers/', location.href).href;
 const ASYNC_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
 const $ = (id) => document.getElementById(id);
 const out = [];
+const flush = () => new Promise((r) => setTimeout(r, $('slow').checked ? 4000 : 150));
 const rawLog = console.log.bind(console);   // say() ใช้ตัวนี้ ไม่ผ่านตัวดัก console (กันวนซ้ำ)
 let prefix = [];   // บันทึกจากรอบก่อน — แสดงอย่างเดียว ไม่เขียนกลับ localStorage (กันซ้อนทับสะสม)
 const LS = 'iapp-vit-test:log';
@@ -153,9 +155,10 @@ async function pipeline(parts, backend, runs, createOnly) {
     for (let i = 0; i < parts.length; i++) {
       const f = parts[i]; let s;
       say(`รอบ ${r} · ก้อน ${i} (${f.name}, ${(f.size / 2 ** 20).toFixed(0)} MiB): อ่านไฟล์แล้วเรียก create … (ถ้าหน้าเด้งตรงนี้ = ก้อนนี้ยังใหญ่เกิน)`);
+      await flush();
       try { s = await ort.InferenceSession.create(new Uint8Array(await f.arrayBuffer()), sessionOptions(backend, extra)); }
       catch (e) { say(`❌ สร้างก้อน ${i} ไม่สำเร็จ:`, e?.message || e); return; }
-      say(`  ก้อน ${i}: create สำเร็จแล้ว`);
+      say(`  ก้อน ${i}: create สำเร็จแล้ว`); await flush();
       if (createOnly) { await s.release(); say(`  ก้อน ${i}: สร้างได้`); continue; }
       try {
         let feeds;
@@ -164,7 +167,7 @@ async function pipeline(parts, backend, runs, createOnly) {
           const inp = inputs(N);
           feeds = { patches: new ort.Tensor('float32', inp.patches, [N, 768]), pos: new ort.Tensor('float32', inp.pos, [1, N, 1152]) };
         } else feeds = { hidden: cur };
-        say(`  ก้อน ${i}: เรียก run … (ถ้าหน้าเด้งตรงนี้ = ตอนคำนวณ/อัปน้ำหนักขึ้น GPU ของก้อนนี้)`); await new Promise((r) => setTimeout(r, 150));   // รอให้บันทึกลง localStorage ก่อนเริ่มงานหนัก
+        say(`  ก้อน ${i}: เรียก run … (ถ้าหน้าเด้งตรงนี้ = ตอนคำนวณ/อัปน้ำหนักขึ้น GPU ของก้อนนี้)`); await flush();   // รอให้บันทึกลง localStorage ก่อนเริ่มงานหนัก
         const o = await s.run(feeds); const out0 = o[s.outputNames[0]];
         cur = new ort.Tensor('float32', Float32Array.from(await out0.getData()), out0.dims);   // ย้ายออกมาเป็นข้อมูลบน CPU ก่อนปล่อย session
         say(`  ก้อน ${i}: เสร็จ · output [${cur.dims.join(',')}]`);
