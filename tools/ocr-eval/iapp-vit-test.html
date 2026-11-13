@@ -23,15 +23,22 @@
   <option value="webgpu">WebGPU</option>
   <option value="wasm">WASM (CPU)</option>
 </select>
+<label for="load">วิธีโหลดไฟล์เข้าโมเดล</label>
+<select id="load">
+  <option value="bytes">อ่านเป็นไบต์ในหน้า (ค่าเดิม)</option>
+  <option value="url">ให้ onnxruntime ดึงจากไฟล์เอง (blob URL)</option>
+</select>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
 <label for="runs">จำนวนรอบ</label>
 <input id="runs" type="number" value="3" min="1" max="10">
 <div>
   <button id="probe">ตรวจอุปกรณ์</button>
+  <button id="create">สร้าง session อย่างเดียว</button>
   <button id="go">รัน</button>
   <button id="tiny">ทดสอบ MatMulNBits 4/8 บิต</button>
   <button id="copy">คัดลอกผล</button>
+  <button id="clear">ล้างบันทึก</button>
 </div>
 <pre id="log" aria-live="polite"></pre>
 <script type="module">
@@ -41,7 +48,18 @@ const V = new URL('../../vendor/transformers/', location.href).href;
 const ASYNC_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
 const $ = (id) => document.getElementById(id);
 const out = [];
-function say(...a) { const t = a.join(' '); out.push(t); $('log').textContent = out.join('\n'); console.log(t); }
+const LS = 'iapp-vit-test:log';
+// บันทึกทุกบรรทัดลง localStorage ทันที (เขียนแบบซิงก์) เพื่อให้เห็นว่าหน้าไปถึงขั้นไหนก่อนเด้ง/ถูกฆ่า (iPhone ฆ่าแท็บเมื่อหน่วยความจำเกิน)
+function say(...a) {
+  const t = a.join(' '); out.push(t); $('log').textContent = out.join('\n'); console.log(t);
+  try { localStorage.setItem(LS, JSON.stringify(out.slice(-300))); } catch { /* เขียนไม่ได้ = ข้าม */ }
+}
+(function showPrevious() {
+  try {
+    const prev = JSON.parse(localStorage.getItem(LS) || '[]');
+    if (prev.length) { out.push('— บันทึกจากรอบก่อน (ถ้าหน้าเด้ง บรรทัดสุดท้ายคือจุดที่ไปถึง) —', ...prev, '— จบบันทึกรอบก่อน —', ''); $('log').textContent = out.join('\n'); }
+  } catch { /* ข้าม */ }
+})();
 
 async function probe() {
   say('UA:', navigator.userAgent);
@@ -100,21 +118,27 @@ async function tiny() {
   }
 }
 
-async function run() {
-  const backend = $('backend').value, runs = +$('runs').value;
+async function run(createOnly = false) {
+  const backend = $('backend').value, runs = +$('runs').value, method = $('load').value;
   const files = [...$('files').files];
   const main = files.find((f) => /\.onnx$/i.test(f.name)), data = files.find((f) => /\.data$/i.test(f.name));
   if (!main) { say('❌ ยังไม่ได้เลือกไฟล์ .onnx'); return; }
-  say(`\n— รัน ${backend} · ${main.name} (${(main.size / 2 ** 20).toFixed(0)} MiB)${data ? ' + ' + data.name + ' (' + (data.size / 2 ** 20).toFixed(0) + ' MiB)' : ''} —`);
+  say(`\n— ${createOnly ? 'สร้าง session อย่างเดียว' : 'รัน'} ${backend} · ${main.name} (${(main.size / 2 ** 20).toFixed(0)} MiB)${data ? ' + ' + data.name + ' (' + (data.size / 2 ** 20).toFixed(0) + ' MiB)' : ''} · โหลดแบบ ${method === 'url' ? 'blob URL' : 'ไบต์'} —`);
   configure(backend);
-  let session;
+  let session, url;
   try {
     const t0 = performance.now();
     const opts = sessionOptions(backend, { graphOptimizationLevel: 'all' });
-    if (data) opts.externalData = [{ path: data.name, data: new Uint8Array(await data.arrayBuffer()) }];
-    session = await ort.InferenceSession.create(new Uint8Array(await main.arrayBuffer()), opts);
+    if (data) { say('อ่านไฟล์ .data …'); opts.externalData = [{ path: data.name, data: new Uint8Array(await data.arrayBuffer()) }]; }
+    let src;
+    if (method === 'url') src = url = URL.createObjectURL(main);
+    else { say('อ่านไฟล์ .onnx เป็นไบต์ …'); src = new Uint8Array(await main.arrayBuffer()); say(`อ่านแล้ว ${(src.byteLength / 2 ** 20).toFixed(0)} MiB`); }
+    say('เรียก InferenceSession.create … (ถ้าหน้าเด้งตรงนี้ = หน่วยความจำไม่พอตอนโหลดโมเดล)');
+    session = await ort.InferenceSession.create(src, opts);
     say(`สร้าง session สำเร็จ ${((performance.now() - t0) / 1000).toFixed(1)} วิ · input: ${session.inputNames.join(', ')}`);
   } catch (e) { say('❌ สร้าง session ไม่สำเร็จ:', e?.message || e); return; }
+  finally { if (url) URL.revokeObjectURL(url); }
+  if (createOnly) { say('✅ สร้าง session ได้ (ไม่ได้รัน)'); await session.release(); return; }
   let N = +$('n').value;
   try {   // ถ้าโมเดลกำหนด N คงที่ ใช้ค่านั้น
     const m = session.inputMetadata; const sh = (Array.isArray(m) ? m.find((x) => x.name === 'patches') : m?.patches)?.shape;
@@ -125,6 +149,7 @@ async function run() {
     const patches = new ort.Tensor('float32', inp.patches, [N, 768]);
     const pos = new ort.Tensor('float32', inp.pos, [1, N, 1152]);
     for (let i = 1; i <= runs; i++) {
+      say(`รอบ ${i}: เริ่ม run … (ถ้าหน้าเด้งตรงนี้ = หน่วยความจำไม่พอตอนคำนวณที่ N=${N})`);
       const t0 = performance.now();
       const o = (await session.run({ patches, pos })).features;
       const d = await o.getData(); let bad = 0, sum = 0;
@@ -133,10 +158,13 @@ async function run() {
     }
     say('✅ ครบทุกรอบ');
   } catch (e) { say('❌ รันไม่สำเร็จ:', e?.message || e); }
+  finally { try { await session.release(); } catch { /* ข้าม */ } }
 }
 
 $('probe').onclick = () => probe().catch((e) => say('❌', e?.message || e));
 $('tiny').onclick = () => tiny().catch((e) => say('❌', e?.message || e));
+$('create').onclick = () => run(true).catch((e) => say('❌', e?.message || e));
+$('clear').onclick = () => { try { localStorage.removeItem(LS); } catch { /* ข้าม */ } out.length = 0; $('log').textContent = ''; };
 $('go').onclick = () => run().catch((e) => say('❌', e?.message || e));
 $('copy').onclick = async () => { try { await navigator.clipboard.writeText(out.join('\n')); say('(คัดลอกแล้ว)'); } catch { say('(คัดลอกไม่ได้ — เลือกข้อความเอง)'); } };
 </script>
