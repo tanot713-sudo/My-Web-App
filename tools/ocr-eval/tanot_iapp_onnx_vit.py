@@ -1,8 +1,8 @@
 # Tanot — สคริปต์ 13: export ส่วนอ่านภาพของ iApp OCR (ViT + neck) เป็น ONNX 4-bit แล้วตรวจว่าผลตรงกับ torch (แถว 3c ขั้น 1 + 3d ด่าน 1 ขั้นเตรียม)
 #
-# สถานะ: ยังไม่ได้รันจริง (ที่เขียนไม่มี GPU/torch) — โค้ดเขียนตามไฟล์ใน repo โมเดลที่ commit 7a15371 (hf_nemotron_parse_modeling.py,
-#   hf_prefix_geometry.py, hf_nemotron_parse_processor.py) ถ้า export ล้ม ส่งข้อความ error ทั้งก้อนกลับมา
-# ใช้บน Colab T4 · วางทั้งไฟล์ → Run · ผล: Drive "Tanot หนังสือเสียง/_OCR-iApp/onnx-vit/" (model-q4.onnx + .data + report.txt)
+# สถานะ: รันจริงบน Colab T4 แล้วหลายรอบ (2026-11-13) — ขั้น 3–5 ผ่าน · ขั้น 6 เดิมใช้ตัวเทียบข้อความที่ตัดสระ/วรรณยุกต์ไทยทิ้ง (บั๊ก) แก้แล้ว ต้องรันใหม่
+#   โค้ดเขียนตามไฟล์ใน repo โมเดลที่ commit 7a15371 · ถ้าล้ม ส่งข้อความ error ทั้งก้อนกลับมา
+# ใช้บน Colab T4 **High-RAM** (ตัวบีบใช้ RAM สูงสุดราว 9–13 GB) · วางทั้งไฟล์ → Run · ผล: Drive "Tanot หนังสือเสียง/_OCR-iApp/onnx-vit/" (model-q4.onnx + model-q4-n2464-q512.onnx ไฟล์เดียวไม่แยก .data + report.txt)
 #
 # ทำอะไร (ทีละขั้น พิมพ์ผลทุกขั้น ล้มขั้นไหนหยุดขั้นนั้น):
 #   1 โหลดโมเดล (ตัวรันกลาง) · เตรียมภาพ 4 ภาพจากชุดวัด (ด้านยาว ≤ CAP)
@@ -12,7 +12,9 @@
 #   3 ตรวจ wrapper (fp32, CPU) เทียบ encoder ต้นฉบับ (bf16, GPU): cosine ต่อ token
 #   4 export fp32 ONNX · ตรวจ onnxruntime CPU เทียบ wrapper
 #   5 บีบ 4 บิต (MatMulNBits บล็อก 32 asymmetric — ตรงกับที่จำลองในด่าน 0) · ตรวจ onnxruntime CPU เทียบ wrapper · นับ op/ขนาดไฟล์
-#   6 ครบทาง: เอา ONNX 4-bit ไปแทน encoder ในโมเดลจริง แล้วอ่านภาพเดิมด้วย decoder เดิม เทียบข้อความกับ torch bf16 (ต่างกันกี่ %)
+#   6 ครบทาง (ตัววัดตัวเดียวกับ tanot_ocr_eval.py: NFC, ตัดเฉพาะหมวด P/S, ไม่นับช่องว่าง): เอา ONNX 4-bit ไปแทน encoder ในโมเดลจริง แล้วอ่านภาพเดิมด้วย decoder เดิม เทียบข้อความกับ torch bf16 (ต่างกันกี่ %)
+#   7 พิมพ์ค่าอ้างอิงของอินพุตสุ่มแบบมี seed (เทียบกับหน้า iapp-vit-test.html: คอม-WASM / คอม-WebGPU / iPhone)
+#   8 ตรวจกับ onnxruntime 1.24.3 (รุ่นเดียวกับเว็บ) ในโปรเซสย่อย — รุ่นของตัวบีบ (ฝั่ง Python) ไม่ล็อก จึงต้องตรวจว่ารุ่นเว็บอ่านไฟล์ได้และให้ค่าเท่ากัน
 # ไม่ครอบคลุม (ยังไม่ได้ทำ): fp16 + attention แบบรวมสำหรับ WebGPU, รันใน onnxruntime-web, iPhone, decoder
 CAP = 896
 TEST_IMAGES = ["ถ่าย 1", "ใบเสร็จ 1", "สแกน 1", "ถ่าย 3"]   # ชื่อไฟล์ใน Drive "_ผลวัด-OCR/ภาพ/" (ไม่ต้องมีนามสกุล)
@@ -142,7 +144,7 @@ else:
     with torch.no_grad():
         try: torch.onnx.export(wrap, args, str(fp32), dynamo=False, **kw)
         except Exception as e:
-            say(f"  ⚠️ export แบบ TorchScript ล้ม ({type(e).__name__}: {str(e)[:300]}) → ลอง dynamo"); torch.onnx.export(wrap, args, str(fp32), dynamo=True)
+            say(f"  ❌ export ล้ม ({type(e).__name__}: {str(e)[:600]}) — ไม่มีทางสำรอง (ตัว dynamo ไม่รับชื่ออินพุต/แกนเปลี่ยนได้แบบเดียวกัน) ส่ง error ทั้งก้อนกลับมา"); raise SystemExit(1)
     say(f"  export {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('vit-fp32*')) / 2**20:.0f} MiB")
 
 def session(path):
@@ -196,7 +198,8 @@ from onnxruntime.quantization.matmul_nbits_quantizer import MatMulNBitsQuantizer
 src, dst, block = sys.argv[1], sys.argv[2], int(sys.argv[3])
 q = MatMulNBitsQuantizer(src, bits=4, block_size=block, is_symmetric=False)
 q.process(); q.model.save_model_to_file(dst, False)
-print("peak_rss_mb", int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024))
+import onnxruntime
+print("ort", onnxruntime.__version__, "peak_rss_mb", int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024))
 """)
 def quantize(src, dst):
     # แยกเป็นโปรเซสย่อย: ถ้า RAM ไม่พอ โปรเซสย่อยถูกฆ่า แต่สมุดบันทึก (kernel) ไม่ดับ
@@ -205,7 +208,7 @@ def quantize(src, dst):
     if r.returncode != 0 or not pathlib.Path(dst).exists():
         say(f"  ❌ บีบไม่สำเร็จ (code {r.returncode}) — {r.stderr[-600:] or 'ไม่มีข้อความ (น่าจะถูกฆ่าเพราะ RAM เต็ม: Runtime → Change runtime type → เปิด High-RAM แล้วรันใหม่)'}")
         raise SystemExit(1)
-    say(f"  บีบ {pathlib.Path(dst).name} {time.time() - t0:.0f} วิ · {r.stdout.strip()[-80:]} MiB RAM สูงสุดของโปรเซสบีบ")
+    say(f"  บีบ {pathlib.Path(dst).name} {time.time() - t0:.0f} วิ · ตัวบีบ {r.stdout.strip()[-80:]} MiB (RAM สูงสุดของโปรเซสบีบ)")
 quantize(fp32, q4)
 ops = Counter(n.op_type for n in onnx.load(str(q4), load_external_data=False).graph.node)
 say(f"  ไฟล์ {q4.stat().st_size / 2**20:.0f} MiB · op: {dict(ops.most_common(12))}")
@@ -224,7 +227,11 @@ if CHUNK_FILE:
 # ── 6) ครบทางด้วย decoder เดิม ──
 say("\n[6] ครบทาง: encoder = ONNX 4-bit, decoder = torch เดิม → ข้อความเทียบ torch bf16 (greedy ทั้งคู่)")
 from rapidfuzz.distance import Levenshtein as Lev
-def norm(t): return "".join(ch for ch in (t or "").lower() if ch.isalnum())
+import re, unicodedata
+def norm(s):   # ตัวเดียวกับ tanot_ocr_eval.py: NFC · ตัวพิมพ์เล็ก · เลขไทย→อารบิก · หมวด P/S เป็นช่องว่าง · ไม่นับช่องว่าง (รุ่นก่อนใช้ isalnum ซึ่งตัดสระบน/ล่างและวรรณยุกต์ไทยทิ้ง)
+    s = unicodedata.normalize("NFC", s or "").lower()
+    s = "".join(str("๐๑๒๓๔๕๖๗๘๙".index(c)) if c in "๐๑๒๓๔๕๖๗๘๙" else (" " if unicodedata.category(c)[0] in "PS" else c) for c in s)
+    return re.sub(r"\s+", "", s)
 base = {name: runner.ocr(im, tables=False)[0] for name, im in imgs}
 orig_forward = model.encoder.forward
 def onnx_forward(pixel_values, image_sizes, content_sizes):
@@ -242,6 +249,44 @@ try:
 finally:
     model.encoder.forward = orig_forward
 say("  (ต่าง ≤ ~2–3% = เข้าเกณฑ์สมเหตุสมผลเทียบการจำลอง 4-bit ในด่าน 0 ที่เสีย CER ราว +2 จุด; มากกว่านั้น = ดูว่ากราฟ/position ผิดหรือบีบเกินไป)")
+
+# ── 7) ค่าอ้างอิงสำหรับหน้าทดสอบ (อินพุตสุ่ม seed 20251113 · uniform ล้วน ได้ค่าเท่ากับ JS ทุกบิต) ──
+M32 = 0xFFFFFFFF
+def mulberry32(seed):   # ต้องตรงกับในหน้า iapp-vit-test.html
+    a = seed & M32
+    def nxt():
+        nonlocal a
+        a = (a + 0x6D2B79F5) & M32
+        t = ((a ^ (a >> 15)) * (1 | a)) & M32
+        t = ((t + (((t ^ (t >> 7)) * (61 | t)) & M32)) & M32) ^ t
+        return ((t ^ (t >> 14)) & M32) / 4294967296
+    return nxt
+NREF = 2464
+rg = mulberry32(20251113)
+pin = np.array([rg() * 2 - 1 for _ in range(NREF * 768)], dtype=np.float32).reshape(NREF, 768)
+pos_in = np.array([(rg() * 2 - 1) * 0.1 for _ in range(NREF * 1152)], dtype=np.float32).reshape(1, NREF, 1152)
+say(f"\n[7] ค่าอ้างอิงจาก onnxruntime {ort.__version__} (CPU) ของอินพุตสุ่ม N={NREF} — เทียบกับหน้า iapp-vit-test.html ด้วยตา (ผลรวม + 8 ค่าแรก ควรเท่ากันถึงทศนิยม ~3 ตำแหน่ง; WebGPU ต่างได้เล็กน้อย)")
+refs = {}
+for f in [q4] + ([qc] if CHUNK_FILE else []):
+    o = session(f).run(None, {"patches": pin, "pos": pos_in})[0]; refs[f.name] = o
+    say(f"  {f.name}: ผลรวม {float(o.sum()):.3f} · 8 ค่าแรก {' '.join(f'{x:.4f}' for x in o.reshape(-1)[:8])}")
+
+# ── 8) onnxruntime 1.24.3 (รุ่นเดียวกับเว็บ) ──
+say("\n[8] ตรวจกับ onnxruntime 1.24.3 ในโปรเซสย่อย")
+T = W / "ort1243"
+ins = subprocess.run([sys.executable, "-m", "pip", "-q", "install", "--no-deps", "--target", str(T), "onnxruntime==1.24.3"], capture_output=True, text=True)
+if ins.returncode != 0: say(f"  ⚠️ ติดตั้ง onnxruntime==1.24.3 ไม่ได้: {ins.stderr[-300:]}")
+else:
+    np.savez(W / "seed_in.npz", patches=pin, pos=pos_in)
+    for name, o in refs.items(): np.save(W / f"ref_{name}.npy", o)
+    (W / "check_ort.py").write_text("""import sys, numpy as np, onnxruntime as ort
+d = np.load(sys.argv[2]); ref = np.load(sys.argv[3])
+o = ort.InferenceSession(sys.argv[1], providers=["CPUExecutionProvider"]).run(None, {"patches": d["patches"], "pos": d["pos"]})[0]
+print(ort.__version__, float(o.sum()), float(np.abs(o - ref).max()), " ".join(f"{x:.4f}" for x in o.reshape(-1)[:8]))
+""")
+    for f in [q4] + ([qc] if CHUNK_FILE else []):
+        r = subprocess.run([sys.executable, str(W / "check_ort.py"), str(f), str(W / "seed_in.npz"), str(W / f"ref_{f.name}.npy")], capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(T)})
+        say(f"  {f.name}: " + (f"ort {r.stdout.split()[0]} ผลรวม {float(r.stdout.split()[1]):.3f} · max|ต่างจาก ort {ort.__version__}| {float(r.stdout.split()[2]):.2e}" if r.returncode == 0 else f"❌ {r.stderr[-300:]}"))
 
 # ── เก็บผล ──
 for f in W.glob("model-q4*"): shutil.copy(f, OUT / f.name)

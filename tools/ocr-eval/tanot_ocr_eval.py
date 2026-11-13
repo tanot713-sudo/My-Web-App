@@ -164,8 +164,9 @@ for greedy in (False, True):   # โหลดโมเดลแยกตาม�
                 try:
                     im = Image.open(small).convert("RGB")   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
                     if cap: im.thumbnail((cap, cap))
-                    meta = {"w": im.width, "h": im.height, "patches": -(-im.height // 16) * 4 * -(-im.width // 64)}   # คำนวณเอง: ตัวประมวลผลปัดสูงเป็นพหุคูณของ 16 และความกว้างเป็นพหุคูณของ 64 (รอบก่อนหน้านี้คิดความกว้างเป็นพหุคูณของ 16 จึงต่ำไป ~5%)
                     md, _tables, _w = runner.ocr(im, tables=False)
+                    lw, lh = runner.last_size   # ขนาดที่ runner ใช้จริง (ย่อต่อถ้า GPU เต็ม) — รายงานเดิมก่อน 2026-11-13 ใช้ขนาดก่อนส่ง จึงสูงกว่าจริงเมื่อมีการย่อ
+                    meta = {"w": lw, "h": lh, "shrunk": (lw, lh) != (im.width, im.height), "patches": -(-lh // 16) * 4 * -(-lw // 64)}   # คำนวณเอง: สูงปัดเป็นพหุคูณของ 16, กว้างปัดเป็นพหุคูณของ 64
                     put(eng, key, to_plain(md), time.time() - t0, meta=meta)
                     ed, nn = cer_parts(ref, to_plain(md)); acc[0] += ed; acc[1] += nn; acc[2] += 1
                     print(f"     CER สะสม {acc[0] / max(1, acc[1]) * 100:5.1f}% ({acc[2]} ภาพ)", flush=True)
@@ -326,9 +327,14 @@ for eng in ENGINES:
 L += ["", "รายภาพ (CER):", f"{'ภาพ':<12} " + " ".join(f"{e:>{max(10, len(e))}}" for e in ENGINES if res.get(e))]
 for key, *_ in items:
     L.append(f"{key:<12} " + " ".join((f"{per[key][e] * 100:{max(10, len(e)) - 1}.1f}%" if e in per.get(key, {}) else f"{'—':>{max(10, len(e))}}") for e in ENGINES if res.get(e)))
+if per:
+    L += ["", "เฉลี่ย / มัธยฐาน ของ CER ต่อภาพ (ไม่ถ่วงน้ำหนักตามความยาว — ใช้ประกอบการตัดสินแทนตัวเลขรวมที่ภาพยาวครอบงำ):"]
+    for e_ in ENGINES:
+        v = [per[k][e_] * 100 for k in per if e_ in per[k]]
+        if v: L.append(f"  {e_}: เฉลี่ย {sum(v) / len(v):.1f}% · มัธยฐาน {sorted(v)[len(v) // 2] if len(v) % 2 else (sorted(v)[len(v) // 2 - 1] + sorted(v)[len(v) // 2]) / 2:.1f}% · มากสุด {max(v):.1f}% ({len(v)} ภาพ)")
 pt = [(e, [r["meta"]["patches"] for r in res[e].values() if r.get("meta") and not r["err"]]) for e in ENGINES if res.get(e)]
 pt = [(e, v) for e, v in pt if v]
-if pt: L += ["", "ขนาดภาพที่ส่งเข้าโมเดล (patch 16×16 = ceil(สูง/16)×4×ceil(กว้าง/64), คำนวณเอง ไม่ใช่ค่าจาก processor): เฉลี่ย / มากสุด"] + [f"  {e}: {sum(v) / len(v):.0f} / {max(v)}" for e, v in pt]
+if pt: L += ["", "ขนาดภาพที่ส่งเข้าโมเดลจริง (หลังย่อต่อถ้า GPU เต็ม; patch = ceil(สูง/16)×4×ceil(กว้าง/64) คำนวณเอง): เฉลี่ย / มากสุด"] + [f"  {e}: {sum(v) / len(v):.0f} / {max(v)}" for e, v in pt]
 errs = [(e, k, r["err"]) for e in ENGINES for k, r in res.get(e, {}).items() if r["err"]]
 if any(res.get(x) and sum(1 for k, *_ in items if res[x].get(k) and not res[x][k]["err"]) < len(items) for x in ENGINES): L += ["", "* = วัดไม่ครบทุกภาพ (หยุดก่อนเพราะ CER สูงเกินเส้นล้มเร็ว) CER ของแถวนั้นคิดเฉพาะภาพที่วัด เทียบกับแถวอื่นไม่ได้"]
 if FAIL: L += ["", "ตัวที่ไม่ได้รัน/ล้มทั้งตัว:"] + [f"  {e}: {m}" for e, m in FAIL.items()]

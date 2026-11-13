@@ -1,6 +1,6 @@
 # Tanot — ตัวรัน iapp/OpenThai2.0-OCR-Markdown บน Colab (โมดูลกลาง: ใช้ร่วมโดย tanot_ocr_iapp.py และ tanot_ocr_eval.py)
 #
-# สถานะ: ยังไม่ได้รันจริง (ไม่มี GPU ตอนเขียน) — วิธีเรียกโมเดลมาจากโค้ดใน repo โมเดลที่ REVISION ด้านล่าง
+# สถานะ: รันจริงบน Colab T4 แล้วหลายรอบ (2026-11-13) · วิธีเรียกโมเดลมาจากโค้ดใน repo โมเดลที่ REVISION ด้านล่าง
 #   (config.json auto_map มีแค่ AutoModel/AutoProcessor, model_type nemotron_parse · ตัวช่วย nemotron_parse/inference.py:
 #    DocumentParser + TransformersBackend ใส่ prompt "</s><s><predict_bbox><predict_classes><output_markdown><predict_text_in_pic>",
 #    add_special_tokens=False ให้เอง · ค่า generate = GenerationSettings เริ่มต้นใน nemotron_parse/inference.py: temperature 0.2 (สุ่ม seed 0), repetition_penalty 1.05, max_tokens 8744 — คงค่านี้ไว้ (ทางที่ model card ทดสอบแล้ว) · postprocessing.py แปลง LaTeX ของตารางเป็น HTML/CSV)
@@ -103,6 +103,7 @@ class Runner:
             import gc; gc.collect(); self.torch.cuda.empty_cache()   # ปล่อยหลังออกจาก except (traceback ยังถือหน่วยความจำอยู่ข้างใน)
             img = img.resize((int(img.width * 0.7), int(img.height * 0.7)))
         out, warns = [], []
+        self.last_size = (img.width, img.height)   # ขนาดภาพที่ใช้จริง (อาจถูกย่อ 30% ต่อรอบเมื่อ GPU เต็ม)
         if tables:
             from postprocessing import postprocess_text
             for i, b in enumerate(x for x in doc.get("blocks", []) if x.get("class") == "Table"):
