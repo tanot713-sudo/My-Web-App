@@ -155,6 +155,7 @@ async function pipeline(parts, backend, runs, createOnly) {
       say(`รอบ ${r} · ก้อน ${i} (${f.name}, ${(f.size / 2 ** 20).toFixed(0)} MiB): อ่านไฟล์แล้วเรียก create … (ถ้าหน้าเด้งตรงนี้ = ก้อนนี้ยังใหญ่เกิน)`);
       try { s = await ort.InferenceSession.create(new Uint8Array(await f.arrayBuffer()), sessionOptions(backend, extra)); }
       catch (e) { say(`❌ สร้างก้อน ${i} ไม่สำเร็จ:`, e?.message || e); return; }
+      say(`  ก้อน ${i}: create สำเร็จแล้ว`);
       if (createOnly) { await s.release(); say(`  ก้อน ${i}: สร้างได้`); continue; }
       try {
         let feeds;
@@ -163,11 +164,12 @@ async function pipeline(parts, backend, runs, createOnly) {
           const inp = inputs(N);
           feeds = { patches: new ort.Tensor('float32', inp.patches, [N, 768]), pos: new ort.Tensor('float32', inp.pos, [1, N, 1152]) };
         } else feeds = { hidden: cur };
+        say(`  ก้อน ${i}: เรียก run … (ถ้าหน้าเด้งตรงนี้ = ตอนคำนวณ/อัปน้ำหนักขึ้น GPU ของก้อนนี้)`); await new Promise((r) => setTimeout(r, 150));   // รอให้บันทึกลง localStorage ก่อนเริ่มงานหนัก
         const o = await s.run(feeds); const out0 = o[s.outputNames[0]];
         cur = new ort.Tensor('float32', Float32Array.from(await out0.getData()), out0.dims);   // ย้ายออกมาเป็นข้อมูลบน CPU ก่อนปล่อย session
         say(`  ก้อน ${i}: เสร็จ · output [${cur.dims.join(',')}]`);
       } catch (e) { say(`❌ รันก้อน ${i} ไม่สำเร็จ:`, e?.message || e); try { await s.release(); } catch { /* ข้าม */ } return; }
-      await s.release();
+      say(`  ก้อน ${i}: ปล่อย session`); await s.release();
     }
     if (createOnly) { say('✅ สร้างครบทุกก้อนได้ (ไม่ได้รัน)'); return; }
     const d = cur.data; let bad = 0, sum = 0;
