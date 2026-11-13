@@ -64,10 +64,11 @@ from hf_prefix_geometry import _normalized_2d_position_pages
 enc32 = copy.deepcopy(model.encoder).float().cpu().eval()
 for _p in enc32.parameters(): _p.requires_grad_(False)   # ไม่เก็บกราฟ autograd — รอบแรก export กิน RAM เกิน 12 GB เพราะลืมข้อนี้
 radio = enc32.model_encoder.radio_model; vit = radio.model; pg = vit.patch_generator
+POS_EMBED = pg.pos_embed.detach().float().clone()   # ตารางตำแหน่ง 128×128 (75 MiB) แยกเก็บ เพื่อปล่อย enc32 ก่อนขั้นบีบ
 
 def positions(h, w, ch, cw, n):   # position embedding ที่โมเดลบวกเข้า patch (คำนวณด้วยฟังก์ชันของโมเดลเอง กับ patch เป็นศูนย์) — ต้องพอร์ตเป็น JS ภายหลัง
     with torch.no_grad():
-        return _normalized_2d_position_pages(torch, patches=torch.zeros(1, n, 1152), pos_embed=pg.pos_embed.float(), source_rows=128, source_cols=128,
+        return _normalized_2d_position_pages(torch, patches=torch.zeros(1, n, 1152), pos_embed=POS_EMBED, source_rows=128, source_cols=128,
                                              image_sizes=[[h, w]], patch_size=16, content_sizes=[[ch, cw]], content_normalized=True)
 
 class VitOnnx(torch.nn.Module):
@@ -103,10 +104,11 @@ def cos(a, b):
 ref = {}   # {ชื่อ: (patches, h, w, ch, cw)}
 for name, im in imgs: ref[name] = prep(im)
 MINE = {}
+HOLD = {"wrap": wrap}   # ถือ wrapper ไว้ที่เดียว เพื่อปล่อยทิ้งได้ก่อนขั้นบีบ
 def wrapper_out(name):   # ผลของ wrapper fp32 (CPU) เก็บไว้ใช้ซ้ำ
     if name not in MINE:
         pv, h, w, ch, cw = ref[name]
-        with torch.no_grad(): MINE[name] = wrap(pv.float(), positions(h, w, ch, cw, pv.shape[0])).numpy()
+        with torch.no_grad(): MINE[name] = HOLD["wrap"](pv.float(), positions(h, w, ch, cw, pv.shape[0])).numpy()
     return MINE[name]
 
 # ── 3) wrapper vs ต้นฉบับ ──
@@ -154,15 +156,27 @@ if not reused:   # ตรวจ ORT fp32 เทียบ wrapper เฉพาะ
 
 # ── 5) 4 บิต ──
 say(f"\n[5] MatMulNBits 4 บิต บล็อก {BLOCK} asymmetric")
-from onnxruntime.quantization.matmul_nbits_quantizer import MatMulNBitsQuantizer
+for name, _ in imgs: wrapper_out(name)     # เก็บผลอ้างอิงไว้ก่อน แล้วปล่อย encoder fp32 ออกจากหน่วยความจำ (รอบ 2026-11-13 ตัวบีบทำ RAM 12.7 GB เต็ม)
+HOLD.clear(); del wrap, enc32, vit, pg, radio
+import gc; gc.collect(); torch.cuda.empty_cache()
 q4 = W / "model-q4.onnx"
 for f in W.glob("model-q4*"): f.unlink()
+(W / "quant_q4.py").write_text("""import sys, resource
+from onnxruntime.quantization.matmul_nbits_quantizer import MatMulNBitsQuantizer
+src, dst, block = sys.argv[1], sys.argv[2], int(sys.argv[3])
+q = MatMulNBitsQuantizer(src, bits=4, block_size=block, is_symmetric=False)
+q.process(); q.model.save_model_to_file(dst, True)
+print("peak_rss_mb", int(resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024))
+""")
 t0 = time.time()
-quant = MatMulNBitsQuantizer(str(fp32), bits=4, block_size=BLOCK, is_symmetric=False)
-quant.process(); quant.model.save_model_to_file(str(q4), True)
-del quant
+# แยกเป็นโปรเซสย่อย: ถ้า RAM ไม่พอ โปรเซสย่อยถูกฆ่า แต่สมุดบันทึก (kernel) ไม่ดับ
+r = subprocess.run([sys.executable, str(W / "quant_q4.py"), str(fp32), str(q4), str(BLOCK)], capture_output=True, text=True)
+if r.returncode != 0 or not q4.exists():
+    say(f"  ❌ บีบไม่สำเร็จ (code {r.returncode}) — {r.stderr[-600:] or 'ไม่มีข้อความ (น่าจะถูกฆ่าเพราะ RAM เต็ม: Runtime → Change runtime type → เปิด High-RAM แล้วรันใหม่)'}")
+    raise SystemExit(1)
+say(f"  บีบ {time.time() - t0:.0f} วิ · {r.stdout.strip()[-80:]} MiB RAM สูงสุดของโปรเซสบีบ")
 ops = Counter(n.op_type for n in onnx.load(str(q4), load_external_data=False).graph.node)
-say(f"  บีบ {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('model-q4*')) / 2**20:.0f} MiB · op: {dict(ops.most_common(12))}")
+say(f"  ไฟล์ {sum(f.stat().st_size for f in W.glob('model-q4*')) / 2**20:.0f} MiB · op: {dict(ops.most_common(12))}")
 say(f"  MatMulNBits {ops.get('MatMulNBits', 0)} node (คาด ~111 = 27×4 + embedder + conv2-เป็น-matmul + sum_proj) · MatMul/Gemm ที่เหลือ {ops.get('MatMul', 0)}/{ops.get('Gemm', 0)} (รวม attention QKᵀ/AV ซึ่งไม่มีน้ำหนัก)")
 s4 = session(q4)
 for name, _ in imgs:
