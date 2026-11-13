@@ -35,6 +35,7 @@
   <option value="basic">basic</option>
   <option value="disabled">disabled</option>
 </select>
+<label><input id="allowcpu" type="checkbox"> อนุญาตให้ node ที่ WebGPU ไม่รับถอยไป CPU (ใช้กับไฟล์ N เปลี่ยนได้ ซึ่งมี node คำนวณ shape — ผลเวลาที่วัดจึงไม่ใช่ WebGPU ล้วน)</label>
 <label><input id="noarena" type="checkbox"> ปิด CPU memory arena + mem pattern (ลดหน่วยความจำที่จองค้าง)</label>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
@@ -87,8 +88,9 @@ async function probe() {
 // ผลที่ได้จะถูกต้องแต่ไม่ใช่ผลของ WebGPU และเวลาที่วัดก็ไม่ใช่ของ WebGPU · เปิดโหมดนี้แล้วสร้าง session ล้ม = op นั้นรันบน WebGPU ไม่ได้ (พิมพ์ข้อความ error ทั้งก้อน อย่าปิดโหมดเงียบๆ)
 function sessionOptions(backend, extra) {
   const o = { executionProviders: [backend], ...extra };
-  if (backend === 'webgpu') o.extra = { session: { disable_cpu_ep_fallback: '1' } };
-  say(backend === 'webgpu' ? 'โหมดปิดทางถอยไป CPU: เปิด (disable_cpu_ep_fallback = 1)' : 'ตัวรัน WASM = CPU อยู่แล้ว (ไม่มีทางถอย)');
+  const strict = backend === 'webgpu' && !$('allowcpu').checked;
+  if (strict) o.extra = { session: { disable_cpu_ep_fallback: '1' } };
+  say(strict ? 'โหมดปิดทางถอยไป CPU: เปิด (disable_cpu_ep_fallback = 1)' : backend === 'webgpu' ? '⚠️ อนุญาตถอยไป CPU (บาง node อาจรันบน CPU)' : 'ตัวรัน WASM = CPU อยู่แล้ว (ไม่มีทางถอย)');
   return o;
 }
 
