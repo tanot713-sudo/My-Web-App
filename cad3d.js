@@ -1421,9 +1421,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     if (!txt) { el.hidden = true; return; }
     var r = viewportEl.getBoundingClientRect();
     el.textContent = txt;
-    el.style.left = Math.max(0, Math.min(clientX - r.left + 14, r.width - 110)) + 'px';
-    el.style.top = Math.max(0, Math.min(clientY - r.top + 14, r.height - 30)) + 'px';
-    el.hidden = false;
+    el.hidden = false; // ต้องแสดงก่อนถึงวัดขนาดจริงได้
+    el.style.left = Math.max(0, Math.min(clientX - r.left + 14, r.width - el.offsetWidth)) + 'px';
+    el.style.top = Math.max(0, Math.min(clientY - r.top + 14, r.height - el.offsetHeight)) + 'px';
   }
   function hideLiveDimReadout() { var el = $('c3SketchDim'); if (el) el.hidden = true; }
   function setLiveSketchTool(tool) {
@@ -1455,13 +1455,13 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     var a = liveSketchPts[0], b = liveSketchPts[1];
     var x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
     var w = x1 - x0, d = y1 - y0;
-    if (w < 0.5 || d < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('rectSmall'); return; }
+    if (w < 0.5 || d < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); hideLiveDimReadout(); updateLiveSketchHint('rectSmall'); return; }
     commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: สี่เหลี่ยม ' + w.toFixed(0) + '×' + d.toFixed(0) + ' มม.', points: [{ x: x0, y: y0 }, { x: x1, y: y0 }, { x: x1, y: y1 }, { x: x0, y: y1 }] });
   }
   function finishCircleShape() {
     var c = liveSketchPts[0], p = liveSketchPts[1];
     var r = Math.hypot(p.x - c.x, p.y - c.y);
-    if (r < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); updateLiveSketchHint('radiusSmall'); return; }
+    if (r < 0.5) { liveSketchPts = []; clearLiveSketchPreview(); hideLiveDimReadout(); updateLiveSketchHint('radiusSmall'); return; }
     commitLiveSketchProfile({ label: 'ร่างในวิว 3 มิติ: วงกลม R' + r.toFixed(0) + ' มม.', circle: { cx: c.x, cy: c.y, r: r } });
   }
   function finishPolylineShape() {

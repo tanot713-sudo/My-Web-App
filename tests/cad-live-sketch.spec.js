@@ -161,4 +161,22 @@ test.describe('cad live sketch 3D', () => {
     await expect(hint).toContainText('3 placed');
     await expect(page.locator('#c3SketchToolbar')).toBeVisible();
   });
+
+  test('สี่เหลี่ยม/วงกลมเล็กเกิน: ล้างจุดแล้วป้ายขนาดต้องหายทันที', async ({ page }) => {
+    const { box } = await openSketch(page, 'en');
+    const dim = page.locator('#c3SketchDim');
+    const click = async (dx, dy) => { await page.mouse.move(box.x + dx, box.y + dy); await page.mouse.down(); await page.mouse.up(); };
+    await click(300, 300);
+    await page.mouse.move(box.x + 360, box.y + 340);
+    await expect(dim).toBeVisible();
+    await click(300, 300); // คลิกที่เดิม = สี่เหลี่ยมกว้าง 0
+    await expect(page.locator('#c3SketchHint')).toContainText('too small');
+    await expect(dim).toBeHidden();
+    await page.click('#sketchToolCircleBtn');
+    await click(300, 300);
+    await page.mouse.move(box.x + 360, box.y + 340);
+    await expect(dim).toBeVisible();
+    await click(300, 300); // รัศมี 0
+    await expect(dim).toBeHidden();
+  });
 });
