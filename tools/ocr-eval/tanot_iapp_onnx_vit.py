@@ -60,6 +60,7 @@ say(f"ภาพทดสอบ {[n for n, _ in imgs]} · ด้านยาว �
 # ── 2) wrapper ──
 from hf_prefix_geometry import _normalized_2d_position_pages
 enc32 = copy.deepcopy(model.encoder).float().cpu().eval()
+for _p in enc32.parameters(): _p.requires_grad_(False)   # ไม่เก็บกราฟ autograd — รอบแรก export กิน RAM เกิน 12 GB เพราะลืมข้อนี้
 radio = enc32.model_encoder.radio_model; vit = radio.model; pg = vit.patch_generator
 
 def positions(h, w, ch, cw, n):   # position embedding ที่โมเดลบวกเข้า patch (คำนวณด้วยฟังก์ชันของโมเดลเอง กับ patch เป็นศูนย์) — ต้องพอร์ตเป็น JS ภายหลัง
@@ -98,28 +99,35 @@ def cos(a, b):
     return float(c.mean()), float(c.min())
 
 # ── 3) wrapper vs ต้นฉบับ ──
-say("\n[3] wrapper (fp32 CPU) เทียบ encoder ต้นฉบับ (bf16 GPU) — cosine ต่อ token เฉลี่ย/ต่ำสุด")
+say("\n[3] แยกสาเหตุความต่าง: ต้นฉบับ bf16 (GPU) · ต้นฉบับ fp32 (CPU, โครงสร้างเดิมของโมเดล) · wrapper fp32 (CPU) — cosine ต่อ token เฉลี่ย / ต่ำสุด")
 ref = {}
 for name, im in imgs:
     pv, h, w, ch, cw = prep(im); n = pv.shape[0]
     with torch.no_grad():
-        orig = model.encoder(pv.to(dev), torch.tensor([[h, w]]).to(dev), torch.tensor([[ch, cw]]).to(dev))[0].float().cpu().numpy()
+        o16 = model.encoder(pv.to(dev), torch.tensor([[h, w]]).to(dev), torch.tensor([[ch, cw]]).to(dev))[0].float().cpu().numpy()
+        o32 = enc32(pv.float(), torch.tensor([[h, w]]), torch.tensor([[ch, cw]]))[0].numpy()
         mine = wrap(pv.float(), positions(h, w, ch, cw, n)).numpy()
     ref[name] = (pv, h, w, ch, cw, mine)
-    say(f"  {name}: patch {n} ({h//16}×{w//16}) → token {mine.shape[1]} · cosine {cos(orig, mine)[0]:.5f} / {cos(orig, mine)[1]:.5f} · max|ต่าง| {np.abs(orig - mine).max():.3f}")
-say("  (bf16 ต้นฉบับมีสัญญาณรบกวนเอง จึงไม่ถึง 1.0 — ค่าต่ำกว่า ~0.99 ผิดปกติ)")
+    per = (o32.reshape(-1, 1024) * mine.reshape(-1, 1024)).sum(1) / (np.linalg.norm(o32.reshape(-1, 1024), axis=1) * np.linalg.norm(mine.reshape(-1, 1024), axis=1) + 1e-9)
+    say(f"  {name}: patch {n} ({h//16}×{w//16}) → token {mine.shape[1]}")
+    say(f"     bf16↔fp32(ต้นฉบับ)   {cos(o16, o32)[0]:.5f} / {cos(o16, o32)[1]:.5f}   ← ความรบกวนของ bf16 เอง")
+    say(f"     wrapper↔fp32(ต้นฉบับ) {cos(mine, o32)[0]:.5f} / {cos(mine, o32)[1]:.5f} · max|ต่าง| {np.abs(mine - o32).max():.4f}   ← ต้อง ≈ 1.0000 ถ้า wrapper ถูก (ต่างได้เฉพาะลำดับการคำนวณทศนิยม)")
+    say(f"     wrapper↔bf16          {cos(mine, o16)[0]:.5f} / {cos(mine, o16)[1]:.5f} · token ที่ต่างสุดคือลำดับที่ {int(per.argmin())} จาก {len(per)} (ลำดับสุดท้าย = summary token)")
+del o16, o32
 
 # ── 4) export fp32 ──
 say("\n[4] export fp32 ONNX")
-pv0, h0, w0, ch0, cw0, _ = ref[imgs[0][0]]
+h0, w0 = 256, 256   # ตัวอย่างสำหรับ trace ขนาดเล็ก (16×16 = 256 patch) กัน RAM เต็ม — แกน N เปลี่ยนได้ ตรวจกับภาพจริงขนาดใหญ่ในขั้นถัดไป
+pv0 = torch.randn(h0 // 16 * (w0 // 16), 768)
 fp32 = W / "vit-fp32.onnx"
 for f in W.glob("vit-fp32*"): f.unlink()
-args = (pv0.float(), positions(h0, w0, ch0, cw0, pv0.shape[0]))
+args = (pv0, positions(h0, w0, h0, w0, pv0.shape[0]))
 kw = dict(input_names=["patches", "pos"], output_names=["features"], dynamic_axes={"patches": {0: "n"}, "pos": {1: "n"}, "features": {1: "m"}}, opset_version=17)
 t0 = time.time()
-try: torch.onnx.export(wrap, args, str(fp32), dynamo=False, **kw)
-except Exception as e:
-    say(f"  ⚠️ export แบบ TorchScript ล้ม ({type(e).__name__}: {str(e)[:300]}) → ลอง dynamo"); torch.onnx.export(wrap, args, str(fp32), dynamo=True)
+with torch.no_grad():
+    try: torch.onnx.export(wrap, args, str(fp32), dynamo=False, **kw)
+    except Exception as e:
+        say(f"  ⚠️ export แบบ TorchScript ล้ม ({type(e).__name__}: {str(e)[:300]}) → ลอง dynamo"); torch.onnx.export(wrap, args, str(fp32), dynamo=True)
 say(f"  export {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('vit-fp32*')) / 2**20:.0f} MiB")
 
 def session(path):
