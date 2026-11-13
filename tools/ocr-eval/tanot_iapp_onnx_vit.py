@@ -265,7 +265,7 @@ if CHUNK_FILE:
             q = W / f"model-q4-p{i}.onnx"; quantize(f, q); qp.append(q)
         x = {"patches": pvc.float().numpy(), "pos": positions(hc, wc, chc, cwc, Nc).numpy()}
         for q in qp:
-            o = session(q).run(None, x); x = {"hidden": o[0]}
+            sp = session(q); o = sp.run(None, x); x = {sp.get_inputs()[0].name: o[0]}   # ชื่ออินพุตของก้อนหลังๆ ถูก onnx เปลี่ยนเป็น hidden.1 ฯลฯ — ใช้ชื่อจากไฟล์
         say(f"  {len(qp)} ก้อน 4-bit ต่อกันบน ORT CPU เทียบ 4-bit แบบเต็ม cosine {cos(ou, o[0])[0]:.6f} / {cos(ou, o[0])[1]:.6f} · ไฟล์ {[round(q.stat().st_size / 2 ** 20) for q in qp]} MiB")
     say(f"  {n1}: 4-bit แบบแบ่ง query เทียบ 4-bit แบบเต็ม cosine {cos(ou, oc)[0]:.6f} / {cos(ou, oc)[1]:.6f} · {qc.stat().st_size / 2**20:.0f} MiB · {time.time() - t0:.0f} วิ (CPU)")
 
