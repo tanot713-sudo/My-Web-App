@@ -406,6 +406,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   var liveSketchPreviewGroup = null; // THREE.Group เส้น/จุด preview ระหว่างวาด (คนละก้อนกับ previewAnchor ของรูปทรงพื้นฐาน)
   var liveSketchDownPos = null; // แยกคลิกจริงจากการลากเล็กน้อย (เมาส์สั่น) เหมือน pickDownPos ของ Stage 10d
   var liveSketchCursor = null; // (u,v) ล่าสุดของเคอร์เซอร์ (หลัง snap) — ใช้วาด preview ใหม่หลัง Backspace
+  var liveSketchClient = null; // clientX/Y คู่กับ liveSketchCursor — ใช้วางป้ายขนาดใหม่หลัง Backspace
   var liveSketchProfiles = []; // เส้นขอบที่ร่างในวิว 3 มิติสะสมไว้ (รอดจากการกด "โหลดใหม่" ซึ่งอ่านจากแบบ 2 มิติเท่านั้น)
   var scene, camera, renderer, controls, mesh, viewportEl;
   var xform, previewAnchor;
@@ -1470,10 +1471,14 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   function handleLiveSketchClick(clientX, clientY) {
     var uv = liveSketchRayHit(clientX, clientY);
     if (!uv) { updateLiveSketchHint('parallelView'); return; }
+    if (liveSketchTool === 'polyline' && liveSketchPts.length) { // จุดซ้ำพิกัดเดิม (แรก/ล่าสุด) สร้างขอบยาว 0 → ขึ้นรูปไม่ได้ — ไม่รับ
+      var f = liveSketchPts[0], l = liveSketchPts[liveSketchPts.length - 1];
+      if (Math.hypot(uv.x - l.x, uv.y - l.y) < 1e-6 || Math.hypot(uv.x - f.x, uv.y - f.y) < 1e-6) return;
+    }
     liveSketchPts.push(uv);
     if (liveSketchTool === 'rect' && liveSketchPts.length === 2) finishRectShape();
     else if (liveSketchTool === 'circle' && liveSketchPts.length === 2) finishCircleShape();
-    else { updateLiveSketchHint(); updateLiveSketchPreview(uv); liveSketchCursor = uv; updateLiveDimReadout(uv, clientX, clientY); }
+    else { updateLiveSketchHint(); updateLiveSketchPreview(uv); liveSketchCursor = uv; liveSketchClient = { x: clientX, y: clientY }; updateLiveDimReadout(uv, clientX, clientY); }
   }
   /* เริ่มร่างภาพ: ล็อกระนาบปัจจุบัน (จาก sketchPlaneSel/pickedPlaneBasis) ไว้เป็น snapshot กันสับสนถ้าผู้ใช้
      ดันไปเปลี่ยน dropdown ระนาบระหว่างที่กำลังวาดค้างอยู่ (ซึ่งเป็นไปไม่ได้อยู่แล้วเพราะซ่อนฟอร์มไว้ทั้งหมด
@@ -1496,7 +1501,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   function exitLiveSketch() {
     liveSketchActive = false;
     liveSketchPts = [];
-    liveSketchCursor = null;
+    liveSketchCursor = null; liveSketchClient = null;
     hideLiveDimReadout();
     controls.enabled = true;
     viewportEl.classList.remove('c3-pick-cursor');
@@ -1515,7 +1520,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
   function onLiveSketchPointerMove(e) {
     if (!liveSketchActive || inSketchToolbar(e)) return;
     var uv = liveSketchRayHit(e.clientX, e.clientY);
-    if (uv) { liveSketchCursor = uv; updateLiveSketchPreview(uv); updateLiveDimReadout(uv, e.clientX, e.clientY); }
+    if (uv) { liveSketchCursor = uv; liveSketchClient = { x: e.clientX, y: e.clientY }; updateLiveSketchPreview(uv); updateLiveDimReadout(uv, e.clientX, e.clientY); }
   }
 
   /* ══════════════════ ผูกปุ่ม + boot ══════════════════ */
@@ -1558,14 +1563,18 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
     $('c3Viewport').addEventListener('pointermove', onLiveSketchPointerMove);
     $('c3Viewport').addEventListener('pointerleave', hideLiveDimReadout);
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Backspace' && liveSketchActive && liveSketchTool === 'polyline' && liveSketchPts.length) {
+      if (e.key === 'Backspace' && liveSketchActive) {
         var tg = e.target, tn = tg && tg.tagName;
         if (tn === 'INPUT' || tn === 'TEXTAREA' || tn === 'SELECT' || (tg && tg.isContentEditable)) return;
-        e.preventDefault();
-        liveSketchPts.pop();
-        updateLiveSketchHint();
-        updateLiveSketchPreview(liveSketchPts.length ? liveSketchCursor : null);
-        if (!liveSketchPts.length) hideLiveDimReadout();
+        // ตัวรับปุ่มของแท็บ 2D (cad.js บน window) ไม่เช็กแท็บ — Backspace ระหว่างร่างในวิว 3 มิติต้องไม่ไปลบ/ถอยจุดของแบบ 2D
+        e.preventDefault(); e.stopPropagation();
+        if (liveSketchTool === 'polyline' && liveSketchPts.length) {
+          liveSketchPts.pop();
+          updateLiveSketchHint();
+          updateLiveSketchPreview(liveSketchPts.length ? liveSketchCursor : null);
+          if (liveSketchPts.length && liveSketchCursor && liveSketchClient) updateLiveDimReadout(liveSketchCursor, liveSketchClient.x, liveSketchClient.y);
+          else hideLiveDimReadout();
+        }
         return;
       }
       if (e.key !== 'Escape') return;

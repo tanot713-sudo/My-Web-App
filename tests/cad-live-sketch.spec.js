@@ -79,15 +79,22 @@ test.describe('cad live sketch 3D', () => {
     await expect(page.locator('#c3SketchDim')).toHaveText(/ มม\.$/);
   });
 
-  test('Backspace ลบจุดล่าสุดของเส้นหลายจุด (ไม่ลบเมื่อเครื่องมืออื่น/พิมพ์ในช่อง)', async ({ page }) => {
+  test('Backspace ลบจุดล่าสุดของเส้นหลายจุด + ป้ายอัปเดตทันที (ไม่ลบเมื่อพิมพ์ในช่อง/เครื่องมืออื่น)', async ({ page }) => {
     const { box } = await openSketch(page, 'en');
     const hint = page.locator('#c3SketchHint');
     await page.click('#sketchToolPolylineBtn');
     const pts = [[160, 160], [320, 170], [330, 300], [180, 310]];
     for (const [dx, dy] of pts) { await page.mouse.move(box.x + dx, box.y + dy); await page.mouse.down(); await page.mouse.up(); }
     await expect(hint).toContainText('4 placed');
+    // ป้ายความยาวเส้นล่าสุดต้องเปลี่ยนทันทีหลัง Backspace (ไม่ค้างค่าเก่าจนกว่าจะขยับเมาส์)
+    const dim = page.locator('#c3SketchDim');
+    await page.mouse.move(box.x + 700, box.y + 420);
+    await expect(dim).toBeVisible();
+    const d4 = await dim.innerText();
     await page.keyboard.press('Backspace');
     await expect(hint).toContainText('3 placed');
+    await expect(dim).toBeVisible();
+    expect(await dim.innerText()).not.toBe(d4);
     await page.keyboard.press('Backspace');
     await expect(hint).toContainText('2 placed');
     await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace');
@@ -96,11 +103,62 @@ test.describe('cad live sketch 3D', () => {
     // วางใหม่ต่อได้ และยังอยู่ในโหมดร่าง
     await page.mouse.move(box.x + 200, box.y + 200); await page.mouse.down(); await page.mouse.up();
     await expect(hint).toContainText('1 placed');
+    // โฟกัสอยู่ในช่องกรอก (ช่อง "สูง" ที่มองเห็น) = Backspace แก้ข้อความในช่อง จำนวนจุดต้องเท่าเดิม
+    await page.focus('#sketchHeight');
+    await page.keyboard.press('Backspace');
+    await expect(hint).toContainText('1 placed');
+    await page.mouse.move(box.x + 200, box.y + 200); // กลับมาที่วิวพอร์ต
     // สี่เหลี่ยม: Backspace ไม่มีผล
     await page.click('#sketchToolRectBtn');
     await page.mouse.move(box.x + 200, box.y + 200); await page.mouse.down(); await page.mouse.up();
     const before = await hint.innerText();
     await page.keyboard.press('Backspace');
     expect(await hint.innerText()).toBe(before);
+  });
+
+  test('Backspace ในโหมดร่าง 3 มิติไม่ไปลบชิ้นงานที่เลือกค้างในแบบ 2 มิติ', async ({ page }) => {
+    await prepare(page);
+    await page.addInitScript(() => { try { localStorage.setItem('ome:lang', 'en'); } catch (e) {} });
+    await page.setViewportSize({ width: 1100, height: 1100 });
+    await page.goto('/cad.html');
+    const cv = /** @type {any} */ (await page.locator('#cadCanvas').boundingBox());
+    await page.click('#toolLineBtn');
+    await page.mouse.click(cv.x + 200, cv.y + 200); await page.mouse.click(cv.x + 400, cv.y + 200);
+    await page.click('#toolSelectBtn');
+    const cv2 = /** @type {any} */ (await page.locator('#cadCanvas').boundingBox()); // คลิกปุ่มอาจเลื่อนหน้า วัดใหม่
+    await page.mouse.move(cv2.x + 100, cv2.y + 20); await page.mouse.down(); await page.mouse.move(cv2.x + 440, cv2.y + 420, { steps: 5 }); await page.mouse.up(); // กรอบคลุมเส้นทั้งเส้น
+    await expect(page.locator('#deleteBtn')).toBeEnabled();
+    await expect(page.locator('#statCount')).toHaveText('1');
+    await page.addStyleTag({ content: '#c3Overlay,#c3Overlay *{pointer-events:none!important}' });
+    await page.click('#tabBtn3d');
+    await page.selectOption('#shapeKindSel', 'sketch');
+    await page.click('#startLiveSketchBtn');
+    await page.click('#sketchToolPolylineBtn');
+    await page.locator('#c3Viewport').scrollIntoViewIfNeeded();
+    const box = /** @type {any} */ (await page.locator('#c3Viewport').boundingBox());
+    for (const [dx, dy] of [[200, 250], [350, 260], [340, 380]]) { await page.mouse.move(box.x + dx, box.y + dy); await page.mouse.down(); await page.mouse.up(); }
+    await expect(page.locator('#c3SketchHint')).toContainText('3 placed');
+    await page.keyboard.press('Backspace');
+    await expect(page.locator('#c3SketchHint')).toContainText('2 placed');
+    await page.keyboard.press('Backspace'); await page.keyboard.press('Backspace'); // ไม่มีจุดค้างแล้ว ยังต้องไม่ตกไปถึง cad.js
+    await expect(page.locator('#c3SketchHint')).toContainText('0 placed');
+    await page.click('#tabBtn2d');
+    await expect(page.locator('#statCount')).toHaveText('1');
+  });
+
+  test('เส้นหลายจุดไม่รับจุดซ้ำพิกัดกับจุดล่าสุด/จุดแรก (ขอบยาว 0 สร้างรูปทรงไม่ได้)', async ({ page }) => {
+    const { box } = await openSketch(page, 'en');
+    const hint = page.locator('#c3SketchHint');
+    await page.click('#sketchToolPolylineBtn');
+    const click = async (dx, dy) => { await page.mouse.move(box.x + dx, box.y + dy); await page.mouse.down(); await page.mouse.up(); };
+    await click(200, 250);
+    await click(200, 250); // ซ้ำจุดล่าสุด
+    await expect(hint).toContainText('1 placed');
+    await click(350, 260); await click(340, 380);
+    await expect(hint).toContainText('3 placed');
+    await click(340, 380); // ซ้ำจุดล่าสุด
+    await click(200, 250); // กลับที่จุดเริ่ม — ไม่ปิดรูปเอง ไม่เพิ่มจุด
+    await expect(hint).toContainText('3 placed');
+    await expect(page.locator('#c3SketchToolbar')).toBeVisible();
   });
 });
