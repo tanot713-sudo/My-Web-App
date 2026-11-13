@@ -166,7 +166,7 @@ async function pipeline(parts, backend, runs, createOnly) {
           const N = s.inputMetadata?.[0]?.shape?.[0] > 0 ? s.inputMetadata[0].shape[0] : +$('n').value;
           const inp = inputs(N);
           feeds = { patches: new ort.Tensor('float32', inp.patches, [N, 768]), pos: new ort.Tensor('float32', inp.pos, [1, N, 1152]) };
-        } else feeds = { hidden: cur };
+        } else feeds = { [s.inputNames[0]]: cur };   // ชื่ออินพุตของก้อนหลังๆ ในไฟล์คือ hidden.1 ฯลฯ
         say(`  ก้อน ${i}: เรียก run … (ถ้าหน้าเด้งตรงนี้ = ตอนคำนวณ/อัปน้ำหนักขึ้น GPU ของก้อนนี้)`); await flush();   // รอให้บันทึกลง localStorage ก่อนเริ่มงานหนัก
         const o = await s.run(feeds); const out0 = o[s.outputNames[0]];
         cur = new ort.Tensor('float32', Float32Array.from(await out0.getData()), out0.dims);   // ย้ายออกมาเป็นข้อมูลบน CPU ก่อนปล่อย session
