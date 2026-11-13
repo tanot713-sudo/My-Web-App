@@ -6,6 +6,9 @@
 #   paddle          = PaddleOCR PP-OCRv5 รุ่นภาษาไทย (th_PP-OCRv5_mobile_rec) — ตัวเลือกที่จะเอาเข้าเบราว์เซอร์ได้ (PaddleOCR.js)
 #   paddle-unwarp   = เหมือนกัน + ตัวหมุน/คลี่หน้ากระดาษโค้ง (UVDoc) ก่อนอ่าน
 #   iapp            = iapp/OpenThai2.0-OCR-Markdown (0.63B) บน GPU — ใช้ tanot_iapp_runner.py (ต้องรัน tanot_ocr_iapp.py โหมด PROBE_ONLY ผ่านก่อน) · IAPP_REF = branch ของ repo
+#   iapp-<ด้านยาวสูงสุด>-<bf16|q4vit|q4dec|q4both> = ด่าน 0 ของแถว 3d (greedy temperature=0): ย่อภาพก่อนส่ง + จำลอง 4-bit ใน torch
+#                     เช่น iapp-1024-bf16 (ฐาน) · iapp-1024-q4both (บีบทั้งส่วนอ่านภาพและ decoder) · 0a: ENGINES = [f"iapp-{c}-bf16" for c in (1408,1024,896,768)]
+#                     0b: เลือกขนาดที่ผ่าน 0a แล้ว ENGINES = ["iapp-<ขนาด>-q4vit", "iapp-<ขนาด>-q4dec", "iapp-<ขนาด>-q4both"] · ห้ามผสมกับ "iapp" เปล่า (ตัวนั้นสุ่ม 0.2)
 #   typhoon         = Typhoon OCR 1.5 (2B) บน GPU — โมเดลไทยเฉพาะทาง ใหญ่เกินเบราว์เซอร์ (ไว้ดูเพดานของโมเดลเปิด)
 #   claude-*        = /api/ocr ของเว็บจริง (ย่อรูปแบบเดียวกับเว็บ) — เสียค่า Claude API (20 ภาพ × 3 รุ่น ≈ 1–3 USD) · ต้องตั้ง Secret 2 ตัว (ด้านล่าง)
 # ผล: "_ผลวัด-OCR/report-OCR.txt" (CER รวม/ตามประเภท/รายภาพ + จำนวนครั้งที่วนซ้ำ) · ข้อความที่แต่ละตัวอ่านได้ "_ผลวัด-OCR/ผล/<ตัว>/<ชื่อ>.txt"
@@ -100,17 +103,18 @@ print(f"ภาพที่มีเฉลย {len(items)}: " + ", ".join(k for k
 if not items: raise SystemExit("❌ ไม่มีภาพที่มีเฉลย <ชื่อ>.txt")
 def todo(engine): return [it for it in items if it[0] not in res.get(engine, {}) or res[engine][it[0]].get("err")]   # ที่ล้มรอบก่อน = ทำใหม่
 FAIL = {}   # ตัวที่ล้มทั้งตัว (ติดตั้ง/โหลดไม่ได้) → ลงรายงาน
-def put(engine, key, text=None, sec=0.0, err=None):
-    res.setdefault(engine, {})[key] = {"text": text, "sec": round(sec, 1), "err": err}; save()
+def put(engine, key, text=None, sec=0.0, err=None, meta=None):
+    res.setdefault(engine, {})[key] = {"text": text, "sec": round(sec, 1), "err": err, "meta": meta}; save()
     print(f"  {engine:<18} {key:<12} {sec:5.0f} วิ  " + (f"ERROR {err[:120]}" if err else (text or "").replace("\n", " ")[:90]), flush=True)
 
 # ── 0b) iApp ต้องติดตั้ง transformers 5.x ก่อน import transformers ครั้งแรก (ไม่งั้นต้อง Restart session) ──
-if "iapp" in ENGINES and todo("iapp"):
+IAPP_ENG = [x for x in ENGINES if x == "iapp" or x.startswith("iapp-")]
+if any(todo(x) for x in IAPP_ENG):
     try:
         import sys, importlib; _IR = W / "iapp_repo"; shutil.rmtree(_IR, ignore_errors=True)   # clone ครั้งเดียว ใช้ทั้งขั้น 0b และ 1b
         run(f"git clone -q --depth 1 --branch {IAPP_REF} {REPO} '{_IR}'")
         sys.path.insert(0, str(_IR / "tools" / "ocr-eval")); import tanot_iapp_runner as IAPP; importlib.reload(IAPP); IAPP.install()
-    except Exception as e: FAIL["iapp"] = str(e)[-600:]; ENGINES = [x for x in ENGINES if x != "iapp"]; print(f"⚠️ ข้าม iapp: {e}")
+    except Exception as e: FAIL["iapp"] = str(e)[-600:]; ENGINES = [x for x in ENGINES if x not in IAPP_ENG]; IAPP_ENG = []; print(f"⚠️ ข้าม iapp: {e}")
 
 # ── 1) Typhoon OCR 1.5 (GPU) ──
 if "typhoon" in ENGINES and todo("typhoon"):
@@ -136,19 +140,32 @@ if "typhoon" in ENGINES and todo("typhoon"):
     except Exception as e: FAIL["typhoon"] = str(e)[-600:]; print(f"⚠️ ข้าม typhoon: {e}")
 
 # ── 1b) iApp OpenThai2.0-OCR-Markdown (GPU · ตัวรันกลางใน tanot_iapp_runner.py · ต้องติดตั้งก่อน import transformers ครั้งแรก) ──
-if "iapp" in ENGINES and todo("iapp"):
+def iapp_spec(name):   # "iapp" → ไม่ย่อ/ไม่บีบ/สุ่มตามค่าเริ่มต้น · "iapp-1024-q4both" → (1024, "both") greedy
+    if name == "iapp": return None, None, False
+    m = re.fullmatch(r"iapp-(\d+)-(bf16|q4vit|q4dec|q4both)", name)
+    if not m: raise ValueError(f"ชื่อ engine ไม่ถูกต้อง: {name} (รูปแบบ iapp-<ด้านยาว>-<bf16|q4vit|q4dec|q4both>)")
+    return int(m.group(1)), (None if m.group(2) == "bf16" else m.group(2)[2:]), True
+for greedy in (False, True):   # โหลดโมเดลแยกตามโหมดสุ่ม ไม่ปนกันในรอบเดียว
+    group = [x for x in IAPP_ENG if todo(x) and iapp_spec(x)[2] == greedy]
+    if not group: continue
     try:
-        runner = IAPP.load()
-        for key, cat, ref, full, small in todo("iapp"):
-            t0 = time.time()
-            try:
-                md = runner.ocr(Image.open(small).convert("RGB"), tables=False)[0]   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
-                put("iapp", key, to_plain(md), time.time() - t0)
-            except Exception as e: put("iapp", key, None, time.time() - t0, f"{type(e).__name__}: {e}")
-        print(f"VRAM สูงสุดของ iapp {IAPP.peak_vram():.1f} GiB")
+        runner = IAPP.load(greedy=greedy)
+        for eng in group:
+            cap, quant, _ = iapp_spec(eng)
+            if greedy: print(f"{eng}: Linear ที่ถูกบีบ {runner.set_quant(quant) or 'ไม่มี (bf16 เดิม)'} · ด้านยาว ≤ {cap}", flush=True)   # set_quant(None) คืนน้ำหนักเดิมเสมอ กันค่าค้างจาก engine ก่อนหน้า
+            for key, cat, ref, full, small in todo(eng):
+                t0 = time.time()
+                try:
+                    im = Image.open(small).convert("RGB")   # ภาพย่อ 2000px เท่าที่เว็บใช้กับตัวอื่น
+                    if cap: im.thumbnail((cap, cap))
+                    meta = {"w": im.width, "h": im.height, "patches": -(-im.height // 16) * -(-im.width // 16)}   # คำนวณเอง ไม่ใช่ค่าจาก processor
+                    md, _tables, _w = runner.ocr(im, tables=False)
+                    put(eng, key, to_plain(md), time.time() - t0, meta=meta)
+                except Exception as ex: put(eng, key, None, time.time() - t0, f"{type(ex).__name__}: {ex}")
+            print(f"VRAM สูงสุดของ {eng} {IAPP.peak_vram():.1f} GiB", flush=True)
         del runner
         import gc, torch; gc.collect(); torch.cuda.empty_cache()
-    except Exception as e: FAIL["iapp"] = str(e)[-600:]; print(f"⚠️ ข้าม iapp: {e}")
+    except Exception as ex: FAIL["iapp"] = str(ex)[-600:]; print(f"⚠️ ข้าม iapp: {ex}")
 
 # ── 2) PaddleOCR รุ่นไทย (CPU · venv แยก Python 3.11 กันชนกับ Colab) ──
 PADDLE_CFG = "mobile_det+th_PP-OCRv5_mobile_rec · 2000px"   # เปลี่ยนค่านี้ = วัด PaddleOCR ใหม่ทั้งหมด
@@ -280,8 +297,9 @@ if CL:
 
 # ── 5) รายงาน ──
 cats = list(dict.fromkeys(c for _, c, *_ in items))
+EW = max([18] + [len(x) for x in ENGINES])
 L = [f"Tanot · สคริปต์ 11 · OCR {len(items)} ภาพ · CER = อัตราตัวอักษรผิด (ยิ่งต่ำยิ่งดี; ไม่นับช่องว่าง/วรรคตอน · เกิน 100% ได้ถ้าอ่านเกิน/วนซ้ำ)", "",
-     f"{'ตัว':<18} {'รวม':>7} " + " ".join(f"{c:>8}" for c in cats) + f" {'วนซ้ำ':>6} {'ล้ม':>4} {'วิ/ภาพ':>7}"]
+     f"{'ตัว':<{EW}} {'รวม':>7} " + " ".join(f"{c:>8}" for c in cats) + f" {'วนซ้ำ':>6} {'ล้ม':>4} {'วิ/ภาพ':>7}"]
 per = {}
 for eng in ENGINES:
     d = res.get(eng, {})
@@ -295,10 +313,13 @@ for eng in ENGINES:
         loops += looped(r["text"]); secs.append(r["sec"]); per.setdefault(key, {})[eng] = e / n
         f = OUTD / eng; f.mkdir(exist_ok=True); (f / f"{key}.txt").write_text(r["text"] or "", encoding="utf-8")
     pc = lambda a: f"{a[0] / a[1] * 100:6.1f}%" if a[1] else "      —"
-    L.append(f"{eng:<18} {pc(tot):>7} " + " ".join(f"{pc(bycat[c]):>8}" for c in cats) + f" {loops:>6} {errs:>4} {sum(secs) / max(1, len(secs)):7.0f}")
-L += ["", "รายภาพ (CER):", f"{'ภาพ':<12} " + " ".join(f"{e[:10]:>10}" for e in ENGINES if res.get(e))]
+    L.append(f"{eng:<{EW}} {pc(tot):>7} " + " ".join(f"{pc(bycat[c]):>8}" for c in cats) + f" {loops:>6} {errs:>4} {sum(secs) / max(1, len(secs)):7.0f}")
+L += ["", "รายภาพ (CER):", f"{'ภาพ':<12} " + " ".join(f"{e:>{max(10, len(e))}}" for e in ENGINES if res.get(e))]
 for key, *_ in items:
-    L.append(f"{key:<12} " + " ".join((f"{per[key][e] * 100:9.1f}%" if e in per.get(key, {}) else f"{'—':>10}") for e in ENGINES if res.get(e)))
+    L.append(f"{key:<12} " + " ".join((f"{per[key][e] * 100:{max(10, len(e)) - 1}.1f}%" if e in per.get(key, {}) else f"{'—':>{max(10, len(e))}}") for e in ENGINES if res.get(e)))
+pt = [(e, [r["meta"]["patches"] for r in res[e].values() if r.get("meta") and not r["err"]]) for e in ENGINES if res.get(e)]
+pt = [(e, v) for e, v in pt if v]
+if pt: L += ["", "ขนาดภาพที่ส่งเข้าโมเดล (patch 16×16 = ceil(สูง/16)×ceil(กว้าง/16), คำนวณเอง ไม่ใช่ค่าจาก processor): เฉลี่ย / มากสุด"] + [f"  {e}: {sum(v) / len(v):.0f} / {max(v)}" for e, v in pt]
 errs = [(e, k, r["err"]) for e in ENGINES for k, r in res.get(e, {}).items() if r["err"]]
 if FAIL: L += ["", "ตัวที่ไม่ได้รัน/ล้มทั้งตัว:"] + [f"  {e}: {m}" for e, m in FAIL.items()]
 if errs: L += ["", "ที่ล้ม:"] + [f"  {e} · {k}: {m[:200]}" for e, k, m in errs]

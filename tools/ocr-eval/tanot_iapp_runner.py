@@ -25,9 +25,64 @@ def install():
         return
     subprocess.run([sys.executable, "-m", "pip", "-q", "install", *PINS], check=True)
 
+def _fake_nbits(w, block=32, sym=False, bits=4):
+    """quantize→dequantize น้ำหนัก Linear [out, in] แบบบล็อกตามแกน in (แกน K ของ MatMul) — จำลอง MatMulNBits ของ onnxruntime
+    asym (ค่าเริ่มต้นของ matmul_nbits_quantizer: is_symmetric=False, ตรวจจากไฟล์ใน onnxruntime 1.31.1): scale=(max-min)/(2^b-1), zero-point ปัดเป็นจำนวนเต็ม
+    sym: scale=absmax/(2^(b-1)) zero-point = 2^(b-1) · ค่าเริ่มต้นของ ORT คือบล็อก 128 — ที่นี่ใช้ 32 ตามแผน 3d (ปรับ block= ได้)
+    shortcut: เป็นการจำลองด้วยการปัดค่า ไม่ใช่ตัวเข้ารหัสจริง ผลอาจต่างจาก ONNX 4-bit จริงเล็กน้อย (ลำดับปัดค่า/ขอบบล็อก) · ด่าน 2 ต้องวัดซ้ำกับ ONNX จริง"""
+    import torch
+    out_f, in_f = w.shape
+    pad = (-in_f) % block
+    x = w.float()
+    if pad: x = torch.nn.functional.pad(x, (0, pad))
+    x = x.reshape(out_f, -1, block)
+    qmax = 2 ** bits - 1
+    if sym:
+        scale = (x.abs().amax(-1, keepdim=True) / (2 ** (bits - 1))).clamp_min(1e-8)
+        zp = float(2 ** (bits - 1))
+    else:
+        mn, mx = x.amin(-1, keepdim=True), x.amax(-1, keepdim=True)
+        scale = ((mx - mn) / qmax).clamp_min(1e-8)
+        zp = torch.round(-mn / scale).clamp(0, qmax)
+    q = torch.clamp(torch.round(x / scale) + zp, 0, qmax)
+    deq = ((q - zp) * scale).reshape(out_f, -1)[:, :in_f]
+    return deq.to(w.dtype)
+
 class Runner:
-    def __init__(self, parser, torch, GenerationError):
-        self.parser, self.torch, self.GenerationError = parser, torch, GenerationError
+    def __init__(self, parser, torch, GenerationError, model=None):
+        self.parser, self.torch, self.GenerationError, self.model = parser, torch, GenerationError, model
+        self._orig = None   # {ชื่อโมดูล: น้ำหนักเดิมบน CPU} เก็บครั้งแรกที่เรียก set_quant
+
+    def _linears(self, part):
+        """Linear ที่ ONNX จะกลายเป็น MatMul (MatMulNBits รับเฉพาะ MatMul/Gemm — Conv ของ neck ไม่ถูกบีบ ตารางคำ Gather ไม่ถูกบีบ)
+        part: 'vit' = encoder ทั้งหมด · 'dec' = ชั้น decoder + extra heads + lm_head"""
+        import torch.nn as nn
+        m = self.model
+        roots = {"vit": [("encoder", m.encoder)], "dec": [("decoder", m.decoder), ("lm_head", m.lm_head)]}[part]
+        out = []
+        for pre, root in roots:
+            for name, mod in root.named_modules():
+                if isinstance(mod, nn.Linear): out.append((pre + ("." + name if name else ""), mod))
+        return out
+
+    def set_quant(self, mode, block=32, sym=False):
+        """mode: None (bf16 เดิม) | 'vit' | 'dec' | 'both' · เรียกซ้ำได้ — คืนน้ำหนักเดิมก่อนบีบใหม่ทุกครั้ง
+        lm_head ผูกน้ำหนักกับ embed_tokens: ถ้าบีบตรงๆ จะบีบตารางคำไปด้วย (ซึ่งใน ONNX ไม่ถูกบีบ) → แยกสำเนาให้ lm_head ก่อน"""
+        import torch.nn as nn
+        parts = {"both": ("vit", "dec"), "vit": ("vit",), "dec": ("dec",), None: ()}[mode]
+        m = self.model
+        if self._orig is None:   # เก็บของเดิมครั้งเดียว (bf16 ~1.3 GB บน CPU)
+            self._orig = {n: mod.weight.detach().cpu().clone() for part in ("vit", "dec") for n, mod in self._linears(part)}
+        embed = m.decoder.embed_tokens.weight
+        if m.lm_head.weight is embed: m.lm_head.weight = nn.Parameter(embed.detach().clone(), requires_grad=False)
+        for part in ("vit", "dec"):
+            for n, mod in self._linears(part):
+                mod.weight.data.copy_(self._orig[n].to(mod.weight.device))
+        for part in parts:
+            for n, mod in self._linears(part):
+                mod.weight.data.copy_(_fake_nbits(mod.weight.data, block, sym))
+        self.torch.cuda.empty_cache()
+        return {part: len(self._linears(part)) for part in parts}   # จำนวน Linear ที่ถูกบีบ ไว้พิมพ์ตรวจ
 
     def ocr(self, img, tables=True):
         """PIL.Image → (markdown, tables, warnings) · tables = list ของตาราง (list ของแถว = list ของข้อความ ขยายช่องที่ merge แล้ว)
@@ -64,7 +119,7 @@ def peak_vram():
     import torch
     return torch.cuda.max_memory_allocated() / 2**30
 
-def load(selftest=True):
+def load(selftest=True, greedy=False):
     """โหลดตามตัวช่วยของ repo โมเดล แล้ว "อ่านภาพทดสอบ 1 ภาพจริง" ก่อนบอกว่าสำเร็จ (ไม่ใช่แค่โหลดน้ำหนักได้)"""
     install()
     import torch
@@ -74,11 +129,12 @@ def load(selftest=True):
     d = snapshot_download(MODEL, revision=REVISION)   # มี postprocessing.py, latex2html.py, nemotron_parse/**
     if d not in sys.path: sys.path.insert(0, d)
     from transformers import AutoModel, AutoProcessor, GenerationConfig
-    from nemotron_parse.inference import DocumentParser, TransformersBackend, GenerationError
+    from nemotron_parse.inference import DocumentParser, TransformersBackend, GenerationError, GenerationSettings
     torch.cuda.reset_peak_memory_stats()
     model = AutoModel.from_pretrained(d, trust_remote_code=True, dtype=torch.bfloat16).to("cuda").eval()
     proc = AutoProcessor.from_pretrained(d, trust_remote_code=True)
-    r = Runner(DocumentParser(backend=TransformersBackend(model, proc, GenerationConfig.from_pretrained(d))), torch, GenerationError)
+    fullpage = GenerationSettings(temperature=0.0) if greedy else None   # greedy = ตัดความสุ่ม (ด่าน 0 ของแถว 3d)
+    r = Runner(DocumentParser(backend=TransformersBackend(model, proc, GenerationConfig.from_pretrained(d)), fullpage=fullpage), torch, GenerationError, model)
     print(f"โหลดน้ำหนักแล้ว (commit {REVISION[:7]}) · VRAM จอง {torch.cuda.memory_allocated() / 2**30:.1f} GiB")
     if selftest:
         from PIL import Image, ImageDraw, ImageFont
