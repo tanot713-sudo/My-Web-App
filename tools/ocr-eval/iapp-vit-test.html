@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ทดสอบ iApp ViT</title>
+<style>
+  /* หน้าทดสอบของนักพัฒนา (ไม่อยู่ในเมนู ไม่ใช่หน้าของเว็บ) — ไม่ใช้ธีมกลาง */
+  body { font: 16px/1.5 system-ui, sans-serif; margin: 0; padding: 16px; color: #111; background: #fff; }
+  @media (prefers-color-scheme: dark) { body { color: #eee; background: #111; } pre { background: #222; } }
+  label { display: block; margin: 12px 0 4px; }
+  input, select, button { font: inherit; padding: 8px; max-width: 100%; }
+  button { margin: 8px 8px 0 0; }
+  pre { white-space: pre-wrap; word-break: break-word; background: #f3f3f3; padding: 12px; border-radius: 8px; min-height: 8em; }
+</style>
+</head>
+<body>
+<h1>ทดสอบ iApp ViT 4-bit</h1>
+<label for="files">ไฟล์โมเดล (.onnx และ .onnx.data ถ้ามี — เลือกพร้อมกัน)</label>
+<input id="files" type="file" multiple>
+<label for="backend">ตัวรัน</label>
+<select id="backend">
+  <option value="webgpu">WebGPU</option>
+  <option value="wasm">WASM (CPU)</option>
+</select>
+<label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
+<input id="n" type="number" value="2464" min="4" step="4">
+<label for="runs">จำนวนรอบ</label>
+<input id="runs" type="number" value="3" min="1" max="10">
+<div>
+  <button id="probe">ตรวจอุปกรณ์</button>
+  <button id="go">รัน</button>
+  <button id="tiny">ทดสอบ MatMulNBits 4/8 บิต</button>
+  <button id="copy">คัดลอกผล</button>
+</div>
+<pre id="log" aria-live="polite"></pre>
+<script type="module">
+// ort 1.24.3 ตัวเดียวกับที่เว็บใช้ (vendor/transformers) · ใช้ asyncify wasm จาก jsDelivr เหมือนหน้า text-to-speech (ไฟล์ .wasm หนัก 26 MiB เกินลิมิต Pages)
+import * as ort from '../../vendor/transformers/ort.webgpu.bundle.min.mjs';
+const V = new URL('../../vendor/transformers/', location.href).href;
+const ASYNC_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.24.3/dist/ort-wasm-simd-threaded.asyncify.wasm';
+const $ = (id) => document.getElementById(id);
+const out = [];
+function say(...a) { const t = a.join(' '); out.push(t); $('log').textContent = out.join('\n'); console.log(t); }
+
+async function probe() {
+  say('UA:', navigator.userAgent);
+  say('navigator.gpu:', !!navigator.gpu, '· crossOriginIsolated:', self.crossOriginIsolated, '· deviceMemory:', navigator.deviceMemory ?? 'ไม่ทราบ');
+  if (!navigator.gpu) { say('→ ไม่มี WebGPU ในเบราว์เซอร์นี้ (iOS ต้อง 26 ขึ้นไป หรือเปิดใน Settings → Safari → Advanced → Feature Flags)'); return; }
+  const ad = await navigator.gpu.requestAdapter();
+  if (!ad) { say('→ requestAdapter() ได้ null'); return; }
+  const l = ad.limits;
+  say('adapter:', JSON.stringify(ad.info ? { vendor: ad.info.vendor, architecture: ad.info.architecture, description: ad.info.description } : {}), '· fallback:', !!ad.isFallbackAdapter);
+  say('shader-f16:', ad.features.has('shader-f16'), '· subgroups:', ad.features.has('subgroups'));
+  say('maxBufferSize:', (l.maxBufferSize / 2 ** 20).toFixed(0), 'MiB · maxStorageBufferBindingSize:', (l.maxStorageBufferBindingSize / 2 ** 20).toFixed(0), 'MiB · maxComputeWorkgroupStorageSize:', l.maxComputeWorkgroupStorageSize, 'B');
+  say('(attention fp32 ที่ N=2464 ต้องการ buffer ราว', (16 * 2464 * 2464 * 4 / 2 ** 20).toFixed(0), 'MiB ต่อชั้น — ถ้า maxStorageBufferBindingSize ต่ำกว่านี้ ต้องใช้ไฟล์แบบแบ่ง query)');
+}
+
+// WebGPU: ปิดทางถอยไป CPU — ไม่งั้น onnxruntime ส่ง node ที่ WebGPU ไม่รับ (เช่น MatMulNBits 8 บิต) ไปให้ CPU เองโดยไม่แจ้ง
+// ผลที่ได้จะถูกต้องแต่ไม่ใช่ผลของ WebGPU และเวลาที่วัดก็ไม่ใช่ของ WebGPU · เปิดโหมดนี้แล้วสร้าง session ล้ม = op นั้นรันบน WebGPU ไม่ได้ (พิมพ์ข้อความ error ทั้งก้อน อย่าปิดโหมดเงียบๆ)
+function sessionOptions(backend, extra) {
+  const o = { executionProviders: [backend], ...extra };
+  if (backend === 'webgpu') o.extra = { session: { disable_cpu_ep_fallback: '1' } };
+  say(backend === 'webgpu' ? 'โหมดปิดทางถอยไป CPU: เปิด (disable_cpu_ep_fallback = 1)' : 'ตัวรัน WASM = CPU อยู่แล้ว (ไม่มีทางถอย)');
+  return o;
+}
+
+function configure(backend) {
+  ort.env.wasm.numThreads = 1;
+  ort.env.wasm.wasmPaths = backend === 'webgpu'
+    ? { mjs: V + 'ort-wasm-simd-threaded.asyncify.mjs', wasm: ASYNC_WASM }
+    : { mjs: V + 'ort-wasm-simd-threaded.mjs', wasm: V + 'ort-wasm-simd-threaded.wasm' };
+}
+
+// ตัวสุ่ม mulberry32 (จำนวนเต็มล้วน ได้ค่าเดียวกันทุกเครื่อง) — สคริปต์ Colab tanot_iapp_onnx_vit.py สร้างอินพุตชุดเดียวกัน
+// แล้วพิมพ์ค่าคาดหวังลง report.txt เพื่อเทียบกับผลของหน้านี้ (คอม-WASM / คอม-WebGPU / iPhone)
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const SEED = 20251113;
+function inputs(N) {
+  const r = mulberry32(SEED), patches = new Float32Array(N * 768), pos = new Float32Array(N * 1152);
+  for (let i = 0; i < patches.length; i++) patches[i] = r() * 2 - 1;
+  for (let i = 0; i < pos.length; i++) pos[i] = (r() * 2 - 1) * 0.1;
+  return { patches, pos };
+}
+
+async function tiny() {
+  const backend = $('backend').value; configure(backend);
+  say(`\n— MatMulNBits จิ๋ว · ${backend} · ort ${ort.env.versions?.web ?? '1.24.3'} —`);
+  let ref;
+  try { ref = await (await fetch('tiny-nbits.json')).json(); } catch (e) { say('❌ โหลด tiny-nbits.json ไม่ได้:', e?.message || e); return; }
+  for (const bits of [4, 8]) {
+    try {
+      const buf = new Uint8Array(await (await fetch(`tiny-nbits${bits}.onnx`)).arrayBuffer());
+      const s = await ort.InferenceSession.create(buf, sessionOptions(backend));
+      const y = (await s.run({ A: new ort.Tensor('float32', Float32Array.from(ref.A), [ref.M, ref.K]) })).Y;
+      const d = await y.getData(); let m = 0;
+      for (let i = 0; i < d.length; i++) m = Math.max(m, Math.abs(d[i] - ref.expected[bits][i]));
+      say(`${bits} บิต: ${m < 1e-3 ? '✅ ถูกต้อง' : '❌ ค่าผิด'} · max|ต่าง| ${m.toExponential(2)}`);
+    } catch (e) { say(`${bits} บิต: ❌ ${e?.message || e}`); }
+  }
+}
+
+async function run() {
+  const backend = $('backend').value, runs = +$('runs').value;
+  const files = [...$('files').files];
+  const main = files.find((f) => /\.onnx$/i.test(f.name)), data = files.find((f) => /\.data$/i.test(f.name));
+  if (!main) { say('❌ ยังไม่ได้เลือกไฟล์ .onnx'); return; }
+  say(`\n— รัน ${backend} · ${main.name} (${(main.size / 2 ** 20).toFixed(0)} MiB)${data ? ' + ' + data.name + ' (' + (data.size / 2 ** 20).toFixed(0) + ' MiB)' : ''} —`);
+  configure(backend);
+  let session;
+  try {
+    const t0 = performance.now();
+    const opts = sessionOptions(backend, { graphOptimizationLevel: 'all' });
+    if (data) opts.externalData = [{ path: data.name, data: new Uint8Array(await data.arrayBuffer()) }];
+    session = await ort.InferenceSession.create(new Uint8Array(await main.arrayBuffer()), opts);
+    say(`สร้าง session สำเร็จ ${((performance.now() - t0) / 1000).toFixed(1)} วิ · input: ${session.inputNames.join(', ')}`);
+  } catch (e) { say('❌ สร้าง session ไม่สำเร็จ:', e?.message || e); return; }
+  let N = +$('n').value;
+  try {   // ถ้าโมเดลกำหนด N คงที่ ใช้ค่านั้น
+    const m = session.inputMetadata; const sh = (Array.isArray(m) ? m.find((x) => x.name === 'patches') : m?.patches)?.shape;
+    if (sh && typeof sh[0] === 'number' && sh[0] > 0) { N = sh[0]; say('โมเดลกำหนด N คงที่ =', N); }
+  } catch { /* อ่านไม่ได้ = ใช้ค่าในช่อง */ }
+  try {
+    const inp = inputs(N);
+    const patches = new ort.Tensor('float32', inp.patches, [N, 768]);
+    const pos = new ort.Tensor('float32', inp.pos, [1, N, 1152]);
+    for (let i = 1; i <= runs; i++) {
+      const t0 = performance.now();
+      const o = (await session.run({ patches, pos })).features;
+      const d = await o.getData(); let bad = 0, sum = 0;
+      for (let j = 0; j < d.length; j++) { if (!Number.isFinite(d[j])) bad++; else sum += d[j]; }
+      say(`รอบ ${i}: ${((performance.now() - t0) / 1000).toFixed(1)} วิ · output [${o.dims.join(',')}] · NaN/Inf ${bad} · ผลรวม ${sum.toFixed(3)} · 8 ค่าแรก ${Array.from(d.slice(0, 8), (x) => x.toFixed(4)).join(' ')}`);
+    }
+    say('✅ ครบทุกรอบ');
+  } catch (e) { say('❌ รันไม่สำเร็จ:', e?.message || e); }
+}
+
+$('probe').onclick = () => probe().catch((e) => say('❌', e?.message || e));
+$('tiny').onclick = () => tiny().catch((e) => say('❌', e?.message || e));
+$('go').onclick = () => run().catch((e) => say('❌', e?.message || e));
+$('copy').onclick = async () => { try { await navigator.clipboard.writeText(out.join('\n')); say('(คัดลอกแล้ว)'); } catch { say('(คัดลอกไม่ได้ — เลือกข้อความเอง)'); } };
+</script>
+</body>
+</html>
