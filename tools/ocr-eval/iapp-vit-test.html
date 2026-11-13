@@ -28,6 +28,14 @@
   <option value="bytes">อ่านเป็นไบต์ในหน้า (ค่าเดิม)</option>
   <option value="url">ให้ onnxruntime ดึงจากไฟล์เอง (blob URL)</option>
 </select>
+<label for="opt">ระดับ optimize ของกราฟตอนสร้าง session (ลดสำเนาน้ำหนักในหน่วยความจำ ถ้าตั้งต่ำ)</label>
+<select id="opt">
+  <option value="all">all (ค่าเดิม)</option>
+  <option value="extended">extended</option>
+  <option value="basic">basic</option>
+  <option value="disabled">disabled</option>
+</select>
+<label><input id="noarena" type="checkbox"> ปิด CPU memory arena + mem pattern (ลดหน่วยความจำที่จองค้าง)</label>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
 <label for="runs">จำนวนรอบ</label>
@@ -128,7 +136,10 @@ async function run(createOnly = false) {
   let session, url;
   try {
     const t0 = performance.now();
-    const opts = sessionOptions(backend, { graphOptimizationLevel: 'all' });
+    const extra = { graphOptimizationLevel: $('opt').value };
+    if ($('noarena').checked) { extra.enableCpuMemArena = false; extra.enableMemPattern = false; }
+    say(`ตัวเลือก session: optimize=${extra.graphOptimizationLevel} · ปิด arena/mem pattern=${$('noarena').checked}`);
+    const opts = sessionOptions(backend, extra);
     if (data) { say('อ่านไฟล์ .data …'); opts.externalData = [{ path: data.name, data: new Uint8Array(await data.arrayBuffer()) }]; }
     let src;
     if (method === 'url') src = url = URL.createObjectURL(main);
