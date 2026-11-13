@@ -55,34 +55,39 @@ class Runner:
 
     def _linears(self, part):
         """Linear ที่ ONNX จะกลายเป็น MatMul (MatMulNBits รับเฉพาะ MatMul/Gemm — Conv ของ neck ไม่ถูกบีบ ตารางคำ Gather ไม่ถูกบีบ)
-        part: 'vit' = encoder ทั้งหมด · 'dec' = ชั้น decoder + extra heads + lm_head"""
+        part: 'vit' = encoder ทั้งหมด · 'dec' = ชั้น decoder + extra heads · 'lm' = lm_head (แยกเพราะผูกน้ำหนักกับตารางคำ และอาจไวต่อการบีบกว่า)"""
         import torch.nn as nn
         m = self.model
-        roots = {"vit": [("encoder", m.encoder)], "dec": [("decoder", m.decoder), ("lm_head", m.lm_head)]}[part]
+        roots = {"vit": [("encoder", m.encoder)], "dec": [("decoder", m.decoder)], "lm": [("lm_head", m.lm_head)]}[part]
         out = []
         for pre, root in roots:
             for name, mod in root.named_modules():
                 if isinstance(mod, nn.Linear): out.append((pre + ("." + name if name else ""), mod))
         return out
 
-    def set_quant(self, mode, block=32, sym=False):
-        """mode: None (bf16 เดิม) | 'vit' | 'dec' | 'both' · เรียกซ้ำได้ — คืนน้ำหนักเดิมก่อนบีบใหม่ทุกครั้ง
-        lm_head ผูกน้ำหนักกับ embed_tokens: ถ้าบีบตรงๆ จะบีบตารางคำไปด้วย (ซึ่งใน ONNX ไม่ถูกบีบ) → แยกสำเนาให้ lm_head ก่อน"""
-        import torch.nn as nn
-        parts = {"both": ("vit", "dec"), "vit": ("vit",), "dec": ("dec",), None: ()}[mode]
+    def set_quant(self, spec, block=32, sym=False):
+        """spec: None (bf16 เดิม) หรือสตริงโทเค็นต่อด้วย + เช่น "vit4+dec8+lm4" (vit/dec/lm × 4 หรือ 8 บิต; ส่วนที่ไม่ใส่ = ไม่บีบ)
+        เรียกซ้ำได้ — คืนน้ำหนักเดิมก่อนบีบใหม่ทุกครั้ง · lm_head ผูกน้ำหนักกับ embed_tokens: ถ้าบีบตรงๆ จะบีบตารางคำไปด้วย
+        (ซึ่งใน ONNX ไม่ถูกบีบ) → แยกสำเนาให้ lm_head ก่อน · คืน {ส่วน: (บิต, จำนวน Linear)} ไว้พิมพ์ตรวจ"""
+        import re, torch.nn as nn
+        plan = {}
+        for tok in (spec.split("+") if spec else []):
+            mt = re.fullmatch(r"(vit|dec|lm)([48])", tok)
+            if not mt: raise ValueError(f"โทเค็นบีบไม่ถูกต้อง: {tok!r} (ใช้ vit|dec|lm ตามด้วย 4 หรือ 8)")
+            plan[mt.group(1)] = int(mt.group(2))
         m = self.model
         if self._orig is None:   # เก็บของเดิมครั้งเดียว (bf16 ~1.3 GB บน CPU)
-            self._orig = {n: mod.weight.detach().cpu().clone() for part in ("vit", "dec") for n, mod in self._linears(part)}
+            self._orig = {n: mod.weight.detach().cpu().clone() for part in ("vit", "dec", "lm") for n, mod in self._linears(part)}
         embed = m.decoder.embed_tokens.weight
         if m.lm_head.weight is embed: m.lm_head.weight = nn.Parameter(embed.detach().clone(), requires_grad=False)
-        for part in ("vit", "dec"):
+        for part in ("vit", "dec", "lm"):
             for n, mod in self._linears(part):
                 mod.weight.data.copy_(self._orig[n].to(mod.weight.device))
-        for part in parts:
+        for part, bits in plan.items():
             for n, mod in self._linears(part):
-                mod.weight.data.copy_(_fake_nbits(mod.weight.data, block, sym))
+                mod.weight.data.copy_(_fake_nbits(mod.weight.data, block, sym, bits))
         self.torch.cuda.empty_cache()
-        return {part: len(self._linears(part)) for part in parts}   # จำนวน Linear ที่ถูกบีบ ไว้พิมพ์ตรวจ
+        return {part: (bits, len(self._linears(part))) for part, bits in plan.items()}
 
     def ocr(self, img, tables=True):
         """PIL.Image → (markdown, tables, warnings) · tables = list ของตาราง (list ของแถว = list ของข้อความ ขยายช่องที่ merge แล้ว)

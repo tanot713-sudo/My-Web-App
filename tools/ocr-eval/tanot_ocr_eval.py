@@ -7,7 +7,7 @@
 #   paddle-unwarp   = เหมือนกัน + ตัวหมุน/คลี่หน้ากระดาษโค้ง (UVDoc) ก่อนอ่าน
 #   iapp            = iapp/OpenThai2.0-OCR-Markdown (0.63B) บน GPU — ใช้ tanot_iapp_runner.py (ต้องรัน tanot_ocr_iapp.py โหมด PROBE_ONLY ผ่านก่อน) · IAPP_REF = branch ของ repo
 #   iapp-<ด้านยาวสูงสุด>-<bf16|q4vit|q4dec|q4both> = ด่าน 0 ของแถว 3d (greedy temperature=0): ย่อภาพก่อนส่ง + จำลอง 4-bit ใน torch
-#                     เช่น iapp-1024-bf16 (ฐาน) · iapp-1024-q4both (บีบทั้งส่วนอ่านภาพและ decoder) · 0a: ENGINES = [f"iapp-{c}-bf16" for c in (1408,1024,896,768)]
+#                     เช่น iapp-1024-bf16 (ฐาน) · iapp-1024-q4both · โทเค็นบีบอิสระ: iapp-896-vit4+dec8+lm8 (vit/dec/lm × 4|8 บิต; dec = ชั้น decoder, lm = lm_head) · 0a: ENGINES = [f"iapp-{c}-bf16" for c in (1408,1024,896,768)]
 #                     0b: เลือกขนาดที่ผ่าน 0a แล้ว ENGINES = ["iapp-<ขนาด>-q4vit", "iapp-<ขนาด>-q4dec", "iapp-<ขนาด>-q4both"] · ห้ามผสมกับ "iapp" เปล่า (ตัวนั้นสุ่ม 0.2)
 #   typhoon         = Typhoon OCR 1.5 (2B) บน GPU — โมเดลไทยเฉพาะทาง ใหญ่เกินเบราว์เซอร์ (ไว้ดูเพดานของโมเดลเปิด)
 #   claude-*        = /api/ocr ของเว็บจริง (ย่อรูปแบบเดียวกับเว็บ) — เสียค่า Claude API (20 ภาพ × 3 รุ่น ≈ 1–3 USD) · ต้องตั้ง Secret 2 ตัว (ด้านล่าง)
@@ -140,11 +140,13 @@ if "typhoon" in ENGINES and todo("typhoon"):
     except Exception as e: FAIL["typhoon"] = str(e)[-600:]; print(f"⚠️ ข้าม typhoon: {e}")
 
 # ── 1b) iApp OpenThai2.0-OCR-Markdown (GPU · ตัวรันกลางใน tanot_iapp_runner.py · ต้องติดตั้งก่อน import transformers ครั้งแรก) ──
-def iapp_spec(name):   # "iapp" → ไม่ย่อ/ไม่บีบ/สุ่มตามค่าเริ่มต้น · "iapp-1024-q4both" → (1024, "both") greedy
+IAPP_ALIAS = {"q4vit": "vit4", "q4dec": "dec4+lm4", "q4both": "vit4+dec4+lm4"}   # ชื่อเดิมของด่าน 0b (q4dec/q4both บีบ lm_head ด้วย)
+def iapp_spec(name):   # "iapp" → ไม่ย่อ/ไม่บีบ/สุ่มตามค่าเริ่มต้น · "iapp-896-vit4+dec8" → (896, "vit4+dec8") greedy
     if name == "iapp": return None, None, False
-    m = re.fullmatch(r"iapp-(\d+)-(bf16|q4vit|q4dec|q4both)", name)
-    if not m: raise ValueError(f"ชื่อ engine ไม่ถูกต้อง: {name} (รูปแบบ iapp-<ด้านยาว>-<bf16|q4vit|q4dec|q4both>)")
-    return int(m.group(1)), (None if m.group(2) == "bf16" else m.group(2)[2:]), True
+    m = re.fullmatch(r"iapp-(\d+)-(bf16|q4vit|q4dec|q4both|(?:(?:vit|dec|lm)[48])(?:\+(?:vit|dec|lm)[48])*)", name)
+    if not m: raise ValueError(f"ชื่อ engine ไม่ถูกต้อง: {name} (รูปแบบ iapp-<ด้านยาว>-<bf16|โทเค็นบีบ เช่น vit4+dec8+lm8>)")
+    q = m.group(2)
+    return int(m.group(1)), (None if q == "bf16" else IAPP_ALIAS.get(q, q)), True
 for greedy in (False, True):   # โหลดโมเดลแยกตามโหมดสุ่ม ไม่ปนกันในรอบเดียว
     group = [x for x in IAPP_ENG if todo(x) and iapp_spec(x)[2] == greedy]
     if not group: continue
