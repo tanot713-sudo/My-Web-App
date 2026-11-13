@@ -17,6 +17,8 @@
 CAP = 896
 TEST_IMAGES = ["ถ่าย 1", "ใบเสร็จ 1", "สแกน 1", "ถ่าย 3"]   # ชื่อไฟล์ใน Drive "_ผลวัด-OCR/ภาพ/" (ไม่ต้องมีนามสกุล)
 BLOCK = 32
+STEP3 = True        # False = ข้ามขั้น [3] — รอบ 2026-11-13 ผ่านแล้ว: wrapper ≡ ต้นฉบับ fp32 (cosine 1.00000, ต่าง 0.0000)
+REEXPORT = False    # False = ใช้ไฟล์ fp32 ที่ export ไว้แล้วในรันไทม์นี้ (/content/tanot_iapp_onnx/vit-fp32.onnx) ถ้ามี — รอบ 2026-11-13 export ผ่านและตรงกับ wrapper (ORT cosine 1.000000)
 REF = "main"     # branch/tag ของ repo ที่มี tools/ocr-eval/tanot_iapp_runner.py (ก่อน merge ให้ใส่ชื่อ branch)
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง"
@@ -31,7 +33,7 @@ sys.path.insert(0, str(W / "repo" / "tools" / "ocr-eval"))
 import tanot_iapp_runner as R
 importlib.reload(R)
 R.install()   # ต้องก่อน import transformers (ถ้าเจอข้อความให้ Restart session ให้ทำตาม)
-subprocess.run([sys.executable, "-m", "pip", "-q", "install", "onnx", "onnxruntime", "rapidfuzz", "pillow-heif"], check=True)
+subprocess.run([sys.executable, "-m", "pip", "-q", "install", "onnx", "onnx-ir", "onnxruntime", "rapidfuzz", "pillow-heif"], check=True)
 
 from google.colab import drive
 drive.mount("/content/drive")
@@ -98,45 +100,57 @@ def cos(a, b):
     c = (a * b).sum(1) / (np.linalg.norm(a, axis=1) * np.linalg.norm(b, axis=1) + 1e-9)
     return float(c.mean()), float(c.min())
 
+ref = {}   # {ชื่อ: (patches, h, w, ch, cw)}
+for name, im in imgs: ref[name] = prep(im)
+MINE = {}
+def wrapper_out(name):   # ผลของ wrapper fp32 (CPU) เก็บไว้ใช้ซ้ำ
+    if name not in MINE:
+        pv, h, w, ch, cw = ref[name]
+        with torch.no_grad(): MINE[name] = wrap(pv.float(), positions(h, w, ch, cw, pv.shape[0])).numpy()
+    return MINE[name]
+
 # ── 3) wrapper vs ต้นฉบับ ──
-say("\n[3] แยกสาเหตุความต่าง: ต้นฉบับ bf16 (GPU) · ต้นฉบับ fp32 (CPU, โครงสร้างเดิมของโมเดล) · wrapper fp32 (CPU) — cosine ต่อ token เฉลี่ย / ต่ำสุด")
-ref = {}
-for name, im in imgs:
-    pv, h, w, ch, cw = prep(im); n = pv.shape[0]
-    with torch.no_grad():
-        o16 = model.encoder(pv.to(dev), torch.tensor([[h, w]]).to(dev), torch.tensor([[ch, cw]]).to(dev))[0].float().cpu().numpy()
-        o32 = enc32(pv.float(), torch.tensor([[h, w]]), torch.tensor([[ch, cw]]))[0].numpy()
-        mine = wrap(pv.float(), positions(h, w, ch, cw, n)).numpy()
-    ref[name] = (pv, h, w, ch, cw, mine)
-    per = (o32.reshape(-1, 1024) * mine.reshape(-1, 1024)).sum(1) / (np.linalg.norm(o32.reshape(-1, 1024), axis=1) * np.linalg.norm(mine.reshape(-1, 1024), axis=1) + 1e-9)
-    say(f"  {name}: patch {n} ({h//16}×{w//16}) → token {mine.shape[1]}")
-    say(f"     bf16↔fp32(ต้นฉบับ)   {cos(o16, o32)[0]:.5f} / {cos(o16, o32)[1]:.5f}   ← ความรบกวนของ bf16 เอง")
-    say(f"     wrapper↔fp32(ต้นฉบับ) {cos(mine, o32)[0]:.5f} / {cos(mine, o32)[1]:.5f} · max|ต่าง| {np.abs(mine - o32).max():.4f}   ← ต้อง ≈ 1.0000 ถ้า wrapper ถูก (ต่างได้เฉพาะลำดับการคำนวณทศนิยม)")
-    say(f"     wrapper↔bf16          {cos(mine, o16)[0]:.5f} / {cos(mine, o16)[1]:.5f} · token ที่ต่างสุดคือลำดับที่ {int(per.argmin())} จาก {len(per)} (ลำดับสุดท้าย = summary token)")
-del o16, o32
+if STEP3:
+    say("\n[3] แยกสาเหตุความต่าง: ต้นฉบับ bf16 (GPU) · ต้นฉบับ fp32 (CPU, โครงสร้างเดิมของโมเดล) · wrapper fp32 (CPU) — cosine ต่อ token เฉลี่ย / ต่ำสุด")
+    for name, im in imgs:
+        pv, h, w, ch, cw = ref[name]; n = pv.shape[0]
+        with torch.no_grad():
+            o16 = model.encoder(pv.to(dev), torch.tensor([[h, w]]).to(dev), torch.tensor([[ch, cw]]).to(dev))[0].float().cpu().numpy()
+            o32 = enc32(pv.float(), torch.tensor([[h, w]]), torch.tensor([[ch, cw]]))[0].numpy()
+        mine = wrapper_out(name)
+        say(f"  {name}: patch {n} ({h//16}×{w//16}) → token {mine.shape[1]}")
+        say(f"     bf16↔fp32(ต้นฉบับ)   {cos(o16, o32)[0]:.5f} / {cos(o16, o32)[1]:.5f}   ← ความรบกวนของ bf16 เอง")
+        say(f"     wrapper↔fp32(ต้นฉบับ) {cos(mine, o32)[0]:.5f} / {cos(mine, o32)[1]:.5f} · max|ต่าง| {np.abs(mine - o32).max():.4f}   ← ต้อง ≈ 1.0000 ถ้า wrapper ถูก")
+    del o16, o32
 
 # ── 4) export fp32 ──
 say("\n[4] export fp32 ONNX")
-h0, w0 = 256, 256   # ตัวอย่างสำหรับ trace ขนาดเล็ก (16×16 = 256 patch) กัน RAM เต็ม — แกน N เปลี่ยนได้ ตรวจกับภาพจริงขนาดใหญ่ในขั้นถัดไป
-pv0 = torch.randn(h0 // 16 * (w0 // 16), 768)
 fp32 = W / "vit-fp32.onnx"
-for f in W.glob("vit-fp32*"): f.unlink()
-args = (pv0, positions(h0, w0, h0, w0, pv0.shape[0]))
-kw = dict(input_names=["patches", "pos"], output_names=["features"], dynamic_axes={"patches": {0: "n"}, "pos": {1: "n"}, "features": {1: "m"}}, opset_version=17)
-t0 = time.time()
-with torch.no_grad():
-    try: torch.onnx.export(wrap, args, str(fp32), dynamo=False, **kw)
-    except Exception as e:
-        say(f"  ⚠️ export แบบ TorchScript ล้ม ({type(e).__name__}: {str(e)[:300]}) → ลอง dynamo"); torch.onnx.export(wrap, args, str(fp32), dynamo=True)
-say(f"  export {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('vit-fp32*')) / 2**20:.0f} MiB")
+reused = fp32.exists() and not REEXPORT
+if reused:
+    say(f"  ใช้ไฟล์เดิม {sum(f.stat().st_size for f in W.glob('vit-fp32*')) / 2**20:.0f} MiB (ตั้ง REEXPORT = True เพื่อ export ใหม่)")
+else:
+    h0, w0 = 256, 256   # ตัวอย่างสำหรับ trace ขนาดเล็ก (16×16 = 256 patch) กัน RAM เต็ม — แกน N เปลี่ยนได้ ตรวจกับภาพจริงขนาดใหญ่ด้านล่าง
+    pv0 = torch.randn(h0 // 16 * (w0 // 16), 768)
+    for f in W.glob("vit-fp32*"): f.unlink()
+    args = (pv0, positions(h0, w0, h0, w0, pv0.shape[0]))
+    kw = dict(input_names=["patches", "pos"], output_names=["features"], dynamic_axes={"patches": {0: "n"}, "pos": {1: "n"}, "features": {1: "m"}}, opset_version=17)
+    t0 = time.time()
+    with torch.no_grad():
+        try: torch.onnx.export(wrap, args, str(fp32), dynamo=False, **kw)
+        except Exception as e:
+            say(f"  ⚠️ export แบบ TorchScript ล้ม ({type(e).__name__}: {str(e)[:300]}) → ลอง dynamo"); torch.onnx.export(wrap, args, str(fp32), dynamo=True)
+    say(f"  export {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('vit-fp32*')) / 2**20:.0f} MiB")
 
 def session(path):
     so = ort.SessionOptions(); so.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_BASIC
     return ort.InferenceSession(str(path), so, providers=["CPUExecutionProvider"])
-s32 = session(fp32)
-for name, (pv, h, w, ch, cw, mine) in ref.items():
-    t0 = time.time(); o = s32.run(None, {"patches": pv.float().numpy(), "pos": positions(h, w, ch, cw, pv.shape[0]).numpy()})[0]
-    say(f"  {name}: ORT fp32 เทียบ wrapper cosine {cos(mine, o)[0]:.6f} / {cos(mine, o)[1]:.6f} · max|ต่าง| {np.abs(mine - o).max():.4f} · {time.time() - t0:.1f} วิ (CPU)")
+def run_ort(sess, name):
+    pv, h, w, ch, cw = ref[name]
+    return sess.run(None, {"patches": pv.float().numpy(), "pos": positions(h, w, ch, cw, pv.shape[0]).numpy()})[0]
+if not reused:   # ตรวจ ORT fp32 เทียบ wrapper เฉพาะภาพแรก (รอบ 2026-11-13 ตรวจครบ 4 ภาพผ่านแล้ว)
+    n0 = imgs[0][0]; t0 = time.time(); o = run_ort(session(fp32), n0); m0 = wrapper_out(n0)
+    say(f"  {n0}: ORT fp32 เทียบ wrapper cosine {cos(m0, o)[0]:.6f} / {cos(m0, o)[1]:.6f} · max|ต่าง| {np.abs(m0 - o).max():.4f} · {time.time() - t0:.0f} วิ (CPU)")
 
 # ── 5) 4 บิต ──
 say(f"\n[5] MatMulNBits 4 บิต บล็อก {BLOCK} asymmetric")
@@ -146,13 +160,14 @@ for f in W.glob("model-q4*"): f.unlink()
 t0 = time.time()
 quant = MatMulNBitsQuantizer(str(fp32), bits=4, block_size=BLOCK, is_symmetric=False)
 quant.process(); quant.model.save_model_to_file(str(q4), True)
+del quant
 ops = Counter(n.op_type for n in onnx.load(str(q4), load_external_data=False).graph.node)
 say(f"  บีบ {time.time() - t0:.0f} วิ · ไฟล์ {sum(f.stat().st_size for f in W.glob('model-q4*')) / 2**20:.0f} MiB · op: {dict(ops.most_common(12))}")
 say(f"  MatMulNBits {ops.get('MatMulNBits', 0)} node (คาด ~111 = 27×4 + embedder + conv2-เป็น-matmul + sum_proj) · MatMul/Gemm ที่เหลือ {ops.get('MatMul', 0)}/{ops.get('Gemm', 0)} (รวม attention QKᵀ/AV ซึ่งไม่มีน้ำหนัก)")
 s4 = session(q4)
-for name, (pv, h, w, ch, cw, mine) in ref.items():
-    o = s4.run(None, {"patches": pv.float().numpy(), "pos": positions(h, w, ch, cw, pv.shape[0]).numpy()})[0]
-    say(f"  {name}: ORT 4-bit เทียบ wrapper fp32 cosine {cos(mine, o)[0]:.4f} / {cos(mine, o)[1]:.4f}")
+for name, _ in imgs:
+    t0 = time.time(); o = run_ort(s4, name); m = wrapper_out(name)
+    say(f"  {name}: ORT 4-bit เทียบ wrapper fp32 cosine {cos(m, o)[0]:.4f} / {cos(m, o)[1]:.4f} · {time.time() - t0:.0f} วิ (CPU)")
 
 # ── 6) ครบทางด้วย decoder เดิม ──
 say("\n[6] ครบทาง: encoder = ONNX 4-bit, decoder = torch เดิม → ข้อความเทียบ torch bf16 (greedy ทั้งคู่)")
