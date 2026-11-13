@@ -56,6 +56,15 @@ async function probe() {
   say('(attention fp32 ที่ N=2464 ต้องการ buffer ราว', (16 * 2464 * 2464 * 4 / 2 ** 20).toFixed(0), 'MiB ต่อชั้น — ถ้า maxStorageBufferBindingSize ต่ำกว่านี้ ต้องใช้ไฟล์แบบแบ่ง query)');
 }
 
+// WebGPU: ปิดทางถอยไป CPU — ไม่งั้น onnxruntime ส่ง node ที่ WebGPU ไม่รับ (เช่น MatMulNBits 8 บิต) ไปให้ CPU เองโดยไม่แจ้ง
+// ผลที่ได้จะถูกต้องแต่ไม่ใช่ผลของ WebGPU และเวลาที่วัดก็ไม่ใช่ของ WebGPU · เปิดโหมดนี้แล้วสร้าง session ล้ม = op นั้นรันบน WebGPU ไม่ได้ (พิมพ์ข้อความ error ทั้งก้อน อย่าปิดโหมดเงียบๆ)
+function sessionOptions(backend, extra) {
+  const o = { executionProviders: [backend], ...extra };
+  if (backend === 'webgpu') o.extra = { session: { disable_cpu_ep_fallback: '1' } };
+  say(backend === 'webgpu' ? 'โหมดปิดทางถอยไป CPU: เปิด (disable_cpu_ep_fallback = 1)' : 'ตัวรัน WASM = CPU อยู่แล้ว (ไม่มีทางถอย)');
+  return o;
+}
+
 function configure(backend) {
   ort.env.wasm.numThreads = 1;
   ort.env.wasm.wasmPaths = backend === 'webgpu'
@@ -82,7 +91,7 @@ async function tiny() {
   for (const bits of [4, 8]) {
     try {
       const buf = new Uint8Array(await (await fetch(`tiny-nbits${bits}.onnx`)).arrayBuffer());
-      const s = await ort.InferenceSession.create(buf, { executionProviders: [backend] });
+      const s = await ort.InferenceSession.create(buf, sessionOptions(backend));
       const y = (await s.run({ A: new ort.Tensor('float32', Float32Array.from(ref.A), [ref.M, ref.K]) })).Y;
       const d = await y.getData(); let m = 0;
       for (let i = 0; i < d.length; i++) m = Math.max(m, Math.abs(d[i] - ref.expected[bits][i]));
@@ -101,7 +110,7 @@ async function run() {
   let session;
   try {
     const t0 = performance.now();
-    const opts = { executionProviders: [backend], graphOptimizationLevel: 'all' };
+    const opts = sessionOptions(backend, { graphOptimizationLevel: 'all' });
     if (data) opts.externalData = [{ path: data.name, data: new Uint8Array(await data.arrayBuffer()) }];
     session = await ort.InferenceSession.create(new Uint8Array(await main.arrayBuffer()), opts);
     say(`สร้าง session สำเร็จ ${((performance.now() - t0) / 1000).toFixed(1)} วิ · input: ${session.inputNames.join(', ')}`);

@@ -224,71 +224,76 @@ if CHUNK_FILE:
     ou = run_ort(s4, n1)
     say(f"  {n1}: 4-bit แบบแบ่ง query เทียบ 4-bit แบบเต็ม cosine {cos(ou, oc)[0]:.6f} / {cos(ou, oc)[1]:.6f} · {qc.stat().st_size / 2**20:.0f} MiB · {time.time() - t0:.0f} วิ (CPU)")
 
-# ── 6) ครบทางด้วย decoder เดิม ──
-say("\n[6] ครบทาง: encoder = ONNX 4-bit, decoder = torch เดิม → ข้อความเทียบ torch bf16 (greedy ทั้งคู่)")
-from rapidfuzz.distance import Levenshtein as Lev
-import re, unicodedata
-def norm(s):   # ตัวเดียวกับ tanot_ocr_eval.py: NFC · ตัวพิมพ์เล็ก · เลขไทย→อารบิก · หมวด P/S เป็นช่องว่าง · ไม่นับช่องว่าง (รุ่นก่อนใช้ isalnum ซึ่งตัดสระบน/ล่างและวรรณยุกต์ไทยทิ้ง)
-    s = unicodedata.normalize("NFC", s or "").lower()
-    s = "".join(str("๐๑๒๓๔๕๖๗๘๙".index(c)) if c in "๐๑๒๓๔๕๖๗๘๙" else (" " if unicodedata.category(c)[0] in "PS" else c) for c in s)
-    return re.sub(r"\s+", "", s)
-base = {name: runner.ocr(im, tables=False)[0] for name, im in imgs}
-orig_forward = model.encoder.forward
-def onnx_forward(pixel_values, image_sizes, content_sizes):
-    pv = pixel_values[0] if pixel_values.ndim == 3 else pixel_values
-    h, w = image_sizes[0].tolist(); ch, cw = content_sizes[0].tolist()
-    o = s4.run(None, {"patches": pv.float().cpu().numpy(), "pos": positions(h, w, ch, cw, pv.shape[0]).numpy()})[0]
-    out = torch.from_numpy(o).to(dev, dtype=torch.bfloat16)
-    return out, torch.ones(out.shape[:2], dtype=torch.bool, device=dev)
-model.encoder.forward = onnx_forward
+def save_outputs():   # เรียกทันทีหลังขั้น 5 และใน finally — ขั้น 6–8 ล้มก็ยังได้ไฟล์ 4-bit กับ report.txt
+    for f in W.glob("model-q4*"): shutil.copy(f, OUT / f.name)
+    (OUT / "report.txt").write_text("\n".join(LOG), encoding="utf-8")
+save_outputs()
 try:
-    for name, im in imgs:
-        t0 = time.time(); md = runner.ocr(im, tables=False)[0]
-        a, b = norm(base[name]), norm(md)
-        say(f"  {name}: ต่างจาก torch bf16 {Lev.distance(a, b) / max(1, len(a)) * 100:.1f}% ของตัวอักษร ({'เหมือนทุกตัว' if a == b else 'ไม่เหมือน'}) · {time.time() - t0:.0f} วิ")
-finally:
-    model.encoder.forward = orig_forward
-say("  (ต่าง ≤ ~2–3% = เข้าเกณฑ์สมเหตุสมผลเทียบการจำลอง 4-bit ในด่าน 0 ที่เสีย CER ราว +2 จุด; มากกว่านั้น = ดูว่ากราฟ/position ผิดหรือบีบเกินไป)")
+    # ── 6) ครบทางด้วย decoder เดิม ──
+    say("\n[6] ครบทาง: encoder = ONNX 4-bit, decoder = torch เดิม → ข้อความเทียบ torch bf16 (greedy ทั้งคู่)")
+    from rapidfuzz.distance import Levenshtein as Lev
+    import re, unicodedata
+    def norm(s):   # ตัวเดียวกับ tanot_ocr_eval.py: NFC · ตัวพิมพ์เล็ก · เลขไทย→อารบิก · หมวด P/S เป็นช่องว่าง · ไม่นับช่องว่าง (รุ่นก่อนใช้ isalnum ซึ่งตัดสระบน/ล่างและวรรณยุกต์ไทยทิ้ง)
+        s = unicodedata.normalize("NFC", s or "").lower()
+        s = "".join(str("๐๑๒๓๔๕๖๗๘๙".index(c)) if c in "๐๑๒๓๔๕๖๗๘๙" else (" " if unicodedata.category(c)[0] in "PS" else c) for c in s)
+        return re.sub(r"\s+", "", s)
+    base = {name: runner.ocr(im, tables=False)[0] for name, im in imgs}
+    orig_forward = model.encoder.forward
+    def onnx_forward(pixel_values, image_sizes, content_sizes):
+        pv = pixel_values[0] if pixel_values.ndim == 3 else pixel_values
+        h, w = image_sizes[0].tolist(); ch, cw = content_sizes[0].tolist()
+        o = s4.run(None, {"patches": pv.float().cpu().numpy(), "pos": positions(h, w, ch, cw, pv.shape[0]).numpy()})[0]
+        out = torch.from_numpy(o).to(dev, dtype=torch.bfloat16)
+        return out, torch.ones(out.shape[:2], dtype=torch.bool, device=dev)
+    model.encoder.forward = onnx_forward
+    try:
+        for name, im in imgs:
+            t0 = time.time(); md = runner.ocr(im, tables=False)[0]
+            a, b = norm(base[name]), norm(md)
+            say(f"  {name}: ต่างจาก torch bf16 {Lev.distance(a, b) / max(1, len(a)) * 100:.1f}% ของตัวอักษร ({'เหมือนทุกตัว' if a == b else 'ไม่เหมือน'}) · {time.time() - t0:.0f} วิ")
+    finally:
+        model.encoder.forward = orig_forward
+    say("  (ต่าง ≤ ~2–3% = เข้าเกณฑ์สมเหตุสมผลเทียบการจำลอง 4-bit ในด่าน 0 ที่เสีย CER ราว +2 จุด; มากกว่านั้น = ดูว่ากราฟ/position ผิดหรือบีบเกินไป)")
 
-# ── 7) ค่าอ้างอิงสำหรับหน้าทดสอบ (อินพุตสุ่ม seed 20251113 · uniform ล้วน ได้ค่าเท่ากับ JS ทุกบิต) ──
-M32 = 0xFFFFFFFF
-def mulberry32(seed):   # ต้องตรงกับในหน้า iapp-vit-test.html
-    a = seed & M32
-    def nxt():
-        nonlocal a
-        a = (a + 0x6D2B79F5) & M32
-        t = ((a ^ (a >> 15)) * (1 | a)) & M32
-        t = ((t + (((t ^ (t >> 7)) * (61 | t)) & M32)) & M32) ^ t
-        return ((t ^ (t >> 14)) & M32) / 4294967296
-    return nxt
-NREF = 2464
-rg = mulberry32(20251113)
-pin = np.array([rg() * 2 - 1 for _ in range(NREF * 768)], dtype=np.float32).reshape(NREF, 768)
-pos_in = np.array([(rg() * 2 - 1) * 0.1 for _ in range(NREF * 1152)], dtype=np.float32).reshape(1, NREF, 1152)
-say(f"\n[7] ค่าอ้างอิงจาก onnxruntime {ort.__version__} (CPU) ของอินพุตสุ่ม N={NREF} — เทียบกับหน้า iapp-vit-test.html ด้วยตา (ผลรวม + 8 ค่าแรก ควรเท่ากันถึงทศนิยม ~3 ตำแหน่ง; WebGPU ต่างได้เล็กน้อย)")
-refs = {}
-for f in [q4] + ([qc] if CHUNK_FILE else []):
-    o = session(f).run(None, {"patches": pin, "pos": pos_in})[0]; refs[f.name] = o
-    say(f"  {f.name}: ผลรวม {float(o.sum()):.3f} · 8 ค่าแรก {' '.join(f'{x:.4f}' for x in o.reshape(-1)[:8])}")
+    # ── 7) ค่าอ้างอิงสำหรับหน้าทดสอบ (อินพุตสุ่ม seed 20251113 · uniform ล้วน ได้ค่าเท่ากับ JS ทุกบิต) ──
+    M32 = 0xFFFFFFFF
+    def mulberry32(seed):   # ต้องตรงกับในหน้า iapp-vit-test.html
+        a = seed & M32
+        def nxt():
+            nonlocal a
+            a = (a + 0x6D2B79F5) & M32
+            t = ((a ^ (a >> 15)) * (1 | a)) & M32
+            t = ((t + (((t ^ (t >> 7)) * (61 | t)) & M32)) & M32) ^ t
+            return ((t ^ (t >> 14)) & M32) / 4294967296
+        return nxt
+    NREF = Nc if CHUNK_FILE else 2464   # ไฟล์แบบแบ่ง query ตรึง N = Nc (N ของภาพทดสอบแรก) ต้องใช้ขนาดเดียวกัน
+    rg = mulberry32(20251113)
+    pin = np.array([rg() * 2 - 1 for _ in range(NREF * 768)], dtype=np.float32).reshape(NREF, 768)
+    pos_in = np.array([(rg() * 2 - 1) * 0.1 for _ in range(NREF * 1152)], dtype=np.float32).reshape(1, NREF, 1152)
+    say(f"\n[7] ค่าอ้างอิงจาก onnxruntime {ort.__version__} (CPU) ของอินพุตสุ่ม N={NREF} — เทียบกับหน้า iapp-vit-test.html ด้วยตา (ผลรวม + 8 ค่าแรก ควรเท่ากันถึงทศนิยม ~3 ตำแหน่ง; WebGPU ต่างได้เล็กน้อย)")
+    refs = {}
+    for f in [q4] + ([qc] if CHUNK_FILE else []):
+        o = session(f).run(None, {"patches": pin, "pos": pos_in})[0]; refs[f.name] = o
+        say(f"  {f.name}: ผลรวม {float(o.astype(np.float64).sum()):.3f} · 8 ค่าแรก {' '.join(f'{x:.4f}' for x in o.reshape(-1)[:8])}")
 
-# ── 8) onnxruntime 1.24.3 (รุ่นเดียวกับเว็บ) ──
-say("\n[8] ตรวจกับ onnxruntime 1.24.3 ในโปรเซสย่อย")
-T = W / "ort1243"
-ins = subprocess.run([sys.executable, "-m", "pip", "-q", "install", "--no-deps", "--target", str(T), "onnxruntime==1.24.3"], capture_output=True, text=True)
-if ins.returncode != 0: say(f"  ⚠️ ติดตั้ง onnxruntime==1.24.3 ไม่ได้: {ins.stderr[-300:]}")
-else:
-    np.savez(W / "seed_in.npz", patches=pin, pos=pos_in)
-    for name, o in refs.items(): np.save(W / f"ref_{name}.npy", o)
-    (W / "check_ort.py").write_text("""import sys, numpy as np, onnxruntime as ort
+    # ── 8) onnxruntime 1.24.3 (รุ่นเดียวกับเว็บ) ──
+    say("\n[8] ตรวจกับ onnxruntime 1.24.3 ในโปรเซสย่อย")
+    T = W / "ort1243"
+    ins = subprocess.run([sys.executable, "-m", "pip", "-q", "install", "--no-deps", "--target", str(T), "onnxruntime==1.24.3"], capture_output=True, text=True)
+    if ins.returncode != 0: say(f"  ⚠️ ติดตั้ง onnxruntime==1.24.3 ไม่ได้: {ins.stderr[-300:]}")
+    else:
+        np.savez(W / "seed_in.npz", patches=pin, pos=pos_in)
+        for name, o in refs.items(): np.save(W / f"ref_{name}.npy", o)
+        (W / "check_ort.py").write_text("""import sys, numpy as np, onnxruntime as ort
 d = np.load(sys.argv[2]); ref = np.load(sys.argv[3])
 o = ort.InferenceSession(sys.argv[1], providers=["CPUExecutionProvider"]).run(None, {"patches": d["patches"], "pos": d["pos"]})[0]
-print(ort.__version__, float(o.sum()), float(np.abs(o - ref).max()), " ".join(f"{x:.4f}" for x in o.reshape(-1)[:8]))
+print(ort.__version__, float(o.astype(np.float64).sum()), float(np.abs(o - ref).max()), " ".join(f"{x:.4f}" for x in o.reshape(-1)[:8]))
 """)
-    for f in [q4] + ([qc] if CHUNK_FILE else []):
-        r = subprocess.run([sys.executable, str(W / "check_ort.py"), str(f), str(W / "seed_in.npz"), str(W / f"ref_{f.name}.npy")], capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(T)})
-        say(f"  {f.name}: " + (f"ort {r.stdout.split()[0]} ผลรวม {float(r.stdout.split()[1]):.3f} · max|ต่างจาก ort {ort.__version__}| {float(r.stdout.split()[2]):.2e}" if r.returncode == 0 else f"❌ {r.stderr[-300:]}"))
+        for f in [q4] + ([qc] if CHUNK_FILE else []):
+            r = subprocess.run([sys.executable, str(W / "check_ort.py"), str(f), str(W / "seed_in.npz"), str(W / f"ref_{f.name}.npy")], capture_output=True, text=True, env={**__import__("os").environ, "PYTHONPATH": str(T)})
+            say(f"  {f.name}: " + (f"ort {r.stdout.split()[0]} ผลรวม {float(r.stdout.split()[1]):.3f} · max|ต่างจาก ort {ort.__version__}| {float(r.stdout.split()[2]):.2e}" if r.returncode == 0 else f"❌ {r.stderr[-300:]}"))
 
-# ── เก็บผล ──
-for f in W.glob("model-q4*"): shutil.copy(f, OUT / f.name)
-(OUT / "report.txt").write_text("\n".join(LOG), encoding="utf-8")
+
+finally:
+    save_outputs()
 say(f"\n✅ เสร็จ — ไฟล์ 4-bit + report.txt อยู่ที่ {OUT} · ส่งข้อความด้านบนทั้งหมดกลับมา")
