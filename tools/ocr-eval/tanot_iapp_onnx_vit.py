@@ -41,7 +41,7 @@ subprocess.run([sys.executable, "-m", "pip", "-q", "install", "onnx", "onnx-ir",
 
 from google.colab import drive
 drive.mount("/content/drive")
-OUT = pathlib.Path(DRIVE_DIR) / "_OCR-iApp" / "onnx-vit"; OUT.mkdir(parents=True, exist_ok=True)
+OUT = pathlib.Path(DRIVE_DIR) / "_OCR-iApp" / ("onnx-vit" if CAP == 896 else f"onnx-vit-cap{CAP}"); OUT.mkdir(parents=True, exist_ok=True)   # CAP อื่น = โฟลเดอร์แยก ไม่ทับไฟล์ 896
 LOG = []
 def say(*a):
     t = " ".join(str(x) for x in a); print(t, flush=True); LOG.append(t)
