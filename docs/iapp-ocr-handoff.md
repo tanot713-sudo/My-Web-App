@@ -8,6 +8,11 @@
 3. ทางที่ง่ายสุดบนเครื่อง local ที่มี GPU NVIDIA (VRAM ≥ 4 GB): PyTorch ตรง — `tanot_iapp_runner.py` (ตอนนี้บังคับ CUDA: `R.load()` ล้มถ้าไม่เจอ GPU) ติดตั้งตาม `PINS` ที่หัวไฟล์ (transformers 5.14–5.19, timm 1.0.22, einops 0.8.1, beautifulsoup4 4.13.3, accelerate) · โมเดลดาวน์โหลดจาก Hugging Face (public ด้วย commit ที่ล็อกไว้ ~2.5 GB) · ไม่มี GPU: ต้องแก้ตัวรันให้รัน CPU (ช้ามาก) หรือใช้ทาง ONNX + onnxruntime
 4. ห้ามนำภาพ เฉลย หรือผลที่มีข้อความของเจ้าของเข้า repo/PR (repo เป็น public) · session local ไม่ต้องเปิด PR เว้นแต่เจ้าของสั่ง
 
+## เครื่อง local ของเจ้าของ (จากรายการขายของ ASUS TUF Gaming A16 FA608UHI-TU124W — ยืนยันกับเครื่องจริงก่อน)
+- Windows 11 · Ryzen 7 260 · **RTX 5050 Laptop 8 GB VRAM** (ร้านหนึ่งเขียนว่า 5060 — ดูด้วย `nvidia-smi`) · RAM 16 GB · SSD 512 GB
+- RTX 50xx (Blackwell) ต้องใช้ PyTorch ที่รองรับ CUDA 12.8+: `pip install torch --index-url https://download.pytorch.org/whl/cu128` · 8 GB พอสำหรับ bf16 ที่ภาพด้านยาว 896 (ภาพใหญ่กว่านี้ตัวรันย่อให้เองเมื่อ GPU เต็ม)
+- สคริปต์รัน local ที่ไม่ใช้ Colab/Drive: `tools/ocr-eval/tanot_iapp_local.py <โฟลเดอร์รูป/PDF> <โฟลเดอร์ผลลัพธ์> [--cap 896]` (ผลเป็น `.md` ต่อไฟล์) — **ยังไม่เคยรันจริง** (เขียนจากตัวรันที่รันบน Colab แล้ว) ถ้าล้มให้ส่งข้อความ error ทั้งก้อนกลับมา
+
 ## โมเดล
 - `iapp/OpenThai2.0-OCR-Markdown` ล็อก commit **`7a153712e5b50fac7e4a9d42ccf9ec41fb4202f0`** · สถาปัตยกรรม `nemotron_parse` (ViT SO400M 27 ชั้น → decoder 10 ชั้น, vocab 72,512, ~0.63B พารามิเตอร์) · ไลเซนส์ **OpenMDW-1.1** (ต้องเก็บ LICENSE/NOTICE และระบุที่มา; โมเดลเป็นของ iApp/NVIDIA — ดู `credits.html` และไฟล์ `LICENSE`, `THIRD_PARTY_NOTICES.md` ใน repo โมเดล)
 - ใช้ผ่านโค้ดของ repo โมเดล: `nemotron_parse.inference.DocumentParser` + `TransformersBackend` (transformers `>=5.14.1,<5.20`, timm 1.0.22, einops 0.8.1) · prompt: `</s><s><predict_bbox><predict_classes><output_markdown><predict_text_in_pic>` · ค่า generate ปกติ: temperature 0.2, repetition_penalty 1.05, max_tokens 8744 (วัดแบบ greedy ที่ temperature 0)
