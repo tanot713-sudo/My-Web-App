@@ -9,6 +9,7 @@
 #   iapp-<ด้านยาวสูงสุด>-<bf16|q4vit|q4dec|q4both> = ด่าน 0 ของแถว 3d (greedy temperature=0): ย่อภาพก่อนส่ง + จำลอง 4-bit ใน torch
 #                     เช่น iapp-1024-bf16 (ฐาน) · iapp-1024-q4both · โทเค็นบีบอิสระ: iapp-896-vit4+dec8+lm8 (vit/dec/lm × 4|8 บิต; dec = ชั้น decoder, lm = lm_head) · 0a: ENGINES = [f"iapp-{c}-bf16" for c in (1408,1024,896,768)]
 #                     0b: เลือกขนาดที่ผ่าน 0a แล้ว ENGINES = ["iapp-<ขนาด>-q4vit", "iapp-<ขนาด>-q4dec", "iapp-<ขนาด>-q4both"] · ห้ามผสมกับ "iapp" เปล่า (ตัวนั้นสุ่ม 0.2)
+#   openthai-text   = iapp/OpenThai2.0-OCR-Text (detector 1.8 MB + Thai CTC recognizer 2.4 MB, ONNX CPU, Apache-2.0; ไม่มีตาราง/Markdown) ด้วย runtime Python ของเขาเอง (ล็อก commit ด้านล่าง) — ตัวเลขที่ได้ = ขอบบนของสิ่งที่จะพอร์ตเข้าเบราว์เซอร์ได้ (ยังไม่มีพอร์ต JS)
 #   typhoon         = Typhoon OCR 1.5 (2B) บน GPU — โมเดลไทยเฉพาะทาง ใหญ่เกินเบราว์เซอร์ (ไว้ดูเพดานของโมเดลเปิด)
 #   claude-*        = /api/ocr ของเว็บจริง (ย่อรูปแบบเดียวกับเว็บ) — เสียค่า Claude API (20 ภาพ × 3 รุ่น ≈ 1–3 USD) · ต้องตั้ง Secret 2 ตัว (ด้านล่าง)
 # ผล: "_ผลวัด-OCR/report-OCR.txt" (CER รวม/ตามประเภท/รายภาพ + จำนวนครั้งที่วนซ้ำ) · ข้อความที่แต่ละตัวอ่านได้ "_ผลวัด-OCR/ผล/<ตัว>/<ชื่อ>.txt"
@@ -23,6 +24,8 @@ SITE = "https://my-web-app-5w2.pages.dev"
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง"
 TYPHOON = "typhoon-ai/typhoon-ocr1.5-2b"
+OPENTHAI_TEXT = "iapp/OpenThai2.0-OCR-Text"
+OPENTHAI_TEXT_REV = "40e8e9ff752b65153b1a71d521ec9390882afd7e"   # ล็อก commit (โค้ด runtime ของเขารันในเครื่อง Colab นี้ — เปลี่ยนเลข = ตรวจโค้ดใหม่ก่อน)
 IAPP_REF = "main"   # branch ที่มี tanot_iapp_runner.py (ก่อน merge ใส่ชื่อ branch)
 
 import base64, html, io, json, os, pathlib, re, shutil, subprocess, time, unicodedata
@@ -303,6 +306,23 @@ if CL:
                     else: put(eng, key, None, time.time() - t0, str(d.get("error") or f"HTTP {r.status_code}"))
                 except Exception as e: put(eng, key, None, time.time() - t0, type(e).__name__)
         if stop: FAIL["claude"] = stop; print("⚠️ " + stop)
+
+# ── 4b) OpenThai2.0-OCR-Text (iApp) — ONNX บน CPU ด้วย runtime ของเขา (cv2 + pyclipper + onnxruntime) ภาพย่อ 2000px เท่ากับที่ส่ง PaddleOCR/Claude ──
+OT = [e for e in ("openthai-text",) if e in ENGINES and todo(e)]
+if OT:
+    try:
+        run("pip -q install opencv-python-headless pyclipper onnxruntime huggingface_hub")
+        import sys
+        from huggingface_hub import snapshot_download
+        OTD = snapshot_download(OPENTHAI_TEXT, revision=OPENTHAI_TEXT_REV)
+        if OTD not in sys.path: sys.path.insert(0, OTD)
+        from runtime.line_engine import LineOCR
+        OTOCR = LineOCR(OTD, threads=2, runtime={"backend": "onnxruntime", "precision": "fp32"})
+        for key, _, _, _, small in todo("openthai-text"):
+            t0 = time.time()
+            try: put("openthai-text", key, OTOCR.read(small)["text"], time.time() - t0)
+            except Exception as e: put("openthai-text", key, None, time.time() - t0, f"{type(e).__name__}: {e}"[:300])
+    except Exception as e: FAIL["openthai-text"] = str(e)[-600:]; print(f"⚠️ openthai-text ล้ม: {e}")
 
 # ── 5) รายงาน ──
 cats = list(dict.fromkeys(c for _, c, *_ in items))
