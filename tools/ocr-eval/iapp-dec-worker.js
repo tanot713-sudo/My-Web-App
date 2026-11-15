@@ -14,7 +14,7 @@ const ts = (data, dims) => new ort.Tensor('float16', data, dims);
 
 async function decode3(e) {
   // decode แบบแบ่ง 3 session (a: ชั้น 0–4, b: ชั้น 5–9, head) — สร้างทีละตัว (ลดช่วงพีค) แล้วถือไว้ทั้งสามตลอดลูป · แถว embedding อ่านจากไฟล์ตารางทีละแถว (ไม่เก็บตารางในหน่วยความจำ)
-  const { files, opts, wasmPaths, table, gpuKV, fakeEmb } = e.data;
+  const { files, opts, wasmPaths, table, gpuKV, fakeEmb, isStatic } = e.data;
   ort.env.wasm.numThreads = 1; ort.env.wasm.wasmPaths = wasmPaths;
   const sess = [];
   for (const [i, f] of files.entries()) {
@@ -27,11 +27,20 @@ async function decode3(e) {
     await new Promise((r) => setTimeout(r, e.data.slowMs || 200));
   }
   let { kv, first, n, eos } = e.data;
+  let lmax = 0, M0 = kv[0].dims[2];
+  if (isStatic) {   // decode ขนาดคงที่: KV เต็ม lmax ตลอด (เติมศูนย์ท้าย) · lmax อ่านจากรูปทรงอินพุต past_k0 (ลำดับที่ 3: x, onehot, mask, past…)
+    lmax = sess[0].inputMetadata[3].shape[2];
+    log(`Worker(decode3): โหมดขนาดคงที่ lmax=${lmax} · prefill ยาว ${M0}`);
+    if (n + M0 > lmax) { n = lmax - M0; log(`⚠️ จำกัดจำนวนโทเค็นเหลือ ${n} (เต็ม lmax)`); }
+    kv = kv.map((x) => { const [b, h, L, d] = x.dims, o = new Uint16Array(h * lmax * d); for (let i = 0; i < h; i++) o.set(x.data.subarray(i * L * d, (i + 1) * L * d), i * lmax * d); return { data: o, dims: [b, h, lmax, d] }; });
+  }
   let kva = kv.slice(0, kv.length / 2), kvb = kv.slice(kv.length / 2);
   const [sa, sb, sh] = sess, toks = [], times = []; let cur = first;
-  const run = async (s, x, past) => {
+  const run = async (s, x, past, extra) => {
+    const off = isStatic ? 3 : 1;
     const feeds = { [s.inputNames[0]]: x };
-    for (let j = 0; j < past.length; j++) feeds[s.inputNames[j + 1]] = past[j] instanceof ort.Tensor ? past[j] : ts(past[j].data, past[j].dims);
+    if (isStatic) { feeds[s.inputNames[1]] = extra.onehot; feeds[s.inputNames[2]] = extra.mask; }
+    for (let j = 0; j < past.length; j++) feeds[s.inputNames[j + off]] = past[j] instanceof ort.Tensor ? past[j] : ts(past[j].data, past[j].dims);
     const o = await s.run(feeds); const hid = o[s.outputNames[0]];
     for (const p of past) if (p instanceof ort.Tensor && p.location === 'gpu-buffer') p.dispose();   // KV เก่าบน GPU ใช้เสร็จแล้ว
     const next = [];
@@ -41,8 +50,14 @@ async function decode3(e) {
   for (let i = 0; i < n; i++) {
     const t1 = performance.now();
     const row = fakeEmb ? new Uint16Array(1024).fill(0x2400 + (cur & 0xff)) : new Uint16Array(await table.slice(cur * 2048, (cur + 1) * 2048).arrayBuffer());   // fakeEmb = วินิจฉัย: ไม่อ่านไฟล์ตาราง
-    const ra = await run(sa, ts(row, [1, 1, 1024]), kva); kva = ra.kv;
-    const rb = await run(sb, ts(ra.hid.data, ra.hid.dims), kvb); kvb = rb.kv;
+    let extra = null;
+    if (isStatic) {   // ตำแหน่งที่เขียน = M0 + i · one-hot (fp16 1.0 = 0x3C00) และ mask (0 = ใช้ได้, -1e4 = 0xF0E2)
+      const pos = M0 + i, oh = new Uint16Array(lmax), mk = new Uint16Array(lmax).fill(0xF0E2);
+      oh[pos] = 0x3C00; mk.fill(0, 0, pos + 1);
+      extra = { onehot: ts(oh, [1, 1, lmax, 1]), mask: ts(mk, [1, 1, 1, lmax]) };
+    }
+    const ra = await run(sa, ts(row, [1, 1, 1024]), kva, extra); kva = ra.kv;
+    const rb = await run(sb, ts(ra.hid.data, ra.hid.dims), kvb, extra); kvb = rb.kv;
     const lo = await sh.run({ [sh.inputNames[0]]: ts(rb.hid.data, rb.hid.dims) });
     const lg = toF32(await lo[sh.outputNames[0]].getData());
     let best = 0, bv = -Infinity, bad = 0;

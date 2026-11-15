@@ -109,6 +109,48 @@ class Head(nn.Module):
         return self.ln(x).reshape(1, D) @ self.wt
 
 
+class DecodePartStatic(nn.Module):
+    """decode แบบขนาดคงที่ทุกก้าว (KV เต็ม Lmax ตลอด) — แก้ปัญหา ORT WebGPU บน iOS ที่ขนาด KV เปลี่ยนทุกก้าวแล้วบัฟเฟอร์สะสมจนแท็บถูกฆ่า (สมมติฐาน ยังไม่พิสูจน์บนมือถือ)
+    อินพุต: x [1,1,1024] · onehot [1,1,Lmax,1] (1 ที่ตำแหน่งที่จะเขียน KV ใหม่) · mask [1,1,1,Lmax] (0 ที่ตำแหน่งที่ใช้ได้ ≤ ตำแหน่งปัจจุบัน, -1e4 นอกนั้น) · KV ของชั้นในก้อนนี้ [1,8,Lmax,64]
+    เอาต์พุต: hidden + KV ที่อัปเดตแล้ว (ขนาดเท่าเดิม) · ไม่มี node shape (ทุก reshape เป็นค่าคงที่; เขียน KV ด้วย past*(1-onehot)+new*onehot แทน Concat)"""
+    def __init__(self, dec, a, b, first):
+        super().__init__()
+        self.dec, self.a, self.b, self.first = dec, a, b, first
+        self.scale = dec.embed_tokens.embed_scale
+
+    def forward(self, x, onehot, mask, *past):
+        d = self.dec
+        if self.first: x = d.layernorm_embedding(x * self.scale)
+        keep = 1 - onehot
+        out = []
+        for i, layer in enumerate(d.layers[self.a:self.b]):
+            at = layer.self_attn
+            h = layer.self_attn_layer_norm(x)
+            q = at.q_proj(h).reshape(1, KVH, H // KVH, HD)
+            k = past[2 * i] * keep + at.k_proj(h).reshape(1, KVH, 1, HD) * onehot
+            v = past[2 * i + 1] * keep + at.v_proj(h).reshape(1, KVH, 1, HD) * onehot
+            out += [k, v]
+            p = ((q * HD ** -0.5) @ k.transpose(-1, -2) + mask).softmax(-1)   # [1,8,2,Lmax]
+            x = x + at.out_proj((p @ v).reshape(1, 1, D))
+            x = x + layer.fc2(F.gelu(layer.fc1(layer.final_layer_norm(x))))
+        return (x,) + tuple(out)
+
+
+def export_decode_parts_static(dec, outdir, lmax, split=5):
+    """ส่งออก decode-a-static.onnx / decode-b-static.onnx (ขนาดคงที่ Lmax) — head.onnx เดิมใช้ต่อได้ (ไม่มี KV)"""
+    import pathlib
+    outdir = pathlib.Path(outdir); files = []
+    for name, a, b, first in (("decode-a-static", 0, split, True), ("decode-b-static", split, NL, False)):
+        m = DecodePartStatic(dec, a, b, first).eval(); n = b - a
+        names_in = ["x", "onehot", "mask"] + [f"past_{t}{i}" for i in range(n) for t in ("k", "v")]
+        names_out = ["hidden"] + [f"present_{t}{i}" for i in range(n) for t in ("k", "v")]
+        args = (torch.zeros(1, 1, D), torch.zeros(1, 1, lmax, 1), torch.zeros(1, 1, 1, lmax)) + tuple(torch.zeros(1, KVH, lmax, HD) for _ in range(2 * n))
+        with torch.no_grad():
+            torch.onnx.export(m, args, str(outdir / f"{name}.onnx"), dynamo=False, input_names=names_in, output_names=names_out, opset_version=17)
+        files.append(outdir / f"{name}.onnx")
+    return files
+
+
 def export_decode_parts(dec, outdir, split=5, past_len=8):
     """ส่งออก decode-a.onnx (ชั้น 0..split-1 + embedding scale/LN), decode-b.onnx (ชั้น split..9), head.onnx — คืนรายชื่อไฟล์"""
     import pathlib

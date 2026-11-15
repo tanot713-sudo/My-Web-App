@@ -10,12 +10,14 @@
 #   3 กราฟของเรา (tanot_iapp_decoder_graph.py) ใน torch fp32 → ต้องได้โทเค็นเดียวกับข้อ 2 (ต่างได้บ้างตอนปลายเพราะ bf16 vs fp32 — พิมพ์ตำแหน่งแรกที่ต่าง)
 #   4 export ONNX fp32 → ORT CPU greedy → เทียบกับข้อ 3 (ต้องตรงทุกโทเค็น)
 #   5 แปลงเป็น fp16 (onnxconverter-common) → ตรวจใน torch half บน GPU (โทเค็นตรงข้อ 3? logits ไม่เป็น NaN/Inf?) → บันทึกลง Drive
+#   8 decode ขนาดคงที่ (KV เต็ม LMAX ทุกก้าว, one-hot เขียนตำแหน่งใหม่ + mask) fp16 และ 8-bit+fp16 → static-L<LMAX>/ (หวังแก้การเด้งบน iPhone)
 #   7 decode 8-bit (MatMulNBits) + fp16 → โฟลเดอร์ q8/ (ลดน้ำหนักบน GPU จาก 362 เหลือ ~197 MiB)
 #   6 decode แบบแบ่ง 3 session (decode-a/-b/head, fp16) + ตารางคำ embed.f16.bin → ตรวจโซ่ใน ORT CPU fp32 ว่าตรงข้อ 3
 # ไม่ครอบคลุม: รันบน WebGPU/iPhone (ทำต่อด้วยหน้าทดสอบ), ตัวคำนวณ repetition_penalty/tokenizer ใน JS, canvas คงที่ (N ของภาพทดสอบ = N ที่ export)
 CAP = 896
 IMAGE = "ถ่าย 1"            # ชื่อไฟล์ใน Drive "_ผลวัด-OCR/ภาพ/" (ไม่ต้องมีนามสกุล) — N ของภาพนี้คือ N ที่ prefill ส่งออก
 NTOK = 48                   # จำนวนโทเค็นที่สร้างเทียบ (เร็ว: 48 ก้าว)
+LMAX = 1536                 # ความจุ KV ของ decode แบบขนาดคงที่ (ตำแหน่ง prompt+vision 622 + โทเค็นที่สร้าง) — เพิ่มได้ แต่ KV บน GPU = 20 ก้อน × 8×LMAX×64×2 ไบต์ ×2 (เข้า+ออก)
 REF = "main"
 REPO = "https://github.com/tanot713-sudo/My-Web-App"
 DRIVE_DIR = "/content/drive/MyDrive/Tanot หนังสือเสียง"
@@ -190,6 +192,43 @@ if q8s:
     (OUT / "q8").mkdir(exist_ok=True)
     for f in q8s: shutil.copy(f, OUT / "q8" / f.name.replace("-q8-fp16", "-fp16"))   # ชื่อเดียวกับชุด fp16 (decode-a-fp16.onnx ฯลฯ) ในโฟลเดอร์ q8/ — หน้าทดสอบเลือกได้เหมือนเดิม
     say(f"  บันทึกที่ {OUT / 'q8'} (ใช้ embed.f16.bin / prefill-fp16.onnx ชุดเดิม)")
+
+# ── 8) decode แบบขนาดคงที่ (KV เต็ม LMAX ทุกก้าว) — แก้การเด้งบน iPhone ที่ KV โตทีละก้าว (สมมติฐาน: บัฟเฟอร์ขนาดใหม่สะสม) · head.onnx เดิมใช้ต่อได้ ──
+say(f"\n[8] decode ขนาดคงที่ LMAX={LMAX}")
+sfiles = G.export_decode_parts_static(dec, W, LMAX, split=5)
+ssess = [ort.InferenceSession(str(f), providers=["CPUExecutionProvider"]) for f in sfiles]
+M = kv0[0].shape[2]
+def padkv(a):
+    o = np.zeros((1, 8, LMAX, 64), np.float32); o[:, :, :M] = a; return o
+ka, kb = [padkv(x) for x in kv0[:10]], [padkv(x) for x in kv0[10:]]
+cur, toks_s = int(ids[-1]), []
+for i in range(NTOK):
+    pos = M + i
+    oh = np.zeros((1, 1, LMAX, 1), np.float32); oh[0, 0, pos, 0] = 1
+    mk = np.full((1, 1, 1, LMAX), -1e4, np.float32); mk[..., :pos + 1] = 0
+    na = [x.name for x in ssess[0].get_inputs()]; nb = [x.name for x in ssess[1].get_inputs()]
+    oa = ssess[0].run(None, dict(zip(na, [table[cur][None, None, :], oh, mk] + ka))); ka = oa[1:]
+    ob = ssess[1].run(None, dict(zip(nb, [oa[0], oh, mk] + kb))); kb = ob[1:]
+    cur = int(sess[2].run(None, {"x": ob[0]})[0].argmax()); toks_s.append(cur)
+    if cur == EOS: break
+d = first_diff(my_tokens, toks_s)
+say(f"  static fp32 (ORT CPU) vs torch fp32: {'ตรงทุกโทเค็น' if d is None else f'ต่างครั้งแรกที่ตำแหน่ง {d}'}")
+(OUT / f"static-L{LMAX}").mkdir(exist_ok=True)
+for f in sfiles:
+    ops = {n.op_type for n in onnx.load(str(f), load_external_data=False).graph.node}
+    say(f"  {f.name}: op ที่เสี่ยง {sorted(ops & {'Shape', 'Slice', 'Tile', 'Range', 'Expand', 'Where', 'ConstantOfShape', 'Concat'}) or 'ไม่มี'}")
+    # fp16 ล้วน
+    m16 = float16.convert_float_to_float16(onnx.load(str(f)), keep_io_types=False)
+    o16 = W / f"{f.stem}-fp16.onnx"; onnx.save(m16, str(o16)); shutil.copy(o16, OUT / f"static-L{LMAX}" / f"{f.stem}-fp16.onnx")
+    # 8 บิต + fp16
+    q8 = W / f"{f.stem}-q8.onnx"
+    r = subprocess.run([sys.executable, str(W / "quant8.py"), str(f), str(q8)], capture_output=True, text=True)
+    if r.returncode == 0 and q8.exists():
+        mq = float16.convert_float_to_float16(onnx.load(str(q8)), keep_io_types=False)
+        oq = W / f"{f.stem}-q8-fp16.onnx"; onnx.save(mq, str(oq)); shutil.copy(oq, OUT / f"static-L{LMAX}" / f"{f.stem}-q8-fp16.onnx")
+        say(f"  {f.stem}: fp16 {o16.stat().st_size / 2**20:.0f} MiB · 8-bit+fp16 {oq.stat().st_size / 2**20:.0f} MiB")
+    else: say(f"  ❌ บีบ 8 บิตไม่สำเร็จ {f.stem}: {r.stderr[-300:]}")
+say(f"  บันทึกที่ {OUT / f'static-L{LMAX}'} (ใช้ head-fp16.onnx / embed.f16.bin / prefill-fp16.onnx ชุดเดิม)")
 
 (OUT / "tokens.json").write_text(json.dumps({"prompt_ids": ids.tolist(), "n_vision": NV, "ref_hf_bf16": ref_tokens, "torch_fp32": my_tokens, "ort_cpu_fp32": toks, "torch_half": h_tokens}), encoding="utf-8")
 for f in ("prefill", "decode"): shutil.copy(W / f"{f}-fp16.onnx", OUT / f"{f}-fp16.onnx")
