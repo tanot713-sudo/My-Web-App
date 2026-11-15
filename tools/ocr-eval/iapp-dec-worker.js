@@ -14,7 +14,7 @@ const ts = (data, dims) => new ort.Tensor('float16', data, dims);
 
 async function decode3(e) {
   // decode แบบแบ่ง 3 session (a: ชั้น 0–4, b: ชั้น 5–9, head) — สร้างทีละตัว (ลดช่วงพีค) แล้วถือไว้ทั้งสามตลอดลูป · แถว embedding อ่านจากไฟล์ตารางทีละแถว (ไม่เก็บตารางในหน่วยความจำ)
-  const { files, opts, wasmPaths, table, gpuKV } = e.data;
+  const { files, opts, wasmPaths, table, gpuKV, fakeEmb } = e.data;
   ort.env.wasm.numThreads = 1; ort.env.wasm.wasmPaths = wasmPaths;
   const sess = [];
   for (const [i, f] of files.entries()) {
@@ -40,7 +40,7 @@ async function decode3(e) {
   };
   for (let i = 0; i < n; i++) {
     const t1 = performance.now();
-    const row = new Uint16Array(await table.slice(cur * 2048, (cur + 1) * 2048).arrayBuffer());
+    const row = fakeEmb ? new Uint16Array(1024).fill(0x2400 + (cur & 0xff)) : new Uint16Array(await table.slice(cur * 2048, (cur + 1) * 2048).arrayBuffer());   // fakeEmb = วินิจฉัย: ไม่อ่านไฟล์ตาราง
     const ra = await run(sa, ts(row, [1, 1, 1024]), kva); kva = ra.kv;
     const rb = await run(sb, ts(ra.hid.data, ra.hid.dims), kvb); kvb = rb.kv;
     const lo = await sh.run({ [sh.inputNames[0]]: ts(rb.hid.data, rb.hid.dims) });
