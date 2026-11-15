@@ -73,6 +73,64 @@ class Decode(nn.Module):
         return (logits,) + tuple(out)
 
 
+class DecodePart(nn.Module):
+    """decode แบบแบ่งเป็นหลาย session (ลดหน่วยความจำช่วงสร้าง session บน iPhone): ชั้น a..b-1 · ก้อนแรกรับแถว embedding ดิบ [1,1,1024] (ตารางคำอยู่นอกกราฟ — JS อ่านแถวจากไฟล์ตาราง) ·
+    ก้อนอื่นรับ hidden [1,1,1024] · คืน hidden + KV ใหม่ของชั้นในก้อนนี้"""
+    def __init__(self, dec, a, b, first):
+        super().__init__()
+        self.dec, self.a, self.b, self.first = dec, a, b, first
+        self.scale = dec.embed_tokens.embed_scale
+
+    def forward(self, x, *past):
+        d = self.dec
+        if self.first: x = d.layernorm_embedding(x * self.scale)
+        out = []
+        for i, layer in enumerate(d.layers[self.a:self.b]):
+            at = layer.self_attn
+            h = layer.self_attn_layer_norm(x)
+            q = at.q_proj(h).reshape(1, KVH, H // KVH, HD)
+            k = torch.cat((past[2 * i], at.k_proj(h).reshape(1, KVH, 1, HD)), dim=2)
+            v = torch.cat((past[2 * i + 1], at.v_proj(h).reshape(1, KVH, 1, HD)), dim=2)
+            out += [k, v]
+            p = ((q * HD ** -0.5) @ k.transpose(-1, -2)).softmax(-1)
+            x = x + at.out_proj((p @ v).reshape(1, 1, D))
+            x = x + layer.fc2(F.gelu(layer.fc1(layer.final_layer_norm(x))))
+        return (x,) + tuple(out)
+
+
+class Head(nn.Module):
+    """layer_norm ท้าย + lm_head (ผูกน้ำหนักกับตารางคำ; ตารางทรานสโพสแล้ว [1024, 72512])"""
+    def __init__(self, dec):
+        super().__init__()
+        self.ln = dec.layer_norm
+        self.register_buffer("wt", dec.embed_tokens.weight.detach().t().contiguous())
+
+    def forward(self, x):
+        return self.ln(x).reshape(1, D) @ self.wt
+
+
+def export_decode_parts(dec, outdir, split=5, past_len=8):
+    """ส่งออก decode-a.onnx (ชั้น 0..split-1 + embedding scale/LN), decode-b.onnx (ชั้น split..9), head.onnx — คืนรายชื่อไฟล์"""
+    import pathlib
+    outdir = pathlib.Path(outdir)
+    files = []
+    for name, a, b, first in (("decode-a", 0, split, True), ("decode-b", split, NL, False)):
+        m = DecodePart(dec, a, b, first).eval(); n = b - a
+        names_in = ["x"] + [f"past_{t}{i}" for i in range(n) for t in ("k", "v")]
+        names_out = ["hidden"] + [f"present_{t}{i}" for i in range(n) for t in ("k", "v")]
+        dyn = {nm: {2: "L"} for nm in names_in[1:]}; dyn.update({nm: {2: "L1"} for nm in names_out[1:]})
+        args = (torch.zeros(1, 1, D),) + tuple(torch.zeros(1, KVH, past_len, HD) for _ in range(2 * n))
+        with torch.no_grad():
+            torch.onnx.export(m, args, str(outdir / f"{name}.onnx"), dynamo=False, input_names=names_in, output_names=names_out,
+                              dynamic_axes=dyn, opset_version=17)
+        files.append(outdir / f"{name}.onnx")
+    with torch.no_grad():
+        torch.onnx.export(Head(dec).eval(), (torch.zeros(1, 1, D),), str(outdir / "head.onnx"), dynamo=False,
+                          input_names=["x"], output_names=["logits"], opset_version=17)
+    files.append(outdir / "head.onnx")
+    return files
+
+
 def export_prefill(dec, prompt_emb, path, n_vision=617):
     pf = Prefill(dec, prompt_emb, n_vision).eval()
     vision = torch.zeros(1, n_vision, D)

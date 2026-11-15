@@ -12,7 +12,47 @@ const asU16 = (d) => (d instanceof Uint16Array ? d : new Uint16Array(d.buffer.sl
 const toF32 = (d) => (d instanceof Uint16Array ? Float32Array.from(d, f16ToF32) : Float32Array.from(d));
 const ts = (data, dims) => new ort.Tensor('float16', data, dims);
 
+async function decode3(e) {
+  // decode แบบแบ่ง 3 session (a: ชั้น 0–4, b: ชั้น 5–9, head) — สร้างทีละตัว (ลดช่วงพีค) แล้วถือไว้ทั้งสามตลอดลูป · แถว embedding อ่านจากไฟล์ตารางทีละแถว (ไม่เก็บตารางในหน่วยความจำ)
+  const { files, opts, wasmPaths, table } = e.data;
+  ort.env.wasm.numThreads = 1; ort.env.wasm.wasmPaths = wasmPaths;
+  const sess = [];
+  for (const [i, f] of files.entries()) {
+    log(`Worker(decode3): ก้อน ${'ab'[i] || 'head'} (${(f.size / 2 ** 20).toFixed(0)} MiB): อ่านไฟล์แล้วเรียก create …`);
+    const t0 = performance.now();
+    sess.push(await ort.InferenceSession.create(new Uint8Array(await f.arrayBuffer()), opts));
+    log(`Worker(decode3): ก้อน ${'ab'[i] || 'head'} create สำเร็จ ${((performance.now() - t0) / 1000).toFixed(1)} วิ`);
+    await new Promise((r) => setTimeout(r, e.data.slowMs || 200));
+  }
+  let { kv, first, n, eos } = e.data;
+  let kva = kv.slice(0, kv.length / 2), kvb = kv.slice(kv.length / 2);
+  const [sa, sb, sh] = sess, toks = [], times = []; let cur = first;
+  const run = async (s, x, past) => {
+    const feeds = { [s.inputNames[0]]: x };
+    for (let j = 0; j < past.length; j++) feeds[s.inputNames[j + 1]] = ts(past[j].data, past[j].dims);
+    const o = await s.run(feeds); const hid = o[s.outputNames[0]];
+    const next = []; for (let j = 1; j < s.outputNames.length; j++) { const t = o[s.outputNames[j]]; next.push({ data: asU16(await t.getData()), dims: t.dims }); }
+    return { hid: { data: asU16(await hid.getData()), dims: hid.dims }, kv: next };
+  };
+  for (let i = 0; i < n; i++) {
+    const t1 = performance.now();
+    const row = new Uint16Array(await table.slice(cur * 2048, (cur + 1) * 2048).arrayBuffer());
+    const ra = await run(sa, ts(row, [1, 1, 1024]), kva); kva = ra.kv;
+    const rb = await run(sb, ts(ra.hid.data, ra.hid.dims), kvb); kvb = rb.kv;
+    const lo = await sh.run({ [sh.inputNames[0]]: ts(rb.hid.data, rb.hid.dims) });
+    const lg = toF32(await lo[sh.outputNames[0]].getData());
+    let best = 0, bv = -Infinity, bad = 0;
+    for (let j = 0; j < lg.length; j++) { const v = lg[j]; if (!Number.isFinite(v)) bad++; else if (v > bv) { bv = v; best = j; } }
+    cur = best; toks.push(cur); times.push(performance.now() - t1);
+    if (bad) log(`⚠️ logits มี NaN/Inf ${bad} ค่า (ก้าว ${i})`);
+    if (i === 0 || (i + 1) % 8 === 0) log(`  ก้าว ${i + 1}/${n}: โทเค็น ${cur} · ${times[i].toFixed(0)} ms · KV ยาว ${kva[0].dims[2]}`);
+    if (cur === eos) break;
+  }
+  postMessage({ tokens: toks, times });
+}
+
 onmessage = async (e) => {
+  if (e.data.mode === 'decode3') { try { await decode3(e); } catch (err) { postMessage({ error: String(err?.message || err) }); } return; }
   const { mode, file, opts, wasmPaths } = e.data;
   try {
     ort.env.wasm.numThreads = 1; ort.env.wasm.wasmPaths = wasmPaths;

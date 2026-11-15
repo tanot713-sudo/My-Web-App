@@ -10,6 +10,7 @@
 #   3 กราฟของเรา (tanot_iapp_decoder_graph.py) ใน torch fp32 → ต้องได้โทเค็นเดียวกับข้อ 2 (ต่างได้บ้างตอนปลายเพราะ bf16 vs fp32 — พิมพ์ตำแหน่งแรกที่ต่าง)
 #   4 export ONNX fp32 → ORT CPU greedy → เทียบกับข้อ 3 (ต้องตรงทุกโทเค็น)
 #   5 แปลงเป็น fp16 (onnxconverter-common) → ตรวจใน torch half บน GPU (โทเค็นตรงข้อ 3? logits ไม่เป็น NaN/Inf?) → บันทึกลง Drive
+#   6 decode แบบแบ่ง 3 session (decode-a/-b/head, fp16) + ตารางคำ embed.f16.bin → ตรวจโซ่ใน ORT CPU fp32 ว่าตรงข้อ 3
 # ไม่ครอบคลุม: รันบน WebGPU/iPhone (ทำต่อด้วยหน้าทดสอบ), ตัวคำนวณ repetition_penalty/tokenizer ใน JS, canvas คงที่ (N ของภาพทดสอบ = N ที่ export)
 CAP = 896
 IMAGE = "ถ่าย 1"            # ชื่อไฟล์ใน Drive "_ผลวัด-OCR/ภาพ/" (ไม่ต้องมีนามสกุล) — N ของภาพนี้คือ N ที่ prefill ส่งออก
@@ -134,6 +135,28 @@ h_tokens, ranges = greedy_torch(pfh, dch, vision, int(ids[-1]), NTOK, torch.floa
 d = first_diff(my_tokens, h_tokens)
 say(f"  torch half (GPU) vs torch fp32: {'ตรงทุกโทเค็น' if d is None else f'ต่างครั้งแรกที่ตำแหน่ง {d}'} · logits ใหญ่สุด {max(ranges):.1f} · {'มี NaN/Inf!' if not all(np.isfinite(ranges)) else 'ไม่มี NaN/Inf'}")
 say("  (ORT WebGPU fp16 ต้องตรวจในหน้าทดสอบต่อ — torch half ไม่ใช่ตัวรันเดียวกัน)")
+
+# ── 6) decode แบบแบ่ง 3 session (a: ชั้น 0–4 · b: ชั้น 5–9 · head) + ตารางคำ — ลดหน่วยความจำช่วงสร้าง session บน iPhone (decode เดี่ยว 362 MiB เด้งตอน create) ──
+say("\n[6] decode แบบแบ่ง 3 ก้อน + ตารางคำสำหรับ JS")
+parts = G.export_decode_parts(dec, W, split=5)
+sess = [ort.InferenceSession(str(f), providers=["CPUExecutionProvider"]) for f in parts]
+table = dec.embed_tokens.weight.detach().float().numpy()   # [72512,1024] — JS อ่านแถวจากไฟล์ (embed.f16.bin) ไม่เก็บในกราฟ
+kv0 = sp.run(None, {"vision": vision.numpy()}); kva, kvb = kv0[:10], kv0[10:]
+cur, toks3 = int(ids[-1]), []
+for _ in range(NTOK):
+    na = [i.name for i in sess[0].get_inputs()]; nb = [i.name for i in sess[1].get_inputs()]
+    oa = sess[0].run(None, dict(zip(na, [table[cur][None, None, :]] + kva))); kva = oa[1:]
+    ob = sess[1].run(None, dict(zip(nb, [oa[0]] + kvb))); kvb = ob[1:]
+    cur = int(sess[2].run(None, {"x": ob[0]})[0].argmax()); toks3.append(cur)
+    if cur == EOS: break
+d = first_diff(my_tokens, toks3)
+say(f"  แบ่ง 3 ก้อน (ORT CPU fp32) vs torch fp32: {'ตรงทุกโทเค็น' if d is None else f'ต่างครั้งแรกที่ตำแหน่ง {d}'}")
+for f in parts:
+    m16 = float16.convert_float_to_float16(onnx.load(str(f)), keep_io_types=False)
+    out16 = W / f"{f.stem}-fp16.onnx"; onnx.save(m16, str(out16)); shutil.copy(out16, OUT / out16.name)
+    say(f"  {out16.name} {out16.stat().st_size / 2**20:.0f} MiB")
+table.astype("<f2").tofile(OUT / "embed.f16.bin")
+say(f"  embed.f16.bin {(OUT / 'embed.f16.bin').stat().st_size / 2**20:.0f} MiB (แถวละ 2048 ไบต์, fp16, ยังไม่คูณ scale — กราฟ decode-a คูณเอง)")
 
 (OUT / "tokens.json").write_text(json.dumps({"prompt_ids": ids.tolist(), "n_vision": NV, "ref_hf_bf16": ref_tokens, "torch_fp32": my_tokens, "ort_cpu_fp32": toks, "torch_half": h_tokens}), encoding="utf-8")
 for f in ("prefill", "decode"): shutil.copy(W / f"{f}-fp16.onnx", OUT / f"{f}-fp16.onnx")

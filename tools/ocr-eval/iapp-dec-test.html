@@ -14,7 +14,7 @@
 </head>
 <body>
 <h1>ทดสอบ iApp decoder fp16</h1>
-<p>เลือกไฟล์จาก Drive โฟลเดอร์ onnx-dec พร้อมกัน: <b>prefill-fp16.onnx, decode-fp16.onnx, vision-ref.f32.bin, tokens.json</b></p>
+<p>เลือกไฟล์จาก Drive โฟลเดอร์ onnx-dec พร้อมกัน: <b>prefill-fp16.onnx, vision-ref.f32.bin, tokens.json</b> และ decode แบบใดแบบหนึ่ง: <b>decode-fp16.onnx</b> (ก้อนเดียว) หรือ <b>decode-a-fp16.onnx, decode-b-fp16.onnx, head-fp16.onnx, embed.f16.bin</b> (แบ่ง 3 session — ถ้าเลือกครบจะใช้แบบนี้)</p>
 <input id="files" type="file" multiple>
 <label>จำนวนโทเค็นที่สร้าง <input id="n" type="number" value="48" min="1" max="500"></label>
 <label>ระดับ optimize <select id="opt"><option value="disabled" selected>disabled</option><option value="basic">basic</option><option value="all">all</option></select></label>
@@ -67,10 +67,11 @@ function job(msg, transfer = []) {
 const pick = (re) => [...$('files').files].find((f) => re.test(f.name));
 
 async function run(prefillOnly) {
-  const fp = pick(/^prefill.*\.onnx$/i), fd = pick(/^decode.*\.onnx$/i), fv = pick(/vision.*\.bin$/i), ft = pick(/tokens.*\.json$/i);
-  if (!fp || !fv || (!prefillOnly && (!fd || !ft))) { say('❌ ต้องเลือกไฟล์ให้ครบ'); return; }
+  const fp = pick(/^prefill.*\.onnx$/i), fd = pick(/^decode-fp16\.onnx$/i), fa = pick(/^decode-a.*\.onnx$/i), fb = pick(/^decode-b.*\.onnx$/i), fh = pick(/^head.*\.onnx$/i), ftab = pick(/^embed.*\.bin$/i), fv = pick(/vision.*\.bin$/i), ft = pick(/tokens.*\.json$/i);
+  const split = !!(fa && fb && fh && ftab);
+  if (!fp || !fv || (!prefillOnly && (!(fd || split) || !ft))) { say('❌ ต้องเลือกไฟล์ให้ครบ'); return; }
   const meta = ft ? JSON.parse(await ft.text()) : null;
-  say(`\n— ${prefillOnly ? 'prefill' : 'prefill + decode'} · optimize=${$('opt').value} · ปิด arena=${$('arena').checked} · ห้ามถอย CPU —`);
+  say(`\n— ${prefillOnly ? 'prefill' : split ? 'prefill + decode แบ่ง 3 session' : 'prefill + decode'} · optimize=${$('opt').value} · ปิด arena=${$('arena').checked} · ห้ามถอย CPU —`);
   const f32 = new Float32Array(await fv.arrayBuffer()); const nv = f32.length / 1024;
   const vision = { data: f32ToF16(f32), dims: [1, nv, 1024] };
   await flush();
@@ -80,7 +81,7 @@ async function run(prefillOnly) {
   if (prefillOnly) return;
   const n = +$('n').value, first = meta.prompt_ids[meta.prompt_ids.length - 1];
   let r;
-  try { r = await job({ mode: 'decode', file: fd, kv, first, n, eos: 2 }, kv.map((x) => x.data.buffer)); } catch (e) { say('❌ decode ล้ม:', e?.message || e); return; }
+  try { r = await job(split ? { mode: 'decode3', files: [fa, fb, fh], table: ftab, kv, first, n, eos: 2, slowMs: $('slow').checked ? 4000 : 200 } : { mode: 'decode', file: fd, kv, first, n, eos: 2 }, kv.map((x) => x.data.buffer)); } catch (e) { say('❌ decode ล้ม:', e?.message || e); return; }
   const refT = meta.torch_fp32, m = Math.min(r.tokens.length, refT.length); let same = 0, firstDiff = -1;
   for (let i = 0; i < m; i++) { if (r.tokens[i] === refT[i]) same++; else if (firstDiff < 0) firstDiff = i; }
   const ms = r.times.slice(1), avg = ms.reduce((a, b) => a + b, 0) / Math.max(1, ms.length);
