@@ -1,7 +1,11 @@
 # Tanot — ดึงตารางตำแหน่ง (pos_embed 128×128×1152) ออกจากน้ำหนักของ iapp/OpenThai2.0-OCR-Markdown เป็น pos_embed.f16.bin สำหรับ iapp-pre.js
 # ใช้บน Colab (ไม่ต้องมี GPU) หรือเครื่อง local: โหลดเฉพาะ tensor นี้จาก model.safetensors (ดาวน์โหลดไฟล์ ~2.5 GB ครั้งแรก) · ผลลัพธ์: <OUT>/pos_embed.f16.bin (37.7 MiB, float16 little-endian, [16384,1152] เรียงแถว (y,x) × ช่อง)
 import pathlib, subprocess, sys
-OUT = pathlib.Path(sys.argv[1] if len(sys.argv) > 1 else "/content/drive/MyDrive/Tanot หนังสือเสียง/_OCR-iApp/pre"); OUT.mkdir(parents=True, exist_ok=True)
+try:
+    from google.colab import drive; drive.mount("/content/drive")   # บน Colab: ต่อ Drive ให้เอง
+except ImportError: pass
+_args = [x for x in sys.argv[1:] if not x.startswith("-") and not x.endswith(".json")]   # Colab ส่ง "-f <kernel.json>" มาใน sys.argv — ห้ามใช้เป็นพาธ
+OUT = pathlib.Path(_args[0] if _args else "/content/drive/MyDrive/Tanot หนังสือเสียง/_OCR-iApp/pre"); OUT.mkdir(parents=True, exist_ok=True)
 REV = "7a153712e5b50fac7e4a9d42ccf9ec41fb4202f0"
 subprocess.run([sys.executable, "-m", "pip", "-q", "install", "safetensors", "huggingface_hub", "numpy"], check=True)
 import numpy as np
