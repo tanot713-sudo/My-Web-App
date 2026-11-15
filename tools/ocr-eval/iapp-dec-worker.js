@@ -14,13 +14,15 @@ const ts = (data, dims) => new ort.Tensor('float16', data, dims);
 
 async function decode3(e) {
   // decode แบบแบ่ง 3 session (a: ชั้น 0–4, b: ชั้น 5–9, head) — สร้างทีละตัว (ลดช่วงพีค) แล้วถือไว้ทั้งสามตลอดลูป · แถว embedding อ่านจากไฟล์ตารางทีละแถว (ไม่เก็บตารางในหน่วยความจำ)
-  const { files, opts, wasmPaths, table } = e.data;
+  const { files, opts, wasmPaths, table, gpuKV } = e.data;
   ort.env.wasm.numThreads = 1; ort.env.wasm.wasmPaths = wasmPaths;
   const sess = [];
   for (const [i, f] of files.entries()) {
     log(`Worker(decode3): ก้อน ${'ab'[i] || 'head'} (${(f.size / 2 ** 20).toFixed(0)} MiB): อ่านไฟล์แล้วเรียก create …`);
     const t0 = performance.now();
-    sess.push(await ort.InferenceSession.create(new Uint8Array(await f.arrayBuffer()), opts));
+    const o2 = { ...opts };
+    if (gpuKV && i < 2) { const loc = {}; for (let k = 0; k < 5; k++) { loc[`present_k${k}`] = 'gpu-buffer'; loc[`present_v${k}`] = 'gpu-buffer'; } o2.preferredOutputLocation = loc; }   // KV ใหม่อยู่บน GPU ไม่คัดลอกกลับ CPU
+    sess.push(await ort.InferenceSession.create(new Uint8Array(await f.arrayBuffer()), o2));
     log(`Worker(decode3): ก้อน ${'ab'[i] || 'head'} create สำเร็จ ${((performance.now() - t0) / 1000).toFixed(1)} วิ`);
     await new Promise((r) => setTimeout(r, e.data.slowMs || 200));
   }
@@ -29,9 +31,11 @@ async function decode3(e) {
   const [sa, sb, sh] = sess, toks = [], times = []; let cur = first;
   const run = async (s, x, past) => {
     const feeds = { [s.inputNames[0]]: x };
-    for (let j = 0; j < past.length; j++) feeds[s.inputNames[j + 1]] = ts(past[j].data, past[j].dims);
+    for (let j = 0; j < past.length; j++) feeds[s.inputNames[j + 1]] = past[j] instanceof ort.Tensor ? past[j] : ts(past[j].data, past[j].dims);
     const o = await s.run(feeds); const hid = o[s.outputNames[0]];
-    const next = []; for (let j = 1; j < s.outputNames.length; j++) { const t = o[s.outputNames[j]]; next.push({ data: asU16(await t.getData()), dims: t.dims }); }
+    for (const p of past) if (p instanceof ort.Tensor && p.location === 'gpu-buffer') p.dispose();   // KV เก่าบน GPU ใช้เสร็จแล้ว
+    const next = [];
+    for (let j = 1; j < s.outputNames.length; j++) { const t = o[s.outputNames[j]]; next.push(gpuKV ? t : { data: asU16(await t.getData()), dims: t.dims }); }
     return { hid: { data: asU16(await hid.getData()), dims: hid.dims }, kv: next };
   };
   for (let i = 0; i < n; i++) {
@@ -45,7 +49,8 @@ async function decode3(e) {
     for (let j = 0; j < lg.length; j++) { const v = lg[j]; if (!Number.isFinite(v)) bad++; else if (v > bv) { bv = v; best = j; } }
     cur = best; toks.push(cur); times.push(performance.now() - t1);
     if (bad) log(`⚠️ logits มี NaN/Inf ${bad} ค่า (ก้าว ${i})`);
-    if (i === 0 || (i + 1) % 8 === 0) log(`  ก้าว ${i + 1}/${n}: โทเค็น ${cur} · ${times[i].toFixed(0)} ms · KV ยาว ${kva[0].dims[2]}`);
+    if (i < 16 || (i + 1) % 8 === 0) log(`  ก้าว ${i + 1}/${n}: โทเค็น ${cur} · ${times[i].toFixed(0)} ms · KV ยาว ${kva[0].dims[2]}`);
+    if (i < 16 && e.data.slowMs > 1000) await new Promise((r) => setTimeout(r, 1500));   // 16 ก้าวแรก: รอให้ log ลงดิสก์ทัน เพื่อรู้ว่าเด้งที่ก้าวไหน
     if (cur === eos) break;
   }
   postMessage({ tokens: toks, times });
