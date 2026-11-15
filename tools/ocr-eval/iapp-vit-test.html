@@ -38,6 +38,7 @@
 <label><input id="allowcpu" type="checkbox"> อนุญาตให้ node ที่ WebGPU ไม่รับถอยไป CPU (ใช้กับไฟล์ N เปลี่ยนได้ ซึ่งมี node คำนวณ shape — ผลเวลาที่วัดจึงไม่ใช่ WebGPU ล้วน)</label>
 <label><input id="verbose" type="checkbox"> log ละเอียดของ onnxruntime (เก็บบรรทัดล่าสุด 400 บรรทัด — ถ้าเด้ง บรรทัดสุดท้ายบอกว่าไปถึงขั้นไหน)</label>
 <label><input id="slow" type="checkbox"> หน่วง 4 วินาทีหลังบรรทัดสำคัญ (ให้ Safari เขียน log ลงดิสก์ทัน ก่อนงานหนักที่อาจทำให้แท็บถูกฆ่า)</label>
+<label><input id="isolate" type="checkbox"> สายก้อน: รันแต่ละก้อนใน Worker แยก แล้วทิ้ง Worker (คืน GPU จริงระหว่างก้อน)</label>
 <label><input id="noarena" type="checkbox"> ปิด CPU memory arena + mem pattern (ลดหน่วยความจำที่จองค้าง)</label>
 <label for="n">จำนวน patch N (ใช้เมื่อโมเดลไม่ได้กำหนดขนาดคงที่)</label>
 <input id="n" type="number" value="2464" min="4" step="4">
@@ -145,11 +146,39 @@ async function tiny() {
 }
 
 // หลายไฟล์ .onnx ที่ชื่อลงท้าย -p0 -p1 … (จาก SPLIT_K ของสคริปต์ 13) = ต่อเป็นสายทีละก้อน: สร้าง → รัน → ปล่อย แล้วค่อยก้อนถัดไป (ในหน่วยความจำมีโมเดลก้อนเดียวตลอด)
+// รันก้อนเดียวใน Worker ใหม่ แล้ว terminate — คืน {data, dims}
+function runInWorker(f, opts, hidden, nFallback) {
+  return new Promise((resolve, reject) => {
+    const w = new Worker(new URL('iapp-vit-worker.js', location.href), { type: 'module' });
+    const done = (fn, v) => { w.terminate(); fn(v); };
+    w.onmessage = (e) => { if (e.data.log) say('  ' + e.data.log); else if (e.data.error) done(reject, new Error(e.data.error)); else done(resolve, e.data.out); };
+    w.onerror = (e) => done(reject, new Error(e.message || 'worker error'));
+    const wasmPaths = backend0() === 'webgpu' ? { mjs: V + 'ort-wasm-simd-threaded.asyncify.mjs', wasm: ASYNC_WASM } : { mjs: V + 'ort-wasm-simd-threaded.mjs', wasm: V + 'ort-wasm-simd-threaded.wasm' };
+    w.postMessage({ file: f, opts, wasmPaths, seed: SEED, hidden, nFallback }, hidden ? [hidden.data.buffer] : []);
+  });
+}
+const backend0 = () => $('backend').value;
+
 async function pipeline(parts, backend, runs, createOnly) {
   const extra = { graphOptimizationLevel: $('opt').value };
   if ($('noarena').checked) { extra.enableCpuMemArena = false; extra.enableMemPattern = false; }
   say(`\n— สายก้อน ${parts.length} ก้อน · ${backend} · optimize=${extra.graphOptimizationLevel} · ปิด arena=${$('noarena').checked} —`);
   configure(backend);
+  if ($('isolate').checked && !createOnly) {
+    for (let r = 1; r <= runs; r++) {
+      let cur = null; const t0 = performance.now();
+      for (let i = 0; i < parts.length; i++) {
+        say(`รอบ ${r} · ก้อน ${i} (${parts[i].name}) ใน Worker แยก …`); await flush();
+        try { cur = await runInWorker(parts[i], sessionOptions(backend, extra), cur, +$('n').value); }
+        catch (e) { say(`❌ ก้อน ${i} ไม่สำเร็จ:`, e?.message || e); return; }
+        say(`  ก้อน ${i}: เสร็จ · output [${cur.dims.join(',')}] · ทิ้ง Worker แล้ว`); await flush();
+      }
+      const d = cur.data; let bad = 0, sum = 0;
+      for (let j = 0; j < d.length; j++) { if (!Number.isFinite(d[j])) bad++; else sum += d[j]; }
+      say(`รอบ ${r}: ${((performance.now() - t0) / 1000).toFixed(1)} วิ (ทั้งสาย, Worker แยก) · output [${cur.dims.join(',')}] · NaN/Inf ${bad} · ผลรวม ${sum.toFixed(3)} · 8 ค่าแรก ${Array.from(d.slice(0, 8), (x) => x.toFixed(4)).join(' ')}`);
+    }
+    say('✅ ครบทุกรอบ'); return;
+  }
   for (let r = 1; r <= (createOnly ? 1 : runs); r++) {
     let cur = null; const t0 = performance.now();
     for (let i = 0; i < parts.length; i++) {
