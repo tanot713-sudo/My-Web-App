@@ -10,6 +10,7 @@
 #   3 กราฟของเรา (tanot_iapp_decoder_graph.py) ใน torch fp32 → ต้องได้โทเค็นเดียวกับข้อ 2 (ต่างได้บ้างตอนปลายเพราะ bf16 vs fp32 — พิมพ์ตำแหน่งแรกที่ต่าง)
 #   4 export ONNX fp32 → ORT CPU greedy → เทียบกับข้อ 3 (ต้องตรงทุกโทเค็น)
 #   5 แปลงเป็น fp16 (onnxconverter-common) → ตรวจใน torch half บน GPU (โทเค็นตรงข้อ 3? logits ไม่เป็น NaN/Inf?) → บันทึกลง Drive
+#   7 decode 8-bit (MatMulNBits) + fp16 → โฟลเดอร์ q8/ (ลดน้ำหนักบน GPU จาก 362 เหลือ ~197 MiB)
 #   6 decode แบบแบ่ง 3 session (decode-a/-b/head, fp16) + ตารางคำ embed.f16.bin → ตรวจโซ่ใน ORT CPU fp32 ว่าตรงข้อ 3
 # ไม่ครอบคลุม: รันบน WebGPU/iPhone (ทำต่อด้วยหน้าทดสอบ), ตัวคำนวณ repetition_penalty/tokenizer ใน JS, canvas คงที่ (N ของภาพทดสอบ = N ที่ export)
 CAP = 896
@@ -157,6 +158,38 @@ for f in parts:
     say(f"  {out16.name} {out16.stat().st_size / 2**20:.0f} MiB")
 table.astype("<f2").tofile(OUT / "embed.f16.bin")
 say(f"  embed.f16.bin {(OUT / 'embed.f16.bin').stat().st_size / 2**20:.0f} MiB (แถวละ 2048 ไบต์, fp16, ยังไม่คูณ scale — กราฟ decode-a คูณเอง)")
+
+# ── 7) decode แบบ 8-bit (MatMulNBits 8 บิต บล็อก 32 asymmetric) + แปลง fp16 — น้ำหนักบน GPU ~197 MiB (fp16 ล้วน 362) เพราะ 3 session fp16 ล้วนยังเด้งบน iPhone หลังไม่กี่ก้าว ──
+say("\n[7] decode 8-bit + fp16")
+(W / "quant8.py").write_text("""import sys
+from onnxruntime.quantization.matmul_nbits_quantizer import MatMulNBitsQuantizer
+q = MatMulNBitsQuantizer(sys.argv[1], bits=8, block_size=32, is_symmetric=False)
+q.process(); q.model.save_model_to_file(sys.argv[2], False)
+""")
+q8s = []
+for f in parts:
+    q8 = W / f"{f.stem}-q8.onnx"
+    r = subprocess.run([sys.executable, str(W / "quant8.py"), str(f), str(q8)], capture_output=True, text=True)
+    if r.returncode != 0 or not q8.exists(): say(f"  ❌ บีบ 8 บิตไม่สำเร็จ {f.stem}: {r.stderr[-400:]}"); q8s = []; break
+    m16 = float16.convert_float_to_float16(onnx.load(str(q8)), keep_io_types=False)
+    o16 = W / f"{f.stem}-q8-fp16.onnx"; onnx.save(m16, str(o16)); q8s.append(o16)
+    say(f"  {o16.name} {o16.stat().st_size / 2**20:.0f} MiB · MatMulNBits {sum(1 for n in m16.graph.node if n.op_type == 'MatMulNBits')} node")
+if q8s:
+    sq = [ort.InferenceSession(str(f), providers=["CPUExecutionProvider"]) for f in q8s]
+    kvq = [k.astype(np.float16) for k in sp.run(None, {"vision": vision.numpy()})]; kqa, kqb = kvq[:10], kvq[10:]
+    cur, toks8 = int(ids[-1]), []
+    for _ in range(NTOK):
+        na = [i.name for i in sq[0].get_inputs()]; nb = [i.name for i in sq[1].get_inputs()]
+        oa = sq[0].run(None, dict(zip(na, [table[cur][None, None, :].astype(np.float16)] + kqa))); kqa = oa[1:]
+        ob = sq[1].run(None, dict(zip(nb, [oa[0]] + kqb))); kqb = ob[1:]
+        cur = int(sq[2].run(None, {"x": ob[0]})[0].argmax()); toks8.append(cur)
+        if cur == EOS: break
+    d = first_diff(my_tokens, toks8)
+    same = sum(1 for x, y in zip(my_tokens, toks8) if x == y)
+    say(f"  8-bit+fp16 (ORT CPU) vs torch fp32: ตรงกัน {same}/{min(len(my_tokens), len(toks8))} ตำแหน่ง · {'ตรงทุกโทเค็น' if d is None else f'ต่างครั้งแรกที่ตำแหน่ง {d}'}")
+    (OUT / "q8").mkdir(exist_ok=True)
+    for f in q8s: shutil.copy(f, OUT / "q8" / f.name.replace("-q8-fp16", "-fp16"))   # ชื่อเดียวกับชุด fp16 (decode-a-fp16.onnx ฯลฯ) ในโฟลเดอร์ q8/ — หน้าทดสอบเลือกได้เหมือนเดิม
+    say(f"  บันทึกที่ {OUT / 'q8'} (ใช้ embed.f16.bin / prefill-fp16.onnx ชุดเดิม)")
 
 (OUT / "tokens.json").write_text(json.dumps({"prompt_ids": ids.tolist(), "n_vision": NV, "ref_hf_bf16": ref_tokens, "torch_fp32": my_tokens, "ort_cpu_fp32": toks, "torch_half": h_tokens}), encoding="utf-8")
 for f in ("prefill", "decode"): shutil.copy(W / f"{f}-fp16.onnx", OUT / f"{f}-fp16.onnx")
