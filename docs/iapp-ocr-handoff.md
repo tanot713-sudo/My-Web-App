@@ -2,6 +2,12 @@
 
 เอกสารนี้ให้ session/แอปอื่น (เช่นแอปบนคอม) เริ่มงานได้โดยไม่ต้องไล่บทสนทนา · รายละเอียดการวัดทั้งหมดอยู่ที่ `ROADMAP.md` แถว 3d · ไม่มีข้อมูลส่วนตัว/ภาพ/เฉลยของเจ้าของในไฟล์นี้ (อยู่ใน Drive ของเจ้าของ)
 
+## เริ่มบนเครื่อง local (session ที่รันบนคอมของเจ้าของ)
+1. เอาโค้ดมา: ใน clone ของ repo `tanot713-sudo/My-Web-App` รัน `git fetch origin claude/ocr-iapp-memknobs` แล้ว `git checkout claude/ocr-iapp-memknobs` (branch นี้ยังไม่ merge เข้า main; ไฟล์ที่เกี่ยวอยู่ใน `tools/ocr-eval/` และ `docs/iapp-ocr-handoff.md`)
+2. ไฟล์โมเดลและภาพใน Drive: ใช้ Google Drive for desktop ซิงก์โฟลเดอร์ `Tanot หนังสือเสียง/_OCR-iApp/` และ `…/_ผลวัด-OCR/` มาไว้ในเครื่อง แล้วชี้พาธในสคริปต์ (สคริปต์เดิมเขียนให้รันบน Colab ที่ mount ที่ `/content/drive/MyDrive/…` — แก้ค่า `DRIVE_DIR` ที่หัวไฟล์)
+3. ทางที่ง่ายสุดบนเครื่อง local ที่มี GPU NVIDIA (VRAM ≥ 4 GB): PyTorch ตรง — `tanot_iapp_runner.py` (ตอนนี้บังคับ CUDA: `R.load()` ล้มถ้าไม่เจอ GPU) ติดตั้งตาม `PINS` ที่หัวไฟล์ (transformers 5.14–5.19, timm 1.0.22, einops 0.8.1, beautifulsoup4 4.13.3, accelerate) · โมเดลดาวน์โหลดจาก Hugging Face (public ด้วย commit ที่ล็อกไว้ ~2.5 GB) · ไม่มี GPU: ต้องแก้ตัวรันให้รัน CPU (ช้ามาก) หรือใช้ทาง ONNX + onnxruntime
+4. ห้ามนำภาพ เฉลย หรือผลที่มีข้อความของเจ้าของเข้า repo/PR (repo เป็น public) · session local ไม่ต้องเปิด PR เว้นแต่เจ้าของสั่ง
+
 ## โมเดล
 - `iapp/OpenThai2.0-OCR-Markdown` ล็อก commit **`7a153712e5b50fac7e4a9d42ccf9ec41fb4202f0`** · สถาปัตยกรรม `nemotron_parse` (ViT SO400M 27 ชั้น → decoder 10 ชั้น, vocab 72,512, ~0.63B พารามิเตอร์) · ไลเซนส์ **OpenMDW-1.1** (ต้องเก็บ LICENSE/NOTICE และระบุที่มา; โมเดลเป็นของ iApp/NVIDIA — ดู `credits.html` และไฟล์ `LICENSE`, `THIRD_PARTY_NOTICES.md` ใน repo โมเดล)
 - ใช้ผ่านโค้ดของ repo โมเดล: `nemotron_parse.inference.DocumentParser` + `TransformersBackend` (transformers `>=5.14.1,<5.20`, timm 1.0.22, einops 0.8.1) · prompt: `</s><s><predict_bbox><predict_classes><output_markdown><predict_text_in_pic>` · ค่า generate ปกติ: temperature 0.2, repetition_penalty 1.05, max_tokens 8744 (วัดแบบ greedy ที่ temperature 0)
