@@ -22,6 +22,7 @@
 <label class="inline"><input id="slow" type="checkbox"> หน่วง 4 วินาทีหลังบรรทัดสำคัญ (ให้ log ลงดิสก์ทันก่อนงานหนัก)</label>
 <label class="inline"><input id="gpukv" type="checkbox"> เก็บ KV ไว้บน GPU ระหว่างก้าว (ไม่คัดลอกกลับ CPU — ใช้กับโหมดแบ่ง 3 session)</label>
 <label>ตัด KV ต้นทางออก k ตำแหน่ง (วินิจฉัยเท่านั้น: 0 = ปกติ · ใส่ค่าอื่น = โทเค็นจะผิดเพราะบริบทถูกตัด ใช้ดูว่าเด้งที่ก้าว/ความยาว KV เดิมหรือไม่) <input id="skip" type="number" value="0" min="0" max="400"></label>
+<label class="inline"><input id="nopre" type="checkbox"> ข้าม prefill ใช้ KV เป็นศูนย์ยาว 622 (วินิจฉัย: แยกว่าหน่วยความจำที่ค้างมาจาก prefill หรือจากลูป decode — โทเค็นจะผิด ดูแค่ว่าเด้งหรือไม่และกี่ก้าว)</label>
 <button id="go">รัน (prefill แล้ว decode)</button>
 <button id="pre">แค่ prefill</button>
 <button id="copy">คัดลอกผล</button>
@@ -78,8 +79,11 @@ async function run(prefillOnly) {
   const vision = { data: f32ToF16(f32), dims: [1, nv, 1024] };
   await flush();
   let kv;
-  try { kv = (await job({ mode: 'prefill', file: fp, vision }, [vision.data.buffer])).kv; } catch (e) { say('❌ prefill ล้ม:', e?.message || e); return; }
-  say(`✅ prefill เสร็จ (ทิ้ง Worker แล้ว)`); await flush();
+  if ($('nopre').checked && !prefillOnly) { kv = Array.from({ length: 20 }, () => ({ data: new Uint16Array(8 * 622 * 64), dims: [1, 8, 622, 64] })); say('⚠️ วินิจฉัย: ข้าม prefill — KV เป็นศูนย์'); }
+  else {
+    try { kv = (await job({ mode: 'prefill', file: fp, vision }, [vision.data.buffer])).kv; } catch (e) { say('❌ prefill ล้ม:', e?.message || e); return; }
+    say(`✅ prefill เสร็จ (ทิ้ง Worker แล้ว)`); await flush();
+  }
   if (prefillOnly) return;
   const skip = +$('skip').value;
   if (skip > 0) {   // ตัดแถวต้นของ KV ทุกก้อน (รูปทรง [1,8,L,64] fp16) — เลื่อนความยาวที่แต่ละก้าวเท่านั้น
