@@ -1,10 +1,13 @@
-// THIRD-PARTY.txt ของ vendor/craft/pdfcraft-app-<commit> — license ของทุก crate ที่ลิงก์เข้า .wasm ของ apps/pdfcraft-web (dependency ปกติบน wasm32 ไม่นับ proc-macro/build/dev)
+// THIRD-PARTY.txt ของ vendor/craft/<app>-app-<commit> — license ของทุก crate ที่ลิงก์เข้า .wasm ของ apps/<app>-web (dependency ปกติบน wasm32 ไม่นับ proc-macro/build/dev)
+// ใช้ร่วม: pdfcraft-app (ค่าเริ่มต้น) และ cadcraft-app (อาร์กิวเมนต์ที่ 2 = cadcraft)
 // PdfCraft เอง = LICENSE-MIT ข้างกัน, ฟอนต์ craft-fonts = OFL-*.txt ข้างกัน · เรียกจาก build.sh: node third-party.mjs <ซอร์ส PdfCraft> > THIRD-PARTY.txt
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const src = process.argv[2];
+const app = process.argv[3] || 'pdfcraft';
+const title = { pdfcraft: 'PdfCraft', cadcraft: 'CADCraft' }[app] || app;
 const MIT_BODY = `Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
@@ -25,7 +28,7 @@ const nodes = new Map(meta.resolve.nodes.map((n) => [n.id, n]));
 const isMacro = (p) => p.targets.some((t) => t.kind.includes('proc-macro'));
 
 const seen = new Set();
-const web = meta.packages.find((p) => p.name === 'pdfcraft-web');
+const web = meta.packages.find((p) => p.name === `${app}-web`);
 const stack = [web.id];
 while (stack.length) {
   const id = stack.pop();
@@ -57,7 +60,7 @@ function licenseFiles(dir, lics) {
   return [...want].map((f) => path.join(dir, f));
 }
 
-const list = [...seen].map((id) => pkgs.get(id)).filter((p) => !(meta.workspace_members.includes(p.id) && /^pdfcraft(-|$)/.test(p.name))).sort((a, b) => a.name.localeCompare(b.name));
+const list = [...seen].map((id) => pkgs.get(id)).filter((p) => !(meta.workspace_members.includes(p.id) && new RegExp(`^${app}(-|$)`).test(p.name))).sort((a, b) => a.name.localeCompare(b.name));
 const missing = [];
 const STANDARD = {
   MIT: (who) => `MIT License\n\nCopyright (c) ${who}\n\n` + MIT_BODY,
@@ -65,9 +68,9 @@ const STANDARD = {
   'BSD-3-Clause': (who) => `BSD 3-Clause License\n\nCopyright (c) ${who}\n\n` + BSD3_BODY,
 };
 const out = [
-  'Third-party software in pdfcraft_app_bg.wasm',
+  `Third-party software in ${app}_app_bg.wasm`,
   'Crates linked into the WebAssembly build (normal dependencies on wasm32-unknown-unknown; proc-macros and build tools are not shipped).',
-  'PdfCraft itself: see LICENSE-MIT. Where a crate offers a choice of licenses, it is used under the one marked "used under".',
+  `${title} itself: see LICENSE-MIT. Where a crate offers a choice of licenses, it is used under the one marked "used under".`,
   '',
 ];
 for (const p of list) {

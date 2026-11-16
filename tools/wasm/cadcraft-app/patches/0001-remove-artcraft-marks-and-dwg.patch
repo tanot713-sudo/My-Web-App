@@ -1,0 +1,139 @@
+diff --git a/apps/cadcraft-web/src/upload.rs b/apps/cadcraft-web/src/upload.rs
+index 333c490..d50aeba 100644
+--- a/apps/cadcraft-web/src/upload.rs
++++ b/apps/cadcraft-web/src/upload.rs
+@@ -18,7 +18,7 @@ use web_sys::js_sys;
+ /// The hidden file input (one at a time; a cancelled pick leaves it until the next one).
+ const INPUT_ID: &str = "cadcraft_open_input";
+ /// What the picker offers: the formats OPEN reads, and the SHX fonts drawings name.
+-const ACCEPT: &str = ".dxf,.dwg,.shx";
++const ACCEPT: &str = ".dxf,.shx";
+ 
+ /// Most files taken from one pick.
+ const MAX_PICKED: u32 = 64;
+diff --git a/crates/engine/src/cmd/blocks/xref.rs b/crates/engine/src/cmd/blocks/xref.rs
+index 3b91809..63ba59b 100644
+--- a/crates/engine/src/cmd/blocks/xref.rs
++++ b/crates/engine/src/cmd/blocks/xref.rs
+@@ -22,8 +22,8 @@ use crate::{Accept, EngineError, Input, Interactive, Prompt, Result, Session, St
+ 
+ pub(super) fn specs() -> Vec<CommandSpec> {
+     vec![
+-        CommandSpec::new("xattach", "DWG Reference...", run_xattach)
+-            .menu(&["Insert", "DWG Reference..."])
++        CommandSpec::new("xattach", "DXF Reference...", run_xattach)
++            .menu(&["Insert", "DXF Reference..."])
+             .alias(&["xa"])
+             .params("{path: DWG/DXF file (saved as given; a relative path is relative to this drawing's folder), name? (default: the file name), overlay?: bool, at?: [x,y] (default 0,0), scale?: number | [x, y], rotation? (degrees)} → {name, handle, file}")
+             .interactive(|_| Ok(Box::new(XrefM::new("XATTACH", XStage::File { overlay: false })))),
+diff --git a/crates/engine/src/cmd/exchange.rs b/crates/engine/src/cmd/exchange.rs
+index 1b8d7c7..3a215da 100644
+--- a/crates/engine/src/cmd/exchange.rs
++++ b/crates/engine/src/cmd/exchange.rs
+@@ -23,7 +23,7 @@ use super::{CommandSpec, bad, point_value, str_param};
+ use crate::{EngineError, Result, Session};
+ 
+ /// Formats EXPORT writes (the io layer picks the writer from the extension).
+-pub const EXPORT_FORMATS: &[&str] = &["dxf", "dwg", "svg", "png", "pdf"];
++pub const EXPORT_FORMATS: &[&str] = &["dxf", "svg", "png", "pdf"];
+ /// Default and largest plot preview width, in pixels.
+ const PREVIEW_PX: u64 = 1200;
+ const MAX_PREVIEW_PX: u64 = 4096;
+diff --git a/crates/engine/src/cmd/file/compare/export.rs b/crates/engine/src/cmd/file/compare/export.rs
+index 667a19a..5704cb6 100644
+--- a/crates/engine/src/cmd/file/compare/export.rs
++++ b/crates/engine/src/cmd/file/compare/export.rs
+@@ -66,7 +66,7 @@ fn run(s: &mut Session, _p: &Value) -> Result<Value> {
+     let st = s.state()?;
+     let (uid, cur, title, cur_folder) = (st.uid, st.doc.clone(), st.title.clone(), folder_of(st.path.as_deref()));
+     let c = s.compare.as_ref().filter(|c| c.uid == uid).ok_or_else(|| bad("compareexport", "no comparison: run COMPARE first"))?;
+-    let name = format!("compare_{} vs {}.dwg", stem(&title), stem(&c.other_name));
++    let name = format!("compare_{} vs {}.dxf", stem(&title), stem(&c.other_name));
+     let folders = Folders { here: cur_folder, there: folder_of(c.other_path.as_deref()) };
+     let Snapshot { drawing, current, compared, counts, truncated, blocks_left_out, uncolored } = snapshot(&cur, c, &folders);
+     let i = s.open_drawing(drawing, &name, None);
+diff --git a/crates/ui-egui/src/chrome.rs b/crates/ui-egui/src/chrome.rs
+index 7639dbb..996fe26 100644
+--- a/crates/ui-egui/src/chrome.rs
++++ b/crates/ui-egui/src/chrome.rs
+@@ -72,7 +72,7 @@ pub fn title_and_toolbar(app: &mut CadApp, ui: &mut egui::Ui) {
+             // The empty row moves the window; it goes first so later widgets take their own clicks.
+             craft_window::title_bar::empty_area(ui, Rect::from_min_size(r.min, vec2(r.width(), title_h)));
+             let title = match app.session.state() {
+-                Ok(st) if !app.ui.start_tab => format!("CADCraft      {}{}", st.title, if st.title.contains('.') { "" } else { ".dwg" }),
++                Ok(st) if !app.ui.start_tab => format!("CADCraft      {}{}", st.title, if st.title.contains('.') { "" } else { ".dxf" }),
+                 _ => format!("CADCraft      {}", crate::tl!("Start")),
+             };
+             // Centred on the traffic lights' centre line (the row's middle): with the system font
+diff --git a/crates/ui-egui/src/dialogs.rs b/crates/ui-egui/src/dialogs.rs
+index fcd8713..bf0a5aa 100644
+--- a/crates/ui-egui/src/dialogs.rs
++++ b/crates/ui-egui/src/dialogs.rs
+@@ -345,12 +345,12 @@ fn about(ctx: &egui::Context, open: &mut bool) {
+                 2 => crate::credits::models_ui(ui),
+                 _ => {
+                     ui.heading(crate::tl!("CADCraft"));
+-                    ui.label(crate::tf!("Version {version}", version = env!("CARGO_PKG_VERSION")));
++                    ui.label(crate::tf!("Version {version}", version = cadcraft_engine::build_version()));
+                     ui.label(crate::tl!("Computer-aided design and drafting: an open-source, clean-room CAD application written in pure Rust."));
+                     ui.add_space(6.0);
+-                    ui.label(RichText::new(crate::tl!("One of the Crafting Apps by the ArtCraft team and community.")).color(t.text_dim));
+-                    ui.hyperlink_to("getartcraft.com/apps/cadcraft", "https://getartcraft.com/apps/cadcraft");
+-                    ui.hyperlink_to(crate::tl!("Join us on Discord"), "https://discord.gg/artcraft");
++                    // Modified build (Tanot): not an official CADCraft release, so no ArtCraft marks or links.
++                    ui.label(RichText::new("Modified build, based on CADCraft by the ArtCraft team. Not an official release.").color(t.text_dim));
++                    ui.hyperlink_to("github.com/storytold/cadcraft", "https://github.com/storytold/cadcraft");
+                     ui.add_space(6.0);
+                     ui.label(RichText::new(crate::tl!("MIT OR Apache-2.0. Not affiliated with Autodesk, Inc.")).small().color(t.text_faint));
+                 }
+diff --git a/crates/ui-egui/src/lib.rs b/crates/ui-egui/src/lib.rs
+index 41787b0..35abd1c 100644
+--- a/crates/ui-egui/src/lib.rs
++++ b/crates/ui-egui/src/lib.rs
+@@ -155,7 +155,7 @@ pub enum SaveFormat {
+ }
+ 
+ impl SaveFormat {
+-    pub const ALL: [SaveFormat; 2] = [SaveFormat::Dxf, SaveFormat::Dwg];
++    pub const ALL: [SaveFormat; 1] = [SaveFormat::Dxf];
+ 
+     /// The file extension, which is also the saved name ("dxf" or "dwg").
+     pub fn as_str(self) -> &'static str {
+diff --git a/crates/ui-egui/src/menus.rs b/crates/ui-egui/src/menus.rs
+index e0b3c50..acabe21 100644
+--- a/crates/ui-egui/src/menus.rs
++++ b/crates/ui-egui/src/menus.rs
+@@ -107,7 +107,6 @@ pub const UI_COMMANDS: &[(&str, &str, &[&str], Option<&str>)] = &[
+     ("ui.theme.dark", "Dark", &["View", "Interface Theme", "Dark"], None),
+     ("ui.theme", "Interface Theme", &[], None),
+     ("ui.saveformat.dxf", "DXF", &["File", "Default Save Format", "DXF"], None),
+-    ("ui.saveformat.dwg", "DWG", &["File", "Default Save Format", "DWG"], None),
+     ("ui.saveformat", "Default Save Format", &[], None),
+     ("ui.saveversion.2018", "Version 2018", &["File", "Default Save Format", "Version 2018"], None),
+     ("ui.saveversion.2013", "Version 2013", &["File", "Default Save Format", "Version 2013"], None),
+diff --git a/crates/ui-egui/src/xrefs.rs b/crates/ui-egui/src/xrefs.rs
+index ed1f43d..eae9ded 100644
+--- a/crates/ui-egui/src/xrefs.rs
++++ b/crates/ui-egui/src/xrefs.rs
+@@ -135,7 +135,7 @@ pub fn section(app: &mut CadApp, ui: &mut egui::Ui) {
+     ui.add_space(6.0);
+     ui.horizontal(|ui| {
+         ui.add_space(8.0);
+-        if ui.button(crate::tl!("Attach DWG...")).clicked() {
++        if ui.button(crate::tl!("Attach DXF...")).clicked() {
+             act = Some(Act::Start("xattach"));
+         }
+         if ui.add_enabled(!rows.is_empty(), egui::Button::new(crate::tl!("Reload All"))).clicked() {
+diff --git a/xtask/data/menu-catalog.txt b/xtask/data/menu-catalog.txt
+index 8ffa65a..fef4162 100644
+--- a/xtask/data/menu-catalog.txt
++++ b/xtask/data/menu-catalog.txt
+@@ -128,7 +128,7 @@ View
+     Enter Full Screen
+ Insert
+     Block...
+-    DWG Reference...
++    DXF Reference...
+     PDF Underlay...
+     Raster Image Reference...
+     Field...

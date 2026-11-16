@@ -132,6 +132,8 @@ const PRECACHE = [
   './craft-frame.js',
   './pdf-pro.html',
   './pdf-pro.js',
+  './cad-pro.html',
+  './cad-pro.js',
   CRAFT_MANIFEST,
   /* ตั้งใจไม่ precache ไฟล์ใน vendor/craft/<lib>-<รุ่น>/ (เช่น wasm ของ GridCraft ~1.9MB) — fetch handler แคชลง CRAFT_CACHE ตอนใช้ครั้งแรก */
   './image-gen.html',

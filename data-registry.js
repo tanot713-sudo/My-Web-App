@@ -169,6 +169,8 @@
       stores: { current: { keyPath: 'id' }, reports: { keyPath: 'id', autoIncrement: true } }, sync: [] },
     { db: 'tanot-sim3d', version: 1, stores: { models: { keyPath: 'id', autoIncrement: true } }, sync: [] }, // ไฟล์ 3D ไบนารี — ย้าย/สำรองเท่านั้น
     // บันทึกงานบำรุงรักษา: ใบสั่งงาน = header ที่ไม่แก้ (wo) + event ต่อท้าย (woev) — ดู docs/maintenance-design.md หัวข้อ 3.2
+    // ไฟล์ล่าสุดของโปรแกรมเต็มตระกูล *Craft (craft-app.js, cad-pro.html) — ไบต์ของไฟล์ + ภาพย่อ ย้าย/สำรองเท่านั้น ไม่ซิงก์
+    { db: 'tanot-craft-recent', version: 1, stores: { files: { keyPath: 'id' } }, sync: [] },
     { db: 'tanot-mnt', version: 1, stores: { wo: { keyPath: 'id' }, woev: { keyPath: 'id' } }, sync: ['wo', 'woev'] }
   ];
   // ผลตรวจบำรุงรักษา: 1 ฐานข้อมูลต่อปีของรอบ — ซิงก์เฉพาะปีปัจจุบัน ±1 เพราะ tanot-data อ่านทั้ง store ทุกครั้งที่โหลดหน้า
