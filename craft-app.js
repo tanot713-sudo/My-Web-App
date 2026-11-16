@@ -14,6 +14,7 @@
    - canvas: id ของ canvas ที่แอปหา (CADCraft = 'cadcraft_canvas'; ไม่ใส่ = prefix)
    - prefs:false = ไม่เขียนธีม/ภาษาลงค่าที่แอปบันทึกเองตอนเริ่ม · liveTheme:true = ตั้งธีมผ่าน window.<prefix>.execute('ui.theme')
      ตอนพร้อมและทุกครั้งที่เว็บสลับสว่าง/มืด (craft-web-api ของแอป — ไม่มี API = เมินเงียบๆ)
+   - liveLang:true = ตั้งภาษาเมนูผ่าน window.<prefix>.execute('ui.language', {lang:'th'|'en'}) ตอนพร้อมและทุกครั้งที่เว็บสลับภาษา
    - mimes: {'.ext': mime} ของไฟล์ที่แอปบันทึก/ส่งออก (ไม่ตรง = mime)
    - recent:true = "ล่าสุด" 10 ไฟล์ต่อแอปใน IndexedDB tanot-craft-recent (เฉพาะเครื่องนี้, ภาพย่อจาก window.<prefix>.screenshot)
    - phoneMax (700) / tabletMax (ไม่ใส่ = ไม่มีช่วงแท็บเล็ต) / simple: {href} = ปุ่มไปหน้าแบบง่ายบนมือถือ */
@@ -177,6 +178,15 @@
       try { Promise.resolve(a.execute('ui.theme', { theme: isDark() ? 'dark' : 'light' })).catch(function () {}); } catch (e) {}
     }
     if (o.liveTheme && G.OmeTheme && typeof G.OmeTheme.onChange === 'function') G.OmeTheme.onChange(pushTheme);
+    function webLang() {
+      try { return G.OME_LANG && G.OME_LANG.get() === 'en' ? 'en' : 'th'; } catch (e) { return 'th'; }
+    }
+    function pushLang() {
+      var a = o.liveLang && ready && appApi();
+      if (!a) return;
+      try { Promise.resolve(a.execute('ui.language', { lang: webLang() })).catch(function () {}); } catch (e) {}
+    }
+    if (o.liveLang && G.OME_LANG && typeof G.OME_LANG.onChange === 'function') G.OME_LANG.onChange(pushLang);
     /* ภาพย่อของไฟล์ล่าสุด: ขอภาพจอจากแอป (ไม่มี screenshot() = ไม่มีภาพย่อ) */
     function snapThumb(name, delay) {
       if (!o.recent) return;
@@ -219,6 +229,7 @@
         ready = true;
         set('ready');
         pushTheme();
+        pushLang();
         var q = queue; queue = [];
         q.forEach(send);
       } else if (d.type === prefix + ':save') {
@@ -270,8 +281,7 @@
       ]).then(function (r) {
         started = true;
         set('starting');
-        var lang = 'th';
-        try { lang = G.OME_LANG && G.OME_LANG.get() === 'en' ? 'en' : 'th'; } catch (e) {}
+        var lang = webLang();
         post({ type: 'craft:boot', glue: r[0], wasm: r[1], theme: isDark() ? 'Dark' : 'Light', lang: lang, prefs: o.prefs !== false }, [r[0], r[1]]);
       }).catch(function (err) { fail(err, 'load'); });
     }
@@ -360,7 +370,7 @@
     var recentDlg = $('craRecent'), recentBtn = $('craRecentBtn'), recentShown = false, opened = false;
     var app = create({
       lib: cfg.lib, glue: cfg.glue, wasm: cfg.wasm, prefix: cfg.prefix, ext: cfg.ext, mime: cfg.mime,
-      canvas: cfg.canvas, prefs: cfg.prefs, liveTheme: cfg.liveTheme, mimes: cfg.mimes, recent: !!(cfg.recent && recentDlg),
+      canvas: cfg.canvas, prefs: cfg.prefs, liveTheme: cfg.liveTheme, liveLang: cfg.liveLang, mimes: cfg.mimes, recent: !!(cfg.recent && recentDlg),
       frame: $('craFrame'),
       onState: function (s, info) {
         if (s === 'recent') { if (recentDlg && recentDlg.open) drawRecent(); return; }
