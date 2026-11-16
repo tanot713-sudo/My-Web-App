@@ -21,7 +21,7 @@
     rows(CARDS).forEach(function (c) { if (c && c.noteId) cardsBy[c.noteId] = (cardsBy[c.noteId] || 0) + 1; });
     list.textContent = '';
     if (!notes.length) {
-      var em = el('div', 'empty compact'); em.appendChild(el('p', null, T('empty'))); list.appendChild(em);
+      var em = el('div', 'card empty compact'); em.appendChild(el('p', null, T('empty'))); list.appendChild(em);
       return;
     }
     notes.forEach(function (n) {
