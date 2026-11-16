@@ -189,6 +189,8 @@
 .c3-sketch-toolbar{position:absolute;top:10px;left:10px;right:10px;z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:var(--ome-sp-2);
   background:var(--ome-surface-1);padding:8px;border-radius:var(--ome-radius-md);box-shadow:var(--ome-shadow-3)}
 .c3-sketch-toolbar .hint{flex-basis:100%;margin:2px 0 0}
+.c3-sketch-dim{position:absolute;z-index:6;pointer-events:none;padding:2px 8px;border-radius:var(--ome-radius-sm);background:var(--ome-surface-1);color:var(--ome-text-1);border:1px solid var(--ome-border-strong);font-size:var(--ome-fs-sm);font-variant-numeric:tabular-nums;white-space:nowrap}
+.c3-sketch-dim[hidden]{display:none}
 .c3-proplist{display:flex;flex-direction:column}
 .c3-proprow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--ome-border)}
 .c3-proprow:last-child{border-bottom:none}
@@ -670,6 +672,7 @@
         <button class="btn sm danger" id="sketchCancelBtn" type="button" data-ome-t="cad3d.cancel">ยกเลิก</button>
         <span class="hint" id="c3SketchHint" data-ome-t="cad3d.hintRect1">คลิกมุมแรกของสี่เหลี่ยม</span>
       </div>
+      <div class="c3-sketch-dim" id="c3SketchDim" hidden aria-live="off" data-i18n-skip></div>
     </div>
   </div>
 
