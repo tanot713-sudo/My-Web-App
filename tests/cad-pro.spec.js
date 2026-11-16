@@ -193,6 +193,32 @@ test.describe('โปรแกรมเขียนแบบ 2 มิติ (CAD
     await expect(page.locator('h1')).toHaveText('2D drafting');
   });
 
+  test('ปุ่มเต็มจอ: แอปขยายเต็มจอ (ไม่มีแถบเมนูเว็บ) · กดซ้ำ/ออกแล้วปุ่มกลับเป็นเต็มจอ · EN', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setup(context, page);
+    await page.goto('/cad-pro.html');
+    await ready(page);
+    const btn = page.locator('#craFull');
+    await expect(btn).toBeVisible();
+    await expect(btn).toHaveText('เต็มจอ');
+    await btn.click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement && document.fullscreenElement.className)).toBe('cra-stage');
+    await expect(btn).toHaveAttribute('aria-pressed', 'true');
+    await page.evaluate(() => document.exitFullscreen());
+    await expect(btn).toHaveAttribute('aria-pressed', 'false');
+    await page.evaluate(() => window.OME_LANG.set('en'));
+    await expect(btn).toHaveText('Full screen');
+  });
+
+  test('ปุ่มเต็มจอไม่แสดงก่อนแอปพร้อม (มือถือ/ล้ม)', async ({ context, page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await setup(context, page, { wasm: '404' });
+    await page.goto('/cad-pro.html');
+    await expect(page.locator('#craGate')).toBeVisible();
+    await expect(page.locator('#craFull')).toBeHidden();
+    await expect(page.locator('#craRecentBtn')).toBeHidden();
+  });
+
   test('wasm ไม่ตรง sha256 = integrity', async ({ context, page }) => {
     await page.setViewportSize({ width: 1280, height: 800 });
     await setup(context, page, { wasm: 'bad' });

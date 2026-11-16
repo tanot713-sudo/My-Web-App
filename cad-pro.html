@@ -27,6 +27,8 @@
 .cra-foot .status{margin:0;min-width:0}
 html.ome-has-fab .cra-foot{min-height:88px}
 .cra-stage{position:relative;flex:1;min-height:0;border-top:1px solid var(--ome-border);background:var(--ome-surface-1)}
+.cra-stage:fullscreen{border-top:0}
+.cra-stage:-webkit-full-screen{border-top:0}
 .cra-stage iframe{position:absolute;inset:0;width:100%;height:100%;display:block;border:0}
 .cra-stage iframe:focus-visible{outline:2px solid var(--ome-accent);outline-offset:-2px}
 .cra-over{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:var(--ome-sp-4);background:var(--ome-surface-0)}
@@ -54,6 +56,7 @@ html.ome-has-fab .cra-foot{min-height:88px}
   <h1 data-i18n="cp.h1">โปรแกรมเขียนแบบ 2 มิติ</h1>
   <button class="btn" id="craOpen" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span data-i18n="cp.open">เปิดไฟล์</span></button>
   <button class="btn" id="craRecentBtn" type="button" disabled hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-history"/></svg><span data-ome-t="craftapp.recent">ล่าสุด</span></button>
+  <button class="btn" id="craFull" type="button" aria-pressed="false" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-maximize-2"/></svg><span>เต็มจอ</span></button>
   <input type="file" id="craFile" accept=".dxf,.shx" hidden>
 </div>
 <div class="cra-stage">

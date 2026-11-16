@@ -316,13 +316,14 @@
   /* ── ส่วน DOM ของหน้าแม่แบบ (id ขึ้นต้น cra — ดู pdf-pro.html) ──
      cfg = {lib, glue, wasm, prefix, ext, mime, …ตัวเลือกของ create} · หน้าให้แค่ config + ข้อความชื่อหน้าใน dictionary ของตัวเอง
      ส่วนที่มีเฉพาะบางหน้า (ไม่มี element = ข้าม): #craSimple (ลิงก์หน้าแบบง่ายบนมือถือ), #craGateHint (หมุนจอ),
-     #craRecentBtn + <dialog #craRecent> (ไฟล์ล่าสุด) */
+     #craRecentBtn + <dialog #craRecent> (ไฟล์ล่าสุด), #craFull (เต็มจอ: Fullscreen API บน .cra-stage — ไม่รองรับ = ซ่อนปุ่ม, Esc ออก) */
   var TXT = {
     th: {
       ready: 'พร้อมใช้', starting: 'กำลังเปิดโปรแกรม…', saved: 'ดาวน์โหลด {name} แล้ว', unsaved: 'มีการแก้ไขที่ยังไม่ได้บันทึก',
       mb: '{got} / {total} MB', gate: 'เหมาะกับคอมพิวเตอร์ · ดาวน์โหลด {mb} MB', gateNoSize: 'เหมาะกับคอมพิวเตอร์',
       reload: 'โหลดหน้าใหม่', retry: 'ลองใหม่', go: 'เปิดต่อ', loading: 'กำลังโหลดโปรแกรม',
       goFull: 'เปิดโปรแกรมเต็มต่อ ({mb} MB)', rotate: 'หมุนจอเป็นแนวนอนจะใช้ง่ายกว่า',
+      full: 'เต็มจอ', fullExit: 'ออกจากเต็มจอ',
       recent: 'ล่าสุด', recentEmpty: 'ยังไม่มีไฟล์', open: 'เปิด', del: 'ลบ {name} ออกจากรายการ', close: 'ปิด'
     },
     en: {
@@ -330,6 +331,7 @@
       mb: '{got} / {total} MB', gate: 'Best on a computer · {mb} MB download', gateNoSize: 'Best on a computer',
       reload: 'Reload page', retry: 'Try again', go: 'Open anyway', loading: 'Loading the app',
       goFull: 'Open the full app ({mb} MB)', rotate: 'Turn the screen sideways for more room',
+      full: 'Full screen', fullExit: 'Exit full screen',
       recent: 'Recent', recentEmpty: 'No files yet', open: 'Open', del: 'Remove {name} from the list', close: 'Close'
     }
   };
@@ -376,6 +378,7 @@
           show('none');
           openBtn.disabled = false;
           if (recentBtn && recentDlg) { recentBtn.hidden = false; recentBtn.disabled = false; }
+          if (fullBtn && canFs) fullBtn.hidden = false; // ปุ่มเต็มจอแสดงเมื่อแอปพร้อม (ก่อนนั้นไม่มีอะไรให้ขยาย)
           live(status, function () { return T('ready'); });
           // หน้าเริ่ม: มีไฟล์ล่าสุดและยังไม่ได้เปิดไฟล์ใด = แสดงรายการครั้งเดียว
           if (recentDlg && !opened && !app.hasQueue() && !recentShown) {
@@ -465,6 +468,28 @@
       app.start();
     });
     if (L && L.onChange) G.OME_PAGE_LIVE_LANG = true;
+
+    // เต็มจอ: ขยาย .cra-stage (iframe ของแอป) ทั้งจอ — ไม่มีแถบเมนูของเว็บ
+    var fullBtn = $('craFull'), stage = document.querySelector('.cra-stage');
+    var fsEl = function () { return document.fullscreenElement || document.webkitFullscreenElement || null; };
+    var canFs = !!(stage && (document.fullscreenEnabled || document.webkitFullscreenEnabled));
+    function drawFull() {
+      if (!fullBtn) return;
+      var on = fsEl() === stage;
+      fullBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      fullBtn.querySelector('use').setAttribute('href', 'icons.svg#i-' + (on ? 'minimize-2' : 'maximize-2'));
+      live(fullBtn.querySelector('span'), function () { return on ? T('fullExit') : T('full'); });
+    }
+    if (fullBtn && canFs) {
+      drawFull();
+      fullBtn.addEventListener('click', function () {
+        if (fsEl()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+        var rq = stage.requestFullscreen || stage.webkitRequestFullscreen;
+        Promise.resolve(rq.call(stage)).then(function () { try { $('craFrame').focus(); } catch (e) {} }, function () {});
+      });
+      document.addEventListener('fullscreenchange', drawFull);
+      document.addEventListener('webkitfullscreenchange', drawFull);
+    }
 
     // ขนาดจอ: ≤ phoneMax (700) = ไม่โหลดเอง (+ ลิงก์หน้าแบบง่ายถ้ามี) · ≤ tabletMax = บอก MB + กดเปิดต่อ (+ แนะนำหมุนจอถ้าแนวตั้ง)
     var phone = cfg.phoneMax ? mq('(max-width: ' + cfg.phoneMax + 'px)') : isSmallScreen();
