@@ -15,11 +15,11 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # ล็อก commit เดียวกันทุกตัว — เปลี่ยน rev = build ใหม่ (โฟลเดอร์ใหม่ใน vendor/craft) + อัปเดต manifest
-cadcraft-io = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
-cadcraft-doc = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
-cadcraft-geom = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
-cadcraft-render = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
-cadcraft-fonts = { git = "https://github.com/storytold/cadcraft", rev = "fc157ea91fd96bba6f7ff7611fb3465820f6530c" }
+cadcraft-io = { git = "https://github.com/storytold/cadcraft", rev = "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1" }
+cadcraft-doc = { git = "https://github.com/storytold/cadcraft", rev = "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1" }
+cadcraft-geom = { git = "https://github.com/storytold/cadcraft", rev = "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1" }
+cadcraft-render = { git = "https://github.com/storytold/cadcraft", rev = "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1" }
+cadcraft-fonts = { git = "https://github.com/storytold/cadcraft", rev = "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1" }
 serde_json = "1"
 # ต้องตรงกับ wasm-bindgen-cli ที่ build.sh ใช้ (build.sh อ่านเลขจาก Cargo.lock)
 wasm-bindgen = "=0.2.129"
