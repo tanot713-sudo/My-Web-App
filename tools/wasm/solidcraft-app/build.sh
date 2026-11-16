@@ -31,7 +31,12 @@ out="$work/out-$PROFILE"
 mkdir -p "$work/src"
 
 [ -d "$src/.git" ] || git init -q "$src"
-git -C "$src" fetch -q --depth 1 https://github.com/tangency-labs/solidcraft "$REV"
+# ซอร์ส ~900 MB — การดาวน์โหลดหลุดกลางทางได้ จึงลองซ้ำ
+for i in 1 2 3 4 5; do
+  git -C "$src" fetch -q --depth 1 https://github.com/tangency-labs/solidcraft "$REV" && break
+  [ "$i" = 5 ] && { echo "ดาวน์โหลดซอร์สไม่สำเร็จ" >&2; exit 1; }
+  sleep $((i * 10))
+done
 git -C "$src" checkout -q --force FETCH_HEAD
 git -C "$src" clean -qfdx
 [ "$(git -C "$src" rev-parse HEAD)" = "$REV" ] || { echo "ซอร์สไม่ใช่ $REV ($TAG)" >&2; exit 1; }
