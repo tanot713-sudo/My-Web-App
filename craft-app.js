@@ -375,7 +375,7 @@
         } else if (s === 'ready') {
           show('none');
           openBtn.disabled = false;
-          if (recentBtn) recentBtn.disabled = false;
+          if (recentBtn && recentDlg) { recentBtn.hidden = false; recentBtn.disabled = false; }
           live(status, function () { return T('ready'); });
           // หน้าเริ่ม: มีไฟล์ล่าสุดและยังไม่ได้เปิดไฟล์ใด = แสดงรายการครั้งเดียว
           if (recentDlg && !opened && !app.hasQueue() && !recentShown) {
@@ -454,7 +454,6 @@
       if (!recentDlg.open) recentDlg.showModal();
     }
     if (recentDlg && recentBtn) {
-      recentBtn.hidden = false;
       recentBtn.addEventListener('click', openRecent);
       $('craRecentClose').addEventListener('click', function () { recentDlg.close(); });
       recentDlg.addEventListener('click', function (e) { if (e.target === recentDlg) recentDlg.close(); });

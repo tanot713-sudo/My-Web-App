@@ -54,7 +54,7 @@ async function ready(page) {
 }
 
 test.describe('โปรแกรมเขียนแบบ 2 มิติ (CADCraft ตัวจริง)', () => {
-  test.setTimeout(240000);
+  test.setTimeout(120000);
 
   test('manifest: ไฟล์ตรง sha256 · ≤ 25 MiB · license + OFL ฟอนต์ไทย · glue ไม่ import ไฟล์อื่น · ไม่มีลิงก์ ArtCraft', async () => {
     expect(LIB, 'libs["cadcraft-app"]').toBeTruthy();
@@ -99,15 +99,25 @@ test.describe('โปรแกรมเขียนแบบ 2 มิติ (CAD
     // เปิด DXF จากเครื่อง → แอปมีแบบ 5 ชิ้น
     const dxf = sampleDxf();
     await page.locator('#craFile').setInputFiles({ name: 'plan.dxf', mimeType: 'image/vnd.dxf', buffer: dxf });
-    await expect.poll(async () => {
-      const d = await app.evaluate(() => window.cadcraft.docInspect().catch(() => null));
-      return d ? JSON.stringify(d) : '';
-    }, { timeout: 30000 }).toMatch(/"entities"\s*:\s*5|"count"\s*:\s*5|LINE/);
+    const inspect = () => app.evaluate(() => window.cadcraft.docInspect().catch(() => null));
+    await expect.poll(async () => { const d = await inspect(); return d && d.entityCount; }, { timeout: 30000 }).toBe(5);
+    const doc = await inspect();
+    expect(doc.counts).toEqual({ Circle: 1, Line: 2, MText: 1, Text: 1 });
+    // ข้อความไทยผ่าน \U+ ของ DXF ถูกอ่านเป็นอักษรไทย (สระ/วรรณยุกต์ซ้อน, ำ)
+    expect(doc.entities.map((e) => e.geometry.value || e.geometry.contents).filter(Boolean)).toEqual(['ห้องนอน กว้าง 3.5 ม.', 'แบบทดสอบ: น้ำ ผู้ใหญ่ กำแพง']);
+    await app.evaluate(() => window.cadcraft.execute('zoom', { option: 'extents' }).catch(() => null));
     await page.locator('#craFrame').screenshot({ path: testInfo.outputPath('cad-pro-thai.png') });
 
     // บันทึก (qsave) = แอปส่ง cadcraft:save → ดาวน์โหลด .dxf ในเครื่อง
     const dl = page.waitForEvent('download');
-    await app.evaluate(() => window.cadcraft.execute('qsave', {}).catch(() => null));
+    // รุ่นเว็บไม่มี DWG: ตั้งรูปแบบบันทึกเป็น dwg ไม่ได้ + ไม่มีคำสั่งเมนู ui.saveformat.dwg
+    const dwg = await app.evaluate(() => window.cadcraft.execute('ui.saveformat', { format: 'dwg' }).then(() => 'ok', (e) => String(e)));
+    expect(dwg).toMatch(/unknown save format/);
+    const cmds = JSON.stringify(await app.evaluate(() => window.cadcraft.commands()));
+    expect(cmds).not.toContain('DWG Reference');
+    // บันทึกแบบผู้ใช้: คลิกในแอปแล้ว Ctrl+S (แบบที่ยังไม่เคยบันทึก = แอปใช้ชื่อเดิม plan.dxf)
+    await page.locator('#craFrame').click({ position: { x: 700, y: 420 } });
+    await page.keyboard.press('Control+s');
     const file = await dl;
     expect(file.suggestedFilename()).toMatch(/\.dxf$/);
     const saved = fs.readFileSync(await file.path(), 'latin1');

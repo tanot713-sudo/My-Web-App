@@ -60,6 +60,11 @@ export CARGO_TARGET_DIR="$work/cargo"
 export CRAFT_FONTS_DIR="$fonts" CRAFT_FONTS_REQUIRED=1
 export SOURCE_DATE_EPOCH="$(git -C "$src" log -1 --format=%ct)"
 export CADCRAFT_BUILD_SHA="${REV:0:9}-tanot"
+# ขนาด (เจ้าของสั่ง 2026-11-16 "ลองลดขนาด"): release ของต้นฉบับคือ opt-level 3 + thin LTO + codegen-units 16 (wasm ~35 MiB)
+# ที่นี่ปรับเฉพาะ profile ด้วยตัวแปรของ cargo (ไม่แก้ซอร์ส) — opt-level z + fat LTO + 1 codegen unit + panic=abort ไม่ได้ใช้ (eframe จับ panic เพื่อแสดงข้อผิดพลาด)
+export CARGO_PROFILE_RELEASE_OPT_LEVEL="${CADCRAFT_OPT_LEVEL:-z}"
+export CARGO_PROFILE_RELEASE_LTO="${CADCRAFT_LTO:-fat}"
+export CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${CADCRAFT_CGU:-1}"
 export RUSTFLAGS="--remap-path-prefix=$src=/cadcraft --remap-path-prefix=$fonts=/craft-fonts --remap-path-prefix=$cargo_home=/cargo --remap-path-prefix=$HOME/.rustup=/rustup"
 (cd "$src" && cargo "+$RUST" build --release --locked --target wasm32-unknown-unknown -p cadcraft-web)
 
