@@ -237,7 +237,8 @@
           ]
         },
         { key: 'language', label: 'ภาษา', labelEn: 'Languages', icon: 'languages', href: 'languages.html', keywords: 'ภาษา language อังกฤษ จีน ญี่ปุ่น' },
-        { key: 'books',    label: 'หนังสือ', labelEn: 'Books', icon: 'book-open', href: 'books.html', keywords: 'หนังสือ book อ่าน ชั้นหนังสือ ไฮไลต์ open library' }
+        { key: 'books',    label: 'หนังสือ', labelEn: 'Books', icon: 'book-open', href: 'books.html', keywords: 'หนังสือ book อ่าน ชั้นหนังสือ ไฮไลต์ open library' },
+        { key: 'lecture',  label: 'โน้ตจากเสียง', labelEn: 'Lecture notes', icon: 'notebook-pen', href: 'lecture.html', keywords: 'โน้ต เสียงบรรยาย ถอดเสียง สรุป lecture note การ์ด ทบทวน' }
       ]
     },
     { key: 'hobby', area: 'hobby', label: 'งานอดิเรก/ทักษะ', labelEn: 'Hobbies & skills', icon: 'music', href: 'area.html?a=hobby', keywords: 'งานอดิเรก ทักษะ hobby', children: [

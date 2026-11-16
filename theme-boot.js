@@ -36,7 +36,7 @@
     money: ['budget', 'tax', 'insurance', 'receipts'],
     health: ['health'],
     car: ['car'],
-    education: ['review', 'classroom-business', 'classroom-engineering', 'books', 'languages'],
+    education: ['review', 'classroom-business', 'classroom-engineering', 'books', 'lecture', 'languages'],
     music: ['music'],
     sports: ['sports'],
     cooking: ['cooking'],

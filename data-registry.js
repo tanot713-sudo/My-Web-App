@@ -110,6 +110,9 @@
     { key: 'tanot:books:cards', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:books:settings', kind: 'sync' },
     { key: 'tanot:books:ui', kind: 'local' },
+    // ── โน้ตจากเสียงบรรยาย (lecture.html / text-to-speech) — 1 บทเรียน/1 การ์ด = 1 แถว ──
+    { key: 'tanot:lecture:notes', kind: 'sync', mode: 'list', idField: 'id' },
+    { key: 'tanot:lecture:cards', kind: 'sync', mode: 'list', idField: 'id' },
 
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },

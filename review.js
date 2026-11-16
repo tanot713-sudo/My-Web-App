@@ -18,7 +18,7 @@
       title: 'ทบทวนวันนี้', days14: '14 วันล่าสุด', hDeck: 'การ์ด', filterAria: 'ที่มา', hSrc: 'XP ตามที่มา', hSet: 'ตั้งค่า',
       goal: 'เป้า XP ต่อวัน', rest: 'วันพักต่อสัปดาห์', all: 'ทั้งหมด',
       src_law: 'กฎหมาย', src_lang: 'ภาษา', src_biz: 'ธุรกิจ', src_eng: 'วิศวกรรม', src_music: 'ดนตรี', src_sports: 'กีฬา', src_cooking: 'ทำอาหาร',
-      src_coding: 'เขียนโค้ด', src_typing: 'พิมพ์ดีด', src_books: 'หนังสือ', area_edu: 'การศึกษา', area_hobby: 'งานอดิเรก/ทักษะ',
+      src_coding: 'เขียนโค้ด', src_typing: 'พิมพ์ดีด', src_books: 'หนังสือ', src_lecture: 'โน้ตจากเสียง', area_edu: 'การศึกษา', area_hobby: 'งานอดิเรก/ทักษะ',
       hr: '{n} ชม.', day: '{n} วัน', mon: '{n} เดือน', doneAll: 'ทบทวนครบแล้ว {n} ใบ', none: 'ไม่มีการ์ดค้างทบทวน', rated: 'ทบทวนแล้ว {n} · ', left: 'เหลือ {n}',
       kDue: 'ค้างทบทวน', kCards: 'ใบ', kToday: 'XP วันนี้', kStreak: 'ติดต่อกัน', kDays: 'วัน', kTotal: 'XP สะสม', best: 'สูงสุด {n} วัน', restUsed: 'พัก {n} วัน',
       notYet: 'ยังไม่ได้ฝึกวันนี้', legacy: 'ยอดเดิม {n}', today: 'วันนี้ +{n}', noXp: 'ยังไม่มี XP', optXp: '{n} XP', optDays: '{n} วัน', xpUnit: '{n} XP'
@@ -27,7 +27,7 @@
       title: 'Review today', days14: 'Last 14 days', hDeck: 'Cards', filterAria: 'Source', hSrc: 'XP by source', hSet: 'Settings',
       goal: 'Daily XP goal', rest: 'Rest days per week', all: 'All',
       src_law: 'Law', src_lang: 'Languages', src_biz: 'Business', src_eng: 'Engineering', src_music: 'Music', src_sports: 'Sports', src_cooking: 'Cooking',
-      src_coding: 'Coding', src_typing: 'Typing', src_books: 'Books', area_edu: 'Education', area_hobby: 'Hobbies / skills',
+      src_coding: 'Coding', src_typing: 'Typing', src_books: 'Books', src_lecture: 'Lecture notes', area_edu: 'Education', area_hobby: 'Hobbies / skills',
       hr: '{n} h', day: '{n} d', mon: '{n} mo', doneAll: 'All {n} cards reviewed', none: 'No cards due for review', rated: 'Reviewed {n} · ', left: '{n} left',
       kDue: 'Due for review', kCards: 'cards', kToday: 'XP today', kStreak: 'Streak', kDays: 'days', kTotal: 'Total XP', best: 'Best {n} days', restUsed: 'Rested {n} days',
       notYet: 'Not practiced today', legacy: 'Earlier total {n}', today: 'Today +{n}', noXp: 'No XP yet', optXp: '{n} XP', optDays: '{n} days', xpUnit: '{n} XP'
@@ -41,7 +41,8 @@
     eng: { key: 'lbe:engineering:srs', page: 'classroom-engineering.html' }
   };
   var BOOK_CARDS = 'tanot:books:cards';
-  var DECK_SRC = ['law', 'lang', 'biz', 'eng', 'books'];
+  var LEC_CARDS = 'tanot:lecture:cards';
+  var DECK_SRC = ['law', 'lang', 'biz', 'eng', 'books', 'lecture'];
   var RATINGS = [
     { r: 1, cls: 'again', label: 'Again' },
     { r: 2, cls: 'hard', label: 'Hard' },
@@ -109,7 +110,7 @@
       lbeDue.biz.length ? lbeQuestions('biz') : null,
       lbeDue.eng.length ? lbeQuestions('eng') : null
     ]).then(function (res) {
-      var cards = [], missing = { law: 0, lang: 0, biz: 0, eng: 0, books: 0 };
+      var cards = [], missing = { law: 0, lang: 0, biz: 0, eng: 0, books: 0, lecture: 0 };
       (res[0] || []).forEach(function (n) {
         if (n && n.id != null && Number(n.dueAt) <= now) cards.push({ src: 'law', id: n.id, front: n.q, back: n.a, sub: n.subj, due: Number(n.dueAt), rec: n });
       });
@@ -131,6 +132,9 @@
       (LC.read('tanot:books:items', []) || []).forEach(function (b) { if (b && b.id) bookTitle[b.id] = b.title; });
       (LC.read(BOOK_CARDS, []) || []).forEach(function (c) {
         if (isObj(c) && c.id && Number(c.dueAt) <= now && c.back) cards.push({ src: 'books', id: c.id, front: c.front, back: c.back, sub: bookTitle[c.bookId] || '', due: Number(c.dueAt), rec: c });
+      });
+      (LC.read(LEC_CARDS, []) || []).forEach(function (c) {
+        if (isObj(c) && c.id && Number(c.dueAt) <= now && c.back) cards.push({ src: 'lecture', id: c.id, front: c.front, back: c.back, sub: c.subject || '', due: Number(c.dueAt), rec: c });
       });
       cards.sort(function (a, b) { return a.due - b.due; });
       deck = { cards: cards, missing: missing };
@@ -183,8 +187,8 @@
     ratedCount++;
     var p;
     if (card.src === 'law') p = writeLaw(card, rating, now);
-    else if (card.src === 'books') {
-      LC.update(BOOK_CARDS, function (rows) {
+    else if (card.src === 'books' || card.src === 'lecture') {
+      LC.update(card.src === 'books' ? BOOK_CARDS : LEC_CARDS, function (rows) {
         rows = Array.isArray(rows) ? rows : [];
         for (var i = 0; i < rows.length; i++) if (rows[i] && rows[i].id === card.id) { rows[i] = Object.assign({}, rows[i], FS.schedule(rows[i], rating, now)); break; }
         return rows;
@@ -210,7 +214,7 @@
 
   /* ── วาด ── */
   function previewMs(card, r, now) {
-    if (card.src === 'law' || card.src === 'lang' || card.src === 'books') return FS.preview(card.rec, r, now);
+    if (card.src === 'law' || card.src === 'lang' || card.src === 'books' || card.src === 'lecture') return FS.preview(card.rec, r, now);
     return LC.lbeNext(card.rec, r >= 2, now).due - now;
   }
   function renderFilter() {
@@ -317,7 +321,7 @@
   window.addEventListener('tanot:learn', function () { renderKpis(); });
   if (window.TanotData && window.TanotData.onChange) {
     window.TanotData.onChange(function (keys) {
-      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^tanot:books:(cards|items)/.test(k); });
+      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
       if (deckChanged) loadDeck().then(renderDeck); else renderKpis();
     });
   }

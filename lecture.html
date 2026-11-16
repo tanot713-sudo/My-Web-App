@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>โน้ตจากเสียง | Tanot</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="manifest" href="manifest.json" crossorigin="use-credentials">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="theme-boot.js"></script>
+<script src="data-registry.js"></script>
+<script src="tanot-data.js"></script>
+<script src="i18n.js"></script>
+<link rel="stylesheet" href="theme.css">
+<script src="shell.js" defer></script>
+<script src="lecture.js" defer></script>
+<style>
+.lec-page{max-width:820px}
+.lec-page .page-head{align-items:center}
+.lec-page .page-head h1{flex:1;margin:0}
+.lec-page > * + *{margin-top:var(--ome-sp-4)}
+.lec-note{scroll-margin-top:72px}
+.lec-note .card-head{align-items:flex-start;gap:var(--ome-sp-3)}
+.lec-note h2{overflow-wrap:anywhere;margin:0}
+.lec-meta{color:var(--ome-text-2);font-size:var(--ome-fs-sm);overflow-wrap:anywhere}
+.lec-sum{white-space:pre-wrap;overflow-wrap:anywhere}
+.lec-pts{margin:0;padding-left:1.2em}
+.lec-pts li{overflow-wrap:anywhere}
+.lec-acts{display:flex;gap:var(--ome-sp-2);flex-wrap:wrap}
+.lec-note > * + *{margin-top:var(--ome-sp-3)}
+[hidden]{display:none !important}
+</style>
+</head>
+<body data-layout="reader">
+<main class="page lec-page">
+  <div class="page-head">
+    <h1 data-i18n="lecn.title">โน้ตจากเสียง</h1>
+    <a class="btn primary" href="text-to-speech.html"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-mic"/></svg><span data-i18n="lecn.new">ถอดเสียงใหม่</span></a>
+  </div>
+  <div id="list" class="stack"></div>
+</main>
+</body>
+</html>
