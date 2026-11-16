@@ -164,6 +164,7 @@
             { key: 'excel',        label: 'งาน Excel', labelEn: 'Excel', icon: 'file-spreadsheet', href: 'excel.html', keywords: 'excel ตาราง xlsx' },
             { key: 'powerpoint',   label: 'งาน PowerPoint', labelEn: 'PowerPoint', icon: 'presentation', href: 'slides.html', keywords: 'powerpoint สไลด์ นำเสนอ pptx' },
             { key: 'pdf-pro',      label: 'โปรแกรมแก้ไข PDF', labelEn: 'PDF editor', icon: 'file-text', href: 'pdf-pro.html', keywords: 'pdf แก้ไข pdf editor ใส่ความเห็น annotate ฟอร์ม จัดหน้า' },
+            { key: 'cad-pro',      label: 'โปรแกรมเขียนแบบ 2 มิติ', labelEn: '2D drafting', icon: 'pencil-ruler', href: 'cad-pro.html', keywords: 'cad dxf เขียนแบบ แบบ 2d drafting drawing autocad ร่างแบบ' },
             { key: 'extract-text', label: 'ดึงข้อความออกจากเอกสาร', labelEn: 'Extract text from documents', icon: 'copy', href: 'extract-text.html', keywords: 'ocr ดึงข้อความ pdf' },
             { key: 'doc-check',    label: 'ตรวจสอบเอกสาร', labelEn: 'Document check', icon: 'circle-check', href: 'doc-check.html', keywords: 'ตรวจเอกสาร สะกด ไวยากรณ์ proofread' },
             { key: 'data-compare', label: 'เปรียบเทียบข้อมูล', labelEn: 'Compare data', icon: 'arrow-up-down', href: 'compare.html', keywords: 'เปรียบเทียบ diff compare เทียบ ใบเสนอราคา ให้คะแนน จัดซื้อ' },

@@ -1,13 +1,16 @@
-/* craft-frame.js — ข้างใน iframe ของ craft-app.js (craft-frame.html?id=<prefix>&host=parent)
+/* craft-frame.js — ข้างใน iframe ของ craft-app.js (craft-frame.html?id=<prefix>&host=parent[&canvas=<id>])
+   canvas = id ที่แอปหา canvas (ไม่ใส่ = id เดียวกับ prefix เช่น PdfCraft; CADCraft = cadcraft_canvas)
    รอ {type:'craft:boot', glue, wasm} จากหน้าแม่ (origin เดียวกันเท่านั้น) → import glue จาก Blob URL → init(wasm)
    แอปอ่าน ?host=parent เองแล้วคุยกับหน้าแม่ด้วย postMessage · ไฟล์ทั้งสองถูกตรวจ sha256 ที่หน้าแม่แล้ว */
 (function () {
   'use strict';
-  var id = new URLSearchParams(location.search).get('id') || '';
+  var qs = new URLSearchParams(location.search);
+  var id = qs.get('id') || '';
+  var canvasId = qs.get('canvas') || id;
   var parentWin = window.parent;
-  if (!/^[a-z][a-z0-9-]{0,40}$/.test(id) || parentWin === window) return;
+  if (!/^[a-z][a-z0-9-]{0,40}$/.test(id) || !/^[a-z][a-z0-9_-]{0,40}$/.test(canvasId) || parentWin === window) return;
   var canvas = document.querySelector('canvas');
-  canvas.id = id; // แอปหา canvas ด้วย id นี้
+  canvas.id = canvasId; // แอปหา canvas ด้วย id นี้
   // แอป (eframe) focus canvas เองตอนเริ่ม/ระหว่างทำงาน — ถ้าผู้ใช้กำลังใช้ส่วนอื่นของหน้าแม่ (ลิ้นชักเมนู, แผงตั้งค่า, ปุ่ม)
   // อย่าดึง focus เข้า iframe ไม่งั้นแป้น Escape ฯลฯ ไปไม่ถึงหน้าแม่ · คลิกใน canvas ยังได้ focus ตามปกติ
   canvas.focus = function (opts) {
@@ -38,8 +41,10 @@
     booted = true;
     // ธีม (สว่าง/มืด) และภาษาเมนู (ไทย/อังกฤษ) ตามเว็บ: แก้ค่า "theme"/"language" ในค่าที่แอปบันทึกเอง
     // (localStorage[id] — eframe storage) ก่อนแอปเริ่ม · ค่าอื่นที่ผู้ใช้ตั้งในแอปคงเดิม
-    var theme = d.theme === 'Light' || d.theme === 'Dark' ? d.theme : null;
-    var lang = d.lang === 'th' || d.lang === 'en' ? d.lang : null;
+    // แอปที่เก็บค่าแบบอื่น (CADCraft: cadcraft.prefs) หน้าแม่ส่ง prefs:false แล้วตั้งธีมผ่าน window.<prefix>.execute แทน
+    var usePrefs = d.prefs !== false;
+    var theme = usePrefs && (d.theme === 'Light' || d.theme === 'Dark') ? d.theme : null;
+    var lang = usePrefs && (d.lang === 'th' || d.lang === 'en') ? d.lang : null;
     if (theme || lang) {
       try {
         var saved = {};

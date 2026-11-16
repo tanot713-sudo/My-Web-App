@@ -243,6 +243,73 @@
           "brotli": 5227429
         }
       }
+    },
+    "cadcraft-app": {
+      "name": "CADCraft",
+      "dir": "vendor/craft/cadcraft-app-7526dc6",
+      "source": "https://github.com/storytold/cadcraft",
+      "commit": "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1",
+      "version": "0.20.1",
+      "license": "MIT OR Apache-2.0",
+      "licenseFile": "LICENSE-MIT",
+      "app": "apps/cadcraft-web",
+      "patches": [
+        "0001-remove-artcraft-marks-and-dwg.patch"
+      ],
+      "buildLabel": "tanot",
+      "fonts": {
+        "source": "https://github.com/storytold/craft-fonts",
+        "commit": "b076417b5880bd4154bd22f00695b1d28c6bea83",
+        "license": "OFL-1.1"
+      },
+      "wrapper": "tools/wasm/cadcraft-app",
+      "rustc": "rustc 1.97.0 (2d8144b78 2026-07-07)",
+      "wasmBindgen": "wasm-bindgen 0.2.129",
+      "wasmOpt": "wasm-opt version 132 (version_132)",
+      "files": {
+        "ATTRIBUTION.md": {
+          "sha256": "755164fd7c8861260982aec18937d667efa6198aa66b13fd8c54f7fc46a57626",
+          "bytes": 14283
+        },
+        "LICENSE-MIT": {
+          "sha256": "54b0fc87ed7b61b59c20340070dd2b8c7f9d0b53795347819c3bd7c67ea2508a",
+          "bytes": 1100
+        },
+        "NOTICE.txt": {
+          "sha256": "8f6f3c12b194374bb221e2a788565e1799dcf05d704f77a5cd8f09531eaa4bdd",
+          "bytes": 3598
+        },
+        "OFL-biz-ud-pgothic.txt": {
+          "sha256": "e753d7155d53c747d037a445e584c8ecfca6dd79846db610417e282a736b28bc",
+          "bytes": 4408
+        },
+        "OFL-noto-sans-arabic.txt": {
+          "sha256": "07fc70bfeb985cc1a87a8587d0a0c80bab11c86c9dc3fd95b6f0cb332f983e96",
+          "bytes": 4382
+        },
+        "OFL-noto-sans-georgian.txt": {
+          "sha256": "8c02263c5d73d40544f9ed91e30c4e947407057a3cc430d7b786189aeceff6df",
+          "bytes": 4384
+        },
+        "OFL-noto-sans-thai.txt": {
+          "sha256": "2e98fd23a52d253db8612cd5942c8f2ff4111b21d2367050fdca91d8ccc374a0",
+          "bytes": 4380
+        },
+        "THIRD-PARTY.txt": {
+          "sha256": "f7e2d9d410d7dd2f8bfe7ed35c6de4ef7201d04601ee66addc79bf41ecbf0dfe",
+          "bytes": 430909
+        },
+        "cadcraft_app.js": {
+          "sha256": "50910d931a0b0a0d6ba567b581f8127e8902268ba358bf438c568024b07836f0",
+          "bytes": 173617,
+          "brotli": 20635
+        },
+        "cadcraft_app_bg.wasm": {
+          "sha256": "0cd87180e9b3c1425cd71091192de232b5c25a6a6489f9c1345f0eed0fd96cce",
+          "bytes": 23798810,
+          "brotli": 8364075
+        }
+      }
     }
   }
 }

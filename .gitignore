@@ -10,3 +10,4 @@ __pycache__/
 
 # skill อยู่ในบัญชี Claude ไม่เก็บใน repo (เจ้าของสั่ง 2026-11)
 .claude/skills/
+tools/wasm/*/target/
