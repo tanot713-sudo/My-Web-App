@@ -103,6 +103,8 @@ test.describe('โปรแกรมเขียนแบบ 2 มิติ (CAD
     await expect.poll(async () => { const d = await inspect(); return d && d.entityCount; }, { timeout: 30000 }).toBe(5);
     const doc = await inspect();
     expect(doc.counts).toEqual({ Circle: 1, Line: 2, MText: 1, Text: 1 });
+    // ไฟล์ที่เปิดผ่านหน้า (ยังไม่บันทึก) ต้องอยู่ในไฟล์ล่าสุดแล้ว — ไบต์ถูกโอนเข้า iframe จึงต้องคัดลอกก่อน
+    await expect.poll(() => page.evaluate(() => window.__craftApp.recent().then((l) => l.map((r) => r.name + ':' + (r.size > 0))))).toContain('plan.dxf:true');
     // ข้อความไทยผ่าน \U+ ของ DXF ถูกอ่านเป็นอักษรไทย (สระ/วรรณยุกต์ซ้อน, ำ)
     expect(doc.entities.map((e) => e.geometry.value || e.geometry.contents).filter(Boolean)).toEqual(['ห้องนอน กว้าง 3.5 ม.', 'แบบทดสอบ: น้ำ ผู้ใหญ่ กำแพง']);
     await app.evaluate(() => window.cadcraft.execute('zoom', { option: 'extents' }).catch(() => null));

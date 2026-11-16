@@ -113,12 +113,14 @@
   }
   function recentPut(app, name, bytes, thumb) {
     if (!bytes || bytes.byteLength > RECENT_MAX_BYTES) return Promise.resolve();
+    // คัดลอกทันที: ผู้เรียก (send) โอน ArrayBuffer ไปให้ iframe ต่อจากนี้ — ถ้าคัดลอกหลัง await จะได้ buffer ที่ถูกโอนไปแล้ว
+    var copy = bytes.slice(0);
     var id = app + '|' + name;
     return recentList(app).then(function (list) {
       var old = list.filter(function (r) { return r.id === id; })[0];
       var drop = list.filter(function (r) { return r.id !== id; }).slice(RECENT_KEEP - 1);
       return recentTx('readwrite', function (st) {
-        st.put({ id: id, app: app, name: name, at: Date.now(), size: bytes.byteLength, bytes: bytes.slice(0), thumb: thumb || (old && old.thumb) || '' });
+        st.put({ id: id, app: app, name: name, at: Date.now(), size: copy.byteLength, bytes: copy, thumb: thumb || (old && old.thumb) || '' });
         drop.forEach(function (r) { st.delete(r.id); });
       });
     });
