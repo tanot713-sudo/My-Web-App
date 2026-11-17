@@ -114,7 +114,7 @@ index 2d13612..4417463 100644
 +}
 diff --git a/crates/ui-egui/src/i18n/th.tsv b/crates/ui-egui/src/i18n/th.tsv
 new file mode 100644
-index 0000000..bd48131
+index 0000000..2653242
 --- /dev/null
 +++ b/crates/ui-egui/src/i18n/th.tsv
 @@ -0,0 +1,1473 @@
@@ -134,7 +134,7 @@ index 0000000..bd48131
 +#   Polyline โพลีไลน์ · Spline สไปลน์ · Arc ส่วนโค้ง · Line เส้นตรง · Multileader มัลติลีดเดอร์
 +#   Leader เส้นชี้ · Attribute แอตทริบิวต์ · Constraint ข้อบังคับ · Xref / external reference การอ้างอิงภายนอก
 +#   Trim ตัดเส้น · Extend ยืดถึงขอบ · Offset ออฟเซ็ต · Fillet ลบมุมโค้ง · Chamfer ลบมุมเฉียง
-+#   Explode แตกวัตถุ · Stretch ยืด · Scale ย่อ/ขยาย · Mirror มิเรอร์ · Array อาร์เรย์
++#   Modify (menu) ปรับแก้ · Edit แก้ไข · Explode แตกวัตถุ · Stretch ยืด · Scale ย่อ/ขยาย · Mirror มิเรอร์ · Array อาร์เรย์
 +#   Freeze/Thaw แช่แข็ง/ยกเลิกแช่แข็ง · Isolate แยกแสดง · Alias ชื่อย่อ · Drawing แบบ
 +#   Specify… ระบุ… · Enter… ป้อน… · Select… เลือก… · " or [" " หรือ ["
 +# A CAD term the reader may know only in English keeps it in parentheses: ลบมุมโค้ง (Fillet).
@@ -698,7 +698,7 @@ index 0000000..bd48131
 +	Inspection	การตรวจสอบ
 +	Interface Language	ภาษาของหน้าจอ
 +	Interface language	ภาษาของหน้าจอ
-+	Interface scale	ขนาดหน้าจอ
++	Interface scale	ย่อ/ขยายหน้าจอ
 +	Interface Theme	ธีมหน้าจอ
 +	Interface theme	ธีมหน้าจอ
 +	Intersect	ส่วนที่ซ้อนกัน (Intersect)
@@ -825,7 +825,7 @@ index 0000000..bd48131
 +	Model Space (in viewport)	โมเดลสเปซ (ในวิวพอร์ต)
 +	Modeling	งานโมเดล 3D
 +	Models	โมเดล
-+	Modify	แก้ไข
++	Modify	ปรับแก้
 +	More than {n} aliases.	ชื่อย่อเกิน {n} รายการ
 +	More toolbar commands	คำสั่งอื่นในแถบเครื่องมือ
 +	Move	ย้าย
@@ -1589,7 +1589,7 @@ index 0000000..bd48131
 +@plural	{n} contributor	ผู้ร่วมพัฒนา {n} คน
 +menu	Dimension	บอกขนาด
 +menu	Draw	วาด
-+menu	Modify	แก้ไข
++menu	Modify	ปรับแก้
 +menu	View	มุมมอง
 diff --git a/crates/ui-egui/src/menus.rs b/crates/ui-egui/src/menus.rs
 index acabe21..1623868 100644
