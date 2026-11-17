@@ -108,16 +108,16 @@ checksum = "8f1fe948ff07f4bd06c30984e69f5b4899c516a3ef74f34df92a2df2ab535495"
 
 [[package]]
 name = "cadcraft-color"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "cadcraft-doc"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "cadcraft-color",
  "cadcraft-geom",
@@ -128,8 +128,8 @@ dependencies = [
 
 [[package]]
 name = "cadcraft-dwg"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "acadrust",
  "log",
@@ -137,8 +137,8 @@ dependencies = [
 
 [[package]]
 name = "cadcraft-dxf"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "encoding_rs",
  "log",
@@ -160,9 +160,10 @@ dependencies = [
 
 [[package]]
 name = "cadcraft-fonts"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
+ "cadcraft-dxf",
  "cadcraft-geom",
  "encoding_rs",
  "harfrust",
@@ -173,16 +174,16 @@ dependencies = [
 
 [[package]]
 name = "cadcraft-geom"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "serde",
 ]
 
 [[package]]
 name = "cadcraft-io"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "cadcraft-color",
  "cadcraft-doc",
@@ -202,8 +203,8 @@ dependencies = [
 
 [[package]]
 name = "cadcraft-render"
-version = "0.17.0"
-source = "git+https://github.com/storytold/cadcraft?rev=fc157ea91fd96bba6f7ff7611fb3465820f6530c#fc157ea91fd96bba6f7ff7611fb3465820f6530c"
+version = "0.20.1"
+source = "git+https://github.com/storytold/cadcraft?rev=7526dc62c14e71b3c8d46e73bbf1fa29ef506af1#7526dc62c14e71b3c8d46e73bbf1fa29ef506af1"
 dependencies = [
  "cadcraft-color",
  "cadcraft-doc",

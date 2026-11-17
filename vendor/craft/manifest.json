@@ -75,9 +75,9 @@
     },
     "cadcraft": {
       "name": "CADCraft",
-      "dir": "vendor/craft/cadcraft-fc157ea",
+      "dir": "vendor/craft/cadcraft-7526dc6",
       "source": "https://github.com/storytold/cadcraft",
-      "commit": "fc157ea91fd96bba6f7ff7611fb3465820f6530c",
+      "commit": "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1",
       "license": "MIT OR Apache-2.0",
       "licenseFile": "LICENSE-MIT",
       "crates": [
@@ -106,9 +106,9 @@
           "brotli": 1866
         },
         "cadcraft_dxf_bg.wasm": {
-          "sha256": "b7ddfbdd69d4c6b5cf9de48fcd1c4915583953e0a3a9d3fe004a0bfe455dd4c1",
-          "bytes": 2232093,
-          "brotli": 977590
+          "sha256": "84376b0d992b0f4de2a55ae01a3f7dbadbba2a6f41fe81200059e041085cb907",
+          "bytes": 2265589,
+          "brotli": 989571
         }
       }
     },
