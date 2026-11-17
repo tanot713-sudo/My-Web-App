@@ -113,6 +113,8 @@ jobs:
         run: npx playwright test compare.spec.js
       - name: craft (ไลบรารี wasm ตระกูล Craft — ตัวโหลดกลางตรวจ sha256 ตาม manifest, sha256 ไม่ตรง/404/เครือข่ายล้ม → error + ข้อความ th/en + problem log, bindgen ใน Worker, sw.js แคชแยกไม่ precache ไม่ถูกลบตอน bump CACHE + ลบรุ่นเก่า — wasm ตัวหลอกสร้างในเทสต์)
         run: npx playwright test craft.spec.js
+      - name: craft-r2 (ไลบรารี *Craft ใน R2 — /api/craft/ ตัวจริงกับ R2 ตัวหลอก อ่านได้เฉพาะคีย์ใน manifest, craft-loader + Worker, sw.js แคชแยก, ตรวจผล build ก่อนอัปโหลด)
+        run: npx playwright test craft-r2.spec.js
       - name: pdf-pages (แยกหน้า PDF ด้วย PdfCraft wasm ตัวจริง — 3 หน้า → 3 ไฟล์ตรงลำดับ/ขนาด/การหมุน + ไบต์เดิมเมื่อแยกซ้ำ, page tree ซ้อนชั้น, ไฟล์เสีย/ไม่มีหน้า = รหัส, ปุ่มใน extract-text ได้ zip + ไม่โหลด pdf-lib, wasm 404 = ข้อความ + problem log — PDF สร้างในเทสต์)
         run: npx playwright test pdf-pages.spec.js
       - name: cad-dxf (นำเข้า DXF ด้วย CADCraft wasm ตัวจริง — ชนิดพื้นฐาน/bulge/MTEXT/บล็อกซ้อนหมุนย่อขยาย/เลเยอร์+สี, R12 ANSI_874 ไทย + POLYLINE + extrusion −Z, ELLIPSE/SPLINE, binary DXF, ไฟล์เสีย/ว่าง = รหัส, ปุ่มใน cad.html + EN, wasm 404 = ข้อความ + problem log — DXF สร้างในเทสต์)

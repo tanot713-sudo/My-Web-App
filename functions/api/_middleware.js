@@ -104,6 +104,8 @@ export async function onRequest(context) {
 
   context.data.user = user;
   const res = await context.next();
+  // ตอบที่ตั้ง Cache-Control เองแล้ว (เช่น /api/craft/ ที่ส่ง brotli แบบ encodeBody 'manual') ส่งต่อตัวเดิม — สร้าง Response ใหม่ทำให้ค่านั้นหาย
+  if (res.headers.has('Cache-Control')) return res;
   const out = new Response(res.body, res);
   if (!out.headers.has('Cache-Control')) out.headers.set('Cache-Control', 'no-store');
   return out;

@@ -11,6 +11,7 @@
 // 11. ภาพพื้นหลังรายหน้า: ทุกกลุ่มใน theme-boot.js มีไฟล์ -light/-dark.webp และกฎใน theme.css
 // 12. ตัวตรวจธีม static (theme-guards.mjs): สี hex/ปุ่มนิยามเองต่อหน้าห้ามเพิ่มจาก tests/theme-baseline.json
 // 13. vendor/craft (ไลบรารี wasm ตระกูล *Craft): ทุกไฟล์ตรง vendor/craft/manifest.json (sha256/ขนาด) · ≤ 25 MiB · มีที่มา/license/การ์ดใน credits.html
+//     ("store": "r2" = ไฟล์อยู่ใน R2: มี build.sh + sha256/ขนาดครบ + ห้ามมีไฟล์ใน vendor/craft)
 //     · path ที่มีใน base แล้วห้ามเปลี่ยนเนื้อไฟล์ (รุ่นใหม่ = โฟลเดอร์ใหม่ เพราะ sw.js แคชแยกแบบ cache-first) · ไม่ precache · ห้ามชื่อ ArtCraft ในเมนู
 import fs from 'node:fs';
 import os from 'node:os';
@@ -156,9 +157,24 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
       const files = L.files && typeof L.files === 'object' ? L.files : {};
       if (!L.licenseFile || !files[L.licenseFile]) bad.push(`${where}.licenseFile ต้องชี้ไฟล์ license ที่อยู่ใน files`);
       if (!Object.keys(files).some((f) => /\.wasm$/.test(f))) bad.push(`${where}: ไม่มีไฟล์ .wasm`);
+      // "store": "r2" = ไฟล์อยู่ใน R2 (functions/api/craft/) ไม่อยู่ใน repo — ต้องมีสคริปต์ build ที่ล็อก commit + sha256/ขนาดทุกไฟล์
+      const r2 = L.store === 'r2';
+      if (L.store !== undefined && !r2) bad.push(`${where}.store ต้องเป็น "r2" หรือไม่ใส่ (ได้ ${L.store})`);
+      if (L.encoding !== undefined && !(r2 && L.encoding === 'br')) bad.push(`${where}.encoding ใช้ได้เฉพาะ "br" กับ store r2`);
+      if (r2) {
+        if (!/^tools\/wasm\/[a-z0-9-]+\/build\.sh$/.test(L.build || '') || !tracked.includes(L.build)) bad.push(`${where}.build ต้องชี้ tools/wasm/<ชื่อ>/build.sh ที่อยู่ใน repo (ได้ ${L.build})`);
+        const inRepo = tracked.filter((f) => typeof L.dir === 'string' && f.startsWith(L.dir + '/'));
+        if (inRepo.length) bad.push(`${where}: store r2 ห้ามมีไฟล์ใน ${L.dir}/ (${inRepo.slice(0, 3).join(', ')}) — อัปโหลดขึ้น R2 ด้วย workflow craft-r2-upload`);
+      }
       for (const [f, meta] of Object.entries(files)) {
-        if (!/^[A-Za-z0-9._-]+$/.test(f)) { bad.push(`${where}.files["${f}"]: ชื่อไฟล์ต้องไม่มี / หรืออักขระพิเศษ`); continue; }
+        if (!/^[A-Za-z0-9._-]+$/.test(f) && !(r2 && /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)+$/.test(f) && !f.split('/').some((x) => x === '.' || x === '..'))) {
+          bad.push(`${where}.files["${f}"]: ชื่อไฟล์ต้องไม่มี / หรืออักขระพิเศษ (store r2 มีโฟลเดอร์ย่อยได้)`); continue;
+        }
         const p = `${L.dir}/${f}`;
+        if (r2) {
+          if (!meta || !/^[0-9a-f]{64}$/.test(meta.sha256 || '') || !Number.isInteger(meta.bytes) || meta.bytes <= 0) bad.push(`${p}: store r2 ต้องมี sha256 (64 hex) + bytes`);
+          continue;
+        }
         listed.add(p);
         if (!tracked.includes(p)) { bad.push(`${p} อยู่ใน manifest แต่ไม่มีไฟล์ใน repo`); continue; }
         const h = createHash('sha256').update(fs.readFileSync(path.join(ROOT, p))).digest('hex');

@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v676';
+const CACHE = 'ome-v677';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -26,6 +26,7 @@ const PADDLE_CACHE = 'tanot-paddle-models';
    ไม่ตรง → ขอใหม่ด้วย cache:'reload' ซึ่งที่นี่ไปเครือข่ายแล้วเขียนทับ · manifest.json เองอยู่ใน PRECACHE (เปลี่ยนพร้อมโค้ดทุก deploy) */
 const CRAFT_CACHE = 'tanot-craft-v1';
 const CRAFT_DIR = '/vendor/craft/';
+const CRAFT_API = 'api/craft/'; // ไลบรารีที่เก็บใน R2 (functions/api/craft/) — แคชลง CRAFT_CACHE เหมือนกัน แม้อยู่ใต้ /api/
 const CRAFT_MANIFEST = './vendor/craft/manifest.json';
 const OBSOLETE_CACHE_PREFIXES = ['tanot-f5-models-'];
 const isObsoleteCache = (k) => k !== CACHE && (/^ome-v\d+$/.test(k) || OBSOLETE_CACHE_PREFIXES.some((p) => k.indexOf(p) === 0));
@@ -310,6 +311,9 @@ self.addEventListener('activate', (e) => {
   );
 });
 
+/* path ของไฟล์ไลบรารีตามที่ craft-loader.js fileUrl() ขอ — "store": "r2" = /api/craft/<ชื่อโฟลเดอร์>/<ไฟล์> (ไม่อยู่ใน repo) */
+const craftPath = (lib, f) => (lib.store === 'r2' ? CRAFT_API + String(lib.dir).replace(/^vendor\/craft\//, '') : lib.dir) + '/' + f;
+
 /* ลบไฟล์ใน CRAFT_CACHE ที่ manifest ของ CACHE ปัจจุบันไม่มีแล้ว (รุ่นเก่า) — อ่าน manifest ไม่ได้ = ไม่ลบอะไร */
 async function pruneCraftCache() {
   try {
@@ -319,7 +323,7 @@ async function pruneCraftCache() {
     if (!man || !man.libs || typeof man.libs !== 'object') return;
     const keep = new Set();
     for (const lib of Object.values(man.libs)) {
-      for (const f of Object.keys((lib && lib.files) || {})) keep.add(new URL(lib.dir + '/' + f, self.registration.scope).pathname);
+      for (const f of Object.keys((lib && lib.files) || {})) keep.add(new URL(craftPath(lib, f), self.registration.scope).pathname);
     }
     const c = await caches.open(CRAFT_CACHE);
     for (const req of await c.keys()) if (!keep.has(new URL(req.url).pathname)) await c.delete(req);
@@ -461,6 +465,18 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
+  // vendor/craft/<lib>-<รุ่น>/* และ /api/craft/<lib>-<รุ่น>/* (R2) → CRAFT_CACHE (manifest.json อยู่ใน PRECACHE ใช้ทาง cache-first ปกติด้านล่าง)
+  // ต้องมาก่อนบรรทัดที่ข้าม /api/ · /api/craft/ ตอบ 200 เฉพาะเมื่อผ่าน Access — redirect ไปหน้าล็อกอินไม่ใช่ ok+basic จึงไม่ถูกแคช
+  const craftApi = url.pathname.startsWith('/' + CRAFT_API);
+  if (craftApi || (url.pathname.indexOf(CRAFT_DIR) !== -1 && !url.pathname.endsWith('/manifest.json'))) {
+    const reload = req.cache === 'reload' || req.cache === 'no-cache';
+    e.respondWith(caches.open(CRAFT_CACHE).then((c) => (reload ? Promise.resolve(undefined) : c.match(req)).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok && res.type === 'basic') e.waitUntil(c.put(req, res.clone()));
+      return res;
+    }))));
+    return;
+  }
+
   // API (Pages Functions) และหน้าล็อกอินของ Cloudflare Access ต้องไปถึงเครือข่ายเสมอ ห้ามแคช
   // (รวม /api/hf/ — ไฟล์โมเดลของ Tanotfin หลายร้อย MB: transformers.js เก็บสำเนาใน 'transformers-cache' เอง ห้ามลงแคชหลัก)
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/cdn-cgi/')) return;
@@ -480,15 +496,6 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  // vendor/craft/<lib>-<รุ่น>/* → CRAFT_CACHE (manifest.json อยู่ใน PRECACHE ใช้ทาง cache-first ปกติด้านล่าง)
-  if (url.pathname.indexOf(CRAFT_DIR) !== -1 && !url.pathname.endsWith('/manifest.json')) {
-    const reload = req.cache === 'reload' || req.cache === 'no-cache';
-    e.respondWith(caches.open(CRAFT_CACHE).then((c) => (reload ? Promise.resolve(undefined) : c.match(req)).then((hit) => hit || fetch(req).then((res) => {
-      if (res.ok && res.type === 'basic') e.waitUntil(c.put(req, res.clone()));
-      return res;
-    }))));
-    return;
-  }
 
   const isHTML = req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/');
   if (isHTML) {

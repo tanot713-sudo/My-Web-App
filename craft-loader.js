@@ -1,6 +1,7 @@
 /* craft-loader.js — ตัวโหลดกลางของไลบรารี wasm ตระกูล *Craft (vendor/craft/, ดู CLAUDE.md "ไลบรารี wasm ตระกูล *Craft")
    ใช้ได้ทั้งหน้าเว็บและ Worker (importScripts('craft-loader.js')) · UMD: window/self.TanotCraft, require() ได้ใน test
-   - ทุกไฟล์ต้องอยู่ใน vendor/craft/manifest.json (path = libs[lib].dir + '/' + file) — ไม่อยู่ = error 'missing' ไม่ fetch
+   - ทุกไฟล์ต้องอยู่ใน vendor/craft/manifest.json (path = libs[lib].dir + '/' + file; ไลบรารี "store": "r2" = /api/craft/<ชื่อโฟลเดอร์>/<file>)
+     — ไม่อยู่ = error 'missing' ไม่ fetch
    - ตรวจ sha256 ตาม manifest ทุกครั้งที่โหลด · ไม่ตรง = โหลดใหม่จากเครือข่าย 1 ครั้ง (cache:'reload' — sw.js เขียนทับแคชให้) ยังไม่ตรง = 'integrity'
    - error ทุกตัวเป็น CraftError {craft:true, code:'missing'|'integrity'|'network'|'unsupported'|'init', lib, file}
      ผู้เรียกแสดง message(err) + report(err, ctx) (problem log) — ห้ามสลับไปทางอื่นเงียบๆ
@@ -63,12 +64,17 @@
     return manP;
   }
 
+  /* path ของไฟล์ (สัมพัทธ์กับ root ของเว็บ) · "store": "r2" = ไฟล์ไม่อยู่ใน repo — เสิร์ฟจาก R2 ผ่าน functions/api/craft/ (หลัง Access)
+     dir ยังเป็น vendor/craft/<lib>-<รุ่น> (ชื่อตามรูปแบบเดิม) → /api/craft/<lib>-<รุ่น>/<ไฟล์> */
+  function fileUrl(L, file) {
+    return L.store === 'r2' ? 'api/craft/' + L.dir.replace(/^vendor\/craft\//, '') + '/' + file : L.dir + '/' + file;
+  }
   function entry(m, lib, file) {
     var own = Object.prototype.hasOwnProperty;
     var L = own.call(m.libs, lib) ? m.libs[lib] : null;
     var f = L && L.files && own.call(L.files, file) ? L.files[file] : null;
     if (!f || typeof L.dir !== 'string' || !/^[0-9a-f]{64}$/.test(f.sha256 || '')) throw CraftError('missing', lib, file);
-    return { url: abs(L.dir + '/' + file), sha256: f.sha256, bytes: f.bytes || 0 };
+    return { url: abs(fileUrl(L, file)), sha256: f.sha256, bytes: f.bytes || 0 };
   }
   /* URL เต็มของไฟล์ (ไม่โหลด) — สำหรับไลบรารีที่ต้องการ path เอง */
   function url(lib, file) { return manifest().then(function (m) { return entry(m, lib, file).url; }); }
@@ -188,7 +194,7 @@
   }
 
   return {
-    MANIFEST: MANIFEST, manifest: manifest, url: url, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen,
+    MANIFEST: MANIFEST, manifest: manifest, url: url, fileUrl: fileUrl, fetchFile: fetchFile, instantiate: instantiate, bindgen: bindgen,
     CraftError: CraftError, toMessage: toMessage, fromMessage: fromMessage, message: message, report: report, sha256: sha256
   };
 });
