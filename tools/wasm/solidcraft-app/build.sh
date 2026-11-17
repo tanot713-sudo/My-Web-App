@@ -54,7 +54,8 @@ export SOURCE_DATE_EPOCH="$(git -C "$src" log -1 --format=%ct)"
 case "$PROFILE" in
   upstream) ;;
   small)
-    export CARGO_PROFILE_RELEASE_OPT_LEVEL=z CARGO_PROFILE_RELEASE_LTO=fat CARGO_PROFILE_RELEASE_CODEGEN_UNITS=1
+    # fat LTO ของ solidcraft-web ใช้แรมเกิน 15 GB (ถูก SIGKILL แม้ CARGO_BUILD_JOBS=1) — เครื่องเล็กตั้ง SOLID_LTO=thin SOLID_CGU=16
+    export CARGO_PROFILE_RELEASE_OPT_LEVEL=z CARGO_PROFILE_RELEASE_LTO="${SOLID_LTO:-fat}" CARGO_PROFILE_RELEASE_CODEGEN_UNITS="${SOLID_CGU:-1}"
     export CARGO_PROFILE_RELEASE_DEBUG=false ;;
   *) echo "PROFILE ต้องเป็น upstream|small" >&2; exit 1 ;;
 esac
