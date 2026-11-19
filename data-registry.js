@@ -82,6 +82,8 @@
     // ── สร้างภาพ (image-gen.html) — ข้อมูลกำกับภาพ 1 ภาพ = 1 แถว (ตัวภาพอยู่ใน R2 ผ่าน /api/files?ns=images) · ui = ตัวกรอง/ค่าที่เลือกต่อเครื่อง
     { key: 'tanot:images:items', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:images:ui', kind: 'local' },
+    // ── ภาพพื้นหลังที่ผู้ใช้ตั้งเอง (bg-custom.js) — กลุ่มภาพ → {id ไฟล์ใน R2 ns images, b สว่าง?, ts} · ไม่เก็บ Blob · ภาพที่โหลดแล้วอยู่ใน Cache Storage 'ome-bgc-v1' ต่อเครื่อง
+    { key: 'tanot:bg:custom', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },

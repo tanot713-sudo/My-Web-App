@@ -26,7 +26,7 @@
       title: 'สร้างภาพ', quota: 'โควตา AI วันนี้', prompt: 'คำสั่ง', preset: 'แบบ', mode: 'โหมด', model: 'โมเดล', count: 'จำนวน',
       pBackground: 'พื้นหลัง', pIcon: 'ไอคอน', pFree: 'อิสระ', mLight: 'สว่าง', mDark: 'มืด', mBoth: 'ทั้งคู่', fast: 'เร็ว', quality: 'คุณภาพ',
       translate: 'แปลเป็นอังกฤษ', generate: 'สร้างภาพ', library: 'คลังภาพ', filter: 'กรอง', fAll: 'ทั้งหมด', empty: 'ยังไม่มีภาพ', view: 'ภาพ', close: 'ปิด',
-      del: 'ลบ', again: 'สร้างซ้ำแบบนี้', download: 'ดาวน์โหลด',
+      del: 'ลบ', again: 'สร้างซ้ำแบบนี้', download: 'ดาวน์โหลด', bgSet: 'ตั้งเป็นพื้นหลัง',
       used: 'ใช้ไป <b>{used}</b> · เหลือ <b>{left}</b> / {limit}', working: 'กำลังสร้าง {n}/{total}',
       needPrompt: 'พิมพ์คำสั่งก่อน', unavailable: 'สร้างภาพได้เฉพาะบน pages.dev', quotaFull: 'โควตา AI ฟรีของวันนี้เต็มแล้ว (รีเซ็ต 07:00 น. เวลาไทย)', failed: 'ผิดพลาด',
       made: 'สร้างภาพแล้ว {n} ภาพ', madeStop: 'สร้างได้ {n} ภาพ แล้วหยุด: ', confirmDel: 'ลบภาพนี้?', deleted: 'ลบภาพแล้ว',
@@ -48,7 +48,7 @@
       title: 'Image generator', quota: 'AI quota today', prompt: 'Prompt', preset: 'Type', mode: 'Mode', model: 'Model', count: 'Count',
       pBackground: 'Background', pIcon: 'Icon', pFree: 'Free', mLight: 'Light', mDark: 'Dark', mBoth: 'Both', fast: 'Fast', quality: 'Quality',
       translate: 'Translate to English', generate: 'Generate', library: 'Gallery', filter: 'Filter', fAll: 'All', empty: 'No images yet', view: 'Image', close: 'Close',
-      del: 'Delete', again: 'Generate again', download: 'Download',
+      del: 'Delete', again: 'Generate again', download: 'Download', bgSet: 'Set as background',
       used: 'Used <b>{used}</b> · <b>{left}</b> left / {limit}', working: 'Generating {n}/{total}',
       needPrompt: 'Enter a prompt first', unavailable: 'Image generation is only available on pages.dev', quotaFull: 'Today\'s free AI quota is used up (resets at 07:00 Thai time)', failed: 'Something went wrong',
       made: 'Generated {n} image(s)', madeStop: 'Generated {n} image(s), then stopped: ', confirmDel: 'Delete this image?', deleted: 'Image deleted',
@@ -387,6 +387,8 @@
     $('vCutout').hidden = isMobile();
     $('vDl').href = fileUrl(id, true);
     $('vDl').setAttribute('download', x.name || 'image');
+    var bg = window.TanotBgCustom;
+    $('vBg').hidden = !(bg && bg.available()) || !!x.pending;
     var dlg = $('view');
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
   }
@@ -435,6 +437,7 @@
       fetch(fileUrl(id), { method: 'DELETE', credentials: 'same-origin', redirect: 'manual' }).then(function (res) {
         // 404 = ไฟล์หายไปแล้ว (ลบจากอีกเครื่อง) — ลบรายการต่อได้ · ข้อผิดพลาดอื่นเก็บรายการไว้ไม่ให้เหลือไฟล์กำพร้าใน R2
         if (!res.ok && res.status !== 404) throw new Error('HTTP ' + res.status);
+        if (window.TanotBgCustom) window.TanotBgCustom.clearById(id);
         removeItem(id); closeView(); renderGrid();
         toast(function () { return T('deleted'); }, 'ok');
       }).catch(function () { toast(function () { return T('delFail'); }, 'err'); });
@@ -684,6 +687,9 @@
     $('vEdit').addEventListener('click', edit);
     $('refDel').addEventListener('click', function () { if (!state.busy) { clearRef(); $('prompt').focus(); } });
     $('vDel').addEventListener('click', del);
+    $('vBg').addEventListener('click', function () {
+      if (window.TanotBgCustom && state.openId) window.TanotBgCustom.chooseGroup(state.openId, window.OmeTheme && window.OmeTheme.bgGroup());
+    });
     $('view').addEventListener('close', function () { state.openId = null; });
     $('vTrans').addEventListener('click', function () { openCut('transparent'); });
     $('vCutout').addEventListener('click', function () { openCut('cutout'); });
