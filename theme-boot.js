@@ -113,6 +113,25 @@
     for (var i = 0; i < metas.length; i++) metas[i].setAttribute('content', color);
   }
 
+  /* ── ภาพพื้นหลังที่ผู้ใช้ตั้งเอง (จาก image-gen) — คีย์ 'tanot:bg:custom' (sync map: กลุ่ม → {id, l, ts}) ──
+     id = ไฟล์ใน R2 (/api/files) · l = ความสว่างเฉลี่ยด้านซ้ายของภาพ 0–1 (วัดตอนตั้ง — theme.css ปรับ scrim/ฟิลเตอร์ตามระดับ dark|mid|bright) · ไม่มีรายการ = ภาพเดิมของกลุ่ม
+     อ่านแบบซิงก์ตอนบูตเพื่อไม่ให้ภาพกระพริบ — ตัวภาพโหลดเหมือนภาพทั่วไป (sw.js แคชไว้ให้ใช้ออฟไลน์) */
+  var BG_CUSTOM_KEY = 'tanot:bg:custom';
+  var BG_ID = /^[A-Za-z0-9_-]{8,64}$/;
+  function bgMap() {
+    /* อ่านผ่าน TanotData.raw เมื่อมี (ไม่นับว่าหน้านี้ "ถือ" คีย์ → ไม่เด้งแถบโหลดใหม่เมื่ออีกเครื่องเปลี่ยนภาพ) — ตอนบูต tanot-data ยังไม่โหลด getItem ตรงๆ ไม่ถูกนับ */
+    try {
+      var T = window.TanotData, raw = T && T.raw ? T.raw(BG_CUSTOM_KEY) : localStorage.getItem(BG_CUSTOM_KEY);
+      var m = JSON.parse(raw || 'null'); return m && typeof m === 'object' && !Array.isArray(m) ? m : {};
+    } catch (e) { return {}; }
+  }
+  function bgCustom(grp) {
+    var m = bgMap(), e = grp && Object.prototype.hasOwnProperty.call(m, grp) ? m[grp] : null;
+    if (!(e && typeof e === 'object' && typeof e.id === 'string' && BG_ID.test(e.id))) return null;
+    return { id: e.id, l: typeof e.l === 'number' && e.l >= 0 && e.l <= 1 ? e.l : 0.5 };
+  }
+  function bgAllGroups() { var a = Object.keys(BG_GROUPS); a.splice(a.indexOf('money') + 1, 0, 'invest'); return a; }
+
   var listeners = [];
   function apply() {
     var s = { theme: get('theme'), accent: get('accent'), style: get('style'), font: get('font'), bg: get('bg') };
@@ -124,6 +143,14 @@
     var grp = s.bg !== 'off' && !/[?&]embed=1(&|$)/.test(location.search) ? bgGroup() : null;
     if (grp) { doc.setAttribute('data-bg', grp); doc.setAttribute('data-bg-level', s.bg); }
     else { doc.removeAttribute('data-bg'); doc.removeAttribute('data-bg-level'); }
+    var cu = grp ? bgCustom(grp) : null;
+    if (cu) {
+      doc.setAttribute('data-bg-custom', '1');
+      doc.setAttribute('data-bg-lum', cu.l < 0.4 ? 'dark' : cu.l > 0.6 ? 'bright' : 'mid');
+      doc.style.setProperty('--ome-bg-url', 'url("/api/files?id=' + cu.id + '&bg=1")');
+    } else {
+      doc.removeAttribute('data-bg-custom'); doc.removeAttribute('data-bg-lum'); doc.style.removeProperty('--ome-bg-url');
+    }
     doc.style.setProperty('--ome-f', FONTS[s.font].family);
     if (s.font !== 'prompt') loadFont(FONTS[s.font].google);
     setBarColor(s.accent, s.theme);
@@ -136,7 +163,37 @@
     for (var i = 0; i < listeners.length; i++) { try { listeners[i](s, kind); } catch (e) {} }
   }
 
+  /* ตั้ง/ล้างภาพของกลุ่ม: อ่านสด → แก้ → เขียน (tanot-data ซิงก์ทีละกลุ่ม) · group ต้องเป็นกลุ่มที่มีจริง */
+  function writeBgMap(m) {
+    /* TanotData.update = อ่านสด → เขียน โดยไม่ทำให้หน้านี้ถือคีย์ (setItem ตรงๆ จะทำให้แถบโหลดใหม่เด้งตอนเครื่องอื่นเปลี่ยน) */
+    try {
+      var T = window.TanotData;
+      if (T && T.update) T.update(BG_CUSTOM_KEY, function () { return m; });
+      else localStorage.setItem(BG_CUSTOM_KEY, JSON.stringify(m));
+    } catch (e) { return false; }
+    var st = apply();
+    for (var i = 0; i < listeners.length; i++) { try { listeners[i](st, 'bgcustom'); } catch (e2) {} }
+    return true;
+  }
+  function setBgCustom(group, entry) {
+    if (bgAllGroups().indexOf(group) < 0) return false;
+    var m = bgMap();
+    if (entry === null) delete m[group];
+    else if (entry && BG_ID.test(entry.id || '')) m[group] = { id: entry.id, l: Math.round(Math.min(1, Math.max(0, +entry.l || 0)) * 100) / 100, ts: Date.now() };
+    else return false;
+    return writeBgMap(m);
+  }
+  function clearBgCustomById(id) {
+    var m = bgMap(), hit = [];
+    Object.keys(m).forEach(function (g) { if (m[g] && m[g].id === id) { delete m[g]; hit.push(g); } });
+    if (hit.length) writeBgMap(m);
+    return hit;
+  }
+  window.addEventListener('storage', function (e) { if (!e.key || e.key === BG_CUSTOM_KEY) apply(); });
+  window.addEventListener('tanot:data', apply);
+
   window.OmeTheme = {
+    bgAllGroups: bgAllGroups, bgCustom: bgCustom, bgMap: bgMap, setBgCustom: setBgCustom, clearBgCustomById: clearBgCustomById,
     accents: ACCENTS, styles: STYLES, fonts: FONTS, bgGroups: BG_GROUPS, bgLevels: BG_LEVELS,
     get: get, set: set, apply: apply, loadFont: loadFont, bgGroup: bgGroup,
     onChange: function (fn) { listeners.push(fn); }

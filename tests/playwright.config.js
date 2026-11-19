@@ -168,6 +168,13 @@ module.exports = defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
+      // bg-custom.spec.js: ซิงก์ภาพพื้นหลังที่ผู้ใช้ตั้งเอง 2 เครื่อง (แถบ "โหลดใหม่" ต้องไม่เด้ง) — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8147',
+      cwd: __dirname,
+      url: 'http://localhost:8147/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
       // palette.spec.js: ซิงก์ 2 เครื่อง + /api/push/reminders ตัวจริง (scope custom) — แยกพอร์ตเพราะ /__reset
       command: 'node --no-warnings sync-server.mjs 8145',
       cwd: __dirname,
