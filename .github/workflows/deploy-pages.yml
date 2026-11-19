@@ -99,6 +99,8 @@ jobs:
         run: npx playwright test tax.spec.js
       - name: learn (fsrs.js เทียบโค้ดก่อนแยก, ย้าย XP เดิม, วันติดต่อกัน/วันพัก, ทบทวนวันนี้, ซิงก์ XP 2 เครื่อง)
         run: npx playwright test learn.spec.js
+      - name: languages-ai (หน้า languages แชท AI คลาวด์ก่อน ถอยไปโมเดลในเครื่องเมื่อ canFallback ไม่ใช่ iOS)
+        run: npx playwright test languages-ai.spec.js
       - name: data + pages (ซิงก์ D1, ย้ายข้อมูลจาก github.io, หน้าวันนี้/ค้นหาด่วน, ประกัน + /api/files)
         run: npx playwright test sync.spec.js migrate.spec.js today.spec.js insurance.spec.js
       - name: maintenance (mnt-calc.js known-answer, QR, หน้าบันทึกงานบำรุงรักษา — ออฟไลน์+รูป R2, ซิงก์ 2 เครื่อง, นำเข้า/ส่งออก Excel, report-dashboard)

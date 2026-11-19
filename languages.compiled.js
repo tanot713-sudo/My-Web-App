@@ -1253,10 +1253,70 @@
     }
     return msg;
   }
+  function cloudChatOn() {
+    return !!(window.AiClient && AiClient.available());
+  }
   let writingWorker = null;
-  function getWritingWorker() {
+  function getLocalWritingWorker() {
     if (!writingWorker) writingWorker = new Worker("./ai-chat-worker.js", { type: "module" });
     return writingWorker;
+  }
+  let writingChat = null;
+  function getWritingWorker() {
+    if (writingChat) return writingChat;
+    const ls = { message: [], error: [] };
+    const emit = (type, data) => ls[type].slice().forEach((fn) => {
+      try {
+        fn(type === "message" ? { data } : data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+    const runLocal = (m) => {
+      const real = getLocalWritingWorker();
+      const fwd = (e) => {
+        const d = e.data;
+        if (!d || d.jobId !== m.jobId) return;
+        emit("message", d);
+        if (d.type === "done" || d.type === "error") real.removeEventListener("message", fwd);
+      };
+      real.addEventListener("message", fwd);
+      real.addEventListener("error", (e) => {
+        real.removeEventListener("message", fwd);
+        emit("error", e);
+      }, { once: true });
+      real.postMessage(m);
+    };
+    writingChat = {
+      addEventListener(type, fn) {
+        if (ls[type]) ls[type].push(fn);
+      },
+      removeEventListener(type, fn) {
+        if (ls[type]) ls[type] = ls[type].filter((f) => f !== fn);
+      },
+      postMessage(m) {
+        if (!m || m.type !== "chat" || !cloudChatOn()) {
+          runLocal(m);
+          return;
+        }
+        let got = false;
+        AiClient.chat({
+          messages: m.messages,
+          model: "main",
+          maxTokens: m.maxNewTokens,
+          onToken: (piece) => {
+            got = true;
+            emit("message", { type: "token", jobId: m.jobId, token: piece });
+          }
+        }).then(() => emit("message", { type: "done", jobId: m.jobId }), (err) => {
+          if (!got && AiClient.canFallback(err) && !isIOS()) {
+            emit("message", { type: "fallback", jobId: m.jobId, message: AiClient.friendlyMessage(err) + " \u2014 \u0E43\u0E0A\u0E49\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19" });
+            runLocal(m);
+          } else emit("message", { type: "error", jobId: m.jobId, message: AiClient.friendlyMessage(err) });
+        });
+      }
+    };
+    return writingChat;
   }
   const DRIVE_CLIENT_ID = "497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com";
   const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
@@ -2651,7 +2711,7 @@
     };
     const submit = () => {
       if (!text.trim()) return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setStatus("error");
         setErrMsg("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E44\u0E27\u0E22\u0E32\u0E01\u0E23\u0E13\u0E4C\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 (\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E02\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C iOS)");
         return;
@@ -2791,7 +2851,7 @@
       if (usedCount > 0) awardXp(usedCount * 5);
     };
     const checkWithAi = () => {
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setAiStatus("error");
         setAiFeedback("\u0E42\u0E2B\u0E21\u0E14\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad");
         return;
@@ -3026,7 +3086,7 @@
       if (grade === "correct") awardXp(10);
     };
     const checkWithAi = () => {
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setAiStatus("error");
         setAiFeedback("\u0E42\u0E2B\u0E21\u0E14\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad");
         return;
@@ -3521,7 +3581,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -4232,7 +4292,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5216,7 +5276,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5579,7 +5639,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5942,7 +6002,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -6305,7 +6365,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -6662,7 +6722,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7031,7 +7091,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7400,7 +7460,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7764,7 +7824,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
