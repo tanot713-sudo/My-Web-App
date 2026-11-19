@@ -72,7 +72,6 @@
     "\u25B6 \u0E14\u0E39": "\u25B6 Watch",
     "\u26A0\uFE0F \u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E2D\u0E2D\u0E01 \u0E25\u0E2D\u0E07\u0E40\u0E02\u0E35\u0E22\u0E19\u0E43\u0E2B\u0E49\u0E0A\u0E31\u0E14\u0E02\u0E36\u0E49\u0E19\u0E41\u0E25\u0E49\u0E27\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48": "\u26A0\uFE0F Could not read the handwriting \u2014 write more clearly and try again",
     "\u2705 \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E21\u0E32\u0E01": "\u2705 Very close to the original",
-    "\u2705 \u0E0B\u0E34\u0E07\u0E01\u0E4C\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08": "\u2705 Synced",
     "\u2705 \u0E15\u0E23\u0E07\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2D\u0E49\u0E32\u0E07\u0E2D\u0E34\u0E07 (+10 XP)": "\u2705 Matches the reference (+10 XP)",
     "\u2705 \u0E16\u0E39\u0E01": "\u2705 True",
     "\u2705 \u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07": "\u2705 Correct",
@@ -108,8 +107,6 @@
     "\u0E01\u0E25\u0E31\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E40\u0E23\u0E34\u0E48\u0E21\u0E15\u0E49\u0E19": "Back to start",
     "\u0E01\u0E25\u0E31\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E2A\u0E2D\u0E1A": "Back to exam selection",
     "\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33": "Flashcards",
-    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D Google...": "Connecting to Google...",
-    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...": "Syncing...",
     "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E15\u0E23\u0E27\u0E08...": "Checking...",
     "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E15\u0E23\u0E27\u0E08 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E2D\u0E32\u0E08\u0E0A\u0E49\u0E32)...": "Checking (the first time may be slow)...",
     "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19:": "Practising writing:",
@@ -168,8 +165,6 @@
     "\u0E40\u0E02\u0E35\u0E22\u0E19\u0E14\u0E49\u0E27\u0E22\u0E21\u0E37\u0E2D": "Handwrite",
     "\u0E40\u0E02\u0E35\u0E22\u0E19\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E15\u0E23\u0E07\u0E19\u0E35\u0E49...": "Write in Chinese here...",
     "\u0E40\u0E02\u0E35\u0E22\u0E19\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u0E15\u0E23\u0E07\u0E19\u0E35\u0E49...": "Write in {l} here...",
-    "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})": "Could not search for the folder (HTTP {c})",
-    "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})": "Could not search for the file (HTTP {c})",
     "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E20\u0E32\u0E29\u0E32...": "Search languages...",
     "\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21": "Overall progress",
     "\u0E04\u0E27\u0E32\u0E21\u0E2B\u0E21\u0E32\u0E22:": "Meaning:",
@@ -197,8 +192,6 @@
     "\u0E43\u0E0A\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E44\u0E21\u0E48?": "True or false?",
     "\u0E0B\u0E48\u0E2D\u0E19": "Hide",
     "\u0E0B\u0E48\u0E2D\u0E19 \u25B2": "Hide \u25B2",
-    "\u0E0B\u0E34\u0E07\u0E01\u0E4C": "Sync",
-    "\u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})": "Download failed (HTTP {c})",
     "\u0E14\u0E39 \u25BC": "Show \u25BC",
     "\u0E14\u0E39\u0E1C\u0E25\u0E2A\u0E23\u0E38\u0E1B": "See summary",
     "\u0E14\u0E39\u0E1C\u0E25\u0E2A\u0E2D\u0E1A": "See results",
@@ -236,7 +229,6 @@
     "\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07:": "Correct:",
     "\u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E09\u0E31\u0E19 \u2014 {l}": "My notes \u2014 {l}",
     "\u0E1A\u0E2D\u0E01\u0E40\u0E27\u0E25\u0E32": "Telling time",
-    "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E36\u0E49\u0E19 Drive \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})": "Could not save to Drive (HTTP {c})",
     "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E25\u0E48\u0E32\u0E2A\u0E38\u0E14 {d}": "Last saved {d}",
     "\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C/\u0E2D\u0E38\u0E1B\u0E01\u0E23\u0E13\u0E4C\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32\u0E19\u0E35\u0E49\u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07\u0E44\u0E27\u0E49 (\u0E02\u0E49\u0E2D\u0E08\u0E33\u0E01\u0E31\u0E14\u0E02\u0E2D\u0E07\u0E2D\u0E38\u0E1B\u0E01\u0E23\u0E13\u0E4C \u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E40\u0E27\u0E47\u0E1A\u0E1E\u0E31\u0E07) \u0E25\u0E2D\u0E07\u0E40\u0E1B\u0E34\u0E14\u0E14\u0E49\u0E27\u0E22 Chrome \u0E1A\u0E19\u0E04\u0E2D\u0E21\u0E1E\u0E34\u0E27\u0E40\u0E15\u0E2D\u0E23\u0E4C \u0E2B\u0E23\u0E37\u0E2D\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32\u0E23\u0E30\u0E1A\u0E1A\u0E14\u0E39\u0E04\u0E23\u0E31\u0E1A": "This browser/device has no text-to-speech voice installed for this language (a device limitation, not a site bug). Try Chrome on a computer or add a voice in your system settings",
     "\u0E41\u0E1A\u0E1A\u0E17\u0E14\u0E2A\u0E2D\u0E1A\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E32\u0E43\u0E08": "Comprehension test",
@@ -384,7 +376,6 @@
     "\u0E2A\u0E48\u0E07\u0E43\u0E2B\u0E49 AI \u0E15\u0E23\u0E27\u0E08 (+15 XP)": "Send to AI for checking (+15 XP)",
     "\u0E2A\u0E15\u0E23\u0E35\u0E21": "Stream",
     "\u0E2A\u0E16\u0E34\u0E15\u0E34\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14 {n} \u0E27\u0E31\u0E19": "Best streak: {n} days",
-    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})": "Could not create the folder (HTTP {c})",
     "\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35": "Switch to Korean",
     "\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E02\u0E21\u0E23": "Switch to Khmer",
     "\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19": "Switch to Chinese",
@@ -414,7 +405,6 @@
     "\u0E42\u0E2B\u0E21\u0E14\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14 \u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07 \u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29 \u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19 \u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35 \u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07 \u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19 \u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A \u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35 \u0E2A\u0E40\u0E1B\u0E19 \u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A \u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22 \u0E2E\u0E34\u0E19\u0E14\u0E35 \u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A \u0E41\u0E25\u0E30\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49": "Listening & speaking is only available for Mandarin, English, Japanese, Korean, Cantonese, German, French, Italian, Spanish, Portuguese, Russian, Hindi, Arabic and Vietnamese right now",
     "\u0E42\u0E2B\u0E25\u0E14\u0E41\u0E1C\u0E19\u0E20\u0E32\u0E1E\u0E25\u0E33\u0E14\u0E31\u0E1A\u0E02\u0E35\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48": "Could not load the stroke-order diagram. Try reloading the page",
     "\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25 AI \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E17\u0E35\u0E48\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E43\u0E2B\u0E49\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E1E\u0E2D (\u0E21\u0E31\u0E01\u0E40\u0E01\u0E34\u0E14\u0E16\u0E49\u0E32\u0E40\u0E1B\u0E34\u0E14\u0E41\u0E17\u0E47\u0E1A/\u0E42\u0E1B\u0E23\u0E41\u0E01\u0E23\u0E21\u0E2D\u0E37\u0E48\u0E19\u0E1E\u0E23\u0E49\u0E2D\u0E21\u0E01\u0E31\u0E19\u0E40\u0E22\u0E2D\u0E30) \u0E25\u0E2D\u0E07\u0E1B\u0E34\u0E14\u0E41\u0E17\u0E47\u0E1A/\u0E42\u0E1B\u0E23\u0E41\u0E01\u0E23\u0E21\u0E2D\u0E37\u0E48\u0E19\u0E41\u0E25\u0E49\u0E27\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "Could not load the AI model because the browser has too little memory left (this often happens with many other tabs or programs open). Close other tabs/programs and try again",
-    "\u0E42\u0E2B\u0E25\u0E14 Google Identity Services \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48": "Could not load Google Identity Services. Try reloading the page",
     "\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27": "Long reading",
     "\u0E2D\u0E48\u0E32\u0E19\u0E2D\u0E2D\u0E01\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E17\u0E31\u0E49\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07": "Read the whole story aloud",
     "{a} \u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04 \xB7 {b} \u0E04\u0E33\u0E16\u0E32\u0E21": "{a} sentences \xB7 {b} questions",
@@ -587,14 +577,6 @@
     const count = prev.lastDate === yStr ? (prev.count || 0) + 1 : 1;
     return { count, longest: Math.max(prev.longest || 0, count), lastDate: today };
   }
-  function mergeStreak(a, b) {
-    if (!a) return b || { count: 0, longest: 0, lastDate: null };
-    if (!b) return a;
-    const longest = Math.max(a.longest || 0, b.longest || 0);
-    if (a.lastDate === b.lastDate) return { count: Math.max(a.count || 0, b.count || 0), longest, lastDate: a.lastDate };
-    const newer = (a.lastDate || "") > (b.lastDate || "") ? a : b;
-    return { count: newer.count || 0, longest, lastDate: newer.lastDate };
-  }
   function loadProgress() {
     try {
       return JSON.parse(localStorage.getItem("lang-practice:progress") || "{}");
@@ -614,23 +596,6 @@
   }
   function saveNotes(v) {
     localStorage.setItem("lang-practice:notes", JSON.stringify(v));
-  }
-  function mergeNotes(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const na = a && a[k], nb = b && b[k];
-      if (!na) {
-        out[k] = nb;
-        return;
-      }
-      if (!nb) {
-        out[k] = na;
-        return;
-      }
-      out[k] = (na.updatedAt || 0) >= (nb.updatedAt || 0) ? na : nb;
-    });
-    return out;
   }
   function normalizeAnswer(s) {
     return String(s || "").toLowerCase().trim().replace(/[.,!?;:'"“”‘’、。？！ๆ]/g, "").replace(/\s+/g, " ");
@@ -708,15 +673,6 @@
   function saveWrong(v) {
     localStorage.setItem("lang-practice:wrong", JSON.stringify(v));
   }
-  function mergeWrong(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const va = a && a[k], vb = b && b[k];
-      out[k] = !va ? vb : !vb ? va : (va.count || 0) >= (vb.count || 0) ? va : vb;
-    });
-    return out;
-  }
   function fsrsSchedule(n, rating) {
     return window.TanotFSRS.schedule(n, rating);
   }
@@ -729,15 +685,6 @@
   }
   function saveSrs(v) {
     localStorage.setItem("lang-practice:srs", JSON.stringify(v));
-  }
-  function mergeSrs(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const va = a && a[k], vb = b && b[k];
-      out[k] = !va ? vb : !vb ? va : (va.lastReview || 0) >= (vb.lastReview || 0) ? va : vb;
-    });
-    return out;
   }
   function vocabPool(langId) {
     if (langId === "lang-cn") {
@@ -1322,106 +1269,6 @@
       }
     };
     return writingChat;
-  }
-  const DRIVE_CLIENT_ID = "497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com";
-  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-  const DRIVE_FOLDER_NAME = "OME_Progress";
-  const DRIVE_FILE_NAME = "language-progress.json";
-  const dErr = (k, vars) => Object.assign(new Error(tx(k, vars)), { txs: [k, vars] });
-  const DriveSync = {
-    tokenClient: null,
-    accessToken: null,
-    folderId: null,
-    ensureAuth() {
-      return new Promise((resolve, reject) => {
-        if (!window.google || !google.accounts || !google.accounts.oauth2) {
-          reject(dErr("\u0E42\u0E2B\u0E25\u0E14 Google Identity Services \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48"));
-          return;
-        }
-        if (!this.tokenClient) {
-          this.tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: DRIVE_CLIENT_ID,
-            scope: DRIVE_SCOPE,
-            callback: (resp) => {
-              if (resp.error) {
-                reject(new Error(resp.error));
-                return;
-              }
-              this.accessToken = resp.access_token;
-              resolve(this.accessToken);
-            }
-          });
-        }
-        this.tokenClient.requestAccessToken({ prompt: this.accessToken ? "" : "consent" });
-      });
-    },
-    async ensureFolder() {
-      if (this.folderId) return this.folderId;
-      const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw dErr("\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})", { c: res.status });
-      const data = await res.json();
-      if (data.files && data.files.length) {
-        this.folderId = data.files[0].id;
-        return this.folderId;
-      }
-      const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + this.accessToken, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
-      });
-      if (!createRes.ok) throw dErr("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})", { c: createRes.status });
-      const createData = await createRes.json();
-      this.folderId = createData.id;
-      return this.folderId;
-    },
-    async findFile(name, folderId) {
-      const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw dErr("\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})", { c: res.status });
-      const data = await res.json();
-      return data.files && data.files[0] || null;
-    },
-    async downloadFile(fileId) {
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw dErr("\u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})", { c: res.status });
-      return res.json();
-    },
-    async uploadFile(name, folderId, existingId, obj) {
-      const form = new FormData();
-      const metadata = existingId ? {} : { name, parents: [folderId] };
-      form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-      form.append("file", new Blob([JSON.stringify(obj)], { type: "application/json" }));
-      const url = existingId ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart` : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-      const res = await fetch(url, {
-        method: existingId ? "PATCH" : "POST",
-        headers: { Authorization: "Bearer " + this.accessToken },
-        body: form
-      });
-      if (!res.ok) throw dErr("\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E36\u0E49\u0E19 Drive \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})", { c: res.status });
-      return res.json();
-    }
-  };
-  function mergeProgress(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const la = a && a[k] || [], lb = b && b[k] || [];
-      const len = Math.max(la.length, lb.length);
-      const arr = [];
-      for (let i = 0; i < len; i++) arr[i] = !!(la[i] || lb[i]);
-      out[k] = arr;
-    });
-    return out;
   }
   const COMPOSE_SYSTEM_PROMPT = (langTitle2) => `\u0E04\u0E38\u0E13\u0E40\u0E1B\u0E47\u0E19\u0E04\u0E23\u0E39\u0E2A\u0E2D\u0E19\u0E20\u0E32\u0E29\u0E32${langTitle2}\u0E43\u0E2B\u0E49\u0E04\u0E19\u0E44\u0E17\u0E22 \u0E15\u0E23\u0E27\u0E08\u0E41\u0E01\u0E49\u0E44\u0E27\u0E22\u0E32\u0E01\u0E23\u0E13\u0E4C\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E17\u0E35\u0E48\u0E1C\u0E39\u0E49\u0E40\u0E23\u0E35\u0E22\u0E19\u0E40\u0E02\u0E35\u0E22\u0E19\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32${langTitle2}
 \u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32\u0E44\u0E17\u0E22\u0E40\u0E2A\u0E21\u0E2D \u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E15\u0E49\u0E2D\u0E07\u0E21\u0E35 3 \u0E2A\u0E48\u0E27\u0E19\u0E15\u0E32\u0E21\u0E25\u0E33\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49\u0E40\u0E17\u0E48\u0E32\u0E19\u0E31\u0E49\u0E19 (\u0E2B\u0E49\u0E32\u0E21\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E2A\u0E48\u0E27\u0E19\u0E2D\u0E37\u0E48\u0E19):
@@ -13757,8 +13604,6 @@
       return m;
     }, [srs]);
     const totalDue = useMemo(() => Object.values(dueCounts).reduce((a, b) => a + b, 0), [dueCounts]);
-    const [syncing, setSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState(null);
     const [uiLang, setUiLang] = useState(OME_I18N.lang());
     useEffect(() => OME_LANG.onChange((l) => setUiLang(l)), []);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -13776,14 +13621,9 @@
       lucide.createIcons();
     });
     const xpPrevRef = useRef(xp);
-    const xpFromDriveRef = useRef(false);
     useEffect(() => {
       const gained = xp - xpPrevRef.current;
       xpPrevRef.current = xp;
-      if (xpFromDriveRef.current) {
-        xpFromDriveRef.current = false;
-        return;
-      }
       if (gained > 0 && window.LearnCore) window.LearnCore.award("lang", gained);
     }, [xp]);
     useEffect(() => {
@@ -13836,52 +13676,6 @@
           setNoteOcrStatus('\u2705 \u0E41\u0E1B\u0E25\u0E07\u0E40\u0E1B\u0E47\u0E19\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E15\u0E48\u0E2D\u0E17\u0E49\u0E32\u0E22\u0E42\u0E19\u0E49\u0E15\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E17\u0E32\u0E19\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07\u0E43\u0E19\u0E42\u0E2B\u0E21\u0E14 "\u0E1E\u0E34\u0E21\u0E1E\u0E4C"');
         } else setNoteOcrStatus("\u26A0\uFE0F \u0E2D\u0E48\u0E32\u0E19\u0E25\u0E32\u0E22\u0E21\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E2D\u0E2D\u0E01 \u0E25\u0E2D\u0E07\u0E40\u0E02\u0E35\u0E22\u0E19\u0E43\u0E2B\u0E49\u0E0A\u0E31\u0E14\u0E02\u0E36\u0E49\u0E19\u0E41\u0E25\u0E49\u0E27\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48");
       }).catch((e) => setNoteOcrStatus(["\u274C \u0E41\u0E1B\u0E25\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08: {m}", { m: e && e.message ? e.message : String(e) }]));
-    };
-    const syncNow = async () => {
-      setSyncing(true);
-      setSyncStatus("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D Google...");
-      try {
-        await DriveSync.ensureAuth();
-        setSyncStatus("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...");
-        const folderId = await DriveSync.ensureFolder();
-        const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-        const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-        const mergedXp = Math.max(xp, (remote == null ? void 0 : remote.xp) || 0);
-        const mergedProgress = mergeProgress(remote == null ? void 0 : remote.progress, progress);
-        const mergedNotes = mergeNotes(remote == null ? void 0 : remote.notes, notes);
-        const mergedWrong = mergeWrong(remote == null ? void 0 : remote.wrong, wrong);
-        const mergedSrs = mergeSrs(remote == null ? void 0 : remote.srs, srs);
-        const mergedWriting = mergeWriting(remote == null ? void 0 : remote.writing, writing);
-        const mergedStreak = mergeStreak(remote == null ? void 0 : remote.streak, streak);
-        if (mergedXp !== xp) xpFromDriveRef.current = true;
-        setXp(mergedXp);
-        setProgress(mergedProgress);
-        setNotes(mergedNotes);
-        setWrong(mergedWrong);
-        setSrs(mergedSrs);
-        setWriting(mergedWriting);
-        setStreak(mergedStreak);
-        await DriveSync.uploadFile(
-          DRIVE_FILE_NAME,
-          folderId,
-          existing == null ? void 0 : existing.id,
-          {
-            xp: mergedXp,
-            progress: mergedProgress,
-            notes: mergedNotes,
-            wrong: mergedWrong,
-            srs: mergedSrs,
-            writing: mergedWriting,
-            streak: mergedStreak,
-            savedAt: (/* @__PURE__ */ new Date()).toISOString()
-          }
-        );
-        setSyncStatus("\u2705 \u0E0B\u0E34\u0E07\u0E01\u0E4C\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08");
-      } catch (e) {
-        setSyncStatus({ err: e && e.txs ? e.txs : String(e && e.message || e) });
-      } finally {
-        setSyncing(false);
-      }
     };
     const lang = LANGS[langId];
     const categories = Object.keys(lang.phrases);
@@ -14027,7 +13821,6 @@
     const EXAM_VIEWS = ["hsk", "enexam", "jpexam", "krexam", "yueexam", "deexam", "frexam", "itexam", "esexam", "ptexam", "ruexam", "hiexam", "arexam", "vnexam", "myexam", "mmexam", "khexam", "laexam"];
     const isExamView = EXAM_VIEWS.includes(view);
     const inLangView = view === "practice" || view === "listen" || isExamView;
-    const syncText = (st) => !st ? "" : st.err ? "\u274C " + txs(st.err) : txs(st);
     const LIST_FEATURE = { icon: ListenIcon, label: "\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14-\u0E2D\u0E48\u0E32\u0E19", act: "listen" };
     const EXAM_FEATURES = {
       "lang-cn": { write: "\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", exam: "\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A HSK/BCT" },
@@ -14097,7 +13890,7 @@
       if (id === "lang-yue" && filteredLangIds.includes("lang-cn")) return null;
       const isZhGroup = id === "lang-cn";
       return /* @__PURE__ */ React.createElement("div", { key: id, className: "space-y-2" }, isZhGroup && /* @__PURE__ */ React.createElement("div", { className: "px-3 pt-1 pb-0.5 text-sm font-bold text-gray-500 uppercase tracking-wider" }, tx("\u0E08\u0E35\u0E19")), renderLangRow(id), isZhGroup && filteredLangIds.includes("lang-yue") && renderLangRow("lang-yue"));
-    })))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 flex flex-col h-full overflow-hidden relative" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-gray-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-2 sm:px-4 py-2 shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden shrink-0", "aria-label": tx("\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E20\u0E32\u0E29\u0E32") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("div", { className: "tabs !border-b-0 min-w-0", role: "tablist" }, /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-stream", onClick: () => setView("stream"), "aria-selected": view === "stream", className: `tab${view === "stream" ? " on" : ""}` }, tx("\u0E2A\u0E15\u0E23\u0E35\u0E21")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-practice", onClick: () => setView("practice"), "aria-selected": view === "practice", className: `tab${view === "practice" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E1D\u0E19")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-writing", onClick: () => setView("writing"), "aria-selected": view === "writing", className: `tab inline-flex items-center gap-1.5${view === "writing" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19"), totalDue > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge err" }, totalDue > 99 ? "99+" : totalDue)), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-exam", onClick: goExam, "aria-selected": isExamView, className: `tab inline-flex items-center gap-1.5${isExamView ? " on" : ""}` }, /* @__PURE__ */ React.createElement(HskIcon, null), " ", tx("\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-listen", onClick: goListen, "aria-selected": view === "listen", className: `tab inline-flex items-center gap-1.5${view === "listen" ? " on" : ""}` }, /* @__PURE__ */ React.createElement(ListenIcon, null), " ", tx("\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14")))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "sync", onClick: syncNow, disabled: syncing, className: "btn sm" }, syncing ? tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...") : /* @__PURE__ */ React.createElement(React.Fragment, null, tx("\u0E0B\u0E34\u0E07\u0E01\u0E4C"), /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-sm text-gray-500" }, syncText(syncStatus)), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, tx("\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot")))), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("section", { className: "card p-5 sm:p-6" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-1" }, tx("\u0E1D\u0E36\u0E01\u0E20\u0E32\u0E29\u0E32\u0E41\u0E1A\u0E1A\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-[200px] max-w-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sm text-gray-500 mb-1" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21")), /* @__PURE__ */ React.createElement("span", null, doneCategories, "/", totalCategories)), /* @__PURE__ */ React.createElement("div", { className: "meter" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${totalCategories ? doneCategories / totalCategories * 100 : 0}%` } }))))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-3" }, langStats.map((s) => /* @__PURE__ */ React.createElement("button", { key: s.id, "data-k": "langStat", "data-lang": s.id, onClick: () => selectLang(s.id), className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "nm uppercase truncate" }, langTitle(s.id)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx("{a}/{b} \u0E2B\u0E21\u0E27\u0E14", { a: s.done, b: s.total })), /* @__PURE__ */ React.createElement("div", { className: "meter sm mt-1" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))))), featureTiles.length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LanguagesSmallIcon, null), " ", tx("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E40\u0E2A\u0E23\u0E34\u0E21\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: `grid grid-cols-1 sm:grid-cols-${featureTiles.length === 4 ? "4" : "3"} gap-3` }, featureTiles.map((f) => /* @__PURE__ */ React.createElement("button", { key: f.key, "data-k": "feature-" + f.key, onClick: f.act, className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "text-brandStrong" }, /* @__PURE__ */ React.createElement(f.Icon, null)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx(f.label)))))), Object.keys(wrong).length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(XCircle, null), " ", tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E40\u0E04\u0E22\u0E15\u0E2D\u0E1A\u0E1C\u0E34\u0E14 ({n})", { n: Object.keys(wrong).length })), /* @__PURE__ */ React.createElement("div", { className: "space-y-2" }, Object.values(wrong).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 6).map((w) => {
+    })))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 flex flex-col h-full overflow-hidden relative" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-gray-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-2 sm:px-4 py-2 shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden shrink-0", "aria-label": tx("\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E20\u0E32\u0E29\u0E32") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("div", { className: "tabs !border-b-0 min-w-0", role: "tablist" }, /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-stream", onClick: () => setView("stream"), "aria-selected": view === "stream", className: `tab${view === "stream" ? " on" : ""}` }, tx("\u0E2A\u0E15\u0E23\u0E35\u0E21")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-practice", onClick: () => setView("practice"), "aria-selected": view === "practice", className: `tab${view === "practice" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E1D\u0E19")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-writing", onClick: () => setView("writing"), "aria-selected": view === "writing", className: `tab inline-flex items-center gap-1.5${view === "writing" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19"), totalDue > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge err" }, totalDue > 99 ? "99+" : totalDue)), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-exam", onClick: goExam, "aria-selected": isExamView, className: `tab inline-flex items-center gap-1.5${isExamView ? " on" : ""}` }, /* @__PURE__ */ React.createElement(HskIcon, null), " ", tx("\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-listen", onClick: goListen, "aria-selected": view === "listen", className: `tab inline-flex items-center gap-1.5${view === "listen" ? " on" : ""}` }, /* @__PURE__ */ React.createElement(ListenIcon, null), " ", tx("\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14")))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, tx("\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot")))), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("section", { className: "card p-5 sm:p-6" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-1" }, tx("\u0E1D\u0E36\u0E01\u0E20\u0E32\u0E29\u0E32\u0E41\u0E1A\u0E1A\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-[200px] max-w-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sm text-gray-500 mb-1" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21")), /* @__PURE__ */ React.createElement("span", null, doneCategories, "/", totalCategories)), /* @__PURE__ */ React.createElement("div", { className: "meter" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${totalCategories ? doneCategories / totalCategories * 100 : 0}%` } }))))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-3" }, langStats.map((s) => /* @__PURE__ */ React.createElement("button", { key: s.id, "data-k": "langStat", "data-lang": s.id, onClick: () => selectLang(s.id), className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "nm uppercase truncate" }, langTitle(s.id)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx("{a}/{b} \u0E2B\u0E21\u0E27\u0E14", { a: s.done, b: s.total })), /* @__PURE__ */ React.createElement("div", { className: "meter sm mt-1" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))))), featureTiles.length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LanguagesSmallIcon, null), " ", tx("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E40\u0E2A\u0E23\u0E34\u0E21\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: `grid grid-cols-1 sm:grid-cols-${featureTiles.length === 4 ? "4" : "3"} gap-3` }, featureTiles.map((f) => /* @__PURE__ */ React.createElement("button", { key: f.key, "data-k": "feature-" + f.key, onClick: f.act, className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "text-brandStrong" }, /* @__PURE__ */ React.createElement(f.Icon, null)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx(f.label)))))), Object.keys(wrong).length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(XCircle, null), " ", tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E40\u0E04\u0E22\u0E15\u0E2D\u0E1A\u0E1C\u0E34\u0E14 ({n})", { n: Object.keys(wrong).length })), /* @__PURE__ */ React.createElement("div", { className: "space-y-2" }, Object.values(wrong).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 6).map((w) => {
       const phrase = (LANGS[w.langId] && LANGS[w.langId].phrases[w.cat] || [])[w.idx];
       if (!phrase) return null;
       return /* @__PURE__ */ React.createElement(

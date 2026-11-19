@@ -183,7 +183,6 @@
             "▶ ดู": "▶ Watch",
             "⚠️ อ่านลายมือไม่ออก ลองเขียนให้ชัดขึ้นแล้วลองใหม่": "⚠️ Could not read the handwriting — write more clearly and try again",
             "✅ ใกล้เคียงต้นฉบับมาก": "✅ Very close to the original",
-            "✅ ซิงก์สำเร็จ": "✅ Synced",
             "✅ ตรงตัวอย่างอ้างอิง (+10 XP)": "✅ Matches the reference (+10 XP)",
             "✅ ถูก": "✅ True",
             "✅ ถูกต้อง": "✅ Correct",
@@ -219,8 +218,6 @@
             "กลับหน้าเริ่มต้น": "Back to start",
             "กลับหน้าเลือกสอบ": "Back to exam selection",
             "การ์ดคำ": "Flashcards",
-            "กำลังเชื่อมต่อ Google...": "Connecting to Google...",
-            "กำลังซิงก์...": "Syncing...",
             "กำลังตรวจ...": "Checking...",
             "กำลังตรวจ (ครั้งแรกอาจช้า)...": "Checking (the first time may be slow)...",
             "กำลังฝึกเขียน:": "Practising writing:",
@@ -279,8 +276,6 @@
             "เขียนด้วยมือ": "Handwrite",
             "เขียนเป็นภาษาจีนตรงนี้...": "Write in Chinese here...",
             "เขียนเป็นภาษา{l}ตรงนี้...": "Write in {l} here...",
-            "ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})": "Could not search for the folder (HTTP {c})",
-            "ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})": "Could not search for the file (HTTP {c})",
             "ค้นหาภาษา...": "Search languages...",
             "ความคืบหน้ารวม": "Overall progress",
             "ความหมาย:": "Meaning:",
@@ -308,8 +303,6 @@
             "ใช่หรือไม่?": "True or false?",
             "ซ่อน": "Hide",
             "ซ่อน ▲": "Hide ▲",
-            "ซิงก์": "Sync",
-            "ดาวน์โหลดไม่สำเร็จ (HTTP {c})": "Download failed (HTTP {c})",
             "ดู ▼": "Show ▼",
             "ดูผลสรุป": "See summary",
             "ดูผลสอบ": "See results",
@@ -347,7 +340,6 @@
             "ที่ถูกต้อง:": "Correct:",
             "โน้ตของฉัน — {l}": "My notes — {l}",
             "บอกเวลา": "Telling time",
-            "บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})": "Could not save to Drive (HTTP {c})",
             "บันทึกล่าสุด {d}": "Last saved {d}",
             "เบราว์เซอร์/อุปกรณ์นี้ไม่มีเสียงอ่านสำหรับภาษานี้ติดตั้งไว้ (ข้อจำกัดของอุปกรณ์ ไม่ใช่เว็บพัง) ลองเปิดด้วย Chrome บนคอมพิวเตอร์ หรือเพิ่มเสียงอ่านในตั้งค่าระบบดูครับ": "This browser/device has no text-to-speech voice installed for this language (a device limitation, not a site bug). Try Chrome on a computer or add a voice in your system settings",
             "แบบทดสอบความเข้าใจ": "Comprehension test",
@@ -495,7 +487,6 @@
             "ส่งให้ AI ตรวจ (+15 XP)": "Send to AI for checking (+15 XP)",
             "สตรีม": "Stream",
             "สถิติสูงสุด {n} วัน": "Best streak: {n} days",
-            "สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})": "Could not create the folder (HTTP {c})",
             "สลับไปภาษาเกาหลี": "Switch to Korean",
             "สลับไปภาษาเขมร": "Switch to Khmer",
             "สลับไปภาษาจีน": "Switch to Chinese",
@@ -525,7 +516,6 @@
             "โหมดฟัง-พูด รองรับเฉพาะภาษาจีนกลาง อังกฤษ ญี่ปุ่น เกาหลี จีนกวางตุ้ง เยอรมัน ฝรั่งเศส อิตาลี สเปน โปรตุเกส รัสเซีย ฮินดี อาหรับ และเวียดนามตอนนี้": "Listening & speaking is only available for Mandarin, English, Japanese, Korean, Cantonese, German, French, Italian, Spanish, Portuguese, Russian, Hindi, Arabic and Vietnamese right now",
             "โหลดแผนภาพลำดับขีดไม่สำเร็จ ลองรีเฟรชหน้าใหม่": "Could not load the stroke-order diagram. Try reloading the page",
             "โหลดโมเดล AI ไม่สำเร็จ เพราะหน่วยความจำที่เบราว์เซอร์เหลือให้ใช้ไม่พอ (มักเกิดถ้าเปิดแท็บ/โปรแกรมอื่นพร้อมกันเยอะ) ลองปิดแท็บ/โปรแกรมอื่นแล้วลองใหม่อีกครั้ง": "Could not load the AI model because the browser has too little memory left (this often happens with many other tabs or programs open). Close other tabs/programs and try again",
-            "โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่": "Could not load Google Identity Services. Try reloading the page",
             "อ่านเรื่องยาว": "Long reading",
             "อ่านออกเสียงทั้งเรื่อง": "Read the whole story aloud",
             "{a} ประโยค · {b} คำถาม": "{a} sentences · {b} questions",
@@ -1369,7 +1359,7 @@
         }
 
         // ── ประวัติการส่งงาน "ฝึกเขียน" (แต่งประโยค/แปล/dictation) — array จำกัด 200 รายการล่าสุด
-        // กันขนาด payload ตอนซิงก์ Google Drive บวมเกินไป ──────────────────────────────────
+        // กันขนาด payload ของข้อมูลในเครื่องบวมเกินไป ──────────────────────────────────
         const WRITING_HISTORY_CAP = 200;
         function loadWriting() {
             try { return JSON.parse(localStorage.getItem('lang-practice:writing') || '[]'); } catch { return []; }
@@ -1446,84 +1436,6 @@
         }
 
 
-        // ── Google Drive sync (ไม่บังคับ) — ซิงก์ XP/ความคืบหน้าข้ามอุปกรณ์ ──────────
-        const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-        const DRIVE_FOLDER_NAME = 'OME_Progress';
-        const DRIVE_FILE_NAME = 'language-progress.json';
-
-        // ข้อผิดพลาดของ Drive: พก [ข้อความไทยต้นฉบับ, vars] ไปกับ error — บรรทัดสถานะแปลตอนแสดง (แปลสดตอนสลับภาษา)
-        const dErr = (k, vars) => Object.assign(new Error(tx(k, vars)), { txs: [k, vars] });
-        const DriveSync = {
-            tokenClient: null,
-            accessToken: null,
-            folderId: null,
-            ensureAuth() {
-                return new Promise((resolve, reject) => {
-                    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(dErr('โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่'));
-                        return;
-                    }
-                    if (!this.tokenClient) {
-                        this.tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: DRIVE_CLIENT_ID,
-                            scope: DRIVE_SCOPE,
-                            callback: (resp) => {
-                                if (resp.error) { reject(new Error(resp.error)); return; }
-                                this.accessToken = resp.access_token;
-                                resolve(this.accessToken);
-                            },
-                        });
-                    }
-                    this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-                });
-            },
-            async ensureFolder() {
-                if (this.folderId) return this.folderId;
-                const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw dErr('ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})', { c: res.status });
-                const data = await res.json();
-                if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
-                const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-                    method: 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
-                });
-                if (!createRes.ok) throw dErr('สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})', { c: createRes.status });
-                const createData = await createRes.json();
-                this.folderId = createData.id;
-                return this.folderId;
-            },
-            async findFile(name, folderId) {
-                const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw dErr('ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})', { c: res.status });
-                const data = await res.json();
-                return (data.files && data.files[0]) || null;
-            },
-            async downloadFile(fileId) {
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw dErr('ดาวน์โหลดไม่สำเร็จ (HTTP {c})', { c: res.status });
-                return res.json();
-            },
-            async uploadFile(name, folderId, existingId, obj) {
-                const form = new FormData();
-                const metadata = existingId ? {} : { name, parents: [folderId] };
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-                const url = existingId
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
-                    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-                const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw dErr('บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})', { c: res.status });
-                return res.json();
-            },
-        };
 
         function mergeProgress(a, b) {
             const keys = new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
@@ -17192,8 +17104,6 @@
                 return m;
             }, [srs]);
             const totalDue = useMemo(() => Object.values(dueCounts).reduce((a, b) => a + b, 0), [dueCounts]);
-            const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState(null); // ข้อความไทยต้นฉบับ (คีย์ tx) หรือ { err: ข้อความ/[ข้อความ, vars] } — แปลตอนแสดง
             const [uiLang, setUiLang] = useState(OME_I18N.lang());
             useEffect(() => OME_LANG.onChange(l => setUiLang(l)), []);
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -17212,11 +17122,9 @@
             // XP กลาง (learn-core.js): ส่งเฉพาะส่วนที่เพิ่มจากการฝึก (ไม่นับตอนโหลดค่าเดิม/รวมค่าจาก Drive)
             // ต้องอยู่ก่อน effect ที่บันทึก xp — ให้ learn-core ถ่ายยอดเดิมก่อนคีย์เดิมรวม XP ก้อนนี้
             const xpPrevRef = useRef(xp);
-            const xpFromDriveRef = useRef(false);
             useEffect(() => {
                 const gained = xp - xpPrevRef.current;
                 xpPrevRef.current = xp;
-                if (xpFromDriveRef.current) { xpFromDriveRef.current = false; return; }
                 if (gained > 0 && window.LearnCore) window.LearnCore.award('lang', gained);
             }, [xp]);
             useEffect(() => { saveXp(xp); }, [xp]);
@@ -17258,43 +17166,6 @@
                 }).catch(e => setNoteOcrStatus(['❌ แปลงไม่สำเร็จ: {m}', { m: e && e.message ? e.message : String(e) }]));
             };
 
-            const syncNow = async () => {
-                setSyncing(true);
-                setSyncStatus('กำลังเชื่อมต่อ Google...');
-                try {
-                    await DriveSync.ensureAuth();
-                    setSyncStatus('กำลังซิงก์...');
-                    const folderId = await DriveSync.ensureFolder();
-                    const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-                    const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-
-                    const mergedXp = Math.max(xp, remote?.xp || 0);
-                    const mergedProgress = mergeProgress(remote?.progress, progress);
-                    const mergedNotes = mergeNotes(remote?.notes, notes);
-                    const mergedWrong = mergeWrong(remote?.wrong, wrong);
-                    const mergedSrs = mergeSrs(remote?.srs, srs);
-                    const mergedWriting = mergeWriting(remote?.writing, writing);
-                    const mergedStreak = mergeStreak(remote?.streak, streak);
-
-                    if (mergedXp !== xp) xpFromDriveRef.current = true;
-                    setXp(mergedXp);
-                    setProgress(mergedProgress);
-                    setNotes(mergedNotes);
-                    setWrong(mergedWrong);
-                    setSrs(mergedSrs);
-                    setWriting(mergedWriting);
-                    setStreak(mergedStreak);
-
-                    await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, progress: mergedProgress, notes: mergedNotes, wrong: mergedWrong,
-                          srs: mergedSrs, writing: mergedWriting, streak: mergedStreak, savedAt: new Date().toISOString() });
-                    setSyncStatus('✅ ซิงก์สำเร็จ');
-                } catch (e) {
-                    setSyncStatus({ err: e && e.txs ? e.txs : String((e && e.message) || e) });
-                } finally {
-                    setSyncing(false);
-                }
-            };
 
             const lang = LANGS[langId];
             const categories = Object.keys(lang.phrases);
@@ -17451,7 +17322,6 @@
             const EXAM_VIEWS = ['hsk', 'enexam', 'jpexam', 'krexam', 'yueexam', 'deexam', 'frexam', 'itexam', 'esexam', 'ptexam', 'ruexam', 'hiexam', 'arexam', 'vnexam', 'myexam', 'mmexam', 'khexam', 'laexam'];
             const isExamView = EXAM_VIEWS.includes(view);
             const inLangView = view === 'practice' || view === 'listen' || isExamView;
-            const syncText = (st) => !st ? '' : st.err ? '❌ ' + txs(st.err) : txs(st);
             // ฟีเจอร์เสริมของแต่ละภาษา (ปุ่มลัดไปหน้าฝึกเขียน/ข้อสอบ/ฟัง-พูด) — ข้อความเป็นคีย์ tx
             const LIST_FEATURE = { icon: ListenIcon, label: 'ฟัง-พูด-อ่าน', act: 'listen' };
             const EXAM_FEATURES = {
@@ -17586,10 +17456,6 @@
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 flex-wrap">
-                                <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
-                                    {syncing ? tx('กำลังซิงก์...') : <>{tx('ซิงก์')}<span className="hidden sm:inline"> Google Drive</span></>}
-                                </button>
-                                {syncStatus && <span className="hidden sm:inline text-sm text-gray-500">{syncText(syncStatus)}</span>}
                                 <a href="./index.html" className="btn ghost sm">{tx('← กลับ Tanot')}</a>
                             </div>
                         </header>

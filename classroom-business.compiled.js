@@ -6,10 +6,6 @@
       openNav: "\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D",
       closeNav: "\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39",
       allTopics: "\u0E2B\u0E31\u0E27\u0E02\u0E49\u0E2D\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14",
-      sync: "\u0E0B\u0E34\u0E07\u0E01\u0E4C",
-      syncing: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...",
-      syncConnecting: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E0A\u0E37\u0E48\u0E2D\u0E21\u0E15\u0E48\u0E2D Google...",
-      syncOk: "\u0E0B\u0E34\u0E07\u0E01\u0E4C\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08",
       back: "\u0E01\u0E25\u0E31\u0E1A Tanot",
       tabStream: "\u0E2A\u0E15\u0E23\u0E35\u0E21",
       tabWork: "\u0E07\u0E32\u0E19\u0E40\u0E23\u0E35\u0E22\u0E19",
@@ -77,12 +73,6 @@
       retry: "\u0E17\u0E33\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07",
       reflect1: '\u0E2D\u0E18\u0E34\u0E1A\u0E32\u0E22\u0E2B\u0E25\u0E31\u0E01\u0E01\u0E32\u0E23\u0E2A\u0E33\u0E04\u0E31\u0E0D\u0E02\u0E2D\u0E07 "{t}" \u0E15\u0E32\u0E21\u0E04\u0E27\u0E32\u0E21\u0E40\u0E02\u0E49\u0E32\u0E43\u0E08\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13',
       reflect2: '\u0E22\u0E01\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2A\u0E16\u0E32\u0E19\u0E01\u0E32\u0E23\u0E13\u0E4C\u0E08\u0E23\u0E34\u0E07\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E43\u0E0A\u0E49\u0E04\u0E27\u0E32\u0E21\u0E23\u0E39\u0E49\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07 "{t}"',
-      eGis: "\u0E42\u0E2B\u0E25\u0E14 Google Identity Services \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E23\u0E35\u0E40\u0E1F\u0E23\u0E0A\u0E2B\u0E19\u0E49\u0E32\u0E43\u0E2B\u0E21\u0E48",
-      eFolderFind: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
-      eFolderMake: "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E42\u0E1F\u0E25\u0E40\u0E14\u0E2D\u0E23\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
-      eFileFind: "\u0E04\u0E49\u0E19\u0E2B\u0E32\u0E44\u0E1F\u0E25\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
-      eDownload: "\u0E14\u0E32\u0E27\u0E19\u0E4C\u0E42\u0E2B\u0E25\u0E14\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
-      eUpload: "\u0E1A\u0E31\u0E19\u0E17\u0E36\u0E01\u0E02\u0E36\u0E49\u0E19 Drive \u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 (HTTP {c})",
       title: "\u0E2B\u0E49\u0E2D\u0E07\u0E40\u0E23\u0E35\u0E22\u0E19\u0E18\u0E38\u0E23\u0E01\u0E34\u0E08",
       subj_business: "\u0E18\u0E38\u0E23\u0E01\u0E34\u0E08\u0E41\u0E25\u0E30\u0E01\u0E32\u0E23\u0E1A\u0E23\u0E34\u0E2B\u0E32\u0E23"
     },
@@ -90,10 +80,6 @@
       openNav: "Open topics menu",
       closeNav: "Close menu",
       allTopics: "All topics",
-      sync: "Sync",
-      syncing: "Syncing...",
-      syncConnecting: "Connecting to Google...",
-      syncOk: "Sync complete",
       back: "Back to Tanot",
       tabStream: "Stream",
       tabWork: "Coursework",
@@ -161,19 +147,11 @@
       retry: "Practice again",
       reflect1: 'Explain the key principle of "{t}" in your own understanding',
       reflect2: 'Give a real situation where knowing "{t}" is needed',
-      eGis: "Could not load Google Identity Services \u2014 try refreshing the page",
-      eFolderFind: "Could not search folders (HTTP {c})",
-      eFolderMake: "Could not create folder (HTTP {c})",
-      eFileFind: "Could not search files (HTTP {c})",
-      eDownload: "Download failed (HTTP {c})",
-      eUpload: "Could not save to Drive (HTTP {c})",
       title: "Business classroom",
       subj_business: "Business & management"
     }
   });
   window.OME_PAGE_LIVE_LANG = true;
-  const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
-  const statusText = (st) => !st ? "" : st.tkey ? T(st.tkey, st.tvars) : st.raw || "";
   const subjLabel = (s) => T("subj_" + (s.subjId || s.id));
   const icon = (name, cls) => () => /* @__PURE__ */ React.createElement("span", { className: "inline-flex", dangerouslySetInnerHTML: { __html: `<i data-lucide="${name}" class="${cls}"></i>` } });
   const Play = icon("play-circle", "w-5 h-5");
@@ -247,23 +225,6 @@
   function saveNotes(v) {
     localStorage.setItem("lbe:business:notes", JSON.stringify(v));
   }
-  function mergeNotes(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const na = a && a[k], nb = b && b[k];
-      if (!na) {
-        out[k] = nb;
-        return;
-      }
-      if (!nb) {
-        out[k] = na;
-        return;
-      }
-      out[k] = (na.updatedAt || 0) >= (nb.updatedAt || 0) ? na : nb;
-    });
-    return out;
-  }
   const QUESTION_BANK = [];
   SUBJECTS.forEach((s) => s.topics.forEach((t) => {
     if (t.kind !== "quiz") return;
@@ -297,15 +258,6 @@
   }
   function saveSrs(v) {
     localStorage.setItem("lbe:business:srs", JSON.stringify(v));
-  }
-  function mergeSrs(a, b) {
-    const keys = /* @__PURE__ */ new Set([...Object.keys(a || {}), ...Object.keys(b || {})]);
-    const out = {};
-    keys.forEach((k) => {
-      const va = a && a[k], vb = b && b[k];
-      out[k] = !va ? vb : !vb ? va : (va.due || 0) >= (vb.due || 0) ? va : vb;
-    });
-    return out;
   }
   function loadExams() {
     try {
@@ -382,93 +334,6 @@
     closeLists();
     return html;
   }
-  const DRIVE_CLIENT_ID = "497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com";
-  const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
-  const DRIVE_FOLDER_NAME = "OME_Progress";
-  const DRIVE_FILE_NAME = "lbe-business-progress.json";
-  const DriveSync = {
-    tokenClient: null,
-    accessToken: null,
-    folderId: null,
-    ensureAuth() {
-      return new Promise((resolve, reject) => {
-        if (!window.google || !google.accounts || !google.accounts.oauth2) {
-          reject(tErr("eGis"));
-          return;
-        }
-        if (!this.tokenClient) {
-          this.tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: DRIVE_CLIENT_ID,
-            scope: DRIVE_SCOPE,
-            callback: (resp) => {
-              if (resp.error) {
-                reject(new Error(resp.error));
-                return;
-              }
-              this.accessToken = resp.access_token;
-              resolve(this.accessToken);
-            }
-          });
-        }
-        this.tokenClient.requestAccessToken({ prompt: this.accessToken ? "" : "consent" });
-      });
-    },
-    async ensureFolder() {
-      if (this.folderId) return this.folderId;
-      const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw tErr("eFolderFind", { c: res.status });
-      const data = await res.json();
-      if (data.files && data.files.length) {
-        this.folderId = data.files[0].id;
-        return this.folderId;
-      }
-      const createRes = await fetch("https://www.googleapis.com/drive/v3/files", {
-        method: "POST",
-        headers: { Authorization: "Bearer " + this.accessToken, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: "application/vnd.google-apps.folder" })
-      });
-      if (!createRes.ok) throw tErr("eFolderMake", { c: createRes.status });
-      const createData = await createRes.json();
-      this.folderId = createData.id;
-      return this.folderId;
-    },
-    async findFile(name, folderId) {
-      const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw tErr("eFileFind", { c: res.status });
-      const data = await res.json();
-      return data.files && data.files[0] || null;
-    },
-    async downloadFile(fileId) {
-      const res = await fetch(
-        `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-        { headers: { Authorization: "Bearer " + this.accessToken } }
-      );
-      if (!res.ok) throw tErr("eDownload", { c: res.status });
-      return res.json();
-    },
-    async uploadFile(name, folderId, existingId, obj) {
-      const form = new FormData();
-      const metadata = existingId ? {} : { name, parents: [folderId] };
-      form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-      form.append("file", new Blob([JSON.stringify(obj)], { type: "application/json" }));
-      const url = existingId ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart` : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-      const res = await fetch(url, {
-        method: existingId ? "PATCH" : "POST",
-        headers: { Authorization: "Bearer " + this.accessToken },
-        body: form
-      });
-      if (!res.ok) throw tErr("eUpload", { c: res.status });
-      return res.json();
-    }
-  };
   function App() {
     var _a, _b;
     const initialSubject = "business";
@@ -487,8 +352,6 @@
     const [notes, setNotes] = useState(loadNotes());
     const [srs, setSrs] = useState(loadSrs());
     const [exams, setExams] = useState(loadExams());
-    const [syncing, setSyncing] = useState(false);
-    const [syncStatus, setSyncStatus] = useState(null);
     const [mobileNavOpen, setMobileNavOpen] = useState(false);
     const [lang, setLang] = useState(OME_I18N.lang());
     useEffect(() => OME_LANG.onChange((l) => setLang(l)), []);
@@ -511,14 +374,9 @@
       lucide.createIcons();
     });
     const xpPrevRef = useRef(xp);
-    const xpFromDriveRef = useRef(false);
     useEffect(() => {
       const gained = xp - xpPrevRef.current;
       xpPrevRef.current = xp;
-      if (xpFromDriveRef.current) {
-        xpFromDriveRef.current = false;
-        return;
-      }
       if (gained > 0 && window.LearnCore) window.LearnCore.award("biz", gained);
     }, [xp]);
     useEffect(() => {
@@ -584,49 +442,6 @@
       setExamIndex((i) => i + 1);
       setExamAnswer("");
       setExamRevealed(false);
-    };
-    const syncNow = async () => {
-      setSyncing(true);
-      setSyncStatus({ tkey: "syncConnecting" });
-      try {
-        await DriveSync.ensureAuth();
-        setSyncStatus({ tkey: "syncing" });
-        const folderId = await DriveSync.ensureFolder();
-        const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-        const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-        const mergedXp = Math.max(xp, (remote == null ? void 0 : remote.xp) || 0);
-        const mergedCompleted = { ...(remote == null ? void 0 : remote.completed) || {}, ...completed };
-        const mergedWritten = { ...(remote == null ? void 0 : remote.written) || {}, ...written };
-        const mergedNotes = mergeNotes(remote == null ? void 0 : remote.notes, notes);
-        const mergedSrs = mergeSrs(remote == null ? void 0 : remote.srs, srs);
-        const mergedExams = mergeExams(remote == null ? void 0 : remote.exams, exams);
-        if (mergedXp !== xp) xpFromDriveRef.current = true;
-        setXp(mergedXp);
-        setCompleted(mergedCompleted);
-        setWritten(mergedWritten);
-        setNotes(mergedNotes);
-        setSrs(mergedSrs);
-        setExams(mergedExams);
-        await DriveSync.uploadFile(
-          DRIVE_FILE_NAME,
-          folderId,
-          existing == null ? void 0 : existing.id,
-          {
-            xp: mergedXp,
-            completed: mergedCompleted,
-            written: mergedWritten,
-            notes: mergedNotes,
-            srs: mergedSrs,
-            exams: mergedExams,
-            savedAt: (/* @__PURE__ */ new Date()).toISOString()
-          }
-        );
-        setSyncStatus({ tkey: "syncOk" });
-      } catch (e) {
-        setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: "" + (e.message || e) });
-      } finally {
-        setSyncing(false);
-      }
     };
     const subject = SUBJECTS.find((s) => s.id === activeSubject);
     const topic = subject.topics.find((t) => t.id === activeTopicId) || subject.topics[0];
@@ -699,7 +514,7 @@
       const key = `${activeSubject}:${topic.id}`;
       if (!completed[key]) setCompleted((c) => ({ ...c, [key]: true }));
     }, [isDone, activeSubject, topic.id]);
-    return /* @__PURE__ */ React.createElement("div", { className: "lbe-app h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-slate-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden -ml-2", "aria-label": T("openNav") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("span", { className: "lbe-headicon" }, /* @__PURE__ */ React.createElement(HeadIcon, null)), /* @__PURE__ */ React.createElement("h1", { className: "text-lg font-bold" }, T("title"), " ", /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-slate-400 font-normal" }, "| Tanot"))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "sync", onClick: syncNow, disabled: syncing, className: "btn sm" }, syncing ? T("syncing") : /* @__PURE__ */ React.createElement(React.Fragment, null, T("sync"), /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-sm text-slate-500" }, statusText(syncStatus)), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, "\u2190 ", T("back")))), /* @__PURE__ */ React.createElement("div", { className: "tabs bg-white px-2 sm:px-4 shrink-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "tab-stream", onClick: () => setView("stream"), "aria-current": view === "stream" ? "page" : void 0, className: `tab${view === "stream" ? " on" : ""}` }, T("tabStream")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-work", onClick: () => setView("classwork"), "aria-current": view === "classwork" ? "page" : void 0, className: `tab${view === "classwork" ? " on" : ""}` }, T("tabWork")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-review", onClick: startReview, "aria-current": view === "review" ? "page" : void 0, className: `tab${view === "review" ? " on" : ""} inline-flex items-center gap-2` }, T("tabReview"), dueKeys.length > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, dueKeys.length)), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-exam", onClick: () => {
+    return /* @__PURE__ */ React.createElement("div", { className: "lbe-app h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-slate-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-4 sm:px-6 py-2 shrink-0 z-10" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden -ml-2", "aria-label": T("openNav") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("span", { className: "lbe-headicon" }, /* @__PURE__ */ React.createElement(HeadIcon, null)), /* @__PURE__ */ React.createElement("h1", { className: "text-lg font-bold" }, T("title"), " ", /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-slate-400 font-normal" }, "| Tanot"))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, "\u2190 ", T("back")))), /* @__PURE__ */ React.createElement("div", { className: "tabs bg-white px-2 sm:px-4 shrink-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "tab-stream", onClick: () => setView("stream"), "aria-current": view === "stream" ? "page" : void 0, className: `tab${view === "stream" ? " on" : ""}` }, T("tabStream")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-work", onClick: () => setView("classwork"), "aria-current": view === "classwork" ? "page" : void 0, className: `tab${view === "classwork" ? " on" : ""}` }, T("tabWork")), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-review", onClick: startReview, "aria-current": view === "review" ? "page" : void 0, className: `tab${view === "review" ? " on" : ""} inline-flex items-center gap-2` }, T("tabReview"), dueKeys.length > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, dueKeys.length)), /* @__PURE__ */ React.createElement("button", { "data-k": "tab-exam", onClick: () => {
       setExamList([]);
       setExamIndex(0);
       setView("exam");

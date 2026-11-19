@@ -369,8 +369,6 @@ function law(h) {
     ['nitikam-drill-answer', async (p) => { await dom(p, '#clDrillRight'); await dom(p, '#clDrillReveal'); await dom(p, '#clDrillWrong'); await settle(p, 300); }],
     ['nitikam-drill-stop', async (p) => { await dom(p, '#clDrillStop'); await settle(p, 300); }],
     ['tools', go('#tools')],
-    ['tools-drive-list', click('#bpDriveListBtn')],
-    ['tools-drive-connect', click('#driveConnectBtn')],
     ['tools-clean', click('#bpCleanNotesBtn')],
     ['dashboard-final', go('#dashboard')]
   ];

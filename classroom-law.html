@@ -17,8 +17,6 @@
 <script src="i18n.js"></script>
 <link rel="stylesheet" href="theme.css">
 <script src="shell.js" defer></script>
-<!-- Google Identity Services — สำหรับซิงก์โน้ต/ฟลashcard ขึ้น Google Drive ส่วนตัว (ไม่บังคับ) -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* เฉพาะหน้านี้ — ปุ่ม/การ์ด/ช่องกรอก/ตาราง/chip/callout/dialog มาจาก theme.css (data-layout="reader") */
 .cl-page{max-width:880px}
@@ -36,8 +34,6 @@
 .cl-page :is(.status,.mini):empty{display:none}
 .cl-page .status{margin-top:0}
 .cl-page .view{display:flex;flex-direction:column;gap:var(--ome-card-gap)}
-.drive-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.drive-row .status{margin-top:0}
 .cl-page mark{background:color-mix(in srgb, var(--ome-warn) 28%, transparent);color:inherit;padding:0 3px;border-radius:3px}
 .cl-page code{background:var(--ome-surface-2);padding:1px 5px;border-radius:var(--ome-radius-sm)}
 .cl-page details.disclosure{margin-top:var(--ome-sp-3)}
@@ -208,7 +204,7 @@ button.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
   <div class="clhb-group-hd" data-i18n="cl.grpCourse">รายวิชากฎหมาย</div>
   <ul class="clhb-list" id="clCourseNav"></ul>
   <ul class="clhb-list">
-    <li><a href="#tools" data-view="tools" data-i18n="cl.navTools">เครื่องมือรวม (Drive/ตั้งค่า)</a></li>
+    <li><a href="#tools" data-view="tools" data-i18n="cl.navTools">เครื่องมือรวม (ตั้งค่า)</a></li>
   </ul>
 </nav>
 
@@ -426,29 +422,6 @@ button.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
 
 <!-- ══════════════════ เครื่องมือรวม (ไม่ผูกกับวิชาใดวิชาหนึ่ง) ══════════════════ -->
 <div class="view" id="viewTools" style="display:none">
-  <div class="card">
-    <h2 data-i18n="cl.driveFiles">ไฟล์ในโฟลเดอร์ Drive ของฉัน</h2>
-    <div><button class="btn sm" id="bpDriveListBtn" type="button" data-i18n="cl.driveList">โหลดรายชื่อไฟล์จาก Drive</button></div>
-    <div class="status" id="bpDriveListStatus"></div>
-    <ul class="note-list" id="bpDriveFileList"></ul>
-
-    <div class="field" style="max-width:260px">
-      <label for="bpUploadTargetFolder" data-i18n="cl.uploadTo">อัปโหลดเข้าโฟลเดอร์ไหน</label>
-      <select id="bpUploadTargetFolder"><option value="" data-i18n="cl.rootFolder">(โฟลเดอร์หลัก)</option></select>
-    </div>
-    <label class="ocr-drop" for="bpUploadFiles" id="bpUploadDrop" data-i18n="cl.uploadDrop">แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)</label>
-    <input type="file" id="bpUploadFiles" multiple style="display:none">
-    <div class="status" id="bpUploadStatus"></div>
-  </div>
-
-  <div class="card">
-    <h2 data-i18n="cl.driveSync">ซิงก์ Google Drive ส่วนตัว</h2>
-    <div class="drive-row">
-      <button class="btn sm" id="driveConnectBtn" type="button" data-i18n="cl.driveConnect">เชื่อมต่อ Google Drive</button>
-      <span class="status" id="driveStatusTxt"></span>
-    </div>
-  </div>
-
   <div class="card">
     <h2 data-i18n="cl.cleanTitle">ล้างข้อมูลเก่า</h2>
     <div class="row">
