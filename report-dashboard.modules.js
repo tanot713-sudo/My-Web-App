@@ -1,6 +1,6 @@
 /* report-dashboard.modules.js — โหลดโมดูลแม่แบบ (projectcontrol + 10 โดเมน) เมื่อมีข้อมูลแล้วเท่านั้น
    core ยิง 'tanot:rd-data' ทุกครั้งที่ renderDashboard() ทำงานกับข้อมูลจริง:
-   - ผู้ใช้เลือกแม่แบบไว้ (domainOverride) → โหลดเฉพาะไฟล์ของแม่แบบนั้น
+   - ผู้ใช้เลือกแม่แบบไว้ (domainOverride) → โหลด projectcontrol (แผง BI/Gantt กลาง) + ไฟล์ของแม่แบบนั้น
    - Auto / ยังไม่เลือก → โหลดครบทุกตัว (แต่ละตัวตัดสินเองจากหัวคอลัมน์ว่าตรงกับตนไหม)
    - 'none' (Data Explorer) → ไม่โหลดอะไร
    โหลดตามลำดับเดิมของหน้า (async=false) แต่ละโมดูลเริ่มทำงานเองเมื่อโหลดเสร็จ (init → schedule → render)
@@ -38,7 +38,7 @@
     if (!st || !st.rows || !st.rows.length) return;
     var ov = st.domainOverride;
     if (ov === 'none') return;
-    if (ov && FILES[ov]) load(ov);
+    if (ov && FILES[ov]) { load('project'); load(ov); } // projectcontrol ดูแลแผง BI/Gantt กลาง จึงต้องมีเสมอเมื่อมีข้อมูล
     else ORDER.forEach(load);
   }
 
