@@ -5,11 +5,13 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v681';
+const CACHE = 'ome-v682';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
 const BG_CACHE = 'ome-bg-v1';
+/* ภาพพื้นหลังที่ผู้ใช้ตั้งเอง (/api/files?id=…&bg=1) — cache-first, ไม่ถูกลบตอน bump CACHE; bg-custom.js ลบรายการเองตอนเปลี่ยน/ล้าง */
+const BGC_CACHE = 'ome-bgc-v1';
 /* สถานะเล็กๆ ของ SW ที่ต้องอยู่รอดตอน iOS ปิด SW ทิ้ง (ตอนนี้มีแค่ "หน้าเว็บยืนยันว่าเซสชันใช้ได้ถึงเวลา…") — ไม่ถูกล้างตอน bump CACHE */
 const STATE_CACHE = 'ome-state-v1';
 /* โมเดล ONNX ของ "อ่านแบบใหม่ (ทดลอง)" (PaddleOCR ~51 MB จาก Hugging Face — ocr-paddle-worker.js เขียนเอง ตอนใช้ครั้งแรก) — ไม่อยู่ใน PRECACHE
@@ -36,6 +38,7 @@ const PRECACHE = [
   './home-calc.js',
   './palette.js',
   './quick-add.js',
+  './bg-custom.js',
   './404.html',
   './documents.html',
   './area.html',
@@ -459,6 +462,15 @@ self.addEventListener('fetch', (e) => {
         return res;
       }))
     );
+    return;
+  }
+
+  // ภาพพื้นหลังของผู้ใช้ (เฉพาะ GET /api/files?id=…&bg=1 ที่เป็นรูปจริง) — ออฟไลน์ใช้ได้ · ไม่ใช่รูป/ไม่ ok = ผ่านไปเครือข่ายตามปกติ ไม่แคช
+  if (url.pathname === '/api/files' && url.searchParams.get('bg') === '1' && req.method === 'GET') {
+    e.respondWith(caches.open(BGC_CACHE).then((c) => c.match(req).then((hit) => hit || fetch(req).then((res) => {
+      if (res.ok && res.type === 'basic' && /^image\//.test(res.headers.get('Content-Type') || '')) e.waitUntil(c.put(req, res.clone()));
+      return res;
+    }))));
     return;
   }
 

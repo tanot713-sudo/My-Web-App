@@ -139,6 +139,8 @@ jobs:
         run: npx playwright test books.spec.js
       - name: lecture (lecture-calc.js known-answer — AI สรุปเป็นโน้ต + การ์ดทบทวน, ปุ่มในหน้า text-to-speech, หน้า lecture.html, การ์ดเข้า review.html)
         run: npx playwright test lecture.spec.js
+      - name: bg-custom (ภาพพื้นหลังที่ผู้ใช้ตั้งเองจาก image-gen — brightLeft known-answer, ปรับ scrim/ฟิลเตอร์ตามความสว่าง, ตัวเลือกในแผงตั้งค่า, ปุ่มใน image-gen)
+        run: npx playwright test bg-custom.spec.js
       - name: palette (palette-calc.js known-answer — ค้นหนังสือ/โน้ตเรียนใน palette, คำสั่งตั้งการแจ้งเตือนส่งชุดเต็มของ scope custom ไม่ลบของเดิม, ลบที่ notifications.html)
         run: npx playwright test palette.spec.js
       - name: invest (invest-calc.js เทียบฟังก์ชันเดิมของหน้าลงทุนทุกหลัก, มูลค่าสินทรัพย์ลงทุน known-answer + snapshot รายวันเวลาไทย, สมุดเทรดรวม, หน้าลงทุนที่ยุบรวมแล้วใช้ /api/proxy เท่านั้น, คีย์ข้อมูลผู้ใช้เดิมไม่เปลี่ยน, หน้า redirect, ซิงก์ 2 เครื่อง)

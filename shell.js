@@ -71,7 +71,7 @@
     th: {
       mainNav: 'เมนูหลัก Tanot', openMenu: 'เปิดเมนู', closeMenu: 'ปิดเมนู', menu: 'เมนู Tanot', expand: 'ขยาย {label}',
       search: 'ค้นหา (Ctrl+K)', themeToggle: 'สลับโหมดสว่าง/มืด', settings: 'ตั้งค่า',
-      accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ความเข้มภาพพื้นหลัง',
+      accent: 'เลือกธีมเว็บ', style: 'ประเภทธีม', lang: 'ภาษา', font: 'ตัวอักษร', bg: 'ความเข้มภาพพื้นหลัง', bgimg: 'ภาพพื้นหลังหน้านี้…',
       'bg.off': 'ปิด', 'bg.soft': 'อ่อน', 'bg.mid': 'กลาง (ปกติ)', 'bg.strong': 'ชัด',
       clearData: 'ล้างข้อมูล', help: 'Help', credits: 'เครดิต & ลิขสิทธิ์',
       'accent.teal': 'เขียวน้ำทะเล (ปกติ)', 'accent.blue': 'น้ำเงิน', 'accent.violet': 'ม่วง', 'accent.orange': 'ส้ม', 'accent.graphite': 'เทาเข้ม', 'accent.olive': 'เขียวมะกอก', 'accent.plum': 'ม่วงมังคุด',
@@ -82,7 +82,7 @@
     en: {
       mainNav: 'Tanot main menu', openMenu: 'Open menu', closeMenu: 'Close menu', menu: 'Tanot menu', expand: 'Expand {label}',
       search: 'Search (Ctrl+K)', themeToggle: 'Toggle light/dark mode', settings: 'Settings',
-      accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image intensity',
+      accent: 'Accent colour', style: 'Surface style', lang: 'Language', font: 'Font', bg: 'Background image intensity', bgimg: 'This page background image…',
       'bg.off': 'Off', 'bg.soft': 'Light', 'bg.mid': 'Medium (default)', 'bg.strong': 'Vivid',
       clearData: 'Clear data', help: 'Help', credits: 'Credits & licenses',
       'accent.teal': 'Teal (default)', 'accent.blue': 'Blue', 'accent.violet': 'Violet', 'accent.orange': 'Orange', 'accent.graphite': 'Graphite', 'accent.olive': 'Olive', 'accent.plum': 'Mangosteen',
@@ -589,6 +589,22 @@
     markBg();
     bgRow.addEventListener('click', function () { bgWrap.classList.toggle('open'); });
     settingsPanel.appendChild(bgWrap);
+
+    /* "ภาพพื้นหลังหน้านี้…" — เลือกภาพจากคลัง image-gen ให้กลุ่มของหน้านี้ (bg-custom.js โหลดตอนกด) · เฉพาะหน้าที่มีกลุ่ม + ที่ใช้ R2 ได้ */
+    var bgGrp = OT && OT.bgGroup ? OT.bgGroup() : null;
+    if (bgGrp && (/\.pages\.dev$/.test(location.hostname) || (window.TANOT_FILES && window.TANOT_FILES.enabled))) {
+      var bgImgRow = document.createElement('button');
+      bgImgRow.type = 'button';
+      bgImgRow.className = 'ome-settings-row';
+      bgImgRow.setAttribute('data-bgimg', '');
+      bgImgRow.appendChild(i18nText(document.createElement('span'), 'bgimg'));
+      bgImgRow.addEventListener('click', function () {
+        function go() { window.TanotBgCustom.choose(bgGrp); closeSettings(); }
+        if (window.TanotBgCustom) return go();
+        var sc = document.createElement('script'); sc.src = 'bg-custom.js'; sc.onload = go; document.head.appendChild(sc);
+      });
+      settingsPanel.appendChild(bgImgRow);
+    }
 
     var SETTINGS_ROWS = [
       { key: 'clearData' },
