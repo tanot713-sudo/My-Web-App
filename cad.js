@@ -2637,6 +2637,9 @@
     return state.pendingPoints.length > 0 || !!state.trimCutterId || !!state.offsetSourceId || !!state.breakTargetId || !!state.hatchSourcePts || state.pendingEntityIds.length > 0;
   }
   window.addEventListener('keydown', function (e) {
+    // อยู่แท็บ 3 มิติ = แบบ 2D มองไม่เห็น ปุ่มลัดทั้งหมดของแท็บนี้ต้องไม่ทำงาน (แท็บ 3 มิติจัดการปุ่มของตัวเองใน cad3d.js)
+    var p2d = document.getElementById('panel2d');
+    if (p2d && p2d.hidden) return;
     var tag = document.activeElement.tagName;
     var typingInField = tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA';
     if (!typingInField && e.key === 'F8') { e.preventDefault(); toggleOrtho(); return; }
