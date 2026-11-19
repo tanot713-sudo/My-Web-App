@@ -1,12 +1,12 @@
 /* FINAL 1 — Law Firm Dashboard (replaces the old "legal = statute reading" concept)
-   Follows the exact pattern of report-dashboard.safety.final1.js: self-contained,
+   Follows the exact pattern of report-dashboard.safety.js: self-contained,
    own column-role detection, auto-activates only when the uploaded sheet looks like
    a law-firm matter/billing log (Matter/Client/Attorney/Billable Hours columns),
    inserts its own layout next to the existing Projects-section cards without
    touching them. Does NOT modify any existing file, hook, or the table renderer.
 
    ตามที่ผู้ใช้ขอ: เปลี่ยนแนวคิดจากเดิม "ติดตามการอ่านกฎหมาย" (ย้ายไปรวมกับ Reading domain แล้ว —
-   ดู report-dashboard.reading.final1.js) เป็น "Law Firm Dashboard" บริหารสำนักงานกฎหมายจริง
+   ดู report-dashboard.reading.js) เป็น "Law Firm Dashboard" บริหารสำนักงานกฎหมายจริง
    ใช้ dropdown value เดิม "legal" (ทั้ง #dashboardTemplateSel และ #domainOverrideSel มีอยู่แล้ว
    ไม่ต้องแก้ HTML เพิ่ม) — DOMAIN_ROLES.legal เดิม (คอลัมน์ มาตรา/หมวด/พรบ) ปล่อยไว้เฉยๆ ไม่ลบ
    ไม่กระทบใคร เพราะโมดูลนี้ตรวจจับคอลัมน์ของตัวเองอิสระ ไม่พึ่ง DOMAIN_ROLES/detectDomain() เลย
@@ -566,7 +566,7 @@
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
-     report-dashboard.safety.final1.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
+     report-dashboard.safety.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
   function __tdRevalidate(){
     var A=window.TanotDashboard;
     var st0=A&&typeof A.getState==='function'?A.getState():null;

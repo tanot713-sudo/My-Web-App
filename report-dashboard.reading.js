@@ -1,5 +1,5 @@
 /* FINAL 1 — Reading Control (new rich domain module, additive)
-   Follows the exact pattern of report-dashboard.safety.final1.js: self-contained,
+   Follows the exact pattern of report-dashboard.safety.js: self-contained,
    own column-role detection, auto-activates only when the uploaded sheet looks like
    a personal reading log, inserts its own layout next to the existing
    Projects-section cards without touching them. Does NOT modify any existing
@@ -277,7 +277,7 @@
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
-     report-dashboard.safety.final1.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
+     report-dashboard.safety.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
   function __tdRevalidate(){
     var A=window.TanotDashboard;
     var st0=A&&typeof A.getState==='function'?A.getState():null;

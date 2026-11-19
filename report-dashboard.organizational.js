@@ -1,5 +1,5 @@
 /* FINAL 1 — Organizational Dashboard (new domain, additive)
-   Same plug-in architecture as report-dashboard.hr.final1.js / safety.final1.js / final62.projectcontrol.js
+   Same plug-in architecture as report-dashboard.hr.js / safety.js / projectcontrol.js
    (self-contained IIFE, injects its own layout before #domainDashboardCard, mutual exclusion via
    window.__tdDomainRegistry). ตามที่ผู้ใช้ขอ: แปลจากไฟล์ HTML แบบสแตนด์อโลนที่ส่งมา (org chart + employee
    directory + analytics) ให้ทำงานแบบ "อัปโหลด Excel แล้วเดาคอลัมน์เอา" เหมือน 10 แม่แบบเดิมในหน้านี้

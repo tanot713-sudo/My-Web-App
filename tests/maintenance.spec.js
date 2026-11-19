@@ -272,8 +272,8 @@ test.describe('mnt-calc.js (known-answer)', () => {
     expect(r.assets.rows).toHaveLength(1);
 
     /* ── ตรรกะของ report-dashboard (คัดลอกมาเพื่อกันหัวคอลัมน์ไม่ตรง) ──
-       roleCol / รายการคำ: report-dashboard.maintenance.final1.js บรรทัด 43–47, 96–111 (getData) · classifyWO บรรทัด 53–59
-       scoreHeaderRow / findBestAutoImport: report-dashboard.complete.final43.local.js บรรทัด ~723–756 */
+       roleCol / รายการคำ: report-dashboard.maintenance.js บรรทัด 43–47, 96–111 (getData) · classifyWO บรรทัด 53–59
+       scoreHeaderRow / findBestAutoImport: report-dashboard.core.js บรรทัด ~723–756 */
     const text = (v) => String(v == null ? '' : v).trim();
     const roleCol = (st, words) => (st.columns || []).find((c) => { const n = text(c.label).toLowerCase(); return words.some((w) => n === w || n.indexOf(w) >= 0); }) || null;
     const st = { columns: r.headers.map((h, i) => ({ key: i, label: h })) };
