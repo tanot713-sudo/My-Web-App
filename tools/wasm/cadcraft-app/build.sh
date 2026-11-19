@@ -13,9 +13,10 @@
 # ไม่บังคับ: wasm-opt (binaryen 132) — WASM_OPT=<path>; ไม่มี = ข้าม -Oz (ไฟล์ใหญ่ขึ้น)
 # ฟอนต์: craft-fonts ที่ commit เดียวกับรุ่นทางการ (.github/workflows/release.yml craft-fonts-ref) → CRAFT_FONTS_DIR
 #        รุ่นเว็บฝังเฉพาะ BIZ UDPGothic Regular + หน้าฟอนต์ Arab/Geor + Thai Regular (crates/fonts/build.rs)
-# เมนูเป็นภาษาอังกฤษ (CADCraft ไม่ใช้ craft-i18n และยังไม่มี th.tsv — ROADMAP 11c)
+#   - เมนูภาษาไทย (ROADMAP 11c, patches/0002-thai-interface.patch): crates/ui-egui/src/i18n/th.tsv (คำแปลที่เราเขียนเอง)
+#     + ลงทะเบียน "th" ใน i18n.rs + ฟอนต์ Thai ของ craft-fonts เข้าชุดฟอนต์หน้าจอ (theme.rs) — CADCraft ไม่ใช้ craft-i18n
 # build ซ้ำได้ไบต์เดิม: ซอร์สอยู่ใต้ target/src และ path ถูก remap เป็น /cadcraft, /cargo (ไม่ขึ้นกับเครื่อง)
-# path ที่ deploy แล้วห้ามเปลี่ยนเนื้อไฟล์ — build ใหม่จาก commit เดิมให้ตั้ง CRAFT_SUFFIX=-2 แล้วลบโฟลเดอร์เก่า
+# path ที่ deploy แล้วห้ามเปลี่ยนเนื้อไฟล์ — build ใหม่จาก commit เดิมเปลี่ยน SUFFIX (ค่าเริ่มต้นด้านล่าง) แล้วลบโฟลเดอร์เก่า
 # หลัง build: bump CACHE ใน sw.js + tests/cad-pro.spec.js
 set -euo pipefail
 
@@ -29,7 +30,8 @@ shared="$here/../pdfcraft-app"
 work="$here/target"
 src="$work/src/cadcraft"
 fonts="$work/src/craft-fonts"
-out="$root/vendor/craft/cadcraft-app-${REV:0:7}${CRAFT_SUFFIX:-}"
+SUFFIX="${CRAFT_SUFFIX--2}"                          # -2 = รุ่นที่มีเมนูไทย (ROADMAP 11c); รุ่นแรกไม่มี suffix
+out="$root/vendor/craft/cadcraft-app-${REV:0:7}$SUFFIX"
 mkdir -p "$work/src"
 
 fetch() { # <url> <dir> <rev>
