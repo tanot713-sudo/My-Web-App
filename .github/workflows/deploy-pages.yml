@@ -143,6 +143,8 @@ jobs:
         run: npx playwright test bg-custom.spec.js
       - name: palette (palette-calc.js known-answer — ค้นหนังสือ/โน้ตเรียนใน palette, คำสั่งตั้งการแจ้งเตือนส่งชุดเต็มของ scope custom ไม่ลบของเดิม, ลบที่ notifications.html)
         run: npx playwright test palette.spec.js
+      - name: law-figures (law-figure-calc.js known-answer — บรรทัด @image ในบทเรียนกฎหมาย, ไม่มีรูป = ไม่แสดงอะไร, เลือกรูปจากคลัง image-gen → ผูก/เอาออก, ref ใน tanot:law:figures)
+        run: npx playwright test law-figures.spec.js
       - name: invest (invest-calc.js เทียบฟังก์ชันเดิมของหน้าลงทุนทุกหลัก, มูลค่าสินทรัพย์ลงทุน known-answer + snapshot รายวันเวลาไทย, สมุดเทรดรวม, หน้าลงทุนที่ยุบรวมแล้วใช้ /api/proxy เท่านั้น, คีย์ข้อมูลผู้ใช้เดิมไม่เปลี่ยน, หน้า redirect, ซิงก์ 2 เครื่อง)
         run: npx playwright test invest.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)

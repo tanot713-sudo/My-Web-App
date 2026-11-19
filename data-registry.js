@@ -84,6 +84,9 @@
     { key: 'tanot:images:ui', kind: 'local' },
     // ── ภาพพื้นหลังที่ผู้ใช้ตั้งเอง (bg-custom.js) — กลุ่มภาพ → {id ไฟล์ใน R2 ns images, b สว่าง?, ts} · ไม่เก็บ Blob · ภาพที่โหลดแล้วอยู่ใน Cache Storage 'ome-bgc-v1' ต่อเครื่อง
     { key: 'tanot:bg:custom', kind: 'sync', mode: 'map' },
+
+    // ── รูปประกอบบทเรียนกฎหมาย (classroom-law) — map '<วิชา>|<key>' → {id,name,mime} (ref ไฟล์ R2 ไม่เก็บ Blob)
+    { key: 'tanot:law:figures', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },

@@ -56,6 +56,14 @@ details.lesson > summary{justify-content:space-between;flex-wrap:wrap;padding-to
 details.lesson > summary button{flex-shrink:0}
 .lnote-wrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--ome-border)}
 .lnote-ta{min-height:70px}
+.lfig{margin:14px 0;text-align:center}
+.lfig img{max-width:100%;height:auto;border-radius:var(--ome-radius-md);border:1px solid var(--ome-border)}
+.lfig figcaption{margin-top:6px;font-size:.85rem;color:var(--ome-text-2)}
+.lfig-act{margin-top:6px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.lfig-slot{margin:10px 0}
+.lfig-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.lfig-th{padding:0;border:1px solid var(--ome-border-strong);border-radius:var(--ome-radius-md);background:var(--ome-surface-1);overflow:hidden;cursor:pointer;aspect-ratio:1}
+.lfig-th img{width:100%;height:100%;object-fit:cover;display:block}
 .ttsbar{background:var(--ome-surface-2);border-radius:var(--ome-radius-md);padding:10px 12px}
 .ttsbar-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .ttsbar select{width:auto}
@@ -452,6 +460,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
 <script src="fsrs.js" defer></script>
 <script src="learn-core.js" defer></script>
+<script src="law-figure-calc.js"></script>
 <script src="classroom-law.js" defer></script>
 </body>
 </html>

@@ -349,6 +349,7 @@ function law(h) {
       await settle(p, 500);
     }],
     ['subject-civil', go('#subject-civil')],
+    ['course-nitikam', go('#course-nitikam')],
     ['civil-lesson-tick', async (p) => { await p.evaluate(() => { const c = document.querySelector('[data-lread="0"]'); if (c) c.click(); }); await settle(p, 400); }],
     ['civil-lesson-note', async (p) => { await p.evaluate(() => { const b = document.querySelector('[data-lnotebtn="0"]'); if (b) b.click(); }); await settle(p, 250); await p.fill('[data-lnotearea="0"]', 'My lesson note', { timeout: 3000 }).catch(() => {}); await settle(p, 250); }],
     ['civil-lesson-chip', async (p) => { await p.evaluate(() => { const c = document.querySelector('.lchip'); if (c) c.click(); }); await settle(p, 500); }],
