@@ -903,8 +903,30 @@
     } catch (e) {}
   }
 
+  /* การแจ้งเตือนที่ตั้งเอง (palette) — scope 'custom' ต้องส่ง "ชุดเต็ม" ทุกครั้งที่คีย์เปลี่ยนจากเครื่องไหนก็ได้
+     ไม่งั้นเครื่องที่ตั้งทีหลังโดยยังไม่ได้ดึงของอีกเครื่องมา จะลบของอีกเครื่องออกจาก server (หน้าอื่นส่งชุดใหม่ทุกครั้งที่วาดหน้า) */
+  function syncCustomReminders() {
+    var K = 'tanot:reminders:custom';
+    function push() {
+      var list = window.TanotData && window.TanotData.read ? window.TanotData.read(K, null) : null;
+      if (!Array.isArray(list)) return; // ไม่เคยตั้งเลย = ไม่ต้องส่งอะไร (ไม่ลบของใครที่ server)
+      var need = [];
+      if (!window.PaletteCalc) need.push('palette-calc.js');
+      if (!window.TanotPush) need.push('tanot-push.js');
+      Promise.all(need.map(function (f) {
+        return new Promise(function (res, rej) { var s = document.createElement('script'); s.src = BASE + f; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+      })).then(function () {
+        return window.TanotPush.setReminders('custom', window.PaletteCalc.reminders(list, Date.now()));
+      }).catch(function () {});
+    }
+    if (!window.TanotData || !window.TanotData.onChange) return;
+    window.TanotData.onChange(function (keys) { if (keys.indexOf(K) !== -1) push(); });
+    push();
+  }
+
   function initShellChrome() {
     recordOpen();
+    syncCustomReminders();
     if (!isEmbedded()) { buildNav(); buildFooter(); } /* ในป๊อปอัพ ไม่ต้องมีแถบนำทาง/เมนูลิ้นชัก/ฟุตเตอร์ซ้ำ */
     registerSW();
   }

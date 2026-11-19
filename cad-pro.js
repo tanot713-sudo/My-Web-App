@@ -1,6 +1,6 @@
 /* cad-pro.js — โปรแกรมเขียนแบบ 2 มิติ: CADCraft แบบโปรแกรมเต็ม (vendor/craft/cadcraft-app-*) ผ่านหน้าแม่แบบ craft-app.js
    หน้านี้มีแค่ config + ชื่อหน้า · การโหลด/เปิดไฟล์/ดาวน์โหลด/ไฟล์ล่าสุด/สถานะอยู่ใน craft-app.js
-   เมนูของแอปเป็นภาษาอังกฤษ (CADCraft ยังไม่มีคำแปลไทย — ROADMAP 11c) · รุ่นเว็บไม่มี DWG (patch ซ่อนตัวเลือก) */
+   เมนูของแอปไทย/อังกฤษตามภาษาเว็บ (th.tsv ใน tools/wasm/cadcraft-app/patches/0002) · รุ่นเว็บไม่มี DWG (patch ซ่อนตัวเลือก) */
 (function () {
   'use strict';
   window.OME_I18N.add('cp', {
@@ -15,6 +15,7 @@
     canvas: 'cadcraft_canvas',
     prefs: false,
     liveTheme: true,
+    liveLang: true,
     recent: true,
     ext: '.dxf',
     mime: 'image/vnd.dxf',

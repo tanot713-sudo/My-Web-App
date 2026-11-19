@@ -246,7 +246,7 @@
     },
     "cadcraft-app": {
       "name": "CADCraft",
-      "dir": "vendor/craft/cadcraft-app-7526dc6",
+      "dir": "vendor/craft/cadcraft-app-7526dc6-2",
       "source": "https://github.com/storytold/cadcraft",
       "commit": "7526dc62c14e71b3c8d46e73bbf1fa29ef506af1",
       "version": "0.20.1",
@@ -254,7 +254,8 @@
       "licenseFile": "LICENSE-MIT",
       "app": "apps/cadcraft-web",
       "patches": [
-        "0001-remove-artcraft-marks-and-dwg.patch"
+        "0001-remove-artcraft-marks-and-dwg.patch",
+        "0002-thai-interface.patch"
       ],
       "buildLabel": "tanot",
       "fonts": {
@@ -305,9 +306,9 @@
           "brotli": 20635
         },
         "cadcraft_app_bg.wasm": {
-          "sha256": "0cd87180e9b3c1425cd71091192de232b5c25a6a6489f9c1345f0eed0fd96cce",
-          "bytes": 23798810,
-          "brotli": 8364075
+          "sha256": "4b8d0093abeb3d294a03af52162ffcb3555bf2861e6ee465f74b7c13ed772d0a",
+          "bytes": 23897921,
+          "brotli": 8380550
         }
       }
     }
