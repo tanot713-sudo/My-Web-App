@@ -212,6 +212,40 @@ test.describe('โปรแกรมเขียนแบบ 2 มิติ (CAD
     await expect(btn).toHaveText('Full screen');
   });
 
+  test('เมนูภาษาไทยตามเว็บ: เริ่มเป็นไทย · สลับสด th → en → th · คำแปลไทยอยู่ใน wasm', async ({ context, page }, testInfo) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const { errors } = await setup(context, page);
+    await page.goto('/cad-pro.html');
+    const app = await ready(page);
+    const lang = () => app.evaluate(() => window.cadcraft.execute('options', {}).then((r) => r.interfaceLanguage));
+    await expect.poll(lang).toBe('th');
+    // รายการคำสั่งของแอปยังเป็นชื่ออังกฤษ (id ของคำสั่งไม่แปล)
+    expect(JSON.stringify(await app.evaluate(() => window.cadcraft.commands()))).toContain('"line"');
+    await page.locator('#craFrame').screenshot({ path: testInfo.outputPath('cad-pro-th.png') });
+    await page.evaluate(() => window.OME_LANG.set('en'));
+    await expect.poll(lang).toBe('en');
+    await page.evaluate(() => window.OME_LANG.set('th'));
+    await expect.poll(lang).toBe('th');
+    expect(errors).toEqual([]);
+  });
+
+  test('th.tsv: ทุกแถวมี 3 คอลัมน์ · {ตัวแปร} และ ... ตรงต้นฉบับ · ฝังใน wasm', async () => {
+    const tsv = fs.readFileSync(path.join(ROOT, 'tools/wasm/cadcraft-app/patches/0002-thai-interface.patch'), 'utf8')
+      .split('\n').filter((l) => l.startsWith('+') && !l.startsWith('+++')).map((l) => l.slice(1));
+    const rows = tsv.filter((l) => /^(|menu|@plural)\t[^\t]+\t[^\t]+$/.test(l));
+    expect(rows.length).toBeGreaterThan(1400);
+    const ph = (s) => (s.match(/\{[^}]*\}/g) || []).sort().join();
+    for (const r of rows) {
+      const [, en, th] = r.split('\t');
+      expect(ph(th), en).toBe(ph(en));
+      expect(/(\.\.\.|…)$/.test(th), en).toBe(/(\.\.\.|…)$/.test(en));
+      expect(th, en).not.toMatch(/ArtCraft|Discord/i);
+    }
+    const whole = Buffer.concat(PARTS.map((f) => fs.readFileSync(path.join(ROOT, LIB.dir, f)))).toString('utf8');
+    expect(whole).toContain('ระบุจุดแรก');
+    expect(whole).toContain('จัดการคุณสมบัติเลเยอร์');
+  });
+
   test('ปุ่มเต็มจอไม่แสดงก่อนแอปพร้อม (มือถือ/ล้ม)', async ({ context, page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await setup(context, page, { wasm: '404' });
