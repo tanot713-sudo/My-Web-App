@@ -179,4 +179,34 @@ test.describe('cad live sketch 3D', () => {
     await click(300, 300); // รัศมี 0
     await expect(dim).toBeHidden();
   });
+
+  test('แท็บ 3 มิติ: Delete/Backspace/Ctrl+Z/Ctrl+Y ไม่แตะแบบ 2D ที่ซ่อนอยู่ · กลับแท็บ 2D ปุ่มยังทำงาน', async ({ page }) => {
+    await prepare(page);
+    await page.setViewportSize({ width: 1100, height: 900 });
+    await page.goto('/cad.html');
+    const count = () => page.evaluate(() => { try { return (JSON.parse(localStorage.getItem('tanot:cad:autosave') || '{}').entities || []).length; } catch (e) { return -1; } });
+    const cv = /** @type {any} */ (await page.locator('#cadCanvas').boundingBox());
+    await page.click('#toolLineBtn');
+    await page.mouse.click(cv.x + 150, cv.y + 150);
+    await page.mouse.click(cv.x + 350, cv.y + 150);
+    await page.keyboard.press('Escape');
+    await page.click('#toolSelectBtn');
+    await page.mouse.click(cv.x + 250, cv.y + 150); // เลือกเส้น
+    await expect.poll(count).toBe(1);
+    await expect(page.locator('#undoBtn')).toBeEnabled();
+    await page.click('#tabBtn3d');
+    // ทีละปุ่ม (ถ้าปล่อยรวมกัน Delete แล้ว Ctrl+Z จะหักล้างกันจนมองไม่เห็นบั๊ก)
+    for (const k of ['Delete', 'Backspace', 'Control+z', 'Control+y', 'Control+Shift+z']) {
+      await page.keyboard.press(k);
+      await page.waitForTimeout(500);
+      expect(await count(), k).toBe(1);
+      await expect(page.locator('#undoBtn'), k).toBeEnabled();
+      await expect(page.locator('#redoBtn'), k).toBeDisabled();
+    }
+    await page.click('#tabBtn2d');
+    await page.keyboard.press('Control+z');
+    await expect.poll(count).toBe(0);
+    await page.keyboard.press('Control+y');
+    await expect.poll(count).toBe(1);
+  });
 });
