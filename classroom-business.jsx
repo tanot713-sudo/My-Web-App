@@ -655,7 +655,6 @@
                             <h1 className="text-lg font-bold">{T('title')} <span className="hidden sm:inline text-slate-400 font-normal">| Tanot</span></h1>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <span className="badge warn"><Trophy /> <span>Level {level}</span> <span>({xp} XP)</span></span>
                             <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
                                 {syncing ? T('syncing') : <>{T('sync')}<span className="hidden sm:inline"> Google Drive</span></>}
                             </button>

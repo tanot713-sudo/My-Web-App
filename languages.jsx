@@ -17560,18 +17560,6 @@
                                     );
                                 })}
                             </nav>
-
-                            <div className="text-sm font-bold text-gray-500 mb-3 px-2">{tx('คะแนนสะสม')}</div>
-                            <div className="flex flex-wrap gap-2 px-1">
-                                <span className="badge warn"><Brain className="w-4 h-4" /> {xp} XP</span>
-                                <span className={`badge ${streak.count > 0 ? 'warn' : ''}`}><FlameIcon className="w-4 h-4" /> {tx('{n} วันติดต่อกัน', { n: streak.count })}</span>
-                            </div>
-                            {streak.count > 0 && !practicedToday && (
-                                <p className="text-sm text-gray-500 mt-2 px-1 leading-snug">{tx('🔥 วันนี้ยังไม่ได้ฝึกเลย ฝึกอีกนิดเพื่อรักษาสถิติไว้!')}</p>
-                            )}
-                            {streak.longest > streak.count && (
-                                <p className="text-sm text-gray-500 mt-2 px-1">{tx('สถิติสูงสุด {n} วัน', { n: streak.longest })}</p>
-                            )}
                         </div>
                     </aside>
 
@@ -17618,8 +17606,6 @@
                                             </div>
                                             <div className="meter"><i style={{ width: `${totalCategories ? (doneCategories / totalCategories * 100) : 0}%` }}></i></div>
                                         </div>
-                                        <span className="badge warn"><Brain /> {xp} XP</span>
-                                        <span className={`badge ${practicedToday ? 'ok' : ''}`}><FlameIcon /> {tx('{n} วันติดต่อกัน', { n: streak.count })}</span>
                                     </div>
                                 </section>
 
