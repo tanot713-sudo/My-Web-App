@@ -82,6 +82,8 @@
     // ── สร้างภาพ (image-gen.html) — ข้อมูลกำกับภาพ 1 ภาพ = 1 แถว (ตัวภาพอยู่ใน R2 ผ่าน /api/files?ns=images) · ui = ตัวกรอง/ค่าที่เลือกต่อเครื่อง
     { key: 'tanot:images:items', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:images:ui', kind: 'local' },
+    // ── รูปประกอบบทเรียนกฎหมาย (classroom-law) — map '<วิชา>|<key>' → {id,name,mime} (ref ไฟล์ R2 ไม่เก็บ Blob)
+    { key: 'tanot:law:figures', kind: 'sync', mode: 'map' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },
