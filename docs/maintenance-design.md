@@ -37,8 +37,8 @@
 - `balance_months()` ของ est-cost กระจายงาน M3/M6/รายปี ให้ชั่วโมงแต่ละเดือนใกล้กัน — หน้าใหม่ทำแบบเดียวกันในระดับอุปกรณ์รายตัว (`MntCalc.assignPhases`, หัวข้อ 4)
 
 ### 1.2 report-dashboard โมดูล maintenance
-- `report-dashboard.html` รับข้อมูลจาก **ไฟล์ที่อัปโหลด** เท่านั้น: `handleFile()` → `XLSX.read(...,{cellDates:true})` → `onWorkbookParsed(wb, name)` (`report-dashboard.complete.final43.local.js` ~บรรทัด 699) เก็บงานค้างใน IndexedDB `tanot-report-dashboard` (store `current`, `reports` แบบ autoIncrement → registry ตั้ง `sync: []`)
-- โมดูล `report-dashboard.maintenance.final1.js` จับคอลัมน์จาก**ชื่อหัวคอลัมน์** (`roleCol`: ตัวพิมพ์เล็กแล้ว `===` หรือ `indexOf`, เอาคอลัมน์แรกที่ตรง) ต้องมี `equipmentno` + (`downtime` หรือ `actstart`/`actend`) และอย่างน้อย 2 แถวที่มีวันที่ ถึงจะแสดงผัง Maintenance Control
+- `report-dashboard.html` รับข้อมูลจาก **ไฟล์ที่อัปโหลด** เท่านั้น: `handleFile()` → `XLSX.read(...,{cellDates:true})` → `onWorkbookParsed(wb, name)` (`report-dashboard.core.js` ~บรรทัด 699) เก็บงานค้างใน IndexedDB `tanot-report-dashboard` (store `current`, `reports` แบบ autoIncrement → registry ตั้ง `sync: []`)
+- โมดูล `report-dashboard.maintenance.js` จับคอลัมน์จาก**ชื่อหัวคอลัมน์** (`roleCol`: ตัวพิมพ์เล็กแล้ว `===` หรือ `indexOf`, เอาคอลัมน์แรกที่ตรง) ต้องมี `equipmentno` + (`downtime` หรือ `actstart`/`actend`) และอย่างน้อย 2 แถวที่มีวันที่ ถึงจะแสดงผัง Maintenance Control
 - คำที่ใช้แยก PM/CM และสถานะ: `PM_KW` (`pm`, `preventive`, `ตามแผน`…), `CM_KW` (`cm`, `corrective`, `ซ่อมฉุกเฉิน`, `เสีย`…), `DONE_KW` (`เสร็จ`, `ปิดงาน`, `done`…), `LATE_KW` (`ล่าช้า`, `เกินกำหนด`…), `AWAIT_PARTS_KW` (`รออะไหล่`…)
 - → ทางเชื่อม: หน้าใหม่ส่งออกชีต `WorkOrders` ที่หัวคอลัมน์ตรงกับคำเหล่านี้ (หัวข้อ 7.2) และ (ขั้นสุดท้าย) ปุ่มเปิดตรงใน report-dashboard ผ่านเส้นทางเดียวกับการอัปโหลดไฟล์ (หัวข้อ 7.3)
 
@@ -428,7 +428,7 @@ push branch แล้วเปิด PR เข้า `main` — ไม่ merge 
 7. `foldWo`: event สลับลำดับ → ผลตาม `at` · `at` เท่ากันตัดด้วย `dev` · parts → matCost · note เรียงเวลา · cancel
 8. `splitChecklist`: เลขนำหน้า/บูลเล็ต/บรรทัดว่าง/`;`
 9. `fromEstCost` (array ตามคอลัมน์ 1.1): สร้าง site/asset/plan ถูกจำนวน · รหัส `ABBR-CODE-01..n` · id คงที่เมื่อรันซ้ำ · นำเข้าซ้ำ qty+1 เพิ่ม 1 ตัว, qty−1 ตั้ง missing ไม่ลบ · แผน edited ไม่ถูกทับ · code ใน PM_PLAN ที่ไม่มีใน EQUIPMENT → warning · ชีต PM_ACTIVITY ไม่มี → ข้อเดียว
-10. `reportRows`: หัวคอลัมน์ตรงตามตาราง 7.2 ทั้งชื่อและลำดับ · แถว CM/PM ค่าตามตัวอย่าง · ช่องว่างเป็นค่าว่าง · ตรวจกับตรรกะ `roleCol` (คัดลอกฟังก์ชัน + รายการคำจาก `report-dashboard.maintenance.final1.js` พร้อมคอมเมนต์อ้างบรรทัด) ว่าทุก role ได้คอลัมน์ที่ตั้งใจ และมีแถวที่มีวันที่ ≥ 2 · คัดลอก `scoreHeaderRow`/`findBestAutoImport` (`report-dashboard.complete.final43.local.js` ~บรรทัด 723–756) มาตรวจ workbook ทั้ง 4 ชีตว่าได้ `WorkOrders` คะแนน ≥ 8 และชีตอื่นคะแนนต่ำกว่า
+10. `reportRows`: หัวคอลัมน์ตรงตามตาราง 7.2 ทั้งชื่อและลำดับ · แถว CM/PM ค่าตามตัวอย่าง · ช่องว่างเป็นค่าว่าง · ตรวจกับตรรกะ `roleCol` (คัดลอกฟังก์ชัน + รายการคำจาก `report-dashboard.maintenance.js` พร้อมคอมเมนต์อ้างบรรทัด) ว่าทุก role ได้คอลัมน์ที่ตั้งใจ และมีแถวที่มีวันที่ ≥ 2 · คัดลอก `scoreHeaderRow`/`findBestAutoImport` (`report-dashboard.core.js` ~บรรทัด 723–756) มาตรวจ workbook ทั้ง 4 ชีตว่าได้ `WorkOrders` คะแนน ≥ 8 และชีตอื่นคะแนนต่ำกว่า
 
 **B. หน้า (Playwright, `prepare()` จาก helpers, `window.TANOT_SYNC`/`TANOT_FILES` = enabled กับเซิร์ฟเวอร์ 8129, เสิร์ฟ SheetJS ด้วย `page.route` จาก `tests/node_modules/xlsx/dist/xlsx.full.min.js`)**
 1. ออฟไลน์: เปิดหน้า → `context.setOffline(true)` → `#asset=<id>` → กรอกทุกข้อ + แนบรูป (`setInputFiles` PNG เล็ก) → บันทึก → reload ยังเห็นผล (doc อยู่ใน `tanot-mnt-<ปี>`, PhotoRef pending, outbox 1 รายการ)

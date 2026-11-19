@@ -18,7 +18,7 @@
       — never hand-picked, since real uploaded data has no "designer's judgment"
       to lean on.
 
-   Follows the structural pattern of report-dashboard.safety.final1.js (own
+   Follows the structural pattern of report-dashboard.safety.js (own
    getData/injectLayout/render, does not touch the table renderer). Needs a new
    dropdown option "kpidashboard" added to #dashboardTemplateSel/#domainOverrideSel
    (this domain didn't pre-exist like legal/risk/finance/reading did). */
@@ -430,7 +430,7 @@
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
-     report-dashboard.safety.final1.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้
+     report-dashboard.safety.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้
      (โมดูลนี้เองไม่จำเป็นต้องมีใครมาบังคับตัวเองบ่อย เพราะโหลดท้ายสุด แต่ต้องลงทะเบียนไว้เผื่อโมดูลอื่นที่โหลด
      ก่อนหน้าต้องการบังคับให้ตัวเองเช็คซ้ำตอนสลับกลับมาที่โดเมนนั้นๆ) */
   function __tdRevalidate(){

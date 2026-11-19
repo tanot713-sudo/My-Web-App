@@ -1519,14 +1519,15 @@ thead .freeze-sticky{z-index:4;background:var(--ome-surface-2)}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.css">
 <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@1.2.2/dist/frappe-gantt.umd.js"></script>
 <script src="chart-theme.js" defer></script>
-<script src="report-dashboard.utils.final43.js" defer></script>
-<script src="report-dashboard.performance.final43.js" defer></script>
-<script src="report-dashboard.complete.final43.local.js" defer></script>
+<script src="report-dashboard.utils.js" defer></script>
+<script src="report-dashboard.performance.js" defer></script>
+<script src="report-dashboard.modules.js" defer></script>
+<script src="report-dashboard.core.js" defer></script>
 <script src="report-dashboard.mntsrc.js" defer></script>
-<script src="report-dashboard.bi-plus.final43.js" defer></script>
+<script src="report-dashboard.bi-plus.js" defer></script>
 
 <!-- ปุ่มดาวน์โหลดแม่แบบไฟล์เปล่าของแต่ละ Template — ตามที่ผู้ใช้ขอ วางไว้ใต้กล่องอัปโหลด (ก่อนหน้านี้
-     เป็นพื้นที่ว่าง) หัวคอลัมน์ในแต่ละแม่แบบก็อปมาจาก roleCol() ของแต่ละ report-dashboard.<domain>.final1.js
+     เป็นพื้นที่ว่าง) หัวคอลัมน์ในแต่ละแม่แบบก็อปมาจาก roleCol() ของแต่ละ report-dashboard.<domain>.js
      ตรงๆ (คีย์เวิร์ดแรกของแต่ละ role) เพื่อให้แน่ใจว่ากรอกไฟล์ตามนี้แล้วโมดูลจับคอลัมน์ได้ถูกแน่นอน
      เป็นไฟล์ CSV ล้วน (แค่แถวหัวคอลัมน์ ไม่มีข้อมูล) ไม่ต้องพึ่ง SheetJS (โหลดจาก CDN ไม่ได้ในบางเครือข่าย) -->
 <script id="template-download-patch">
@@ -1594,7 +1595,7 @@ function A(){return window.TanotDashboard||{}}
 function toast(msg,kind){window.TanotReportUtils.toast(msg,kind)}
 function rerender(view){try{if(view==='custom'&&A().renderCustomView) A().renderCustomView(); else if(view==='dashboard'&&A().renderDashboard) A().renderDashboard(); else if(A().renderTable) A().renderTable();}catch(e){console.error(e)}}
 
-/* ---------- popup helper (กล่องโต้ตอบกลางอยู่ใน report-dashboard.utils.final43.js) ---------- */
+/* ---------- popup helper (กล่องโต้ตอบกลางอยู่ใน report-dashboard.utils.js) ---------- */
 function modal(title, bodyHTML, footerHTML){return window.TanotReportUtils.modal(title, bodyHTML, footerHTML)}
 window.__tanotModal=modal;
 
@@ -2373,16 +2374,5 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </style>
 
 
-<script src="report-dashboard.final62.projectcontrol.js"></script>
-<script src="report-dashboard.safety.final1.js"></script>
-<script src="report-dashboard.hr.final1.js"></script>
-<script src="report-dashboard.itops.final1.js"></script>
-<script src="report-dashboard.maintenance.final1.js"></script>
-<script src="report-dashboard.lawfirm.final1.js"></script>
-<script src="report-dashboard.risk.final1.js"></script>
-<script src="report-dashboard.finance.final1.js"></script>
-<script src="report-dashboard.reading.final1.js"></script>
-<script src="report-dashboard.kpidashboard.final1.js"></script>
-<script src="report-dashboard.organizational.final1.js"></script>
 </body>
 </html>
