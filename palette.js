@@ -123,10 +123,10 @@
     var res = window.PaletteCalc.makeCustom(f.title.value, f.at.value ? new Date(f.at.value).getTime() : NaN, now, 'r' + now.toString(36) + Math.random().toString(36).slice(2, 6));
     if (res.error) { remErr(t(res.error === 'title' ? 'remErrTitle' : 'remErrWhen')); (res.error === 'title' ? f.title : f.at).focus(); return; }
     var after;
-    window.TanotData.update(REM_KEY, function (cur) { after = window.PaletteCalc.cleanCustom((cur || []).concat([res.row])); return after; });
+    window.TanotData.update(REM_KEY, function (cur) { after = window.PaletteCalc.cleanCustom((cur || []).concat([res.row]), now); return after; });
     var live = window.TanotPush.enabled();
     // ส่ง "ชุดเต็ม" ของ scope เสมอ — ส่งแค่รายการใหม่จะลบของเดิมที่ตั้งไว้
-    window.TanotPush.setReminders('custom', window.PaletteCalc.reminders(after, Date.now()));
+    window.TanotPush.setReminders('custom', window.PaletteCalc.reminders(after, Date.now())).catch(function () {}); // TanotPush ลองใหม่เองเมื่อออนไลน์
     closeReminder();
     toast(t(live ? 'remDone' : 'remNoPush'));
   }

@@ -89,7 +89,7 @@
     if (!b || !window.PaletteCalc) return;
     var id = b.getAttribute('data-del'), left = [];
     TanotData.update('tanot:reminders:custom', function (cur) { left = (Array.isArray(cur) ? cur : []).filter(function (r) { return r && r.id !== id; }); return left; });
-    P.setReminders('custom', PaletteCalc.reminders(left, Date.now())).then(renderList, renderList); // ชุดเต็มของ scope
+    P.setReminders('custom', PaletteCalc.reminders(left, Date.now())).catch(function () {}).then(renderList); // ชุดเต็มของ scope
   });
   function renderList() {
     if (!P || !P.enabled()) { lastItems = []; listError = null; paintList(); return Promise.resolve(); }

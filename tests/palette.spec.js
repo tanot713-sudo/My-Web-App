@@ -23,6 +23,16 @@ test.describe('palette-calc', () => {
     expect(r[0].hay).toContain('tolstoy');
     expect(C.dataItems({}, {})).toEqual([]);
   });
+  test('cleanCustom: เลยเวลาเกิน 30 วันถูกล้าง · เกิน 100 แถวเก็บแถวที่ใกล้ถึงที่สุด (แถวใหม่ไม่หาย)', () => {
+    const old = Array.from({ length: 100 }, (_, i) => ({ id: 'o' + i, title: 'old' + i, at: NOW - 40 * 86400000 + i }));
+    const withNew = old.concat([{ id: 'n', title: 'new', at: NOW + HOUR }]);
+    expect(C.cleanCustom(withNew, NOW).map((r) => r.id)).toEqual(['n']); // ของเก่า > 30 วันถูกล้าง
+    const recentPast = Array.from({ length: 100 }, (_, i) => ({ id: 'p' + i, title: 'p' + i, at: NOW - 86400000 + i })); // เลยมา 1 วัน = ยังเก็บ
+    const out = C.cleanCustom(recentPast.concat([{ id: 'n', title: 'new', at: NOW + HOUR }]), NOW);
+    expect(out).toHaveLength(100);
+    expect(out.some((r) => r.id === 'n')).toBe(true);
+    expect(C.reminders(recentPast.concat([{ id: 'n', title: 'new', at: NOW + HOUR }]), NOW).map((r) => r.id)).toEqual(['n']);
+  });
   test('makeCustom: ต้องมีเรื่อง และเวลาอยู่ในอนาคต', () => {
     expect(C.makeCustom('  ', NOW + HOUR, NOW, 'a')).toEqual({ error: 'title' });
     expect(C.makeCustom('จ่ายค่าน้ำ', NOW - 1, NOW, 'a')).toEqual({ error: 'when' });
@@ -105,4 +115,38 @@ test('ตั้งการแจ้งเตือน: เก็บคีย์
   await page.locator('[data-del]').first().click();
   await expect.poll(() => global_posts(page).length).toBe(3);
   expect(global_posts(page)[2].items).toHaveLength(1);
+});
+
+test.describe('ซิงก์ 2 เครื่อง (scope custom ครบทั้งสองเรื่อง)', () => {
+  const SRV = 'http://localhost:8145';
+  test.describe.configure({ mode: 'serial' });
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+  test('เครื่อง B ตั้งทีหลังโดยยังไม่ดึงของ A → หลังซิงก์ server มีครบทั้ง R1 และ R2', async ({ browser, request }) => {
+    const mk = async () => {
+      const ctx = await browser.newContext({ baseURL: SRV });
+      const page = await ctx.newPage();
+      await prepare(page);
+      await page.addInitScript(() => { window.TANOT_PUSH = { enabled: true }; window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 }; });
+      await page.goto('/index.html', { waitUntil: 'load' });
+      await page.waitForSelector('nav.ome-nav');
+      return page;
+    };
+    const A = await mk(), B = await mk();
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    const set = async (p, title) => {
+      await p.keyboard.press('Control+k');
+      await p.fill('.ome-pal-input', 'ตั้งการแจ้งเตือน');
+      await p.keyboard.press('Enter');
+      await p.locator('.ome-qa:not([hidden]) input[name=title]').fill(title);
+      await p.locator('.ome-qa:not([hidden]) button[type=submit]').click();
+      await expect(p.locator('.ome-qa:not([hidden])')).toHaveCount(0);
+    };
+    const titles = async () => (await (await request.get(SRV + '/__push')).json()).reminders.filter((r) => r.source === 'custom').map((r) => r.title).sort();
+    await set(A, 'R1');
+    await expect.poll(titles).toEqual(['R1']);
+    await set(B, 'R2'); // B ยังไม่ได้ดึง R1 → ส่งชุด {R2} server ลบ R1
+    await expect.poll(titles).toEqual(['R2']);
+    for (let i = 0; i < 2; i++) { await sync(A); await sync(B); } // ซิงก์ list กลับมาเป็น {R1,R2} → ทุกเครื่องส่งชุดเต็มใหม่เอง
+    await expect.poll(titles, { timeout: 15000 }).toEqual(['R1', 'R2']);
+  });
 });

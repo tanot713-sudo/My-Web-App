@@ -15,7 +15,7 @@
 })(typeof self !== 'undefined' ? self : this, function () {
   'use strict';
 
-  var MAX_DATA = 400, MAX_CUSTOM = 100;
+  var MAX_DATA = 400, MAX_CUSTOM = 100, KEEP_PAST_MS = 30 * 86400000; // เตือนที่เลยเวลาเกิน 30 วันถูกล้างทิ้ง
   function str(v, max) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, max); }
   function norm(s) { return String(s || '').toLowerCase().replace(/\s+/g, ''); }
   function list(v) { return Array.isArray(v) ? v : []; }
@@ -41,15 +41,18 @@
   }
 
   /* แถวการแจ้งเตือนที่ผู้ใช้ตั้งเอง: ล้างค่า, ไม่ซ้ำ id */
-  function cleanCustom(v) {
+  function cleanCustom(v, now) {
     var seen = {}, out = [];
     list(v).forEach(function (r) {
       var id = str(r && r.id, 60), title = str(r && r.title, 120), at = Number(r && r.at);
       if (!id || !title || !isFinite(at) || at <= 0 || seen[id]) return;
+      if (now && at < now - KEEP_PAST_MS) return;
       seen[id] = 1;
       out.push({ id: id, title: title, at: Math.round(at), createdAt: Number(r.createdAt) > 0 ? Math.round(r.createdAt) : 0 });
     });
-    return out.slice(0, MAX_CUSTOM);
+    // เกินเพดาน = เก็บแถวที่ใกล้ถึงที่สุด (เวลามากสุด) ไม่ใช่แถวเก่าสุด
+    if (out.length > MAX_CUSTOM) out = out.sort(function (a, b) { return b.at - a.at; }).slice(0, MAX_CUSTOM);
+    return out;
   }
 
   /* ผลของฟอร์ม → แถวใหม่ หรือ { error:'title'|'when' } (เวลาต้องอยู่ในอนาคต) */
@@ -62,7 +65,7 @@
 
   /* รายการส่ง TanotPush.setReminders('custom', …) — เฉพาะที่ยังไม่ถึงเวลา (ที่ผ่านแล้วไม่ต้องส่งอีก; ชุดเต็มเสมอ) */
   function reminders(rows, now) {
-    return cleanCustom(rows).filter(function (r) { return r.at > now; }).map(function (r) {
+    return cleanCustom(rows, now).filter(function (r) { return r.at > now; }).map(function (r) {
       return { id: r.id, title: r.title, due_at: r.at, kind: 'push', url: 'notifications.html' };
     });
   }
