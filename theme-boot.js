@@ -119,8 +119,11 @@
   var BG_CUSTOM_KEY = 'tanot:bg:custom';
   var BG_ID = /^[A-Za-z0-9_-]{8,64}$/;
   function bgMap() {
-    try { var m = JSON.parse(localStorage.getItem(BG_CUSTOM_KEY) || 'null'); return m && typeof m === 'object' && !Array.isArray(m) ? m : {}; }
-    catch (e) { return {}; }
+    /* อ่านผ่าน TanotData.raw เมื่อมี (ไม่นับว่าหน้านี้ "ถือ" คีย์ → ไม่เด้งแถบโหลดใหม่เมื่ออีกเครื่องเปลี่ยนภาพ) — ตอนบูต tanot-data ยังไม่โหลด getItem ตรงๆ ไม่ถูกนับ */
+    try {
+      var T = window.TanotData, raw = T && T.raw ? T.raw(BG_CUSTOM_KEY) : localStorage.getItem(BG_CUSTOM_KEY);
+      var m = JSON.parse(raw || 'null'); return m && typeof m === 'object' && !Array.isArray(m) ? m : {};
+    } catch (e) { return {}; }
   }
   function bgCustom(grp) {
     var m = bgMap(), e = grp && Object.prototype.hasOwnProperty.call(m, grp) ? m[grp] : null;
@@ -162,7 +165,12 @@
 
   /* ตั้ง/ล้างภาพของกลุ่ม: อ่านสด → แก้ → เขียน (tanot-data ซิงก์ทีละกลุ่ม) · group ต้องเป็นกลุ่มที่มีจริง */
   function writeBgMap(m) {
-    try { localStorage.setItem(BG_CUSTOM_KEY, JSON.stringify(m)); } catch (e) { return false; }
+    /* TanotData.update = อ่านสด → เขียน โดยไม่ทำให้หน้านี้ถือคีย์ (setItem ตรงๆ จะทำให้แถบโหลดใหม่เด้งตอนเครื่องอื่นเปลี่ยน) */
+    try {
+      var T = window.TanotData;
+      if (T && T.update) T.update(BG_CUSTOM_KEY, function () { return m; });
+      else localStorage.setItem(BG_CUSTOM_KEY, JSON.stringify(m));
+    } catch (e) { return false; }
     var st = apply();
     for (var i = 0; i < listeners.length; i++) { try { listeners[i](st, 'bgcustom'); } catch (e2) {} }
     return true;

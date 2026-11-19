@@ -202,6 +202,46 @@ test.describe('ภาพที่ผู้ใช้ตั้งเอง — ห
   });
 });
 
+test.describe('ซิงก์ข้ามเครื่อง', () => {
+  test.describe.configure({ mode: 'serial' });
+  const SYNC = 'http://localhost:8147';
+
+  async function device(browser, init) {
+    const ctx = await browser.newContext({ baseURL: SYNC });
+    await ctx.addInitScript(() => { window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 }; });
+    const page = await ctx.newPage();
+    await prepare(page);
+    await page.goto('/index.html');
+    if (init) await init(page);
+    return { ctx, page };
+  }
+  const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+
+  test('ภาพที่อีกเครื่องตั้งมาเปลี่ยนสด และไม่เด้งแถบ "โหลดใหม่" — ทั้งหน้าที่เป็นคนตั้งเอง และหน้าที่เปิดไว้เฉยๆ', async ({ browser }) => {
+    await fetch(SYNC + '/__reset', { method: 'POST' });
+    const A = await device(browser);
+    const B = await device(browser);
+    // A เป็นคนตั้งเอง (ผ่าน OmeTheme.setBgCustom) แล้วสลับธีมเพื่อให้ apply() รันซ้ำหลัง tanot-data โหลด
+    await A.page.evaluate((id) => { window.OmeTheme.setBgCustom('today', { id, l: 0.5 }); window.OmeTheme.set('theme', 'dark'); }, ID);
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await expect.poll(() => attr(B.page, 'data-bg-custom')).toBe('1');
+    // B ก็ทำให้ apply() รันซ้ำหลังโหลด (สลับธีม) แล้ว A เปลี่ยนภาพ → B ต้องเปลี่ยนสดโดยไม่มีแถบ
+    await B.page.evaluate(() => window.OmeTheme.set('theme', 'dark'));
+    await A.page.evaluate((id) => window.OmeTheme.setBgCustom('today', { id, l: 0.95 }), ID);
+    expect(await sync(A.page)).toBe('ok');
+    expect(await sync(B.page)).toBe('ok');
+    await expect.poll(() => attr(B.page, 'data-bg-lum')).toBe('bright');
+    // และเครื่องที่เป็นคนตั้งเอง: B เปลี่ยนกลับ → A เปลี่ยนสด ไม่มีแถบ
+    await B.page.evaluate((id) => window.OmeTheme.setBgCustom('today', { id, l: 0.1 }), ID);
+    expect(await sync(B.page)).toBe('ok');
+    expect(await sync(A.page)).toBe('ok');
+    await expect.poll(() => attr(A.page, 'data-bg-lum')).toBe('dark');
+    for (const d of [A, B]) expect(await d.page.locator('#tanot-sync-bar').count()).toBe(0);
+    await A.ctx.close(); await B.ctx.close();
+  });
+});
+
 test.describe('repo', () => {
   test('sw.js: แคช ome-bgc-v1 cache-first เฉพาะ /api/files?bg=1 + ไม่อยู่ในรายการที่ activate ลบ · registry ลงทะเบียนคีย์', () => {
     const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8');
