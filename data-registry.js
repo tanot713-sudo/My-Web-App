@@ -114,6 +114,9 @@
     { key: 'tanot:lecture:notes', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:lecture:cards', kind: 'sync', mode: 'list', idField: 'id' },
 
+    // ── การแจ้งเตือนที่ผู้ใช้ตั้งเองจากค้นหาด่วน (palette) — 1 เรื่อง = 1 แถว ส่งขึ้น reminders scope 'custom' ──
+    { key: 'tanot:reminders:custom', kind: 'sync', mode: 'list', idField: 'id' },
+
     // ── รายการที่เพิ่มได้จากหลายเครื่อง (แยกรายการย่อย) ──
     { key: 'tanot:insurance:policies', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'budget:records', kind: 'sync', mode: 'list', idField: 'id' },
