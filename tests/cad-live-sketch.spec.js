@@ -184,7 +184,7 @@ test.describe('cad live sketch 3D', () => {
     await prepare(page);
     await page.setViewportSize({ width: 1100, height: 900 });
     await page.goto('/cad.html');
-    const count = () => page.evaluate(() => { try { return (JSON.parse(localStorage.getItem('tanot:cad:autosave') || '{}').entities || []).length; } catch (e) { return -1; } });
+    const count = async () => Number((await page.locator('#statCount').innerText()).replace(/[^0-9]/g, '')); // เขียนทันทีแบบ synchronous ตอน undo/ลบ
     const cv = /** @type {any} */ (await page.locator('#cadCanvas').boundingBox());
     await page.click('#toolLineBtn');
     await page.mouse.click(cv.x + 150, cv.y + 150);
@@ -198,7 +198,6 @@ test.describe('cad live sketch 3D', () => {
     // ทีละปุ่ม (ถ้าปล่อยรวมกัน Delete แล้ว Ctrl+Z จะหักล้างกันจนมองไม่เห็นบั๊ก)
     for (const k of ['Delete', 'Backspace', 'Control+z', 'Control+y', 'Control+Shift+z']) {
       await page.keyboard.press(k);
-      await page.waitForTimeout(500);
       expect(await count(), k).toBe(1);
       await expect(page.locator('#undoBtn'), k).toBeEnabled();
       await expect(page.locator('#redoBtn'), k).toBeDisabled();
