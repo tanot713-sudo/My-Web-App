@@ -71,4 +71,13 @@ test.describe('iOS', () => {
     await expect(page.getByText('โควตา AI ฟรีของวันนี้เต็มแล้ว')).toBeVisible();
     expect(await page.evaluate(() => window.__workers.filter((u) => /ai-chat-worker/.test(u)).length)).toBe(0);
   });
+
+  test('คลาวด์ล่มแบบที่ถอยได้ (upstream) → iOS ไม่ถอย ไม่สร้าง Worker แสดงข้อความ AiClient', async ({ page }) => {
+    const { chatCalls } = await setup(page, 'down');
+    await submitCompose(page);
+    await expect(page.getByText('HTTP 502').first()).toBeVisible();
+    expect(chatCalls.length).toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.__workers.filter((u) => /ai-chat-worker/.test(u)).length)).toBe(0);
+    await expect(page.getByText('LOCAL-ANSWER')).toHaveCount(0);
+  });
 });

@@ -1274,17 +1274,22 @@
     });
     const runLocal = (m) => {
       const real = getLocalWritingWorker();
+      const stop = () => {
+        real.removeEventListener("message", fwd);
+        real.removeEventListener("error", onErr);
+      };
       const fwd = (e) => {
         const d = e.data;
         if (!d || d.jobId !== m.jobId) return;
         emit("message", d);
-        if (d.type === "done" || d.type === "error") real.removeEventListener("message", fwd);
+        if (d.type === "done" || d.type === "error") stop();
+      };
+      const onErr = (e) => {
+        stop();
+        emit("error", e);
       };
       real.addEventListener("message", fwd);
-      real.addEventListener("error", (e) => {
-        real.removeEventListener("message", fwd);
-        emit("error", e);
-      }, { once: true });
+      real.addEventListener("error", onErr);
       real.postMessage(m);
     };
     writingChat = {
