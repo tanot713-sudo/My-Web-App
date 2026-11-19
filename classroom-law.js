@@ -2,7 +2,7 @@
    เตรียมสอบเนติบัณฑิต / ตั๋วทนาย / อัยการ / ผู้พิพากษา
    โน้ต+flashcard (spaced repetition แบบขั้นบันได) / ฝึกเขียนตอบจับเวลา /
    นับถอยหลังสนามสอบ (วันที่ผู้ใช้กรอกเอง — ไม่มี API ราชการ) /
-   ถ่ายรูป→OCR (Tesseract.js)→ตรวจทาน→บันทึกโน้ต / ซิงก์ Google Drive ส่วนตัว
+   ถ่ายรูป→OCR (Tesseract.js)→ตรวจทาน→บันทึกโน้ต
    ══════════════════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -22,7 +22,6 @@
     OME_I18N.live(el, fn);
   }
   function dateStr(d, opts) { return OME_I18N.date(d, opts || { day: 'numeric', month: 'short', year: 'numeric' }); }
-  function nowTime() { return OME_I18N.date(new Date(), { hour: '2-digit', minute: '2-digit' }); }
   /* ภาษา UI (ไทย/อังกฤษ) — ชื่อวิชา/ตัวบท/บทเรียน/ข้อสอบ/โน้ตของผู้ใช้เป็นเนื้อหา ไม่แปล (data-i18n-skip) */
   var T = OME_I18N.scope('cl', {
     th: {
@@ -146,40 +145,8 @@
       savedAsNote: 'บันทึกเป็นโน้ตแล้ว',
       noSections: 'ไม่พบรูปแบบ "มาตรา <เลข>" อย่างน้อย 2 มาตราขึ้นไปในข้อความนี้ — ลองกด "บันทึกเป็นโน้ตเดียว" แทน',
       savedSplit: 'บันทึกแยกเป็นโน้ตแล้ว {n} มาตรา',
-      rootFolder: '(โฟลเดอร์หลัก)',
-      driveNotConn: 'ยังไม่ได้เชื่อมต่อ Google Drive — กดปุ่ม "เชื่อมต่อ Google Drive" ในการ์ดด้านล่างก่อน',
-      findFolders: 'กำลังค้นโฟลเดอร์ย่อย…',
-      loadingFiles: 'กำลังโหลดรายชื่อไฟล์จาก {n} โฟลเดอร์…',
-      foundFiles: 'พบ {n} ไฟล์ (รวมในโฟลเดอร์ย่อยแล้ว)',
-      noFiles: 'ยังไม่มีไฟล์อื่นในโฟลเดอร์นี้ (เช็กแล้วรวมโฟลเดอร์ย่อยด้วย)',
-      modified: 'แก้ไขล่าสุด: ',
-      open: 'เปิดดู',
-      extract: 'แยกข้อความ',
-      uploadedAll: 'อัปโหลดครบ {n} ไฟล์แล้ว',
-      uploading: 'กำลังอัปโหลด ({i}/{n}): ',
-      fetching: 'กำลังดึงไฟล์ "{s}"…',
-      extracted: 'แยกข้อความจาก "{s}" เสร็จแล้ว',
-      extractFail: 'แยกข้อความไม่สำเร็จ: ',
-      eUploadFile: 'อัปโหลด "{s}" ไม่สำเร็จ ({c})',
-      eFetchFile: 'ดึงไฟล์ไม่สำเร็จ ({c})',
       ePdfLib: 'โหลดตัวอ่าน PDF ไม่สำเร็จ ลองรีเฟรชหน้าแล้วลองใหม่',
-      eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ ({c})',
-      eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ ({c})',
-      eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ ({c})',
-      eDownload: 'ดาวน์โหลดไม่สำเร็จ ({c})',
-      eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ ({c})',
       noIdb: 'เบราว์เซอร์นี้ไม่รองรับ IndexedDB',
-      driveConnected: 'เชื่อมต่อ Google Drive แล้ว',
-      driveConnect: 'เชื่อมต่อ Google Drive',
-      autoConnFail: 'เชื่อมต่ออัตโนมัติไม่สำเร็จ (อาจเพราะเบราว์เซอร์บล็อก cookie ข้ามโดเมน) — กดปุ่มเชื่อมต่ออีกครั้ง',
-      connFail: 'เชื่อมต่อไม่สำเร็จ: ',
-      gisLoading: 'กำลังโหลด Google Identity Services… รออีก 2-3 วิแล้วลองใหม่',
-      askingPerm: 'กำลังขอสิทธิ์เชื่อมต่อ…',
-      syncing: 'กำลังซิงก์…',
-      syncedWith: 'ซิงก์กับ Google Drive แล้ว · ',
-      lastSynced: 'ซิงก์ล่าสุด ',
-      sessionExpired: 'เซสชันหมดอายุ — กดปุ่มเชื่อมต่อ Drive อีกครั้ง',
-      syncFail: 'ซิงก์ไม่สำเร็จ: ',
       statNotes: 'โน้ตทั้งหมด',
       statDue: 'ถึงกำหนดทบทวนวันนี้',
       statWriting: 'ครั้งที่ฝึกเขียนตอบ',
@@ -201,7 +168,7 @@
       navNotes: 'โน้ตทั้งหมด',
       grpExam: 'วิชาที่ใช้สอบจริง',
       grpCourse: 'รายวิชากฎหมาย',
-      navTools: 'เครื่องมือรวม (Drive/ตั้งค่า)',
+      navTools: 'เครื่องมือรวม (ตั้งค่า)',
       home: 'หน้าหลัก',
       openMenu: 'เปิดเมนู',
       dashTitle: 'สถิติกราฟการเรียน',
@@ -271,11 +238,6 @@
       ocrSave: 'บันทึกเป็นโน้ตเดียว',
       splitMatra: 'แบ่งเป็นรายมาตรา',
       matraSave: 'บันทึกมาตราที่เลือกเป็นโน้ตแยก',
-      driveFiles: 'ไฟล์ในโฟลเดอร์ Drive ของฉัน',
-      driveList: 'โหลดรายชื่อไฟล์จาก Drive',
-      uploadTo: 'อัปโหลดเข้าโฟลเดอร์ไหน',
-      uploadDrop: 'แตะเพื่อเลือกไฟล์อัปโหลด (เลือกได้หลายไฟล์พร้อมกัน)',
-      driveSync: 'ซิงก์ Google Drive ส่วนตัว',
       cleanTitle: 'ล้างข้อมูลเก่า',
       cleanBtn: 'ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว'
     },
@@ -400,40 +362,8 @@
       savedAsNote: 'Saved as a note',
       noSections: 'No "Section <number>" pattern (at least 2 sections) found in this text — try "Save as a single note" instead',
       savedSplit: 'Saved {n} sections as separate notes',
-      rootFolder: '(Main folder)',
-      driveNotConn: 'Google Drive is not connected — press "Connect Google Drive" in the card below first',
-      findFolders: 'Looking for subfolders…',
-      loadingFiles: 'Loading the file list from {n} folders…',
-      foundFiles: 'Found {n} files (including subfolders)',
-      noFiles: 'No other files in this folder (subfolders checked too)',
-      modified: 'Last modified: ',
-      open: 'Open',
-      extract: 'Extract text',
-      uploadedAll: 'Uploaded all {n} files',
-      uploading: 'Uploading ({i}/{n}): ',
-      fetching: 'Fetching file "{s}"…',
-      extracted: 'Extracted text from "{s}"',
-      extractFail: 'Text extraction failed: ',
-      eUploadFile: 'Upload of "{s}" failed ({c})',
-      eFetchFile: 'Could not fetch the file ({c})',
       ePdfLib: 'Could not load the PDF reader — refresh the page and try again',
-      eFolderFind: 'Could not search folders ({c})',
-      eFolderMake: 'Could not create the folder ({c})',
-      eFileFind: 'Could not search files ({c})',
-      eDownload: 'Download failed ({c})',
-      eUpload: 'Could not save to Drive ({c})',
       noIdb: 'This browser does not support IndexedDB',
-      driveConnected: 'Google Drive connected',
-      driveConnect: 'Connect Google Drive',
-      autoConnFail: 'Automatic connection failed (the browser may be blocking cross-site cookies) — press Connect again',
-      connFail: 'Connection failed: ',
-      gisLoading: 'Loading Google Identity Services… wait 2–3 seconds and try again',
-      askingPerm: 'Requesting permission to connect…',
-      syncing: 'Syncing…',
-      syncedWith: 'Synced with Google Drive · ',
-      lastSynced: 'Last synced ',
-      sessionExpired: 'Session expired — press Connect Drive again',
-      syncFail: 'Sync failed: ',
       statNotes: 'Total notes',
       statDue: 'Due for review today',
       statWriting: 'Written practice sessions',
@@ -455,7 +385,7 @@
       navNotes: 'All notes',
       grpExam: 'Subjects for the real exams',
       grpCourse: 'Law courses',
-      navTools: 'Tools (Drive / settings)',
+      navTools: 'Tools (settings)',
       home: 'Home',
       openMenu: 'Open menu',
       dashTitle: 'Study stats',
@@ -525,11 +455,6 @@
       ocrSave: 'Save as a single note',
       splitMatra: 'Split by section',
       matraSave: 'Save selected sections as separate notes',
-      driveFiles: 'Files in my Drive folder',
-      driveList: 'Load file list from Drive',
-      uploadTo: 'Upload into which folder',
-      uploadDrop: 'Tap to choose files to upload (multiple allowed)',
-      driveSync: 'Private Google Drive sync',
       cleanTitle: 'Clean up old data',
       cleanBtn: 'Remove unwanted text from existing notes'
     }
@@ -2506,7 +2431,6 @@
   }
   function saveExamDates(d) {
     try { localStorage.setItem(EXAM_KEY, JSON.stringify(d)); } catch (e) {}
-    DriveSync.scheduleSync();
   }
   function daysUntil(dateStr) {
     if (!dateStr) return null;
@@ -2611,7 +2535,6 @@
       lawyer: $('bpLawyer').value
     };
     try { localStorage.setItem(CAREER_KEY, JSON.stringify(o)); } catch (e) {}
-    DriveSync.scheduleSync();
     renderCareerResult(o);
   }
   function renderCareerResult(o) {
@@ -2703,7 +2626,6 @@
   function saveNotes(a) {
     notesCache = a;
     idbReplaceAllNotes(a).catch(function (e) { console.error('บันทึกโน้ตลง IndexedDB ไม่สำเร็จ:', e); });
-    DriveSync.scheduleSync();
   }
   function addNote(subj, q, a) {
     if (!q || !q.trim()) return;
@@ -2957,7 +2879,6 @@
   }
   function saveWriting(a) {
     try { localStorage.setItem(WRITING_KEY, JSON.stringify(a)); } catch (e) {}
-    DriveSync.scheduleSync();
   }
   function subjCell(subj) { return subj && subj !== '(ไม่ระบุวิชา)' ? '<span data-i18n-skip>' + esc(subj) + '</span>' : esc(T('noSubj')); }
   var wrTimer = null, wrTotalSec = 0, wrRemainSec = 0, wrStartTs = 0;
@@ -3201,152 +3122,6 @@
     $('bpOcrFile').value = '';
   }
 
-  /* ══════════════════ ไฟล์ในโฟลเดอร์ Drive ของฉัน (browse — อ่านเฉพาะโฟลเดอร์ส่วนตัวของผู้ใช้เอง) ══════════════════ */
-  var FILE_ICONS = { 'application/pdf': '', 'image/': '' };
-  function fileIcon(mime) {
-    if (mime === 'application/pdf') return FILE_ICONS['application/pdf'];
-    if (mime && mime.indexOf('image/') === 0) return FILE_ICONS['image/'];
-    return '';
-  }
-  var FOLDER_MIME = 'application/vnd.google-apps.folder';
-  /* เดิน BFS หาโฟลเดอร์ย่อยทั้งหมด (ลึกได้ถึง maxDepth ชั้น) เพราะผู้ใช้มักจัดไฟล์เป็นหมวดย่อย
-     (เช่น ภาค1/ภาค2/ตัวบทกฎหมาย) ไม่ได้วางไฟล์ไว้ที่โฟลเดอร์หลักตรงๆ */
-  function listSubfoldersRecursive(rootId, maxDepth) {
-    var all = [{ id: rootId, path: '' }];
-    function step(queue, depth) {
-      if (!queue.length || depth >= maxDepth) return Promise.resolve(all);
-      var next = [];
-      return Promise.all(queue.map(function (f) {
-        var q = encodeURIComponent("'" + f.id + "' in parents and mimeType='" + FOLDER_MIME + "' and trashed=false");
-        return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-          .then(function (r) { return r.ok ? r.json() : { files: [] }; })
-          .then(function (data) {
-            (data.files || []).forEach(function (sub) {
-              var entry = { id: sub.id, path: f.path ? f.path + ' / ' + sub.name : sub.name };
-              all.push(entry);
-              next.push(entry);
-            });
-          });
-      })).then(function () { return step(next, depth + 1); });
-    }
-    return step(all.slice(), 0);
-  }
-  function renderUploadFolderOptions(folders) {
-    var sel = $('bpUploadTargetFolder');
-    if (!sel) return;
-    var prevValue = sel.value;
-    sel.innerHTML = folders.map(function (fo) {
-      return '<option value="' + fo.id + '">' + (fo.path ? esc(fo.path) : esc(T('rootFolder'))) + '</option>';
-    }).join('');
-    if (prevValue && folders.some(function (fo) { return fo.id === prevValue; })) sel.value = prevValue;
-  }
-  function listDriveFiles() {
-    var status = $('bpDriveListStatus'), list = $('bpDriveFileList');
-    if (!DriveSync.connected || !DriveSync.accessToken) {
-      liveStatus(status, function () { return T('driveNotConn'); }, 'status err');
-      return;
-    }
-    liveStatus(status, function () { return T('findFolders'); }, 'status');
-    var folders;
-    DriveSync.ensureFolder().then(function (folderId) {
-      return listSubfoldersRecursive(folderId, 4);
-    }).then(function (f) {
-      folders = f;
-      renderUploadFolderOptions(folders);
-      liveStatus(status, function () { return T('loadingFiles', { n: folders.length }); });
-      return Promise.all(folders.map(function (fo) {
-        var q = encodeURIComponent("'" + fo.id + "' in parents and mimeType!='" + FOLDER_MIME + "' and trashed=false");
-        return DriveSync.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name,mimeType,webViewLink,modifiedTime)')
-          .then(function (r) { return r.ok ? r.json() : { files: [] }; })
-          .then(function (data) {
-            return (data.files || []).map(function (file) { file._path = fo.path; return file; });
-          });
-      }));
-    }).then(function (groups) {
-        var files = [].concat.apply([], groups).filter(function (f) { return f.name !== DRIVE_FILE_NAME; }); // ข้ามไฟล์ข้อมูลของแอปเอง
-        files.sort(function (a, b) { return new Date(b.modifiedTime) - new Date(a.modifiedTime); });
-        liveStatus(status, function () { return files.length ? T('foundFiles', { n: files.length }) : T('noFiles'); }, 'status ok');
-        if (!files.length) { list.innerHTML = ''; return; }
-        list.innerHTML = files.map(function (f) {
-          var canExtract = f.mimeType === 'application/pdf' || (f.mimeType && f.mimeType.indexOf('image/') === 0);
-          return '<li class="note-item" data-fid="' + f.id + '" data-mime="' + esc(f.mimeType) + '" data-name="' + esc(f.name) + '">' +
-            '<div class="hd"><span class="tag">' + fileIcon(f.mimeType) + ' ' + esc(f.name) + '</span></div>' +
-            '<div class="meta">' + (f._path ? '' + esc(f._path) + ' · ' : '') + esc(T('modified')) + dateStr(f.modifiedTime, { dateStyle: 'medium', timeStyle: 'short' }) + '</div>' +
-            '<div class="frow" style="margin-top:6px">' +
-              '<a class="btn sm" href="' + f.webViewLink + '" target="_blank" rel="noopener">' + esc(T('open')) + '</a>' +
-              (canExtract ? '<button class="btn sm" type="button" data-extract="' + f.id + '">' + esc(T('extract')) + '</button>' : '') +
-            '</div></li>';
-        }).join('');
-        Array.prototype.forEach.call(list.querySelectorAll('[data-extract]'), function (b) {
-          b.addEventListener('click', function () {
-            var row = b.closest('[data-fid]');
-            extractFromDriveFile(row.dataset.fid, row.dataset.mime, row.dataset.name);
-          });
-        });
-      })
-      .catch(function (e) {
-        status.className = 'status err';
-        status.textContent = '' + (e.message || e);
-      });
-  }
-
-  /* ══════════════════ อัปโหลดไฟล์เข้า Drive ผ่านแอปเอง ══════════════════
-     จำเป็นเพราะสิทธิ์ drive.file ที่ขอไว้ (แคบเพื่อความเป็นส่วนตัว) เห็นได้แค่ไฟล์ที่
-     "แอปนี้เป็นคนสร้าง/อัปโหลด" เท่านั้น — ไฟล์ที่ผู้ใช้ลากเข้า Drive เองผ่านเว็บ
-     Google โดยตรงจะไม่ปรากฏให้แอปเห็นเลย ไม่ว่าจะอยู่โฟลเดอร์ไหนก็ตาม */
-  function uploadOneFile(file, parentId) {
-    var metadata = { name: file.name, parents: [parentId] };
-    var form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', file);
-    return DriveSync.authFetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', { method: 'POST', body: form })
-      .then(function (r) { if (!r.ok) throw new Error(T('eUploadFile', { s: file.name, c: r.status })); return r.json(); });
-  }
-  function uploadFilesToDrive(files) {
-    var status = $('bpUploadStatus');
-    if (!DriveSync.connected || !DriveSync.accessToken) {
-      liveStatus(status, function () { return T('driveNotConn'); }, 'status err');
-      return;
-    }
-    var chosenId = $('bpUploadTargetFolder').value;
-    var list = Array.prototype.slice.call(files);
-    if (!list.length) return;
-    (chosenId ? Promise.resolve(chosenId) : DriveSync.ensureFolder()).then(function (parentId) {
-      var i = 0;
-      function next() {
-        if (i >= list.length) {
-          liveStatus(status, function () { return T('uploadedAll', { n: list.length }); }, 'status ok');
-          listDriveFiles();
-          return Promise.resolve();
-        }
-        var f = list[i++];
-        var cur = i;
-        liveStatus(status, function () { return T('uploading', { i: cur, n: list.length }) + f.name; }, 'status');
-        return uploadOneFile(f, parentId).then(next);
-      }
-      return next();
-    }).catch(function (e) {
-      liveStatus(status, function () { return '' + (e.message || e); }, 'status err');
-    });
-  }
-
-  function extractFromDriveFile(fileId, mime, name) {
-    var status = $('bpDriveListStatus');
-    liveStatus(status, function () { return T('fetching', { s: name }); }, 'status');
-    DriveSync.authFetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media')
-      .then(function (r) { if (!r.ok) throw new Error(T('eFetchFile', { c: r.status })); return r.arrayBuffer(); })
-      .then(function (buf) {
-        if (mime === 'application/pdf') return extractPdfText(buf);
-        return extractImageText(buf, mime);
-      })
-      .then(function (text) {
-        liveStatus(status, function () { return T('extracted', { s: name }); }, 'status ok');
-        showTextForReview(text, name.replace(/\.[^.]+$/, ''));
-      })
-      .catch(function (e) {
-        liveStatus(status, function () { return T('extractFail') + (e.message || e); }, 'status err');
-      });
-  }
   /* ต่อข้อความจาก PDF ทีละบรรทัดจริงตามที่ pdf.js รายงาน (แต่ละชิ้นข้อความมี hasEOL บอกว่า
      จบบรรทัดในต้นฉบับหรือไม่) แทนการรวมทั้งหน้าเป็นบรรทัดเดียวแบบเดิม — ทำให้ splitByMatra
      ด้านบนใช้ตำแหน่งขึ้นบรรทัดใหม่แยกจุดเริ่มมาตราจริงจากการอ้างอิงมาตราอื่นกลางเนื้อหาได้ */
@@ -3388,172 +3163,6 @@
       return (result.data && result.data.text) || '';
     });
   }
-
-  /* ══════════════════ Google Drive sync (โน้ต/flashcard/ประวัติฝึกเขียน/ผลประเมินเส้นทาง/วันสอบ) ══════════════════ */
-  var DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-  var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-  var DRIVE_FOLDER_NAME = 'เนติ-ตั๋วทนาย-อัยการ-ผู้พิพากษา';
-  var DRIVE_FILE_NAME = 'bar-prep-data.json';
-  var DRIVE_CONNECTED_KEY = 'tanot:barprep:driveConnected';
-
-  var DriveSync = {
-    tokenClient: null, accessToken: null, folderId: null, fileId: null,
-    connected: false, syncing: false, pending: false, timer: null,
-
-    setStatus: function (text, cls) { // text = สตริง หรือฟังก์ชันที่คืนข้อความตามภาษาปัจจุบัน (แปลสดตอนสลับภาษา)
-      var el = $('driveStatusTxt'); if (!el) return;
-      liveStatus(el, typeof text === 'function' ? text : function () { return text; }, 'status' + (cls ? ' ' + cls : ''));
-    },
-    setBtn: function () {
-      var b = $('driveConnectBtn'); if (!b) return;
-      b.textContent = this.connected ? T('driveConnected') : T('driveConnect');
-    },
-    init: function () {
-      try { this.connected = localStorage.getItem(DRIVE_CONNECTED_KEY) === '1'; } catch (e) {}
-      this.setBtn();
-      var self = this;
-      (function wait() {
-        if (!window.google || !google.accounts || !google.accounts.oauth2) { setTimeout(wait, 300); return; }
-        self.tokenClient = google.accounts.oauth2.initTokenClient({
-          client_id: DRIVE_CLIENT_ID,
-          scope: DRIVE_SCOPE,
-          use_fedcm_for_prompt: true, // ลดโอกาสต้องกดยืนยันใหม่ทุกครั้งบนเบราว์เซอร์ที่บล็อก third-party cookie (เช่น Chrome รุ่นใหม่)
-          callback: function (resp) {
-            if (resp.error) {
-              self.setStatus(function () { return self.connected ? T('autoConnFail') : T('connFail') + resp.error; }, 'err');
-              return;
-            }
-            self.accessToken = resp.access_token;
-            self.connected = true;
-            try { localStorage.setItem(DRIVE_CONNECTED_KEY, '1'); } catch (e) {}
-            self.setBtn();
-            self.firstSync();
-          }
-        });
-        if (self.connected) self.tokenClient.requestAccessToken({ prompt: '' });
-      })();
-    },
-    connect: function () {
-      if (!this.tokenClient) { this.setStatus(function () { return T('gisLoading'); }, 'err'); return; }
-      this.setStatus(function () { return T('askingPerm'); }, '');
-      this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-    },
-    authFetch: function (url, opts) {
-      opts = opts || {}; opts.headers = opts.headers || {};
-      opts.headers.Authorization = 'Bearer ' + this.accessToken;
-      return fetch(url, opts);
-    },
-    ensureFolder: function () {
-      var self = this;
-      if (self.folderId) return Promise.resolve(self.folderId);
-      var q = encodeURIComponent("name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error(T('eFolderFind', { c: r.status })); return r.json(); })
-        .then(function (data) {
-          if (data.files && data.files.length) { self.folderId = data.files[0].id; return self.folderId; }
-          return self.authFetch('https://www.googleapis.com/drive/v3/files', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
-          }).then(function (r) { if (!r.ok) throw new Error(T('eFolderMake', { c: r.status })); return r.json(); })
-            .then(function (d) { self.folderId = d.id; return self.folderId; });
-        });
-    },
-    findFile: function () {
-      var self = this;
-      if (self.fileId) return Promise.resolve(self.fileId);
-      var q = encodeURIComponent("name='" + DRIVE_FILE_NAME + "' and '" + self.folderId + "' in parents and trashed=false");
-      return self.authFetch('https://www.googleapis.com/drive/v3/files?q=' + q + '&fields=files(id,name)')
-        .then(function (r) { if (!r.ok) throw new Error(T('eFileFind', { c: r.status })); return r.json(); })
-        .then(function (data) { self.fileId = (data.files && data.files[0] && data.files[0].id) || null; return self.fileId; });
-    },
-    download: function () {
-      var self = this;
-      return self.authFetch('https://www.googleapis.com/drive/v3/files/' + self.fileId + '?alt=media')
-        .then(function (r) { if (!r.ok) throw new Error(T('eDownload', { c: r.status })); return r.json(); });
-    },
-    upload: function (obj) {
-      var self = this;
-      var metadata = self.fileId ? {} : { name: DRIVE_FILE_NAME, parents: [self.folderId] };
-      var form = new FormData();
-      form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-      form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-      var url = self.fileId
-        ? 'https://www.googleapis.com/upload/drive/v3/files/' + self.fileId + '?uploadType=multipart'
-        : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id';
-      return self.authFetch(url, { method: self.fileId ? 'PATCH' : 'POST', body: form })
-        .then(function (r) { if (!r.ok) throw new Error(T('eUpload', { c: r.status })); return r.json(); })
-        .then(function (d) { if (d.id) self.fileId = d.id; return d; });
-    },
-    mergeById: function (a, b) {
-      var map = {};
-      (a || []).forEach(function (x) { if (x && x.id != null) map[x.id] = x; });
-      (b || []).forEach(function (x) { if (x && x.id != null) map[x.id] = x; });
-      return Object.keys(map).map(function (k) { return map[k]; });
-    },
-    payload: function () {
-      return {
-        notes: loadNotes(), writing: loadWriting(),
-        examDates: loadExamDates(),
-        career: (function () { try { return JSON.parse(localStorage.getItem(CAREER_KEY)) || null; } catch (e) { return null; } })(),
-        savedAt: new Date().toISOString()
-      };
-    },
-    firstSync: function () {
-      var self = this;
-      self.setStatus(function () { return T('syncing'); }, '');
-      /* ต้องรอ notesReady ก่อนเสมอ — สมุดโน้ตอยู่ใน IndexedDB (async) ถ้า sync อัตโนมัติทำงาน
-         เร็วกว่าโหลดแคชเสร็จ (เช่น Google reauth เงียบๆ ตอนเปิดหน้า) loadNotes() อาจยังว่างอยู่
-         จะ merge/อัปโหลดทับข้อมูลจริงในเครื่องหายได้ */
-      notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
-        .then(function (fid) { return fid ? self.download() : null; })
-        .then(function (remote) {
-          if (remote) {
-            saveNotes(self.mergeById(remote.notes, loadNotes()));
-            saveWriting(self.mergeById(remote.writing, loadWriting()));
-            if (remote.examDates) {
-              var merged = Object.assign({}, remote.examDates, loadExamDates());
-              saveExamDates(merged);
-            }
-            if (remote.career && !localStorage.getItem(CAREER_KEY)) {
-              try { localStorage.setItem(CAREER_KEY, JSON.stringify(remote.career)); } catch (e) {}
-            }
-          }
-          renderNoteList(); renderReviewCount(); renderWritingHistory(); renderExams(); loadCareerIntoForm();
-          return self.upload(self.payload());
-        })
-        .then(function () { var tm = nowTime(); self.setStatus(function () { return T('syncedWith') + tm; }, 'ok'); listDriveFiles(); })
-        .catch(function (e) { self.setStatus(function () { return '' + (e.message || e); }, 'err'); });
-    },
-    scheduleSync: function () {
-      var self = this;
-      if (!self.connected || !self.accessToken) return;
-      self.pending = true;
-      if (self.timer) clearTimeout(self.timer);
-      self.timer = setTimeout(function () { self.pushNow(); }, 1800);
-    },
-    pushNow: function () {
-      var self = this;
-      if (self.syncing) { self.pending = true; return; }
-      self.pending = false; self.syncing = true;
-      self.setStatus(function () { return T('syncing'); }, '');
-      notesReady.then(function () { return self.ensureFolder(); }).then(function () { return self.findFile(); })
-        .then(function () { return self.upload(self.payload()); })
-        .then(function () { var tm = nowTime(); self.setStatus(function () { return T('lastSynced') + tm; }, 'ok'); })
-        .catch(function (e) {
-          var msg = String(e && e.message || e);
-          if (msg.indexOf('401') !== -1 || msg.indexOf('403') !== -1) {
-            self.accessToken = null;
-            self.setStatus(function () { return T('sessionExpired'); }, 'err');
-          } else {
-            self.setStatus(function () { return T('syncFail') + msg; }, 'err');
-          }
-        })
-        .finally(function () {
-          self.syncing = false;
-          if (self.pending) self.scheduleSync();
-        });
-    }
-  };
 
   /* ══════════════════ hamburger pane ══════════════════ */
   function openHamburger() {
@@ -3786,14 +3395,6 @@
 
     bindOcr();
 
-    $('driveConnectBtn').addEventListener('click', function () { DriveSync.connect(); });
-    $('bpDriveListBtn').addEventListener('click', listDriveFiles);
-    $('bpUploadFiles').addEventListener('change', function (e) {
-      uploadFilesToDrive(e.target.files);
-      e.target.value = '';
-    });
-    DriveSync.init();
-
     renderSubjectNav();
     document.title = T('pageTitle');
     OME_LANG.onChange(function () {
@@ -3801,7 +3402,6 @@
       renderSubjectNav();
       renderExams();
       if (localStorage.getItem(CAREER_KEY)) renderCareerResult(readCareer());
-      DriveSync.setBtn();
       renderLessonContent(currentSubjectFilter);
       renderExamQuestions(currentSubjectFilter);
       if (mockState && mockState.list) renderMockQuestion();
@@ -3832,7 +3432,6 @@
 
   window.__barprep = {
     evalCareer: evalCareer, daysUntil: daysUntil, fmtClock: fmtClock,
-    DriveSync: DriveSync, listDriveFiles: listDriveFiles, uploadFilesToDrive: uploadFilesToDrive,
     splitByMatra: splitByMatra, pdfItemsToLines: pdfItemsToLines, stripBoilerplate: stripBoilerplate,
     showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes,
     matraSortKey: matraSortKey, notesReady: notesReady, idbGetAllNotes: idbGetAllNotes,

@@ -26,21 +26,11 @@
                 namePh: 'เช่น ฟ้องคดีสัญญาเช่า - คุณสมชาย',
                 cancel: 'ยกเลิก',
                 save: 'บันทึก',
-                sync: 'ซิงก์',
-                syncing: 'กำลังซิงก์...',
-                syncConnecting: 'กำลังเชื่อมต่อ Google...',
-                syncOk: 'ซิงก์สำเร็จ',
                 back: 'กลับ Tanot',
                 flashSaved: 'บันทึกแบบร่าง "{name}" แล้ว',
                 flashDeleted: 'ลบแบบร่างแล้ว',
                 flashImage: 'แนบรูปภาพเข้าในเอกสารแล้ว',
                 confirmDelete: 'ลบแบบร่างนี้ถาวร?',
-                eGis: 'โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่',
-                eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
-                eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
-                eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})',
-                eDownload: 'ดาวน์โหลดไม่สำเร็จ (HTTP {c})',
-                eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})'
             },
             en: {
                 title: 'Legal work',
@@ -63,27 +53,15 @@
                 namePh: 'e.g. Lease dispute - Mr. Somchai',
                 cancel: 'Cancel',
                 save: 'Save',
-                sync: 'Sync',
-                syncing: 'Syncing...',
-                syncConnecting: 'Connecting to Google...',
-                syncOk: 'Synced',
                 back: 'Back to Tanot',
                 flashSaved: 'Saved draft "{name}"',
                 flashDeleted: 'Draft deleted',
                 flashImage: 'Image attached to the document',
                 confirmDelete: 'Delete this draft permanently?',
-                eGis: 'Could not load Google Identity Services. Try reloading the page',
-                eFolderFind: 'Could not search for the folder (HTTP {c})',
-                eFolderMake: 'Could not create the folder (HTTP {c})',
-                eFileFind: 'Could not search for the file (HTTP {c})',
-                eDownload: 'Download failed (HTTP {c})',
-                eUpload: 'Could not save to Drive (HTTP {c})'
             }
         });
         window.OME_PAGE_LIVE_LANG = true;
         // ข้อผิดพลาด/ข้อความแจ้งที่พกคีย์ — แปลสดตอนสลับภาษา (ไม่เก็บข้อความที่แปลแล้วไว้)
-        const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
-        const statusText = st => !st ? '' : st.tkey ? T(st.tkey, st.tvars) : (st.raw || '');
 
         // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
         // React จะ unmount ไม่ได้ (removeChild error) เวลาสลับแบบร่าง/มุมมอง
@@ -134,82 +112,6 @@
             return out;
         }
 
-        // ── Google Drive sync (ไม่บังคับ) — ซิงก์แบบร่าง/checklist ข้ามอุปกรณ์ ────
-        const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-        const DRIVE_FOLDER_NAME = 'OME_Progress';
-        const DRIVE_FILE_NAME = 'legal-drafts.json';
-
-        const DriveSync = {
-            tokenClient: null,
-            accessToken: null,
-            folderId: null,
-            ensureAuth() {
-                return new Promise((resolve, reject) => {
-                    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(tErr('eGis'));
-                        return;
-                    }
-                    if (!this.tokenClient) {
-                        this.tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: DRIVE_CLIENT_ID,
-                            scope: DRIVE_SCOPE,
-                            callback: (resp) => {
-                                if (resp.error) { reject(new Error(resp.error)); return; }
-                                this.accessToken = resp.access_token;
-                                resolve(this.accessToken);
-                            },
-                        });
-                    }
-                    this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-                });
-            },
-            async ensureFolder() {
-                if (this.folderId) return this.folderId;
-                const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eFolderFind', { c: res.status });
-                const data = await res.json();
-                if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
-                const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-                    method: 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
-                });
-                if (!createRes.ok) throw tErr('eFolderMake', { c: createRes.status });
-                const createData = await createRes.json();
-                this.folderId = createData.id;
-                return this.folderId;
-            },
-            async findFile(name, folderId) {
-                const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eFileFind', { c: res.status });
-                const data = await res.json();
-                return (data.files && data.files[0]) || null;
-            },
-            async downloadFile(fileId) {
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eDownload', { c: res.status });
-                return res.json();
-            },
-            async uploadFile(name, folderId, existingId, obj) {
-                const form = new FormData();
-                const metadata = existingId ? {} : { name, parents: [folderId] };
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-                const url = existingId
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
-                    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-                const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw tErr('eUpload', { c: res.status });
-                return res.json();
-            },
-        };
 
         function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
@@ -224,8 +126,6 @@
             const [nameModal, setNameModal] = useState(false);
             const [draftName, setDraftName] = useState('');
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
-            const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState(null);
             const [lang, setLang] = useState(OME_I18N.lang());
             useEffect(() => OME_LANG.onChange(l => setLang(l)), []);
             useEffect(() => { document.title = T('pageTitle'); }, [lang]);
@@ -324,31 +224,6 @@
 
             const printDoc = () => window.print();
 
-            const syncNow = async () => {
-                setSyncing(true);
-                setSyncStatus({ tkey: 'syncConnecting' });
-                try {
-                    await DriveSync.ensureAuth();
-                    setSyncStatus({ tkey: 'syncing' });
-                    const folderId = await DriveSync.ensureFolder();
-                    const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-                    const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-
-                    const mergedDrafts = mergeDrafts(remote?.drafts, drafts);
-                    const mergedChecked = mergeChecked(remote?.checked, checked);
-
-                    setDrafts(mergedDrafts);
-                    setChecked(mergedChecked);
-
-                    await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { drafts: mergedDrafts, checked: mergedChecked, savedAt: new Date().toISOString() });
-                    setSyncStatus({ tkey: 'syncOk' });
-                } catch (e) {
-                    setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: '' + (e.message || e) });
-                } finally {
-                    setSyncing(false);
-                }
-            };
 
             return (
                 <div className="h-[calc(100vh-48px)] w-full flex flex-col bg-slate-50 font-sans">
@@ -362,10 +237,6 @@
                             <h1 className="text-lg font-bold text-slate-800">{T('title')} <span className="hidden sm:inline text-slate-500 font-normal">| {T('subtitle')}</span></h1>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
-                                {syncing ? T('syncing') : <>{T('sync')}<span className="hidden sm:inline"> Google Drive</span></>}
-                            </button>
-                            {syncStatus && <span className="hidden sm:inline text-sm text-slate-500">{statusText(syncStatus)}</span>}
                             <a href="./index.html" className="btn ghost sm">&larr; {T('back')}</a>
                         </div>
                     </header>

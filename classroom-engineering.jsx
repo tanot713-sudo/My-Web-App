@@ -7,10 +7,6 @@
                 openNav: 'เปิดเมนูหัวข้อ',
                 closeNav: 'ปิดเมนู',
                 allTopics: 'หัวข้อทั้งหมด',
-                sync: 'ซิงก์',
-                syncing: 'กำลังซิงก์...',
-                syncConnecting: 'กำลังเชื่อมต่อ Google...',
-                syncOk: 'ซิงก์สำเร็จ',
                 back: 'กลับ Tanot',
                 tabStream: 'สตรีม',
                 tabWork: 'งานเรียน',
@@ -78,12 +74,6 @@
                 retry: 'ทำแบบฝึกอีกครั้ง',
                 reflect1: 'อธิบายหลักการสำคัญของ "{t}" ตามความเข้าใจของคุณ',
                 reflect2: 'ยกตัวอย่างสถานการณ์จริงที่ต้องใช้ความรู้เรื่อง "{t}"',
-                eGis: 'โหลด Google Identity Services ไม่สำเร็จ ลองรีเฟรชหน้าใหม่',
-                eFolderFind: 'ค้นหาโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
-                eFolderMake: 'สร้างโฟลเดอร์ไม่สำเร็จ (HTTP {c})',
-                eFileFind: 'ค้นหาไฟล์ไม่สำเร็จ (HTTP {c})',
-                eDownload: 'ดาวน์โหลดไม่สำเร็จ (HTTP {c})',
-                eUpload: 'บันทึกขึ้น Drive ไม่สำเร็จ (HTTP {c})',
                 title: 'ห้องเรียนวิศวกรรม',
                 subj_engineering: 'วิศวกรรม',
                 'subj_elec-maint': 'บำรุงรักษาระบบไฟฟ้า'
@@ -92,10 +82,6 @@
                 openNav: 'Open topics menu',
                 closeNav: 'Close menu',
                 allTopics: 'All topics',
-                sync: 'Sync',
-                syncing: 'Syncing...',
-                syncConnecting: 'Connecting to Google...',
-                syncOk: 'Sync complete',
                 back: 'Back to Tanot',
                 tabStream: 'Stream',
                 tabWork: 'Coursework',
@@ -163,21 +149,12 @@
                 retry: 'Practice again',
                 reflect1: 'Explain the key principle of "{t}" in your own understanding',
                 reflect2: 'Give a real situation where knowing "{t}" is needed',
-                eGis: 'Could not load Google Identity Services — try refreshing the page',
-                eFolderFind: 'Could not search folders (HTTP {c})',
-                eFolderMake: 'Could not create folder (HTTP {c})',
-                eFileFind: 'Could not search files (HTTP {c})',
-                eDownload: 'Download failed (HTTP {c})',
-                eUpload: 'Could not save to Drive (HTTP {c})',
                 title: 'Engineering classroom',
                 subj_engineering: 'Engineering',
                 'subj_elec-maint': 'Electrical maintenance'
             },
         });
         window.OME_PAGE_LIVE_LANG = true;
-        // ข้อผิดพลาดที่พกคีย์ข้อความ — บรรทัดสถานะแปลสดตอนสลับภาษา (ไม่เก็บข้อความที่แปลแล้วไว้)
-        const tErr = (key, vars) => Object.assign(new Error(T(key, vars)), { tkey: key, tvars: vars });
-        const statusText = st => !st ? '' : st.tkey ? T(st.tkey, st.tvars) : (st.raw || '');
         const subjLabel = s => T('subj_' + (s.subjId || s.id));
 
         // ไอคอน lucide ต้องห่อใน span ที่ React เป็นเจ้าของ — ไม่งั้นตอน lucide แทนที่ <i> ด้วย <svg>
@@ -346,82 +323,6 @@
             return html;
         }
 
-        // ── Google Drive sync (ไม่บังคับ) — ซิงก์ XP/ความคืบหน้าข้ามอุปกรณ์ ──────────
-        const DRIVE_CLIENT_ID = '497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com';
-        const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
-        const DRIVE_FOLDER_NAME = 'OME_Progress';
-        const DRIVE_FILE_NAME = 'lbe-engineering-progress.json';
-
-        const DriveSync = {
-            tokenClient: null,
-            accessToken: null,
-            folderId: null,
-            ensureAuth() {
-                return new Promise((resolve, reject) => {
-                    if (!window.google || !google.accounts || !google.accounts.oauth2) {
-                        reject(tErr('eGis'));
-                        return;
-                    }
-                    if (!this.tokenClient) {
-                        this.tokenClient = google.accounts.oauth2.initTokenClient({
-                            client_id: DRIVE_CLIENT_ID,
-                            scope: DRIVE_SCOPE,
-                            callback: (resp) => {
-                                if (resp.error) { reject(new Error(resp.error)); return; }
-                                this.accessToken = resp.access_token;
-                                resolve(this.accessToken);
-                            },
-                        });
-                    }
-                    this.tokenClient.requestAccessToken({ prompt: this.accessToken ? '' : 'consent' });
-                });
-            },
-            async ensureFolder() {
-                if (this.folderId) return this.folderId;
-                const q = encodeURIComponent(`name='${DRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eFolderFind', { c: res.status });
-                const data = await res.json();
-                if (data.files && data.files.length) { this.folderId = data.files[0].id; return this.folderId; }
-                const createRes = await fetch('https://www.googleapis.com/drive/v3/files', {
-                    method: 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' }),
-                });
-                if (!createRes.ok) throw tErr('eFolderMake', { c: createRes.status });
-                const createData = await createRes.json();
-                this.folderId = createData.id;
-                return this.folderId;
-            },
-            async findFile(name, folderId) {
-                const q = encodeURIComponent(`name='${name}' and '${folderId}' in parents and trashed=false`);
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name)`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eFileFind', { c: res.status });
-                const data = await res.json();
-                return (data.files && data.files[0]) || null;
-            },
-            async downloadFile(fileId) {
-                const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
-                    { headers: { Authorization: 'Bearer ' + this.accessToken } });
-                if (!res.ok) throw tErr('eDownload', { c: res.status });
-                return res.json();
-            },
-            async uploadFile(name, folderId, existingId, obj) {
-                const form = new FormData();
-                const metadata = existingId ? {} : { name, parents: [folderId] };
-                form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-                form.append('file', new Blob([JSON.stringify(obj)], { type: 'application/json' }));
-                const url = existingId
-                    ? `https://www.googleapis.com/upload/drive/v3/files/${existingId}?uploadType=multipart`
-                    : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-                const res = await fetch(url, { method: existingId ? 'PATCH' : 'POST',
-                    headers: { Authorization: 'Bearer ' + this.accessToken }, body: form });
-                if (!res.ok) throw tErr('eUpload', { c: res.status });
-                return res.json();
-            },
-        };
 
         function App() {
             const initialSubject = 'engineering';
@@ -440,8 +341,6 @@
             const [notes, setNotes] = useState(loadNotes());
             const [srs, setSrs] = useState(loadSrs());
             const [exams, setExams] = useState(loadExams());
-            const [syncing, setSyncing] = useState(false);
-            const [syncStatus, setSyncStatus] = useState(null);
             const [mobileNavOpen, setMobileNavOpen] = useState(false);
             const [lang, setLang] = useState(OME_I18N.lang());
             useEffect(() => OME_LANG.onChange(l => setLang(l)), []);
@@ -469,11 +368,9 @@
             // XP กลาง (learn-core.js): ส่งเฉพาะส่วนที่เพิ่มจากการฝึกในหน้านี้ (ไม่นับตอนโหลดค่าเดิม/รวมค่าจาก Drive)
             // ต้องอยู่ก่อน effect ที่บันทึก xp — ให้ learn-core ถ่ายยอดเดิมก่อนคีย์เดิมรวม XP ก้อนนี้
             const xpPrevRef = useRef(xp);
-            const xpFromDriveRef = useRef(false);
             useEffect(() => {
                 const gained = xp - xpPrevRef.current;
                 xpPrevRef.current = xp;
-                if (xpFromDriveRef.current) { xpFromDriveRef.current = false; return; }
                 if (gained > 0 && window.LearnCore) window.LearnCore.award('eng', gained);
             }, [xp]);
             useEffect(() => { saveXp(xp); }, [xp]);
@@ -518,41 +415,6 @@
                 setExamIndex(i => i + 1); setExamAnswer(''); setExamRevealed(false);
             };
 
-            const syncNow = async () => {
-                setSyncing(true);
-                setSyncStatus({ tkey: 'syncConnecting' });
-                try {
-                    await DriveSync.ensureAuth();
-                    setSyncStatus({ tkey: 'syncing' });
-                    const folderId = await DriveSync.ensureFolder();
-                    const existing = await DriveSync.findFile(DRIVE_FILE_NAME, folderId);
-                    const remote = existing ? await DriveSync.downloadFile(existing.id) : null;
-
-                    const mergedXp = Math.max(xp, remote?.xp || 0);
-                    const mergedCompleted = { ...(remote?.completed || {}), ...completed };
-                    const mergedWritten = { ...(remote?.written || {}), ...written };
-                    const mergedNotes = mergeNotes(remote?.notes, notes);
-                    const mergedSrs = mergeSrs(remote?.srs, srs);
-                    const mergedExams = mergeExams(remote?.exams, exams);
-
-                    if (mergedXp !== xp) xpFromDriveRef.current = true;
-                    setXp(mergedXp);
-                    setCompleted(mergedCompleted);
-                    setWritten(mergedWritten);
-                    setNotes(mergedNotes);
-                    setSrs(mergedSrs);
-                    setExams(mergedExams);
-
-                    await DriveSync.uploadFile(DRIVE_FILE_NAME, folderId, existing?.id,
-                        { xp: mergedXp, completed: mergedCompleted, written: mergedWritten, notes: mergedNotes,
-                          srs: mergedSrs, exams: mergedExams, savedAt: new Date().toISOString() });
-                    setSyncStatus({ tkey: 'syncOk' });
-                } catch (e) {
-                    setSyncStatus(e && e.tkey ? { tkey: e.tkey, tvars: e.tvars } : { raw: '' + (e.message || e) });
-                } finally {
-                    setSyncing(false);
-                }
-            };
 
             const subject = SUBJECTS.find(s => s.id === activeSubject);
             const topic = subject.topics.find(t => t.id === activeTopicId) || subject.topics[0];
@@ -652,10 +514,6 @@
                             <h1 className="text-lg font-bold">{T('title')} <span className="hidden sm:inline text-slate-400 font-normal">| Tanot</span></h1>
                         </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <button data-k="sync" onClick={syncNow} disabled={syncing} className="btn sm">
-                                {syncing ? T('syncing') : <>{T('sync')}<span className="hidden sm:inline"> Google Drive</span></>}
-                            </button>
-                            {syncStatus && <span className="hidden sm:inline text-sm text-slate-500">{statusText(syncStatus)}</span>}
                             <a href="./index.html" className="btn ghost sm">&larr; {T('back')}</a>
                         </div>
                     </header>
