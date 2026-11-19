@@ -1,6 +1,6 @@
 /* FINAL 1 — Maintenance Control (enhanced visual treatment for the EXISTING
    maintenance domain, additive). Reuses the same column-name keyword
-   conventions as DOMAIN_ROLES.maintenance in report-dashboard.complete.final43.local.js
+   conventions as DOMAIN_ROLES.maintenance in report-dashboard.core.js
    (workorder, equipmentno, equipmenttype, downtime, planstart/finish,
    actstart/end, matcost/laborcost/othercost, status, priority, failuremode,
    subsystem) so it activates on the exact same real-world column headers,
@@ -605,7 +605,7 @@
   }
 
   /* บั๊กเรื่องลำดับเวลาที่เจอตอนทดสอบสลับไฟล์หลายรอบ — ดูคอมเมนต์เต็มที่ __tdRevalidate ของ
-     report-dashboard.safety.final1.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
+     report-dashboard.safety.js (แพทเทิร์นเดียวกัน): ลงทะเบียนให้โมดูลอื่นเรียก "บังคับ" ประเมินใหม่ได้ */
   function __tdRevalidate(){
     var A=window.TanotDashboard;
     var st0=A&&typeof A.getState==='function'?A.getState():null;

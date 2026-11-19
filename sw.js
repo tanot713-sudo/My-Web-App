@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v684';
+const CACHE = 'ome-v685';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -165,22 +165,23 @@ const PRECACHE = [
   './cad3d.html',
   './cad3d.js',
   './report-dashboard.html',
-  './report-dashboard.utils.final43.js',
-  './report-dashboard.performance.final43.js',
-  './report-dashboard.complete.final43.local.js',
+  './report-dashboard.utils.js',
+  './report-dashboard.performance.js',
+  './report-dashboard.core.js',
+  './report-dashboard.modules.js',
   './report-dashboard.mntsrc.js',
-  './report-dashboard.bi-plus.final43.js',
-  './report-dashboard.final62.projectcontrol.js',
-  './report-dashboard.safety.final1.js',
-  './report-dashboard.hr.final1.js',
-  './report-dashboard.itops.final1.js',
-  './report-dashboard.maintenance.final1.js',
-  './report-dashboard.lawfirm.final1.js',
-  './report-dashboard.risk.final1.js',
-  './report-dashboard.finance.final1.js',
-  './report-dashboard.reading.final1.js',
-  './report-dashboard.kpidashboard.final1.js',
-  './report-dashboard.organizational.final1.js',
+  './report-dashboard.bi-plus.js',
+  './report-dashboard.projectcontrol.js',
+  './report-dashboard.safety.js',
+  './report-dashboard.hr.js',
+  './report-dashboard.itops.js',
+  './report-dashboard.maintenance.js',
+  './report-dashboard.lawfirm.js',
+  './report-dashboard.risk.js',
+  './report-dashboard.finance.js',
+  './report-dashboard.reading.js',
+  './report-dashboard.kpidashboard.js',
+  './report-dashboard.organizational.js',
   './typing.html',
   './typing.js',
   './coding.html',

@@ -5192,6 +5192,7 @@
   }
 
   function renderDashboard() {
+    if (state.rows && state.rows.length) document.dispatchEvent(new CustomEvent('tanot:rd-data')); // report-dashboard.modules.js โหลดโมดูลแม่แบบตามต้องการ
     applyDashboardBg();
     renderDashboardFilters();
     var preDrillRows = dashboardBaseRows();

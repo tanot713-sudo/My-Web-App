@@ -1,5 +1,5 @@
 /* FINAL 1 — Safety / HSE Control (new domain, additive)
-   Follows the exact pattern of report-dashboard.final62.projectcontrol.js:
+   Follows the exact pattern of report-dashboard.projectcontrol.js:
    self-contained, own column-role detection, auto-activates only when the
    uploaded sheet looks like a safety/incident log, inserts its own layout
    next to the existing Projects-section cards without touching them.
