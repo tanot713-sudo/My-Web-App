@@ -1396,10 +1396,53 @@
             }
             return msg;
         }
+        // ── แชท AI ของโหมดเขียน: คลาวด์ก่อน (AiClient, โมเดล main) → ถอยไปโมเดลในเครื่อง (ai-chat-worker.js)
+        // เมื่อ AiClient.canFallback(err) และไม่ใช่ iOS · iOS ไม่ถอย แสดง AiClient.friendlyMessage(err)
+        // getWritingWorker() คืนวัตถุที่หน้าตาเหมือน Worker (addEventListener/removeEventListener/postMessage)
+        // ผู้เรียก 12 จุดจึงไม่ต้องเปลี่ยนวิธีฟังข้อความ ──
+        function cloudChatOn() { return !!(window.AiClient && AiClient.available()); }
         let writingWorker = null;
-        function getWritingWorker() {
+        function getLocalWritingWorker() {
             if (!writingWorker) writingWorker = new Worker('./ai-chat-worker.js', { type: 'module' });
             return writingWorker;
+        }
+        let writingChat = null;
+        function getWritingWorker() {
+            if (writingChat) return writingChat;
+            const ls = { message: [], error: [] };
+            const emit = (type, data) => ls[type].slice().forEach(fn => { try { fn(type === 'message' ? { data } : data); } catch (e) { console.error(e); } });
+            const runLocal = (m) => {
+                const real = getLocalWritingWorker();
+                const stop = () => { real.removeEventListener('message', fwd); real.removeEventListener('error', onErr); };
+                const fwd = (e) => {
+                    const d = e.data;
+                    if (!d || d.jobId !== m.jobId) return;
+                    emit('message', d);
+                    if (d.type === 'done' || d.type === 'error') stop();
+                };
+                const onErr = (e) => { stop(); emit('error', e); };
+                real.addEventListener('message', fwd);
+                real.addEventListener('error', onErr);
+                real.postMessage(m);
+            };
+            writingChat = {
+                addEventListener(type, fn) { if (ls[type]) ls[type].push(fn); },
+                removeEventListener(type, fn) { if (ls[type]) ls[type] = ls[type].filter(f => f !== fn); },
+                postMessage(m) {
+                    if (!m || m.type !== 'chat' || !cloudChatOn()) { runLocal(m); return; }
+                    let got = false;
+                    AiClient.chat({
+                        messages: m.messages, model: 'main', maxTokens: m.maxNewTokens,
+                        onToken: (piece) => { got = true; emit('message', { type: 'token', jobId: m.jobId, token: piece }); },
+                    }).then(() => emit('message', { type: 'done', jobId: m.jobId }), (err) => {
+                        if (!got && AiClient.canFallback(err) && !isIOS()) {
+                            emit('message', { type: 'fallback', jobId: m.jobId, message: AiClient.friendlyMessage(err) + ' — ใช้โมเดลในเครื่องแทน' });
+                            runLocal(m);
+                        } else emit('message', { type: 'error', jobId: m.jobId, message: AiClient.friendlyMessage(err) });
+                    });
+                },
+            };
+            return writingChat;
         }
 
 
@@ -2957,7 +3000,7 @@
 
             const submit = () => {
                 if (!text.trim()) return;
-                if (isIOS()) { setStatus('error'); setErrMsg('ฟีเจอร์ตรวจไวยากรณ์ด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ (ปัญหาหน่วยความจำของเบราว์เซอร์ iOS)'); return; }
+                if (isIOS() && !cloudChatOn()) { setStatus('error'); setErrMsg('ฟีเจอร์ตรวจไวยากรณ์ด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ (ปัญหาหน่วยความจำของเบราว์เซอร์ iOS)'); return; }
                 setStatus('loading'); setFeedback(''); setErrMsg('');
                 const w = getWritingWorker();
                 const jobId = 'compose-' + Date.now();
@@ -3075,7 +3118,7 @@
             };
 
             const checkWithAi = () => {
-                if (isIOS()) { setAiStatus('error'); setAiFeedback('โหมดนี้ยังไม่รองรับ iPhone/iPad'); return; }
+                if (isIOS() && !cloudChatOn()) { setAiStatus('error'); setAiFeedback('โหมดนี้ยังไม่รองรับ iPhone/iPad'); return; }
                 setAiStatus('loading'); setAiFeedback('');
                 const w = getWritingWorker();
                 const jobId = 'srscompose-' + Date.now();
@@ -3284,7 +3327,7 @@
             };
 
             const checkWithAi = () => {
-                if (isIOS()) { setAiStatus('error'); setAiFeedback('โหมดนี้ยังไม่รองรับ iPhone/iPad'); return; }
+                if (isIOS() && !cloudChatOn()) { setAiStatus('error'); setAiFeedback('โหมดนี้ยังไม่รองรับ iPhone/iPad'); return; }
                 setAiStatus('loading'); setAiFeedback(''); setAiVerdict(null);
                 const w = getWritingWorker();
                 const jobId = 'translate-' + Date.now();
@@ -3869,7 +3912,7 @@
             // แค่ให้ครบ flow + XP เมื่อส่งสำเร็จ ไม่นับเข้ารายการ "ข้อที่ตอบผิด" เพราะไม่มีคำตอบเดียวที่ถูก
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -4719,7 +4762,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -6258,7 +6301,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -6809,7 +6852,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -7353,7 +7396,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -7904,7 +7947,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -8458,7 +8501,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -9027,7 +9070,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -9587,7 +9630,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -10144,7 +10187,7 @@
 
             const submitEssay = () => {
                 if (!essayText.trim() || essayStatus === 'loading') return;
-                if (isIOS()) {
+                if (isIOS() && !cloudChatOn()) {
                     setEssayStatus('error');
                     setEssayFeedback('ฟีเจอร์ตรวจด้วย AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ — กด "ข้ามข้อนี้" เพื่อไปต่อได้เลย');
                     return;
@@ -17517,18 +17560,6 @@
                                     );
                                 })}
                             </nav>
-
-                            <div className="text-sm font-bold text-gray-500 mb-3 px-2">{tx('คะแนนสะสม')}</div>
-                            <div className="flex flex-wrap gap-2 px-1">
-                                <span className="badge warn"><Brain className="w-4 h-4" /> {xp} XP</span>
-                                <span className={`badge ${streak.count > 0 ? 'warn' : ''}`}><FlameIcon className="w-4 h-4" /> {tx('{n} วันติดต่อกัน', { n: streak.count })}</span>
-                            </div>
-                            {streak.count > 0 && !practicedToday && (
-                                <p className="text-sm text-gray-500 mt-2 px-1 leading-snug">{tx('🔥 วันนี้ยังไม่ได้ฝึกเลย ฝึกอีกนิดเพื่อรักษาสถิติไว้!')}</p>
-                            )}
-                            {streak.longest > streak.count && (
-                                <p className="text-sm text-gray-500 mt-2 px-1">{tx('สถิติสูงสุด {n} วัน', { n: streak.longest })}</p>
-                            )}
                         </div>
                     </aside>
 
@@ -17575,8 +17606,6 @@
                                             </div>
                                             <div className="meter"><i style={{ width: `${totalCategories ? (doneCategories / totalCategories * 100) : 0}%` }}></i></div>
                                         </div>
-                                        <span className="badge warn"><Brain /> {xp} XP</span>
-                                        <span className={`badge ${practicedToday ? 'ok' : ''}`}><FlameIcon /> {tx('{n} วันติดต่อกัน', { n: streak.count })}</span>
                                     </div>
                                 </section>
 

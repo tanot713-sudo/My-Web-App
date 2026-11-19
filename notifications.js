@@ -15,7 +15,7 @@
       sBrowser: 'เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน', sDenied: 'การแจ้งเตือนถูกปิดในการตั้งค่าเบราว์เซอร์',
       eDenied: 'ไม่ได้รับอนุญาตให้แจ้งเตือน', eVapid: 'ยังไม่ได้ตั้งคีย์ VAPID', eOffline: 'ออฟไลน์อยู่', eAuth: 'ต้องเข้าสู่ระบบใหม่',
       eNotSub: 'เครื่องนี้ยังไม่ได้เปิดการแจ้งเตือน', eFail: 'ผิดพลาด', sendFail: 'ส่งไม่สำเร็จ',
-      okOn: 'เปิดการแจ้งเตือนแล้ว', okOff: 'ปิดการแจ้งเตือนแล้ว', okSent: 'ส่งแล้ว'
+      okOn: 'เปิดการแจ้งเตือนแล้ว', okOff: 'ปิดการแจ้งเตือนแล้ว', okSent: 'ส่งแล้ว', del: 'ลบ'
     },
     en: {
       title: 'Notifications', device: 'This device', state: 'Status', subs: 'Devices receiving notifications', last: 'Last sent to this device',
@@ -25,7 +25,7 @@
       sBrowser: 'This browser does not support notifications', sDenied: 'Notifications are blocked in the browser settings',
       eDenied: 'Notification permission was not granted', eVapid: 'The VAPID key has not been set', eOffline: 'Offline', eAuth: 'Please sign in again',
       eNotSub: 'Notifications are not turned on for this device', eFail: 'Something went wrong', sendFail: 'Could not send',
-      okOn: 'Notifications turned on', okOff: 'Notifications turned off', okSent: 'Sent'
+      okOn: 'Notifications turned on', okOff: 'Notifications turned off', okSent: 'Sent', del: 'Delete'
     }
   });
   function icon(name) { return '<svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-' + name + '"/></svg>'; }
@@ -64,7 +64,7 @@
     });
   }
 
-  var SRC_ICON = { insurance: 'shield', tax: 'receipt', maintenance: 'wrench' };
+  var SRC_ICON = { insurance: 'shield', tax: 'receipt', maintenance: 'wrench', custom: 'bell' };
   function paintList() {
     var el = $('ntList');
     if (listError) { el.innerHTML = '<div class="empty">' + icon('circle-alert') + '<p class="empty-title">' + esc(errText(listError)) + '</p></div>'; return; }
@@ -73,12 +73,24 @@
     /* ชื่อ/ข้อความของกำหนดการเป็นข้อมูลที่หน้าต่างๆ ลงทะเบียนไว้ (data-i18n-skip) — แปลเฉพาะวันที่และป้าย */
     el.innerHTML = items.map(function (r) {
       var badge = r.kind === 'digest' ? '<span class="badge info">' + esc(T('digest')) + '</span>' : r.sent_at ? '<span class="badge ok">' + esc(T('sent')) + '</span>' : '';
+      if (r.source === 'custom') { // ที่ตั้งเองจากค้นหาด่วน — ลบได้ที่นี่ (แถวไม่ใช่ลิงก์ เพราะมีปุ่มอยู่ข้างใน)
+        return '<div class="list-row"><span class="lead">' + icon('bell') + '</span>' +
+          '<div class="grow"><div class="title" data-i18n-skip>' + esc(r.title) + '</div><div class="meta"><span>' + esc(when(r.due_at)) + '</span></div></div>' +
+          '<div class="right">' + badge + '<button type="button" class="btn ghost sm" data-del="' + esc(String(r.id).replace(/^custom:/, '')) + '">' + esc(T('del')) + '</button></div></div>';
+      }
       var href = r.url ? ' href="' + esc(r.url) + '"' : '';
       return '<a class="list-row"' + href + '><span class="lead">' + icon(SRC_ICON[r.source] || 'bell') + '</span>' +
         '<div class="grow"><div class="title" data-i18n-skip>' + esc(r.title) + '</div><div class="meta"><span>' + esc(when(r.due_at)) + '</span>' + (r.body ? '<span data-i18n-skip> · ' + esc(r.body) + '</span>' : '') + '</div></div>' +
         (badge ? '<div class="right">' + badge + '</div>' : '') + '</a>';
     }).join('');
   }
+  $('ntList').addEventListener('click', function (e) {
+    var b = e.target.closest && e.target.closest('[data-del]');
+    if (!b || !window.PaletteCalc) return;
+    var id = b.getAttribute('data-del'), left = [];
+    TanotData.update('tanot:reminders:custom', function (cur) { left = (Array.isArray(cur) ? cur : []).filter(function (r) { return r && r.id !== id; }); return left; });
+    P.setReminders('custom', PaletteCalc.reminders(left, Date.now())).catch(function () {}).then(renderList); // ชุดเต็มของ scope
+  });
   function renderList() {
     if (!P || !P.enabled()) { lastItems = []; listError = null; paintList(); return Promise.resolve(); }
     return P.listReminders().then(function (items) { lastItems = items; listError = null; paintList(); },

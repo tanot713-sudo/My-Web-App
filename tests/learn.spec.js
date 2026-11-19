@@ -361,7 +361,9 @@ test('ห้องเรียนวิศวกรรม: แสดง 13 ส�
   }, oldSrs);
   await page.goto('/classroom-engineering.html', { waitUntil: 'load' });
   await expect(page.locator('h1')).toContainText('ห้องเรียนวิศวกรรม');
-  await expect(page.getByText('(1300 XP)')).toBeVisible();
+  // ตัวนับ XP/Level ของหน้าถูกซ่อน (แถว 8) — ยอดเดิมยังอยู่ในคีย์เดิม ไม่ถูกแตะ
+  await expect(page.getByText('(1300 XP)')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('lbe:engineering:xp'))).toBe('1300');
 
   // สตรีม: 2 หมวด ความคืบหน้าเดิมยังนับ
   const subjBtn = (label) => page.getByRole('button', { name: new RegExp('^' + label + ' \\d+/\\d+ หัวข้อ$') });
@@ -392,7 +394,7 @@ test('ห้องเรียนวิศวกรรม: แสดง 13 ส�
     await page.getByRole('button', { name: ok ? 'ตอบถูก (+100 XP)' : 'ยังไม่ถูก' }).click();
     await page.getByRole('button', { name: 'ข้อต่อไป' }).click();
   }
-  await expect(page.getByText('(1400 XP)')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('lbe:engineering:xp'))).toBe('1400');
   const srs = await page.evaluate(() => JSON.parse(localStorage.getItem('lbe:engineering:srs')));
   expect(srs).toEqual({
     ...oldSrs,

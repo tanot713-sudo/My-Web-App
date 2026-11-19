@@ -174,5 +174,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8147/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // palette.spec.js: ซิงก์ 2 เครื่อง + /api/push/reminders ตัวจริง (scope custom) — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8145',
+      cwd: __dirname,
+      url: 'http://localhost:8145/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

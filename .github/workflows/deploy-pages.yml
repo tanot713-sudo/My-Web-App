@@ -99,6 +99,8 @@ jobs:
         run: npx playwright test tax.spec.js
       - name: learn (fsrs.js เทียบโค้ดก่อนแยก, ย้าย XP เดิม, วันติดต่อกัน/วันพัก, ทบทวนวันนี้, ซิงก์ XP 2 เครื่อง)
         run: npx playwright test learn.spec.js
+      - name: languages-ai (หน้า languages แชท AI คลาวด์ก่อน ถอยไปโมเดลในเครื่องเมื่อ canFallback ไม่ใช่ iOS)
+        run: npx playwright test languages-ai.spec.js
       - name: data + pages (ซิงก์ D1, ย้ายข้อมูลจาก github.io, หน้าวันนี้/ค้นหาด่วน, ประกัน + /api/files)
         run: npx playwright test sync.spec.js migrate.spec.js today.spec.js insurance.spec.js
       - name: maintenance (mnt-calc.js known-answer, QR, หน้าบันทึกงานบำรุงรักษา — ออฟไลน์+รูป R2, ซิงก์ 2 เครื่อง, นำเข้า/ส่งออก Excel, report-dashboard)
@@ -139,6 +141,8 @@ jobs:
         run: npx playwright test lecture.spec.js
       - name: bg-custom (ภาพพื้นหลังที่ผู้ใช้ตั้งเองจาก image-gen — brightLeft known-answer, ปรับ scrim/ฟิลเตอร์ตามความสว่าง, ตัวเลือกในแผงตั้งค่า, ปุ่มใน image-gen)
         run: npx playwright test bg-custom.spec.js
+      - name: palette (palette-calc.js known-answer — ค้นหนังสือ/โน้ตเรียนใน palette, คำสั่งตั้งการแจ้งเตือนส่งชุดเต็มของ scope custom ไม่ลบของเดิม, ลบที่ notifications.html)
+        run: npx playwright test palette.spec.js
       - name: invest (invest-calc.js เทียบฟังก์ชันเดิมของหน้าลงทุนทุกหลัก, มูลค่าสินทรัพย์ลงทุน known-answer + snapshot รายวันเวลาไทย, สมุดเทรดรวม, หน้าลงทุนที่ยุบรวมแล้วใช้ /api/proxy เท่านั้น, คีย์ข้อมูลผู้ใช้เดิมไม่เปลี่ยน, หน้า redirect, ซิงก์ 2 เครื่อง)
         run: npx playwright test invest.spec.js
       - name: github-redirect (GitHub Pages แบบ redirect ไป pages.dev)

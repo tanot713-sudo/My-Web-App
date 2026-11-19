@@ -1253,10 +1253,75 @@
     }
     return msg;
   }
+  function cloudChatOn() {
+    return !!(window.AiClient && AiClient.available());
+  }
   let writingWorker = null;
-  function getWritingWorker() {
+  function getLocalWritingWorker() {
     if (!writingWorker) writingWorker = new Worker("./ai-chat-worker.js", { type: "module" });
     return writingWorker;
+  }
+  let writingChat = null;
+  function getWritingWorker() {
+    if (writingChat) return writingChat;
+    const ls = { message: [], error: [] };
+    const emit = (type, data) => ls[type].slice().forEach((fn) => {
+      try {
+        fn(type === "message" ? { data } : data);
+      } catch (e) {
+        console.error(e);
+      }
+    });
+    const runLocal = (m) => {
+      const real = getLocalWritingWorker();
+      const stop = () => {
+        real.removeEventListener("message", fwd);
+        real.removeEventListener("error", onErr);
+      };
+      const fwd = (e) => {
+        const d = e.data;
+        if (!d || d.jobId !== m.jobId) return;
+        emit("message", d);
+        if (d.type === "done" || d.type === "error") stop();
+      };
+      const onErr = (e) => {
+        stop();
+        emit("error", e);
+      };
+      real.addEventListener("message", fwd);
+      real.addEventListener("error", onErr);
+      real.postMessage(m);
+    };
+    writingChat = {
+      addEventListener(type, fn) {
+        if (ls[type]) ls[type].push(fn);
+      },
+      removeEventListener(type, fn) {
+        if (ls[type]) ls[type] = ls[type].filter((f) => f !== fn);
+      },
+      postMessage(m) {
+        if (!m || m.type !== "chat" || !cloudChatOn()) {
+          runLocal(m);
+          return;
+        }
+        let got = false;
+        AiClient.chat({
+          messages: m.messages,
+          model: "main",
+          maxTokens: m.maxNewTokens,
+          onToken: (piece) => {
+            got = true;
+            emit("message", { type: "token", jobId: m.jobId, token: piece });
+          }
+        }).then(() => emit("message", { type: "done", jobId: m.jobId }), (err) => {
+          if (!got && AiClient.canFallback(err) && !isIOS()) {
+            emit("message", { type: "fallback", jobId: m.jobId, message: AiClient.friendlyMessage(err) + " \u2014 \u0E43\u0E0A\u0E49\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19" });
+            runLocal(m);
+          } else emit("message", { type: "error", jobId: m.jobId, message: AiClient.friendlyMessage(err) });
+        });
+      }
+    };
+    return writingChat;
   }
   const DRIVE_CLIENT_ID = "497048581273-akpavakt6m34lhqbjf1irg3m8vl6u27u.apps.googleusercontent.com";
   const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
@@ -2651,7 +2716,7 @@
     };
     const submit = () => {
       if (!text.trim()) return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setStatus("error");
         setErrMsg("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E44\u0E27\u0E22\u0E32\u0E01\u0E23\u0E13\u0E4C\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 (\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E02\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C iOS)");
         return;
@@ -2791,7 +2856,7 @@
       if (usedCount > 0) awardXp(usedCount * 5);
     };
     const checkWithAi = () => {
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setAiStatus("error");
         setAiFeedback("\u0E42\u0E2B\u0E21\u0E14\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad");
         return;
@@ -3026,7 +3091,7 @@
       if (grade === "correct") awardXp(10);
     };
     const checkWithAi = () => {
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setAiStatus("error");
         setAiFeedback("\u0E42\u0E2B\u0E21\u0E14\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad");
         return;
@@ -3521,7 +3586,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -4232,7 +4297,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5216,7 +5281,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5579,7 +5644,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -5942,7 +6007,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -6305,7 +6370,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -6662,7 +6727,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7031,7 +7096,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7400,7 +7465,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -7764,7 +7829,7 @@
     };
     const submitEssay = () => {
       if (!essayText.trim() || essayStatus === "loading") return;
-      if (isIOS()) {
+      if (isIOS() && !cloudChatOn()) {
         setEssayStatus("error");
         setEssayFeedback('\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 \u2014 \u0E01\u0E14 "\u0E02\u0E49\u0E32\u0E21\u0E02\u0E49\u0E2D\u0E19\u0E35\u0E49" \u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E44\u0E1B\u0E15\u0E48\u0E2D\u0E44\u0E14\u0E49\u0E40\u0E25\u0E22');
         return;
@@ -14032,7 +14097,7 @@
       if (id === "lang-yue" && filteredLangIds.includes("lang-cn")) return null;
       const isZhGroup = id === "lang-cn";
       return /* @__PURE__ */ React.createElement("div", { key: id, className: "space-y-2" }, isZhGroup && /* @__PURE__ */ React.createElement("div", { className: "px-3 pt-1 pb-0.5 text-sm font-bold text-gray-500 uppercase tracking-wider" }, tx("\u0E08\u0E35\u0E19")), renderLangRow(id), isZhGroup && filteredLangIds.includes("lang-yue") && renderLangRow("lang-yue"));
-    })), /* @__PURE__ */ React.createElement("div", { className: "text-sm font-bold text-gray-500 mb-3 px-2" }, tx("\u0E04\u0E30\u0E41\u0E19\u0E19\u0E2A\u0E30\u0E2A\u0E21")), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 px-1" }, /* @__PURE__ */ React.createElement("span", { className: "badge warn" }, /* @__PURE__ */ React.createElement(Brain, { className: "w-4 h-4" }), " ", xp, " XP"), /* @__PURE__ */ React.createElement("span", { className: `badge ${streak.count > 0 ? "warn" : ""}` }, /* @__PURE__ */ React.createElement(FlameIcon, { className: "w-4 h-4" }), " ", tx("{n} \u0E27\u0E31\u0E19\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D\u0E01\u0E31\u0E19", { n: streak.count }))), streak.count > 0 && !practicedToday && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mt-2 px-1 leading-snug" }, tx("\u{1F525} \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E1D\u0E36\u0E01\u0E40\u0E25\u0E22 \u0E1D\u0E36\u0E01\u0E2D\u0E35\u0E01\u0E19\u0E34\u0E14\u0E40\u0E1E\u0E37\u0E48\u0E2D\u0E23\u0E31\u0E01\u0E29\u0E32\u0E2A\u0E16\u0E34\u0E15\u0E34\u0E44\u0E27\u0E49!")), streak.longest > streak.count && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mt-2 px-1" }, tx("\u0E2A\u0E16\u0E34\u0E15\u0E34\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14 {n} \u0E27\u0E31\u0E19", { n: streak.longest })))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 flex flex-col h-full overflow-hidden relative" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-gray-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-2 sm:px-4 py-2 shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden shrink-0", "aria-label": tx("\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E20\u0E32\u0E29\u0E32") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("div", { className: "tabs !border-b-0 min-w-0", role: "tablist" }, /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-stream", onClick: () => setView("stream"), "aria-selected": view === "stream", className: `tab${view === "stream" ? " on" : ""}` }, tx("\u0E2A\u0E15\u0E23\u0E35\u0E21")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-practice", onClick: () => setView("practice"), "aria-selected": view === "practice", className: `tab${view === "practice" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E1D\u0E19")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-writing", onClick: () => setView("writing"), "aria-selected": view === "writing", className: `tab inline-flex items-center gap-1.5${view === "writing" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19"), totalDue > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge err" }, totalDue > 99 ? "99+" : totalDue)), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-exam", onClick: goExam, "aria-selected": isExamView, className: `tab inline-flex items-center gap-1.5${isExamView ? " on" : ""}` }, /* @__PURE__ */ React.createElement(HskIcon, null), " ", tx("\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-listen", onClick: goListen, "aria-selected": view === "listen", className: `tab inline-flex items-center gap-1.5${view === "listen" ? " on" : ""}` }, /* @__PURE__ */ React.createElement(ListenIcon, null), " ", tx("\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14")))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "sync", onClick: syncNow, disabled: syncing, className: "btn sm" }, syncing ? tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...") : /* @__PURE__ */ React.createElement(React.Fragment, null, tx("\u0E0B\u0E34\u0E07\u0E01\u0E4C"), /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-sm text-gray-500" }, syncText(syncStatus)), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, tx("\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot")))), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("section", { className: "card p-5 sm:p-6" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-1" }, tx("\u0E1D\u0E36\u0E01\u0E20\u0E32\u0E29\u0E32\u0E41\u0E1A\u0E1A\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-[200px] max-w-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sm text-gray-500 mb-1" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21")), /* @__PURE__ */ React.createElement("span", null, doneCategories, "/", totalCategories)), /* @__PURE__ */ React.createElement("div", { className: "meter" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${totalCategories ? doneCategories / totalCategories * 100 : 0}%` } }))), /* @__PURE__ */ React.createElement("span", { className: "badge warn" }, /* @__PURE__ */ React.createElement(Brain, null), " ", xp, " XP"), /* @__PURE__ */ React.createElement("span", { className: `badge ${practicedToday ? "ok" : ""}` }, /* @__PURE__ */ React.createElement(FlameIcon, null), " ", tx("{n} \u0E27\u0E31\u0E19\u0E15\u0E34\u0E14\u0E15\u0E48\u0E2D\u0E01\u0E31\u0E19", { n: streak.count })))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-3" }, langStats.map((s) => /* @__PURE__ */ React.createElement("button", { key: s.id, "data-k": "langStat", "data-lang": s.id, onClick: () => selectLang(s.id), className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "nm uppercase truncate" }, langTitle(s.id)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx("{a}/{b} \u0E2B\u0E21\u0E27\u0E14", { a: s.done, b: s.total })), /* @__PURE__ */ React.createElement("div", { className: "meter sm mt-1" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))))), featureTiles.length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LanguagesSmallIcon, null), " ", tx("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E40\u0E2A\u0E23\u0E34\u0E21\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: `grid grid-cols-1 sm:grid-cols-${featureTiles.length === 4 ? "4" : "3"} gap-3` }, featureTiles.map((f) => /* @__PURE__ */ React.createElement("button", { key: f.key, "data-k": "feature-" + f.key, onClick: f.act, className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "text-brandStrong" }, /* @__PURE__ */ React.createElement(f.Icon, null)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx(f.label)))))), Object.keys(wrong).length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(XCircle, null), " ", tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E40\u0E04\u0E22\u0E15\u0E2D\u0E1A\u0E1C\u0E34\u0E14 ({n})", { n: Object.keys(wrong).length })), /* @__PURE__ */ React.createElement("div", { className: "space-y-2" }, Object.values(wrong).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 6).map((w) => {
+    })))), /* @__PURE__ */ React.createElement("main", { className: "flex-1 flex flex-col h-full overflow-hidden relative" }, /* @__PURE__ */ React.createElement("header", { className: "bg-white border-b border-gray-200 flex items-center flex-wrap gap-x-3 gap-y-2 justify-between px-2 sm:px-4 py-2 shrink-0" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 min-w-0" }, /* @__PURE__ */ React.createElement("button", { "data-k": "menu", onClick: () => setMobileNavOpen(true), className: "btn ghost icon md:hidden shrink-0", "aria-label": tx("\u0E40\u0E1B\u0E34\u0E14\u0E40\u0E21\u0E19\u0E39\u0E20\u0E32\u0E29\u0E32") }, /* @__PURE__ */ React.createElement(Menu, null)), /* @__PURE__ */ React.createElement("div", { className: "tabs !border-b-0 min-w-0", role: "tablist" }, /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-stream", onClick: () => setView("stream"), "aria-selected": view === "stream", className: `tab${view === "stream" ? " on" : ""}` }, tx("\u0E2A\u0E15\u0E23\u0E35\u0E21")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-practice", onClick: () => setView("practice"), "aria-selected": view === "practice", className: `tab${view === "practice" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E1D\u0E19")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-writing", onClick: () => setView("writing"), "aria-selected": view === "writing", className: `tab inline-flex items-center gap-1.5${view === "writing" ? " on" : ""}` }, tx("\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19"), totalDue > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge err" }, totalDue > 99 ? "99+" : totalDue)), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-exam", onClick: goExam, "aria-selected": isExamView, className: `tab inline-flex items-center gap-1.5${isExamView ? " on" : ""}` }, /* @__PURE__ */ React.createElement(HskIcon, null), " ", tx("\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A")), /* @__PURE__ */ React.createElement("button", { role: "tab", "data-k": "tab-listen", onClick: goListen, "aria-selected": view === "listen", className: `tab inline-flex items-center gap-1.5${view === "listen" ? " on" : ""}` }, /* @__PURE__ */ React.createElement(ListenIcon, null), " ", tx("\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14")))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "sync", onClick: syncNow, disabled: syncing, className: "btn sm" }, syncing ? tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E0B\u0E34\u0E07\u0E01\u0E4C...") : /* @__PURE__ */ React.createElement(React.Fragment, null, tx("\u0E0B\u0E34\u0E07\u0E01\u0E4C"), /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline" }, " Google Drive"))), syncStatus && /* @__PURE__ */ React.createElement("span", { className: "hidden sm:inline text-sm text-gray-500" }, syncText(syncStatus)), /* @__PURE__ */ React.createElement("a", { href: "./index.html", className: "btn ghost sm" }, tx("\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot")))), view === "stream" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-4xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("section", { className: "card p-5 sm:p-6" }, /* @__PURE__ */ React.createElement("h2", { className: "text-xl font-bold mb-1" }, tx("\u0E1D\u0E36\u0E01\u0E20\u0E32\u0E29\u0E32\u0E41\u0E1A\u0E1A\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "flex-1 min-w-[200px] max-w-xs" }, /* @__PURE__ */ React.createElement("div", { className: "flex justify-between text-sm text-gray-500 mb-1" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E27\u0E32\u0E21\u0E04\u0E37\u0E1A\u0E2B\u0E19\u0E49\u0E32\u0E23\u0E27\u0E21")), /* @__PURE__ */ React.createElement("span", null, doneCategories, "/", totalCategories)), /* @__PURE__ */ React.createElement("div", { className: "meter" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${totalCategories ? doneCategories / totalCategories * 100 : 0}%` } }))))), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 sm:grid-cols-4 gap-3" }, langStats.map((s) => /* @__PURE__ */ React.createElement("button", { key: s.id, "data-k": "langStat", "data-lang": s.id, onClick: () => selectLang(s.id), className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "nm uppercase truncate" }, langTitle(s.id)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx("{a}/{b} \u0E2B\u0E21\u0E27\u0E14", { a: s.done, b: s.total })), /* @__PURE__ */ React.createElement("div", { className: "meter sm mt-1" }, /* @__PURE__ */ React.createElement("i", { style: { width: `${s.total ? s.done / s.total * 100 : 0}%` } }))))), featureTiles.length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-4 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(LanguagesSmallIcon, null), " ", tx("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E40\u0E2A\u0E23\u0E34\u0E21\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: `grid grid-cols-1 sm:grid-cols-${featureTiles.length === 4 ? "4" : "3"} gap-3` }, featureTiles.map((f) => /* @__PURE__ */ React.createElement("button", { key: f.key, "data-k": "feature-" + f.key, onClick: f.act, className: "stat-card" }, /* @__PURE__ */ React.createElement("span", { className: "text-brandStrong" }, /* @__PURE__ */ React.createElement(f.Icon, null)), /* @__PURE__ */ React.createElement("span", { className: "pr" }, tx(f.label)))))), Object.keys(wrong).length > 0 && /* @__PURE__ */ React.createElement("section", { className: "card p-5" }, /* @__PURE__ */ React.createElement("h3", { className: "font-bold mb-3 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(XCircle, null), " ", tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E40\u0E04\u0E22\u0E15\u0E2D\u0E1A\u0E1C\u0E34\u0E14 ({n})", { n: Object.keys(wrong).length })), /* @__PURE__ */ React.createElement("div", { className: "space-y-2" }, Object.values(wrong).sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 6).map((w) => {
       const phrase = (LANGS[w.langId] && LANGS[w.langId].phrases[w.cat] || [])[w.idx];
       if (!phrase) return null;
       return /* @__PURE__ */ React.createElement(

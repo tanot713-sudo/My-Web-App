@@ -28,6 +28,7 @@
 .ck-page .page-head{margin-bottom:var(--ome-sp-4)}
 
 /* ── แถบเกม: เลเวล/XP/สตรีค/เหรียญตรา ── */
+.ck-gamebar[hidden]{display:none}
 .ck-gamebar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 16px;margin-bottom:var(--ome-sp-4)}
 .ck-level-chip{display:flex;align-items:center;gap:10px;flex:0 1 240px;min-width:180px}
 .ck-level-num{width:36px;height:36px;border-radius:50%;flex-shrink:0;background:var(--ome-accent);color:var(--ome-on-accent);
@@ -235,7 +236,7 @@
 <div id="planRoot" class="cp-view" hidden></div>
 
 <div id="lessonsView">
-<div class="ck-gamebar card" id="gameBar">
+<div class="ck-gamebar card" id="gameBar" hidden>
   <div class="ck-level-chip">
     <div class="ck-level-num" id="levelNum">1</div>
     <div class="ck-level-info">
