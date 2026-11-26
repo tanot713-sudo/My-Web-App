@@ -149,6 +149,7 @@
     { key: 'lang-practice:progress', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:notes', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:wrong', kind: 'sync', mode: 'map' },
+    { key: 'lang-practice:faces', kind: 'sync', mode: 'map' }, // หน้าการ์ด {key: [คำ, ความหมาย]} ของการ์ดที่ไม่อยู่ในคลังเดิม (::u:: จากสวมบทบาท) — review.js อ่านเพิ่มจากนี้
     { prefix: 'lbe:', suffixes: [':srs', ':notes', ':written', ':completed'], kind: 'sync', mode: 'map' },
     { prefix: 'lbe:', suffix: ':exams', kind: 'sync', mode: 'list', idField: 'date' },
     { key: 'legal:drafts', kind: 'sync', mode: 'map' },

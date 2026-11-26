@@ -115,8 +115,9 @@
         if (n && n.id != null && Number(n.dueAt) <= now) cards.push({ src: 'law', id: n.id, front: n.q, back: n.a, sub: n.subj, due: Number(n.dueAt), rec: n });
       });
       var faces = LC.read('tanot:learn:faces:lang', {}) || {}, fc = faces.cards || {}, langs = faces.langs || {};
+      var ownFaces = LC.read('lang-practice:faces', {}) || {}; // การ์ด ::u:: (สวมบทบาท) ไม่อยู่ในคลังเดิม
       langDue.forEach(function (e) {
-        var f = fc[e[0]];
+        var f = fc[e[0]] || ownFaces[e[0]];
         if (!f) { missing.lang++; return; }
         cards.push({ src: 'lang', id: e[0], front: f[0], back: f[1], sub: langs[e[0].split('::')[0]] || '', due: Number(e[1].dueAt), rec: e[1] });
       });
@@ -321,7 +322,7 @@
   window.addEventListener('tanot:learn', function () { renderKpis(); });
   if (window.TanotData && window.TanotData.onChange) {
     window.TanotData.onChange(function (keys) {
-      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
+      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^lang-practice:faces|^idb:tanot-barprep|^tanot:learn:faces|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
       if (deckChanged) loadDeck().then(renderDeck); else renderKpis();
     });
   }

@@ -148,6 +148,7 @@
         const ListenIcon = icon('headphones', 'w-4 h-4');
         const MicIcon = icon('mic', 'w-5 h-5');
         const HashIcon = icon('hash', 'w-4 h-4');
+        const MessageIcon = icon('message-circle', 'w-5 h-5');
         const FlameIcon = icon('flame', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
@@ -545,7 +546,22 @@
             "文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ": "文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 questions",
             "文章（ช่อง【{n}】）": "文章（blank【{n}】）",
             "文章の文法 · ช่องที่ {n}": "文章の文法 · blank {n}",
-            "聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ": "聽力 (listening) 14 + 閱讀 (reading) 30 = 44 questions"
+            "聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ": "聽力 (listening) 14 + 閱讀 (reading) 30 = 44 questions",
+            "สนทนาสวมบทบาท": "Role-play conversation",
+            "เริ่มฉาก": "Start scene",
+            "จบฉาก": "Finish scene",
+            "คำที่ควรจำ": "Words to remember",
+            "กำลังสรุปคำ…": "Picking words…",
+            "ไม่มีคำให้เพิ่ม": "No words to add",
+            "เพิ่มเป็นการ์ด": "Add as cards",
+            "เพิ่มแล้ว {n} การ์ด": "Added {n} cards",
+            "ฉากใหม่": "New scene",
+            "ฟัง": "Listen",
+            "แปลไทย": "Show Thai",
+            "คำแก้ประโยคของคุณ": "Correction of your sentence",
+            "ตอบเป็นภาษา{l}…": "Reply in {l}…",
+            "ส่ง": "Send",
+            "ฟีเจอร์สนทนากับ AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ (ปัญหาหน่วยความจำของเบราว์เซอร์ iOS)": "AI conversation is not supported on iPhone/iPad yet (browser memory limits on iOS)",
         };
         /* LP_EN:END */
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
@@ -16987,7 +17003,194 @@
         // ภาษาที่มีชุดคอนเทนต์ ฟัง-พูด-อ่าน-ตัวเลข ให้ใช้แล้ว (LISTENING_PASSAGES(_EN/_JP/_KR/_YUE)/READING_PASSAGES(_EN/_JP/_KR/_YUE)/
         // NUMBERS_DATES(_EN/_JP/_KR/_YUE) + ASR_LANG_NAME) — ภาษาอื่นนอกห้านี้ยังไม่มีเนื้อหา รอทำทีหลังตามขอบเขตเดิม
         const LISTEN_SPEAK_LANGS = ['lang-cn', 'lang-en', 'lang-jp', 'lang-kr', 'lang-yue', 'lang-de', 'lang-fr', 'lang-it', 'lang-es', 'lang-pt', 'lang-ru', 'lang-in', 'lang-ar', 'lang-vn', 'lang-my', 'lang-mm', 'lang-kh', 'lang-la'];
-        function ListenSpeakView({ langId, setLangId, setXp }) {
+
+        // ── L5 สวมบทบาทกับ AI (ROADMAP แถว 26): ตรรกะล้วนอยู่ใน lang-calc.js (SCENES/roleplayMessages/parseRoleplay)
+        //    แชทผ่าน getWritingWorker() (คลาวด์ main → ถอยโมเดลในเครื่องเมื่อไม่ใช่ iOS) · ประวัติอยู่ในหน่วยความจำเท่านั้น
+        //    จบฉาก → XP 10 + AI สรุปคำ ≤ 5 คำ → เลือกเพิ่มเป็นการ์ด lang-xx::u::<lemma> (หน้าการ์ดเก็บใน lang-practice:faces) ──
+        function RoleplayPanel({ awardXp, langId, setSrs }) {
+            const LC = window.LangCalc;
+            const lname = LANGS[langId].title, langCode = LANGS[langId].code;
+            const en = OME_I18N.lang() === 'en';
+            const [sceneId, setSceneId] = useState(null);
+            const [level, setLevel] = useState('A1');
+            const [phase, setPhase] = useState('pick'); // pick | chat | summary
+            const [history, setHistory] = useState([]); // [{role, content, th, fix}]
+            const [draft, setDraft] = useState('');
+            const [busy, setBusy] = useState(false);
+            const [err, setErr] = useState('');
+            const [shown, setShown] = useState({});
+            const [words, setWords] = useState(null); // null = กำลังสรุป · [] = ไม่มีคำ
+            const [picked, setPicked] = useState({});
+            const [added, setAdded] = useState(0);
+            const endRef = useRef(null);
+            const jobRef = useRef(null);
+
+            useEffect(() => { reset(); }, [langId]);
+            useEffect(() => () => stopJob(), []);
+            useEffect(() => { if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({ block: 'nearest' }); }, [history, busy]);
+            useEffect(() => { lucide.createIcons(); });
+
+            function stopJob() { if (jobRef.current) { jobRef.current(); jobRef.current = null; } }
+            function reset() { stopJob(); setSceneId(null); setPhase('pick'); setHistory([]); setDraft(''); setBusy(false); setErr(''); setShown({}); setWords(null); setPicked({}); setAdded(0); }
+
+            // ส่งข้อความเข้าแชท แล้วคืน Promise ของข้อความเต็ม · onText ถูกเรียกทุก token
+            function ask(messages, maxNewTokens, onText) {
+                return new Promise((resolve, reject) => {
+                    if (isIOS() && !cloudChatOn()) { reject(new Error('ios')); return; }
+                    const w = getWritingWorker();
+                    const jobId = 'roleplay-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+                    let acc = '';
+                    const cleanup = () => { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); jobRef.current = null; };
+                    function onMsg(e) {
+                        const m = e.data;
+                        if (!m || m.jobId !== jobId) return;
+                        if (m.type === 'token') { acc += m.token; if (onText) onText(acc); }
+                        else if (m.type === 'done') { cleanup(); resolve(acc); }
+                        else if (m.type === 'error') { cleanup(); reject(new Error(m.message || 'error')); }
+                    }
+                    function onErr(e) { cleanup(); reject(new Error((e && e.message) || 'error')); }
+                    w.addEventListener('message', onMsg);
+                    w.addEventListener('error', onErr);
+                    jobRef.current = () => { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); };
+                    w.postMessage({ type: 'chat', jobId, maxNewTokens, messages });
+                });
+            }
+            const failText = (e) => (e && e.message === 'ios') ? 'ฟีเจอร์สนทนากับ AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ (ปัญหาหน่วยความจำของเบราว์เซอร์ iOS)' : friendlyChatError(e && e.message ? e.message : 'ไม่ทราบสาเหตุ');
+
+            // คำตอบของ AI รอบถัดไป: hist = ประวัติที่รวมข้อความผู้เรียนล่าสุดแล้ว
+            function turn(hist) {
+                setBusy(true); setErr('');
+                const base = hist.map(h => ({ role: h.role, content: h.content }));
+                const msgs = LC.roleplayMessages(sceneId, level, lname, base);
+                setHistory(hist.concat([{ role: 'assistant', content: '', th: '', fix: '' }]));
+                ask(msgs, 320, (acc) => {
+                    const p = LC.parseRoleplay(acc);
+                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix }]));
+                }).then((acc) => {
+                    const p = LC.parseRoleplay(acc);
+                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix }]));
+                    setBusy(false);
+                }, (e) => { setHistory(hist); setBusy(false); setErr(failText(e)); });
+            }
+            const start = () => { if (sceneId) { setPhase('chat'); turn([]); } };
+            const send = () => {
+                const t = draft.trim();
+                if (!t || busy) return;
+                setDraft('');
+                turn(history.concat([{ role: 'user', content: t }]));
+            };
+            const finish = () => {
+                if (busy) return;
+                setPhase('summary'); setWords(null); setErr('');
+                awardXp(10);
+                const base = history.map(h => ({ role: h.role, content: h.content }));
+                ask(LC.summaryMessages(sceneId, level, lname, base), 300).then(
+                    (acc) => { const l = LC.parseSummary(acc); setWords(l); const pk = {}; l.forEach((x, i) => { pk[i] = true; }); setPicked(pk); },
+                    (e) => { setWords([]); setErr(failText(e)); }
+                );
+            };
+            const addCards = () => {
+                const chosen = (words || []).filter((x, i) => picked[i]);
+                const now = Date.now();
+                const keyed = chosen.map(x => ({ k: LC.userCardKey(langId, x.word), x })).filter(o => o.k);
+                if (!keyed.length) return;
+                if (window.TanotData) window.TanotData.update('lang-practice:faces', (cur) => {
+                    const m = (cur && typeof cur === 'object' && !Array.isArray(cur)) ? cur : {};
+                    keyed.forEach(o => { m[o.k] = [o.x.word, o.x.thai]; });
+                    return m;
+                });
+                setSrs(s => { const n = { ...s }; keyed.forEach(o => { if (!n[o.k]) n[o.k] = { dueAt: now }; }); return n; });
+                setAdded(keyed.length);
+            };
+            const sc = sceneId ? LC.sceneOf(sceneId) : null;
+            const scName = (s) => en ? s.en : s.th;
+
+            if (phase === 'pick') {
+                return (
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('สนทนาสวมบทบาท')}</h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {LC.SCENES.map(s => (
+                                <button key={s.id} data-k={'rp-scene-' + s.id} aria-pressed={sceneId === s.id} onClick={() => setSceneId(s.id)}
+                                    className={`stat-card${sceneId === s.id ? ' on' : ''}`}>
+                                    <div className="font-semibold text-gray-800">{scName(s)}</div>
+                                    <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-3 flex-wrap mt-4">
+                            <div className="segmented">
+                                {LC.LEVELS.map(l => <button key={l} data-k={'rp-level-' + l} aria-pressed={level === l} onClick={() => setLevel(l)}>{l}</button>)}
+                            </div>
+                            <button data-k="rp-start" className="btn primary" disabled={!sceneId} onClick={start}>{tx('เริ่มฉาก')}</button>
+                        </div>
+                    </div>
+                );
+            }
+            if (phase === 'summary') {
+                return (
+                    <div>
+                        <h3 className="text-lg font-semibold text-gray-800 mb-3">{tx('คำที่ควรจำ')}</h3>
+                        {words === null && <div className="flex items-center gap-2 text-sm text-gray-500"><span className="spinner" />{tx('กำลังสรุปคำ…')}</div>}
+                        {err && <p className="text-sm text-err-ink" data-k="rp-error" role="alert">{txs(err)}</p>}
+                        {words && words.length === 0 && !err && <p className="text-sm text-gray-500">{tx('ไม่มีคำให้เพิ่ม')}</p>}
+                        {words && words.length > 0 && (
+                            <ul className="list plain" data-i18n-skip>
+                                {words.map((x, i) => (
+                                    <li key={i} className="list-row" data-k="rp-word">
+                                        <label className="check grow">
+                                            <input type="checkbox" checked={!!picked[i]} onChange={e => setPicked(p => ({ ...p, [i]: e.target.checked }))} />
+                                            <span><b>{x.word}</b> — {x.thai}</span>
+                                        </label>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <div className="flex items-center gap-3 flex-wrap mt-4">
+                            {words && words.length > 0 && !added && <button data-k="rp-addcards" className="btn primary" onClick={addCards} disabled={!Object.values(picked).some(Boolean)}>{tx('เพิ่มเป็นการ์ด')}</button>}
+                            {added > 0 && <span className="badge ok" data-k="rp-added">{tx('เพิ่มแล้ว {n} การ์ด', { n: added })}</span>}
+                            <button data-k="rp-new" className="btn ghost" onClick={reset}>{tx('ฉากใหม่')}</button>
+                        </div>
+                    </div>
+                );
+            }
+            return (
+                <div>
+                    <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                        <h3 className="text-lg font-semibold text-gray-800">{scName(sc)} <span className="badge">{level}</span></h3>
+                        <button data-k="rp-finish" className="btn" onClick={finish} disabled={busy || !history.some(h => h.role === 'user')}>{tx('จบฉาก')}</button>
+                    </div>
+                    <div className="space-y-3" aria-live="polite">
+                        {history.map((h, i) => h.role === 'user' ? (
+                            <div key={i} className="flex justify-end"><div className="callout info" data-k="rp-msg-user" data-i18n-skip>{h.content}</div></div>
+                        ) : (
+                            <div key={i} className="flex flex-col items-start gap-1">
+                                <div className="callout" data-k="rp-msg-ai" data-i18n-skip>{h.content || '…'}</div>
+                                {h.content && (
+                                    <div className="flex gap-2 flex-wrap">
+                                        <button className="btn ghost sm" data-k="rp-speak" onClick={() => speak(h.content, langCode)}><Volume2 /> {tx('ฟัง')}</button>
+                                        {h.th && <button className="btn ghost sm" data-k="rp-th" aria-pressed={!!shown['t' + i]} onClick={() => setShown(s => ({ ...s, ['t' + i]: !s['t' + i] }))}>{tx('แปลไทย')}</button>}
+                                        {h.fix && <button className="btn ghost sm" data-k="rp-fix" aria-pressed={!!shown['f' + i]} onClick={() => setShown(s => ({ ...s, ['f' + i]: !s['f' + i] }))}>{tx('คำแก้ประโยคของคุณ')}</button>}
+                                    </div>
+                                )}
+                                {shown['t' + i] && h.th && <p className="text-sm text-gray-600" data-k="rp-th-text" data-i18n-skip>{h.th}</p>}
+                                {shown['f' + i] && h.fix && <p className="text-sm text-gray-600" data-k="rp-fix-text" data-i18n-skip>{h.fix}</p>}
+                            </div>
+                        ))}
+                        <div ref={endRef} />
+                    </div>
+                    {err && <p className="text-sm text-err-ink mt-3" data-k="rp-error" role="alert">{txs(err)}</p>}
+                    <div className="flex gap-2 mt-4 items-end">
+                        <textarea data-k="rp-input" rows={2} className="textarea w-full resize-y" value={draft} onChange={e => setDraft(e.target.value)}
+                            placeholder={tx('ตอบเป็นภาษา{l}…', { l: langTitle(langId) })} aria-label={tx('ตอบเป็นภาษา{l}…', { l: langTitle(langId) })}
+                            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} />
+                        <button data-k="rp-send" className="btn primary" onClick={send} disabled={busy || !draft.trim()}>{tx('ส่ง')}</button>
+                    </div>
+                </div>
+            );
+        }
+
+        function ListenSpeakView({ langId, setLangId, setXp, setSrs }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
 
@@ -17030,6 +17233,9 @@
                                 <button data-k="lsub-shadowing" onClick={() => setSubMode('shadowing')} aria-pressed={subMode === 'shadowing'}>
                                     <MicIcon /> {tx('พูดตาม')}
                                 </button>
+                                <button data-k="lsub-roleplay" onClick={() => setSubMode('roleplay')} aria-pressed={subMode === 'roleplay'}>
+                                    <MessageIcon /> {tx('สนทนาสวมบทบาท')}
+                                </button>
                                 <button data-k="lsub-reading" onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
                                     <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
@@ -17044,6 +17250,7 @@
                             {subMode === 'listening' && <ListeningPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'roleplay' && <RoleplayPanel awardXp={awardXp} langId={langId} setSrs={setSrs} />}
                             {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} langId={langId} />}
                         </div>
                     </div>
@@ -17772,7 +17979,7 @@
                         ) : view === 'laexam' ? (
                         <LaExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
-                        <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} />
+                        <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} setSrs={setSrs} />
                         )}
                     </main>
                 </div>

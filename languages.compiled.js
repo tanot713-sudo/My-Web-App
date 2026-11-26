@@ -52,6 +52,7 @@
   const ListenIcon = icon("headphones", "w-4 h-4");
   const MicIcon = icon("mic", "w-5 h-5");
   const HashIcon = icon("hash", "w-4 h-4");
+  const MessageIcon = icon("message-circle", "w-5 h-5");
   const FlameIcon = icon("flame", "w-4 h-4");
   const BrushIcon = icon("brush", "w-3.5 h-3.5");
   const TypeIcon = icon("case-sensitive", "w-3.5 h-3.5");
@@ -434,7 +435,22 @@
     "\u6587\u5B57\u30FB\u8A9E\u5F59 40 + \u6587\u6CD5 31 + \u8AAD\u89E3 8 + \u8074\u89E3 14 = 93 \u0E02\u0E49\u0E2D": "\u6587\u5B57\u30FB\u8A9E\u5F59 40 + \u6587\u6CD5 31 + \u8AAD\u89E3 8 + \u8074\u89E3 14 = 93 questions",
     "\u6587\u7AE0\uFF08\u0E0A\u0E48\u0E2D\u0E07\u3010{n}\u3011\uFF09": "\u6587\u7AE0\uFF08blank\u3010{n}\u3011\uFF09",
     "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 \u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E35\u0E48 {n}": "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 blank {n}",
-    "\u807D\u529B (\u0E1F\u0E31\u0E07) 14 + \u95B1\u8B80 (\u0E2D\u0E48\u0E32\u0E19) 30 = 44 \u0E02\u0E49\u0E2D": "\u807D\u529B (listening) 14 + \u95B1\u8B80 (reading) 30 = 44 questions"
+    "\u807D\u529B (\u0E1F\u0E31\u0E07) 14 + \u95B1\u8B80 (\u0E2D\u0E48\u0E32\u0E19) 30 = 44 \u0E02\u0E49\u0E2D": "\u807D\u529B (listening) 14 + \u95B1\u8B80 (reading) 30 = 44 questions",
+    "\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17": "Role-play conversation",
+    "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E09\u0E32\u0E01": "Start scene",
+    "\u0E08\u0E1A\u0E09\u0E32\u0E01": "Finish scene",
+    "\u0E04\u0E33\u0E17\u0E35\u0E48\u0E04\u0E27\u0E23\u0E08\u0E33": "Words to remember",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2A\u0E23\u0E38\u0E1B\u0E04\u0E33\u2026": "Picking words\u2026",
+    "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E43\u0E2B\u0E49\u0E40\u0E1E\u0E34\u0E48\u0E21": "No words to add",
+    "\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14": "Add as cards",
+    "\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E41\u0E25\u0E49\u0E27 {n} \u0E01\u0E32\u0E23\u0E4C\u0E14": "Added {n} cards",
+    "\u0E09\u0E32\u0E01\u0E43\u0E2B\u0E21\u0E48": "New scene",
+    "\u0E1F\u0E31\u0E07": "Listen",
+    "\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22": "Show Thai",
+    "\u0E04\u0E33\u0E41\u0E01\u0E49\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13": "Correction of your sentence",
+    "\u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u2026": "Reply in {l}\u2026",
+    "\u0E2A\u0E48\u0E07": "Send",
+    "\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E01\u0E31\u0E1A AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 (\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E02\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C iOS)": "AI conversation is not supported on iPhone/iPad yet (browser memory limits on iOS)"
   };
   const LANG_EN = {
     "lang-en": "English",
@@ -13552,13 +13568,214 @@
     ]
   };
   const LISTEN_SPEAK_LANGS = ["lang-cn", "lang-en", "lang-jp", "lang-kr", "lang-yue", "lang-de", "lang-fr", "lang-it", "lang-es", "lang-pt", "lang-ru", "lang-in", "lang-ar", "lang-vn", "lang-my", "lang-mm", "lang-kh", "lang-la"];
-  function ListenSpeakView({ langId, setLangId, setXp }) {
+  function RoleplayPanel({ awardXp, langId, setSrs }) {
+    const LC = window.LangCalc;
+    const lname = LANGS[langId].title, langCode = LANGS[langId].code;
+    const en = OME_I18N.lang() === "en";
+    const [sceneId, setSceneId] = useState(null);
+    const [level, setLevel] = useState("A1");
+    const [phase, setPhase] = useState("pick");
+    const [history, setHistory] = useState([]);
+    const [draft, setDraft] = useState("");
+    const [busy, setBusy] = useState(false);
+    const [err, setErr] = useState("");
+    const [shown, setShown] = useState({});
+    const [words, setWords] = useState(null);
+    const [picked, setPicked] = useState({});
+    const [added, setAdded] = useState(0);
+    const endRef = useRef(null);
+    const jobRef = useRef(null);
+    useEffect(() => {
+      reset();
+    }, [langId]);
+    useEffect(() => () => stopJob(), []);
+    useEffect(() => {
+      if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({ block: "nearest" });
+    }, [history, busy]);
+    useEffect(() => {
+      lucide.createIcons();
+    });
+    function stopJob() {
+      if (jobRef.current) {
+        jobRef.current();
+        jobRef.current = null;
+      }
+    }
+    function reset() {
+      stopJob();
+      setSceneId(null);
+      setPhase("pick");
+      setHistory([]);
+      setDraft("");
+      setBusy(false);
+      setErr("");
+      setShown({});
+      setWords(null);
+      setPicked({});
+      setAdded(0);
+    }
+    function ask(messages, maxNewTokens, onText) {
+      return new Promise((resolve, reject) => {
+        if (isIOS() && !cloudChatOn()) {
+          reject(new Error("ios"));
+          return;
+        }
+        const w = getWritingWorker();
+        const jobId = "roleplay-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
+        let acc = "";
+        const cleanup = () => {
+          w.removeEventListener("message", onMsg);
+          w.removeEventListener("error", onErr);
+          jobRef.current = null;
+        };
+        function onMsg(e) {
+          const m = e.data;
+          if (!m || m.jobId !== jobId) return;
+          if (m.type === "token") {
+            acc += m.token;
+            if (onText) onText(acc);
+          } else if (m.type === "done") {
+            cleanup();
+            resolve(acc);
+          } else if (m.type === "error") {
+            cleanup();
+            reject(new Error(m.message || "error"));
+          }
+        }
+        function onErr(e) {
+          cleanup();
+          reject(new Error(e && e.message || "error"));
+        }
+        w.addEventListener("message", onMsg);
+        w.addEventListener("error", onErr);
+        jobRef.current = () => {
+          w.removeEventListener("message", onMsg);
+          w.removeEventListener("error", onErr);
+        };
+        w.postMessage({ type: "chat", jobId, maxNewTokens, messages });
+      });
+    }
+    const failText = (e) => e && e.message === "ios" ? "\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E01\u0E31\u0E1A AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 (\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E02\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C iOS)" : friendlyChatError(e && e.message ? e.message : "\u0E44\u0E21\u0E48\u0E17\u0E23\u0E32\u0E1A\u0E2A\u0E32\u0E40\u0E2B\u0E15\u0E38");
+    function turn(hist) {
+      setBusy(true);
+      setErr("");
+      const base = hist.map((h) => ({ role: h.role, content: h.content }));
+      const msgs = LC.roleplayMessages(sceneId, level, lname, base);
+      setHistory(hist.concat([{ role: "assistant", content: "", th: "", fix: "" }]));
+      ask(msgs, 320, (acc) => {
+        const p = LC.parseRoleplay(acc);
+        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix }]));
+      }).then((acc) => {
+        const p = LC.parseRoleplay(acc);
+        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix }]));
+        setBusy(false);
+      }, (e) => {
+        setHistory(hist);
+        setBusy(false);
+        setErr(failText(e));
+      });
+    }
+    const start = () => {
+      if (sceneId) {
+        setPhase("chat");
+        turn([]);
+      }
+    };
+    const send = () => {
+      const t = draft.trim();
+      if (!t || busy) return;
+      setDraft("");
+      turn(history.concat([{ role: "user", content: t }]));
+    };
+    const finish = () => {
+      if (busy) return;
+      setPhase("summary");
+      setWords(null);
+      setErr("");
+      awardXp(10);
+      const base = history.map((h) => ({ role: h.role, content: h.content }));
+      ask(LC.summaryMessages(sceneId, level, lname, base), 300).then(
+        (acc) => {
+          const l = LC.parseSummary(acc);
+          setWords(l);
+          const pk = {};
+          l.forEach((x, i) => {
+            pk[i] = true;
+          });
+          setPicked(pk);
+        },
+        (e) => {
+          setWords([]);
+          setErr(failText(e));
+        }
+      );
+    };
+    const addCards = () => {
+      const chosen = (words || []).filter((x, i) => picked[i]);
+      const now = Date.now();
+      const keyed = chosen.map((x) => ({ k: LC.userCardKey(langId, x.word), x })).filter((o) => o.k);
+      if (!keyed.length) return;
+      if (window.TanotData) window.TanotData.update("lang-practice:faces", (cur) => {
+        const m = cur && typeof cur === "object" && !Array.isArray(cur) ? cur : {};
+        keyed.forEach((o) => {
+          m[o.k] = [o.x.word, o.x.thai];
+        });
+        return m;
+      });
+      setSrs((s) => {
+        const n = { ...s };
+        keyed.forEach((o) => {
+          if (!n[o.k]) n[o.k] = { dueAt: now };
+        });
+        return n;
+      });
+      setAdded(keyed.length);
+    };
+    const sc = sceneId ? LC.sceneOf(sceneId) : null;
+    const scName = (s) => en ? s.en : s.th;
+    if (phase === "pick") {
+      return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.SCENES.map((s) => /* @__PURE__ */ React.createElement(
+        "button",
+        {
+          key: s.id,
+          "data-k": "rp-scene-" + s.id,
+          "aria-pressed": sceneId === s.id,
+          onClick: () => setSceneId(s.id),
+          className: `stat-card${sceneId === s.id ? " on" : ""}`
+        },
+        /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800" }, scName(s)),
+        /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500" }, en ? s.goalEn : s.goal)
+      ))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "segmented" }, LC.LEVELS.map((l) => /* @__PURE__ */ React.createElement("button", { key: l, "data-k": "rp-level-" + l, "aria-pressed": level === l, onClick: () => setLevel(l) }, l))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-start", className: "btn primary", disabled: !sceneId, onClick: start }, tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E09\u0E32\u0E01"))));
+    }
+    if (phase === "summary") {
+      return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-3" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E04\u0E27\u0E23\u0E08\u0E33")), words === null && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-sm text-gray-500" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2A\u0E23\u0E38\u0E1B\u0E04\u0E33\u2026")), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink", "data-k": "rp-error", role: "alert" }, txs(err)), words && words.length === 0 && !err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E43\u0E2B\u0E49\u0E40\u0E1E\u0E34\u0E48\u0E21")), words && words.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain", "data-i18n-skip": true }, words.map((x, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "list-row", "data-k": "rp-word" }, /* @__PURE__ */ React.createElement("label", { className: "check grow" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", checked: !!picked[i], onChange: (e) => setPicked((p) => ({ ...p, [i]: e.target.checked })) }), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("b", null, x.word), " \u2014 ", x.thai))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, words && words.length > 0 && !added && /* @__PURE__ */ React.createElement("button", { "data-k": "rp-addcards", className: "btn primary", onClick: addCards, disabled: !Object.values(picked).some(Boolean) }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14")), added > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "rp-added" }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E41\u0E25\u0E49\u0E27 {n} \u0E01\u0E32\u0E23\u0E4C\u0E14", { n: added })), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-new", className: "btn ghost", onClick: reset }, tx("\u0E09\u0E32\u0E01\u0E43\u0E2B\u0E21\u0E48"))));
+    }
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800" }, scName(sc), " ", /* @__PURE__ */ React.createElement("span", { className: "badge" }, level)), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-finish", className: "btn", onClick: finish, disabled: busy || !history.some((h) => h.role === "user") }, tx("\u0E08\u0E1A\u0E09\u0E32\u0E01"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "aria-live": "polite" }, history.map((h, i) => h.role === "user" ? /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-end" }, /* @__PURE__ */ React.createElement("div", { className: "callout info", "data-k": "rp-msg-user", "data-i18n-skip": true }, h.content)) : /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-start gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "callout", "data-k": "rp-msg-ai", "data-i18n-skip": true }, h.content || "\u2026"), h.content && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-speak", onClick: () => speak(h.content, langCode) }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07")), h.th && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-th", "aria-pressed": !!shown["t" + i], onClick: () => setShown((s) => ({ ...s, ["t" + i]: !s["t" + i] })) }, tx("\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22")), h.fix && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-fix", "aria-pressed": !!shown["f" + i], onClick: () => setShown((s) => ({ ...s, ["f" + i]: !s["f" + i] })) }, tx("\u0E04\u0E33\u0E41\u0E01\u0E49\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13"))), shown["t" + i] && h.th && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rp-th-text", "data-i18n-skip": true }, h.th), shown["f" + i] && h.fix && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rp-fix-text", "data-i18n-skip": true }, h.fix))), /* @__PURE__ */ React.createElement("div", { ref: endRef })), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mt-3", "data-k": "rp-error", role: "alert" }, txs(err)), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 mt-4 items-end" }, /* @__PURE__ */ React.createElement(
+      "textarea",
+      {
+        "data-k": "rp-input",
+        rows: 2,
+        className: "textarea w-full resize-y",
+        value: draft,
+        onChange: (e) => setDraft(e.target.value),
+        placeholder: tx("\u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u2026", { l: langTitle(langId) }),
+        "aria-label": tx("\u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u2026", { l: langTitle(langId) }),
+        onKeyDown: (e) => {
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            send();
+          }
+        }
+      }
+    ), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-send", className: "btn primary", onClick: send, disabled: busy || !draft.trim() }, tx("\u0E2A\u0E48\u0E07"))));
+  }
+  function ListenSpeakView({ langId, setLangId, setXp, setSrs }) {
     const [subMode, setSubMode] = useState("listening");
     const awardXp = (amt) => setXp((x) => x + amt);
     if (!LISTEN_SPEAK_LANGS.includes(langId)) {
       return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-xl mx-auto p-6 text-center" }, /* @__PURE__ */ React.createElement("p", { className: "text-gray-500 mb-4" }, tx("\u0E42\u0E2B\u0E21\u0E14\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14 \u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07 \u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29 \u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19 \u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35 \u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07 \u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19 \u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A \u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35 \u0E2A\u0E40\u0E1B\u0E19 \u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A \u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22 \u0E2E\u0E34\u0E19\u0E14\u0E35 \u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A \u0E41\u0E25\u0E30\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49")), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 justify-center flex-wrap" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-cn"), className: "btn primary" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-en"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-jp"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-kr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-yue"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-de"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-fr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-it"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-es"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2A\u0E40\u0E1B\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-pt"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ru"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-in"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2E\u0E34\u0E19\u0E14\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ar"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-vn"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21")))));
     }
-    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-roleplay", onClick: () => setSubMode("roleplay"), "aria-pressed": subMode === "roleplay" }, /* @__PURE__ */ React.createElement(MessageIcon, null), " ", tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "roleplay" && /* @__PURE__ */ React.createElement(RoleplayPanel, { awardXp, langId, setSrs }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
   }
   function TtsFallbackToast() {
     const [msg, setMsg] = useState(null);
@@ -14014,7 +14231,7 @@
         setWriting,
         dueCounts
       }
-    ) : view === "hsk" ? /* @__PURE__ */ React.createElement(HskExamView, { langId, setLangId, setXp }) : view === "enexam" ? /* @__PURE__ */ React.createElement(EnExamView, { langId, setLangId, setXp }) : view === "jpexam" ? /* @__PURE__ */ React.createElement(JpExamView, { langId, setLangId, setXp }) : view === "krexam" ? /* @__PURE__ */ React.createElement(KrExamView, { langId, setLangId, setXp }) : view === "yueexam" ? /* @__PURE__ */ React.createElement(YueExamView, { langId, setLangId, setXp }) : view === "deexam" ? /* @__PURE__ */ React.createElement(DeExamView, { langId, setLangId, setXp }) : view === "frexam" ? /* @__PURE__ */ React.createElement(FrExamView, { langId, setLangId, setXp }) : view === "itexam" ? /* @__PURE__ */ React.createElement(ItExamView, { langId, setLangId, setXp }) : view === "esexam" ? /* @__PURE__ */ React.createElement(EsExamView, { langId, setLangId, setXp }) : view === "ptexam" ? /* @__PURE__ */ React.createElement(PtExamView, { langId, setLangId, setXp }) : view === "ruexam" ? /* @__PURE__ */ React.createElement(RuExamView, { langId, setLangId, setXp }) : view === "hiexam" ? /* @__PURE__ */ React.createElement(HiExamView, { langId, setLangId, setXp }) : view === "arexam" ? /* @__PURE__ */ React.createElement(ArExamView, { langId, setLangId, setXp }) : view === "vnexam" ? /* @__PURE__ */ React.createElement(VnExamView, { langId, setLangId, setXp }) : view === "myexam" ? /* @__PURE__ */ React.createElement(MyExamView, { langId, setLangId, setXp }) : view === "mmexam" ? /* @__PURE__ */ React.createElement(MmExamView, { langId, setLangId, setXp }) : view === "khexam" ? /* @__PURE__ */ React.createElement(KhExamView, { langId, setLangId, setXp }) : view === "laexam" ? /* @__PURE__ */ React.createElement(LaExamView, { langId, setLangId, setXp }) : /* @__PURE__ */ React.createElement(ListenSpeakView, { langId, setLangId, setXp })));
+    ) : view === "hsk" ? /* @__PURE__ */ React.createElement(HskExamView, { langId, setLangId, setXp }) : view === "enexam" ? /* @__PURE__ */ React.createElement(EnExamView, { langId, setLangId, setXp }) : view === "jpexam" ? /* @__PURE__ */ React.createElement(JpExamView, { langId, setLangId, setXp }) : view === "krexam" ? /* @__PURE__ */ React.createElement(KrExamView, { langId, setLangId, setXp }) : view === "yueexam" ? /* @__PURE__ */ React.createElement(YueExamView, { langId, setLangId, setXp }) : view === "deexam" ? /* @__PURE__ */ React.createElement(DeExamView, { langId, setLangId, setXp }) : view === "frexam" ? /* @__PURE__ */ React.createElement(FrExamView, { langId, setLangId, setXp }) : view === "itexam" ? /* @__PURE__ */ React.createElement(ItExamView, { langId, setLangId, setXp }) : view === "esexam" ? /* @__PURE__ */ React.createElement(EsExamView, { langId, setLangId, setXp }) : view === "ptexam" ? /* @__PURE__ */ React.createElement(PtExamView, { langId, setLangId, setXp }) : view === "ruexam" ? /* @__PURE__ */ React.createElement(RuExamView, { langId, setLangId, setXp }) : view === "hiexam" ? /* @__PURE__ */ React.createElement(HiExamView, { langId, setLangId, setXp }) : view === "arexam" ? /* @__PURE__ */ React.createElement(ArExamView, { langId, setLangId, setXp }) : view === "vnexam" ? /* @__PURE__ */ React.createElement(VnExamView, { langId, setLangId, setXp }) : view === "myexam" ? /* @__PURE__ */ React.createElement(MyExamView, { langId, setLangId, setXp }) : view === "mmexam" ? /* @__PURE__ */ React.createElement(MmExamView, { langId, setLangId, setXp }) : view === "khexam" ? /* @__PURE__ */ React.createElement(KhExamView, { langId, setLangId, setXp }) : view === "laexam" ? /* @__PURE__ */ React.createElement(LaExamView, { langId, setLangId, setXp }) : /* @__PURE__ */ React.createElement(ListenSpeakView, { langId, setLangId, setXp, setSrs })));
   }
   const root = ReactDOM.createRoot(document.getElementById("root"));
   root.render(/* @__PURE__ */ React.createElement(App, null));
