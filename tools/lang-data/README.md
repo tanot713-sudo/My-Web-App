@@ -14,7 +14,7 @@
 | เสียง (ไม่บังคับ) | `https://downloads.tatoeba.org/exports/sentences_with_audio.tar.bz2` | ใช้ติดธง `au` เฉพาะ license CC BY / BY-SA / CC0 |
 | Wiktionary (ไม่บังคับ) | `https://kaikki.org/dictionary/rawdata.html` → ไฟล์ JSONL ของภาษาเป้าหมาย (ฉบับ en.wiktionary) | ให้ IPA, gloss อังกฤษ และ `translations` ภาษาไทย |
 
-**ก่อนใช้ข้อมูลจริงครั้งแรก**: เปิดหน้า license ของ Tatoeba และ kaikki.org ตรวจกับตารางใน `docs/languages-design.md` §2 (session ที่เขียนสคริปต์ยืนยันได้เฉพาะ FrequencyWords) และตรวจหัวคอลัมน์ของไฟล์ที่ดาวน์โหลดจริงว่าตรงกับที่สคริปต์อ่าน
+**license**: ตาราง `docs/languages-design.md` §2 ยืนยันแล้วจากหน้าจริง (Tatoeba, FrequencyWords) · kaikki.org หน้าเว็บไม่ระบุ license ของข้อมูล จึงใช้เงื่อนไข CC BY-SA 4.0 ของ Wiktionary · หัวคอลัมน์ Tatoeba ตรวจกับไฟล์จริงแล้ว 2026-11-26
 
 ## รัน
 ```bash

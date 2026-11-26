@@ -1,0 +1,15 @@
+{
+ "v": 1,
+ "packs": {
+  "lang-en": {
+   "file": "lang-en-f30e8c71.json",
+   "words": 3000,
+   "sentences": 3000,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  }
+ }
+}
