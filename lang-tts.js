@@ -4,7 +4,7 @@
 
    • ค่าเริ่มต้น = เสียงของเครื่อง (speechSynthesis) · ใช้โมเดล MMS-TTS เมื่อ (ก) เครื่องไม่มีเสียงของภาษานั้น หรือ (ข) ผู้ใช้เลือก "เสียงโมเดล" ของภาษานั้นเอง
    • ตารางโมเดล + การกรองข้อความด้วย vocab อยู่ใน media-models.js (LANG_TTS / langTtsChunks) ที่เดียว
-   • สังเคราะห์ใน tts-worker.js ตัวเดียวกับหน้า text-to-speech (Worker 1 ตัว โมเดลเดียวต่อครั้ง) · ลงทะเบียน TanotMedia.budget id 'tts-lang'
+   • สังเคราะห์ใน tts-worker.js + ปรับความดังด้วย audio-gain.js ตัวเดียวกับหน้า text-to-speech/วิดเจ็ตแชท (Worker 1 ตัว โมเดลเดียวต่อครั้ง) · ลงทะเบียน TanotMedia.budget id 'tts-lang'
      (มือถือมีโมเดลในเบราว์เซอร์ได้ครั้งละ 1 ตัว) · โมเดลไม่ใช่ของ Tanotfin → โหลดตรงจาก huggingface.co (useHfProxy ไม่แตะ) แคชใน transformers-cache
    • ล้ม (โหลดไม่ได้/หน่วยความจำ/Worker พัง) = แจ้งผ่าน on() ให้หน้าแสดงข้อความ + เรียก fallback() (เสียงเครื่อง) + problem log ไม่มีข้อความผู้ใช้
      แล้วจำไว้ทั้งการเปิดหน้านี้ว่าภาษานั้นใช้โมเดลไม่ได้ (ครั้งต่อไปใช้เสียงเครื่องเลย ไม่โหลดซ้ำทุกครั้งที่กด)
@@ -16,7 +16,7 @@
   var subs = [];
   var failed = {};          // รหัสภาษา → true: ล้มแล้วในการเปิดหน้านี้
   var worker = null, workerModel = null, busy = false;
-  var job = null;           // { id, key, model, n, done, fallback }
+  var job = null;           // { id, key, model, n, done, fallback, gain }
   var jobSeq = 0;
   var audioCtx = null, sources = [], nextAt = 0;
 
@@ -81,7 +81,18 @@
     return worker;
   }
 
+  /* ปรับความดังแบบวิดเจ็ตแชท (audio-gain.js — shell.js ฉีดให้): gain จากท่อนแรกของงานใช้ทุกท่อน + จำกัด peak ≤ −1 dBFS รายท่อน · ไม่มี audio-gain = เล่นตามเดิม */
+  function level(samples, rate, j) {
+    var G = window.TanotAudioGain;
+    if (!G || !j) return;
+    var m = G.measure(samples, rate);
+    if (j.gain == null && m.active) j.gain = G.gainFor(m);
+    var g = j.gain == null ? 1 : j.gain;
+    if (m.peak > 0) g = Math.min(g, Math.pow(10, G.PEAK_DB / 20) / m.peak);
+    if (g !== 1) for (var i = 0; i < samples.length; i++) samples[i] *= g;
+  }
   function play(samples, rate) {
+    level(samples, rate, job);
     var ctx = unlockAudio();
     if (!ctx) return;
     var buf = ctx.createBuffer(1, samples.length, rate);
