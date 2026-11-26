@@ -548,6 +548,18 @@
             "聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ": "聽力 (listening) 14 + 閱讀 (reading) 30 = 44 questions"
         };
         /* LP_EN:END */
+        // ── L6 เสียงอ่าน (lang-tts.js) — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'เสียงอ่าน': 'Voice',
+            'เสียงเครื่อง': 'Device voice',
+            'เสียงโมเดล': 'Model voice',
+            'กำลังโหลดเสียงอ่าน…': 'Loading voice…',
+            'กำลังโหลดเสียงอ่าน… {p}%': 'Loading voice… {p}%',
+            'เสียงโมเดลใช้ไม่ได้ (ไม่พบไฟล์) — ใช้เสียงเครื่องแทน': 'Model voice unavailable (file not found) — using the device voice',
+            'โหลดเสียงโมเดลไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่ ตอนนี้ใช้เสียงเครื่องแทน': 'Could not load the model voice — check your connection; using the device voice for now',
+            'หน่วยความจำไม่พอสำหรับเสียงโมเดล — ใช้เสียงเครื่องแทน': 'Not enough memory for the model voice — using the device voice',
+            'เสียงโมเดลใช้ไม่ได้ — ใช้เสียงเครื่องแทน': 'Model voice failed — using the device voice'
+        });
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
             'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
             'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
@@ -593,13 +605,22 @@
             } catch (e) {}
         }
 
+        // ── L6 เสียงอ่าน: เครื่องไม่มีเสียงของภาษานี้ หรือผู้ใช้เลือก "เสียงโมเดล" → MMS-TTS ใน lang-tts.js (ล้ม = กลับมาที่เสียงเครื่องผ่าน fallback)
         function speak(text, langCode) {
+            const LT = window.TanotLangTts;
+            if (LT && LT.useModel(langCode)) {
+                try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+                if (LT.speak(text, langCode, { fallback: () => speakDevice(text, langCode, true) })) return;
+            } else if (LT) LT.stop();
+            speakDevice(text, langCode);
+        }
+        function speakDevice(text, langCode, quiet) {
             try {
                 window.speechSynthesis.cancel();
                 const u = new SpeechSynthesisUtterance(text);
                 u.lang = langCode;
                 window.speechSynthesis.speak(u);
-                checkVoiceAndNotify(langCode);
+                if (!quiet) checkVoiceAndNotify(langCode); // quiet = ทางถอยของเสียงโมเดล (หน้าแจ้งเหตุที่ล้มไปแล้ว)
             } catch (e) {}
         }
 
@@ -17054,6 +17075,22 @@
         // แจ้งเตือนแบบ toast ลอยด้านล่างจอ ตอนกด speak() แล้วเบราว์เซอร์/อุปกรณ์ไม่มีเสียงอ่านของภาษานั้น
         // จริงๆ (ไม่ใช่แค่ยังโหลดไม่เสร็จ) — subscribe ผ่าน ttsNoticeSubs (module scope, ดูจุดประกาศที่
         // speak()) mount ครั้งเดียวที่ App() ไม่ต้องส่ง prop ผ่านทุก component ที่เรียก speak()
+        // ── L6 เสียงอ่าน: เลือกเสียงเครื่อง/เสียงโมเดลของภาษานี้ (แสดงเฉพาะภาษาที่มีโมเดลใน LANG_TTS) · เครื่องไม่มีเสียงของภาษานี้ = ปุ่มเสียงเครื่องกดไม่ได้
+        function LangVoicePicker({ code }) {
+            const LT = window.TanotLangTts;
+            const [, bump] = useState(0);
+            useEffect(() => (LT ? LT.on((ev) => { if (ev.type === 'voices' || ev.type === 'pref' || ev.type === 'error') bump(n => n + 1); }) : undefined), []);
+            if (!LT || !LT.has(code)) return null;
+            const device = LT.deviceVoice(code), usable = LT.usable(code);
+            const model = usable && (LT.pref(code) === 'model' || !device);
+            return (
+                <div className="segmented" role="group" aria-label={tx('เสียงอ่าน')} data-k="voice-picker">
+                    <button type="button" data-k="voice-device" aria-pressed={!model} disabled={!device} onClick={() => LT.setPref(code, 'device')}>{tx('เสียงเครื่อง')}</button>
+                    <button type="button" data-k="voice-model" aria-pressed={model} disabled={!usable} onClick={() => LT.setPref(code, 'model')}>{tx('เสียงโมเดล')}</button>
+                </div>
+            );
+        }
+
         function TtsFallbackToast() {
             const [msg, setMsg] = useState(null);
             useEffect(() => {
@@ -17061,7 +17098,16 @@
                     setMsg('เบราว์เซอร์/อุปกรณ์นี้ไม่มีเสียงอ่านสำหรับภาษานี้ติดตั้งไว้ (ข้อจำกัดของอุปกรณ์ ไม่ใช่เว็บพัง) ลองเปิดด้วย Chrome บนคอมพิวเตอร์ หรือเพิ่มเสียงอ่านในตั้งค่าระบบดูครับ');
                 };
                 ttsNoticeSubs.add(fn);
-                return () => ttsNoticeSubs.delete(fn);
+                // ── L6 เสียงอ่าน: สถานะโหลด/ล้มของเสียงโมเดล (lang-tts.js)
+                const LT = window.TanotLangTts;
+                const off = LT ? LT.on((ev) => {
+                    if (ev.type === 'loading') setMsg(ev.progress != null ? ['กำลังโหลดเสียงอ่าน… {p}%', { p: ev.progress }] : 'กำลังโหลดเสียงอ่าน…');
+                    else if (ev.type === 'speaking') setMsg(null);
+                    else if (ev.type === 'error') setMsg(ev.kind === 'missing' ? 'เสียงโมเดลใช้ไม่ได้ (ไม่พบไฟล์) — ใช้เสียงเครื่องแทน'
+                        : ev.kind === 'network' ? 'โหลดเสียงโมเดลไม่สำเร็จ — ตรวจอินเทอร์เน็ตแล้วลองใหม่ ตอนนี้ใช้เสียงเครื่องแทน'
+                        : ev.kind === 'oom' ? 'หน่วยความจำไม่พอสำหรับเสียงโมเดล — ใช้เสียงเครื่องแทน' : 'เสียงโมเดลใช้ไม่ได้ — ใช้เสียงเครื่องแทน');
+                }) : null;
+                return () => { ttsNoticeSubs.delete(fn); if (off) off(); };
             }, []);
             useEffect(() => {
                 if (!msg) return;
@@ -17548,8 +17594,9 @@
 
                             <div className="w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto">
                                 <div className="card p-5 sm:p-8 min-h-full">
-                                    <div className="border-b border-gray-200 pb-4 mb-4">
+                                    <div className="border-b border-gray-200 pb-4 mb-4 flex flex-wrap items-center justify-between gap-2">
                                         <h3 className="text-xl font-bold text-gray-900 mb-0">{tx('วลีสำหรับฝึก — {l}', { l: langTitle(langId) })}</h3>
+                                        <LangVoicePicker code={LANGS[langId].code} />
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mb-6">

@@ -436,6 +436,17 @@
     "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 \u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E35\u0E48 {n}": "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 blank {n}",
     "\u807D\u529B (\u0E1F\u0E31\u0E07) 14 + \u95B1\u8B80 (\u0E2D\u0E48\u0E32\u0E19) 30 = 44 \u0E02\u0E49\u0E2D": "\u807D\u529B (listening) 14 + \u95B1\u8B80 (reading) 30 = 44 questions"
   };
+  Object.assign(LP_EN, {
+    "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19": "Voice",
+    "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07": "Device voice",
+    "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25": "Model voice",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u2026": "Loading voice\u2026",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u2026 {p}%": "Loading voice\u2026 {p}%",
+    "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 (\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E44\u0E1F\u0E25\u0E4C) \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Model voice unavailable (file not found) \u2014 using the device voice",
+    "\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E2D\u0E34\u0E19\u0E40\u0E17\u0E2D\u0E23\u0E4C\u0E40\u0E19\u0E47\u0E15\u0E41\u0E25\u0E49\u0E27\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48 \u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49\u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Could not load the model voice \u2014 check your connection; using the device voice for now",
+    "\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E44\u0E21\u0E48\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Not enough memory for the model voice \u2014 using the device voice",
+    "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Model voice failed \u2014 using the device voice"
+  });
   const LANG_EN = {
     "lang-en": "English",
     "lang-jp": "Japanese",
@@ -503,12 +514,23 @@
     }
   }
   function speak(text, langCode) {
+    const LT = window.TanotLangTts;
+    if (LT && LT.useModel(langCode)) {
+      try {
+        window.speechSynthesis && window.speechSynthesis.cancel();
+      } catch (e) {
+      }
+      if (LT.speak(text, langCode, { fallback: () => speakDevice(text, langCode, true) })) return;
+    } else if (LT) LT.stop();
+    speakDevice(text, langCode);
+  }
+  function speakDevice(text, langCode, quiet) {
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
       u.lang = langCode;
       window.speechSynthesis.speak(u);
-      checkVoiceAndNotify(langCode);
+      if (!quiet) checkVoiceAndNotify(langCode);
     } catch (e) {
     }
   }
@@ -13560,6 +13582,17 @@
     }
     return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
   }
+  function LangVoicePicker({ code }) {
+    const LT = window.TanotLangTts;
+    const [, bump] = useState(0);
+    useEffect(() => LT ? LT.on((ev) => {
+      if (ev.type === "voices" || ev.type === "pref" || ev.type === "error") bump((n) => n + 1);
+    }) : void 0, []);
+    if (!LT || !LT.has(code)) return null;
+    const device = LT.deviceVoice(code), usable = LT.usable(code);
+    const model = usable && (LT.pref(code) === "model" || !device);
+    return /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19"), "data-k": "voice-picker" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-device", "aria-pressed": !model, disabled: !device, onClick: () => LT.setPref(code, "device") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-model", "aria-pressed": model, disabled: !usable, onClick: () => LT.setPref(code, "model") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25")));
+  }
   function TtsFallbackToast() {
     const [msg, setMsg] = useState(null);
     useEffect(() => {
@@ -13567,7 +13600,16 @@
         setMsg("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C/\u0E2D\u0E38\u0E1B\u0E01\u0E23\u0E13\u0E4C\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E21\u0E35\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E20\u0E32\u0E29\u0E32\u0E19\u0E35\u0E49\u0E15\u0E34\u0E14\u0E15\u0E31\u0E49\u0E07\u0E44\u0E27\u0E49 (\u0E02\u0E49\u0E2D\u0E08\u0E33\u0E01\u0E31\u0E14\u0E02\u0E2D\u0E07\u0E2D\u0E38\u0E1B\u0E01\u0E23\u0E13\u0E4C \u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E40\u0E27\u0E47\u0E1A\u0E1E\u0E31\u0E07) \u0E25\u0E2D\u0E07\u0E40\u0E1B\u0E34\u0E14\u0E14\u0E49\u0E27\u0E22 Chrome \u0E1A\u0E19\u0E04\u0E2D\u0E21\u0E1E\u0E34\u0E27\u0E40\u0E15\u0E2D\u0E23\u0E4C \u0E2B\u0E23\u0E37\u0E2D\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E43\u0E19\u0E15\u0E31\u0E49\u0E07\u0E04\u0E48\u0E32\u0E23\u0E30\u0E1A\u0E1A\u0E14\u0E39\u0E04\u0E23\u0E31\u0E1A");
       };
       ttsNoticeSubs.add(fn);
-      return () => ttsNoticeSubs.delete(fn);
+      const LT = window.TanotLangTts;
+      const off = LT ? LT.on((ev) => {
+        if (ev.type === "loading") setMsg(ev.progress != null ? ["\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u2026 {p}%", { p: ev.progress }] : "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19\u2026");
+        else if (ev.type === "speaking") setMsg(null);
+        else if (ev.type === "error") setMsg(ev.kind === "missing" ? "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 (\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E44\u0E1F\u0E25\u0E4C) \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19" : ev.kind === "network" ? "\u0E42\u0E2B\u0E25\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E2D\u0E34\u0E19\u0E40\u0E17\u0E2D\u0E23\u0E4C\u0E40\u0E19\u0E47\u0E15\u0E41\u0E25\u0E49\u0E27\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48 \u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49\u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19" : ev.kind === "oom" ? "\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E44\u0E21\u0E48\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19" : "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19");
+      }) : null;
+      return () => {
+        ttsNoticeSubs.delete(fn);
+        if (off) off();
+      };
     }, []);
     useEffect(() => {
       if (!msg) return;
@@ -13914,7 +13956,7 @@
       },
       /* @__PURE__ */ React.createElement("span", { className: "grow min-w-0 text-sm text-gray-700", "data-i18n-skip": true }, c.cat),
       /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 shrink-0" }, /* @__PURE__ */ React.createElement("span", { className: "badge" }, langTitle(c.id)))
-    )))))) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.map((c) => /* @__PURE__ */ React.createElement(
+    )))))) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4 flex flex-wrap items-center justify-between gap-2" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(LangVoicePicker, { code: LANGS[langId].code })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.map((c) => /* @__PURE__ */ React.createElement(
       "button",
       {
         key: c,

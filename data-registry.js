@@ -149,6 +149,7 @@
     { key: 'lang-practice:progress', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:notes', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:wrong', kind: 'sync', mode: 'map' },
+    { key: 'lang-practice:ttsvoice', kind: 'local' }, // L6 lang-tts.js: เสียงโมเดลที่เลือกต่อภาษา — เสียงที่เครื่องมีต่างกันทุกเครื่อง จึงไม่ซิงก์
     { prefix: 'lbe:', suffixes: [':srs', ':notes', ':written', ':completed'], kind: 'sync', mode: 'map' },
     { prefix: 'lbe:', suffix: ':exams', kind: 'sync', mode: 'list', idField: 'date' },
     { key: 'legal:drafts', kind: 'sync', mode: 'map' },
