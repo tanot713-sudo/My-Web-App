@@ -98,11 +98,11 @@
    ]
   },
   "lang-jp": {
-   "file": "lang-jp-7eb3bfc1.json.gz",
+   "file": "lang-jp-517773de.json.gz",
    "words": 3000,
-   "sentences": 3000,
-   "bytes": 149589,
-   "raw": 481011,
+   "sentences": 412,
+   "bytes": 87543,
+   "raw": 261753,
    "sources": [
     "FrequencyWords@525f9b5",
     "Tatoeba 2026-11-26",
