@@ -323,6 +323,7 @@ skill ที่ทุก session ใช้เสมอ (ไม่เขียน
 | 28 | **ภาษา L7 — วัดระดับ + แผนเรียนรายวัน** | รอแถว 22 | Sonnet 5.5 | medium | `tanot-design`, `vercel-react-best-practices`, `test-driven-development` | `docs/languages-design.md` L7 · CLAUDE.md "Learning system" |
 | 29 | **ภาษา L8 — คะแนนการออกเสียง (ทดลอง)** | พักไว้ — รอแถว 25 + ผลวัดบนเครื่องเจ้าของ | Opus 5.5 | high | `transformers-js`, `performance` | `docs/languages-design.md` L8 |
 | 30 | **ภาษา — ตัดคำจีน/ญี่ปุ่นด้วย Rust → wasm** (jieba-rs / lindera ผ่าน `tools/wasm/` + `craft-loader.js`) ใช้ทั้งสคริปต์ L0 และหน้าเว็บ L1–L3 | พักไว้ — ทำเฉพาะเมื่อ pack จีน/ญี่ปุ่นจริงจาก L0 ได้ประโยค < 300 (เจ้าของเห็นด้วย 2026-11-26: ส่วนอื่นคงเป็น JS, Rust เฉพาะตัดคำ CJK + L8) | Opus 5.5 | high | `test-driven-development`, `performance` | `docs/languages-design.md` L0 · CLAUDE.md "ไลบรารี wasm ตระกูล *Craft" |
+| 31 | **ภาษา L9 — ภาพประกอบคำศัพท์ด้วย FLUX** (ภาพต่อความหมาย ใช้ร่วม 18 ภาษา, preset `vocab` ฝั่งเซิร์ฟเวอร์, สร้างทยอยไม่แย่งโควตา, เจ้าของกดผ่านก่อนใช้) | รอแถว 22 | Sonnet 5.5 | high | `tanot-design`, `vercel-react-best-practices`, `test-driven-development`, `workers-best-practices` | `docs/languages-design.md` L9 · CLAUDE.md "Cloudflare Pages backend" (`ai/image.js`) |
 
 ลำดับที่เสนอ: 0 (เจ้าของ) ∥ 1 → 2 → 3a → 4 → 5 → 3b (ถ้าผลวัดคุ้ม) → 7 → 8 → 10 → 6 · งาน 9/11/12/13 ตามที่เจ้าของสั่ง · งานที่เจ้าของสั่งทำต่อ 2026-11-12: 14 → 16 → 19 → 15 → 17 → 18
 
