@@ -13,6 +13,18 @@
     "kaikki 2026-10-01"
    ]
   },
+  "lang-de": {
+   "file": "lang-de-f338b3ec.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 127039,
+   "raw": 433701,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
   "lang-en": {
    "file": "lang-en-89b2cb74.json.gz",
    "words": 3000,
