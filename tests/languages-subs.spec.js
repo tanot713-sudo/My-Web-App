@@ -461,3 +461,41 @@ test.describe('หน้า: ซับไตเติล บน iPhone', () => {
     expect(await page.evaluate(() => window.__asrJobs.length)).toBe(0);
   });
 });
+
+// ───────────────────────── ซับที่ไม่ใช่ UTF-8 (แถว 25 — ข้อแก้จากรอบตรวจ) ─────────────────────────
+const TIS_SAWASDEE = [0xCA, 0xC7, 0xD1, 0xCA, 0xB4, 0xD5]; // "สวัสดี" ใน TIS-620/Windows-874
+test.describe('LangCalc.subs.decode', () => {
+  test('UTF-8 ไทย/มี BOM/ละติน → ข้อความเดิม (BOM ถูกตัด)', () => {
+    expect(S.decode(Buffer.from('สวัสดี', 'utf8'))).toBe('สวัสดี');
+    expect(S.decode(Buffer.concat([Buffer.from([0xEF, 0xBB, 0xBF]), Buffer.from('สวัสดี', 'utf8')]))).toBe('สวัสดี');
+    expect(S.decode(Buffer.from('Hello café', 'utf8'))).toBe('Hello café');
+  });
+
+  test('ไบต์ TIS-620 ของ "สวัสดี" → ถอดด้วย windows-874 (ค่าเริ่มต้น)', () => {
+    expect(S.decode(Uint8Array.from(TIS_SAWASDEE))).toBe('สวัสดี');
+    expect(S.decode(Uint8Array.from(TIS_SAWASDEE).buffer)).toBe('สวัสดี'); // รับ ArrayBuffer ด้วย
+  });
+
+  test('ไม่ใช่ UTF-8 + ระบุรหัสเดิมอื่น (Latin-1 "Café") → ใช้รหัสที่ส่งมา · ไม่ระบุ/ไม่รู้จักรหัส = ผล UTF-8 เดิม', () => {
+    const latin = Uint8Array.from([0x43, 0x61, 0x66, 0xE9]);
+    expect(S.decode(latin, 'windows-1252')).toBe('Café');
+    expect(S.decode(latin, null)).toBe('Caf�');
+    expect(S.decode(latin, 'ไม่มีรหัสนี้')).toBe('Caf�');
+  });
+
+  test('ตัวถอดผ่านไปถึง parseSubs: ซับ SRT แบบ TIS-620 ได้ข้อความไทยถูก', () => {
+    const head = Buffer.from('1\n00:00:01,000 --> 00:00:02,000\n', 'utf8');
+    const c = S.parseSubs(S.decode(Buffer.concat([head, Buffer.from(TIS_SAWASDEE), Buffer.from('\n')])));
+    expect(c).toEqual([{ start: 1, end: 2, text: 'สวัสดี' }]);
+  });
+});
+
+test('หน้า: ซับไทยเป็น TIS-620 → เห็นไทยถูก · ซับหลัก Latin-1 → เห็นตัวอักษรมีเครื่องหมายถูก', async ({ page }) => {
+  await openSubs(page);
+  const srt = (...bytes) => Buffer.concat([Buffer.from('1\n00:00:01,000 --> 00:00:03,000\n', 'utf8'), Buffer.from(bytes), Buffer.from('\n')]);
+  // ภาษาเริ่มต้นของหน้าคืออังกฤษ → รหัสเดิมของซับหลัก = windows-1252
+  await page.setInputFiles('[data-k="subs-file"]', { name: 'en.srt', mimeType: 'text/plain', buffer: srt(0x43, 0x61, 0x66, 0xE9) });
+  await expect(page.locator('[data-k="subs-cue"]').first()).toContainText('Café');
+  await page.setInputFiles('[data-k="subs-file-th"]', { name: 'th.srt', mimeType: 'text/plain', buffer: srt(...TIS_SAWASDEE) });
+  await expect(page.locator('[data-k="subs-cue"]').first()).toContainText('สวัสดี');
+});

@@ -13112,6 +13112,9 @@
         //    + พูดตาม (อัดไมค์ → ถอดเสียง → เทียบกับซับ) · ไม่มีซับ = ถอดเสียงทั้งไฟล์เป็นซับ ──
         const SUBS_CLOUD_MAX_SEC = 1800; // สร้างซับผ่านคลาวด์เฉพาะไฟล์ ≤ 30 นาที (~1,400 Neurons ของโควตาฟรี 10,000/วัน) — ยาวกว่านั้นใช้ในเครื่อง
         const SUBS_ASR_MODEL = 'Xenova/whisper-base';
+        // รหัสเดิมของไฟล์ซับแต่ละภาษา (label ของ TextDecoder) — ใช้เมื่อไฟล์ไม่ใช่ UTF-8 · ฮินดี/พม่า/เขมร/ลาว ไม่มีรหัสเดิมที่เดาได้ → ไม่ถอย
+        const SUBS_LEGACY_ENC = { 'lang-jp': 'shift_jis', 'lang-cn': 'gbk', 'lang-yue': 'big5', 'lang-kr': 'euc-kr', 'lang-ru': 'windows-1251', 'lang-ar': 'windows-1256', 'lang-vn': 'windows-1258',
+            'lang-en': 'windows-1252', 'lang-de': 'windows-1252', 'lang-fr': 'windows-1252', 'lang-it': 'windows-1252', 'lang-es': 'windows-1252', 'lang-pt': 'windows-1252', 'lang-my': 'windows-1252' };
         const subsScriptCache = {};
         function subsLoadScript(src) {
             if (!subsScriptCache[src]) subsScriptCache[src] = new Promise((resolve, reject) => {
@@ -13228,13 +13231,13 @@
                 setMedia({ url: urlRef.current, name: f.name, video: /^video\//.test(f.type) || /\.(mp4|m4v|mov|webm|mkv)$/i.test(f.name), file: f });
                 setGen(null);
             };
-            // shortcut: อ่านซับเป็น UTF-8 เท่านั้น (ไฟล์ TIS-620/GBK จะเป็นอักขระเพี้ยน) · เปลี่ยนเมื่อมีผู้ใช้เจอจริง
             const onSubs = (th) => (e) => {
                 const f = e.target.files && e.target.files[0];
                 e.target.value = '';
                 if (!f) return;
-                f.text().then((txt) => {
-                    const c = L.parseSubs(txt);
+                // UTF-8 ก่อน แล้วถอยไปรหัสเดิมของภาษานั้น (ซับไทย = windows-874 · ซับหลัก = ตามภาษาที่เรียน, ไม่มีในตาราง = ไม่ถอย)
+                f.arrayBuffer().then((buf) => {
+                    const c = L.parseSubs(L.decode(new Uint8Array(buf), th ? 'windows-874' : (SUBS_LEGACY_ENC[langId] || null)));
                     if (!c.length) { setSubsErr('ไม่พบซับในไฟล์นี้ — ใช้ไฟล์ .srt หรือ .vtt'); return; }
                     setSubsErr('');
                     if (th) setCuesTh(c); else { pauseEl(); setCues(c); setCur(0); setGen(null); }

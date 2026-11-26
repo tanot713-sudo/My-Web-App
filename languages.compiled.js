@@ -9733,6 +9733,22 @@
   }
   const SUBS_CLOUD_MAX_SEC = 1800;
   const SUBS_ASR_MODEL = "Xenova/whisper-base";
+  const SUBS_LEGACY_ENC = {
+    "lang-jp": "shift_jis",
+    "lang-cn": "gbk",
+    "lang-yue": "big5",
+    "lang-kr": "euc-kr",
+    "lang-ru": "windows-1251",
+    "lang-ar": "windows-1256",
+    "lang-vn": "windows-1258",
+    "lang-en": "windows-1252",
+    "lang-de": "windows-1252",
+    "lang-fr": "windows-1252",
+    "lang-it": "windows-1252",
+    "lang-es": "windows-1252",
+    "lang-pt": "windows-1252",
+    "lang-my": "windows-1252"
+  };
   const subsScriptCache = {};
   function subsLoadScript(src) {
     if (!subsScriptCache[src]) subsScriptCache[src] = new Promise((resolve, reject) => {
@@ -9902,8 +9918,8 @@
       const f = e.target.files && e.target.files[0];
       e.target.value = "";
       if (!f) return;
-      f.text().then((txt) => {
-        const c = L.parseSubs(txt);
+      f.arrayBuffer().then((buf) => {
+        const c = L.parseSubs(L.decode(new Uint8Array(buf), th ? "windows-874" : SUBS_LEGACY_ENC[langId] || null));
         if (!c.length) {
           setSubsErr("\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E0B\u0E31\u0E1A\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E44\u0E1F\u0E25\u0E4C .srt \u0E2B\u0E23\u0E37\u0E2D .vtt");
           return;

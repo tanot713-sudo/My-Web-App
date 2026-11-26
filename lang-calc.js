@@ -41,6 +41,18 @@
       return out;
     }
 
+    // ไบต์ของไฟล์ซับ → ข้อความ: UTF-8 ก่อน (TextDecoder ตัด BOM เอง) · มีตัวถอดไม่ได้ (U+FFFD) → ลองรหัสเดิมของภาษานั้น (ซับไทยจำนวนมากเป็น TIS-620 = windows-874 ค่าเริ่มต้น)
+    // legacy: label ของ TextDecoder (windows-1252, shift_jis, gbk …) · null = ไม่ลอง · เบราว์เซอร์ไม่รู้จัก label/ยังเป็น U+FFFD = คืนผล UTF-8 เดิม
+    // shortcut: ไม่ตรวจ UTF-16/ไม่เดารหัสเอง — ผู้เรียกเป็นคนบอกรหัสตามภาษา · เปลี่ยนเมื่อมีผู้ใช้เจอซับ UTF-16 จริง
+    function decode(bytes, legacy) {
+      var u = bytes instanceof ArrayBuffer ? new Uint8Array(bytes) : bytes;
+      var text = new TextDecoder('utf-8').decode(u);
+      if (text.indexOf('\uFFFD') < 0) return text;
+      var label = legacy === undefined ? 'windows-874' : legacy;
+      if (!label) return text;
+      try { var alt = new TextDecoder(label).decode(u); return alt.indexOf('\uFFFD') < 0 ? alt : text; } catch (e) { return text; }
+    }
+
     function parseSubs(text) {
       if (typeof text !== 'string') return [];
       var lines = text.replace(/^﻿/, '').split(/\r\n|\r|\n/), cues = [], cur = null, skip = false;
@@ -138,7 +150,7 @@
       return out.filter(function (c) { return c.end > c.start; });
     }
 
-    return { parseSubs: parseSubs, pairSubs: pairSubs, normalize: normalize, similarity: similarity, band: band, cueAt: cueAt, fmt: fmt, segmentsToCues: segmentsToCues };
+    return { decode: decode, parseSubs: parseSubs, pairSubs: pairSubs, normalize: normalize, similarity: similarity, band: band, cueAt: cueAt, fmt: fmt, segmentsToCues: segmentsToCues };
   })();
 
   return LangCalc;
