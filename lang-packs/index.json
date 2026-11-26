@@ -14,11 +14,11 @@
    ]
   },
   "lang-cn": {
-   "file": "lang-cn-8c9def01.json.gz",
+   "file": "lang-cn-44c3713e.json.gz",
    "words": 3000,
    "sentences": 3000,
-   "bytes": 163433,
-   "raw": 531697,
+   "bytes": 161382,
+   "raw": 529493,
    "sources": [
     "FrequencyWords@525f9b5",
     "Tatoeba 2026-11-26",
