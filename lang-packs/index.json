@@ -1,0 +1,17 @@
+{
+ "v": 1,
+ "packs": {
+  "lang-en": {
+   "file": "lang-en-89b2cb74.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 138003,
+   "raw": 442896,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  }
+ }
+}
