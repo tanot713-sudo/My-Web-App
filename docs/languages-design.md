@@ -51,19 +51,19 @@
 
 ไม่มี repo ไหนมีเนื้อหาสำหรับผู้เรียนคนไทย
 
-### ข้อมูลเปิด / โมเดล (⚠️ license เขียนจากความรู้ — **ยังไม่ได้เปิดยืนยันใน session นี้**; L0 ต้องยืนยันก่อนใช้)
-| แหล่ง | ใช้ทำอะไร | license ที่คาด |
-|---|---|---|
-| Tatoeba (`downloads.tatoeba.org` — `sentences.csv`, `links.csv`, `sentences_with_audio.csv`, `tags`) | ประโยคตัวอย่าง + คู่แปล (ไทยมีน้อย → อังกฤษเป็นตัวกลาง) | ข้อความ CC BY 2.0 FR · เสียงแยก license รายผู้พูด (บางคน NC/ND) |
-| hermitdave/FrequencyWords (นับจาก OpenSubtitles 2018) | อันดับความถี่คำ ทุกภาษาที่เรามี ยกเว้นอาจขาด lo/km/my | โค้ด MIT · ข้อมูล CC BY-SA 4.0 (ต้องตรวจ) |
-| kaikki.org (Wiktionary ที่แยกเป็น JSON) | คำแปลไทยของคำ (ช่อง `translations` ของ en.wiktionary), การผันคำ, IPA | CC BY-SA 3.0/4.0 + GFDL |
-| CC-CEDICT | จีน (มีใช้อยู่แล้วตรวจ pinyin) | CC BY-SA 4.0 |
-| JMdict | ญี่ปุ่น | CC BY-SA 4.0 (EDRDG) |
-| Kokoro-82M (`onnx-community/Kokoro-82M-v1.0-ONNX`, ไลบรารี kokoro-js) | TTS คุณภาพสูงในเบราว์เซอร์: en, ja, zh, es, fr, hi, it, pt | Apache-2.0 |
-| Meta MMS-TTS (`facebook/mms-tts-khm`, `-lao`, `-mya`, `-zlm`/`-msa`, `-hin`, `-vie` …) | TTS ภาษาที่เครื่องไม่มีเสียง (ใช้ transformers.js ที่ vendor ไว้แล้ว) | **CC BY-NC 4.0** (เว็บส่วนตัวใช้ได้ ห้ามเชิงพาณิชย์) · บางรุ่นต้อง uroman (ตรวจทีละภาษา) |
-| Whisper (`Xenova/whisper-*`, มีอยู่แล้ว) | ถอดเสียงพูดตาม | MIT |
-| `facebook/wav2vec2-xlsr-53-espeak-cv-ft` | รู้จำหน่วยเสียง (IPA) → ให้คะแนนออกเสียง (ทดลอง) | Apache-2.0 |
-| Oxford 3000/5000, รายการ CEFR เชิงพาณิชย์ | — | **ห้ามใช้** (ลิขสิทธิ์) — ใช้ระดับจากความถี่แทน |
+### ข้อมูลเปิด / โมเดล (ตรวจ license ใน L0 เมื่อ 2026-11-26 — คอลัมน์ "สถานะ" บอกว่าเปิดยืนยันจากหน้าจริงได้หรือไม่)
+| แหล่ง | ใช้ทำอะไร | license | สถานะ |
+|---|---|---|---|
+| Tatoeba (`downloads.tatoeba.org` — `sentences.csv`, `links.csv`, `sentences_with_audio.csv`, `tags`) | ประโยคตัวอย่าง + คู่แปล (ไทยมีน้อย → อังกฤษเป็นตัวกลาง) | คาด: ข้อความ CC BY 2.0 FR · เสียงแยก license รายผู้พูด (สคริปต์ใช้ธงเสียงเฉพาะ CC BY/BY-SA/CC0) | ⚠️ **เปิดไม่ได้** — `tatoeba.org` / `downloads.tatoeba.org` ถูกบล็อกโดย sandbox (403 ที่ proxy, DNS ไม่ resolve ในเครื่องมือดึงหน้า) · **ห้ามดาวน์โหลดข้อมูลจริงเข้า repo จนเจ้าของเปิด https://tatoeba.org/en/terms_of_use + https://tatoeba.org/en/downloads ยืนยันเอง** |
+| hermitdave/FrequencyWords (นับจาก OpenSubtitles 2018) | อันดับความถี่คำ | โค้ด MIT · ข้อมูล **CC-by-sa-4.0** | ✅ ยืนยันจาก README + LICENSE ของ repo ([github.com/hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords#license), 2026-11-26): "MIT License for code. CC-by-sa-4.0 for content." · มีไฟล์ 50k ของ en zh_cn ko de fr it vi ms id ar es pt ru th (2018) และ ja hi (2016) · **ไม่มี**: yue, พม่า (my), เขมร (km), ลาว (lo) → ไม่มีชุดใหม่ของภาษาเหล่านี้จนกว่าจะมีแหล่งอื่นที่ license ตรวจแล้ว |
+| kaikki.org (Wiktionary ที่แยกเป็น JSON) | คำแปลไทยของคำ (ช่อง `translations`), IPA, gloss | คาด: CC BY-SA 4.0 + GFDL (Wiktionary) | ⚠️ **เปิดไม่ได้** — `kaikki.org` ถูกบล็อกเช่นกัน · ต้องให้เจ้าของเปิด https://kaikki.org/dictionary/rawdata.html ตรวจเอง · สคริปต์ทำงานได้โดยไม่ต้องมี kaikki (คำแปลไทยว่าง → แปลตอนใช้) |
+| CC-CEDICT | จีน (มีใช้อยู่แล้วตรวจ pinyin) | CC BY-SA 4.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| JMdict | ญี่ปุ่น | CC BY-SA 4.0 (EDRDG) | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Kokoro-82M (`onnx-community/Kokoro-82M-v1.0-ONNX`, ไลบรารี kokoro-js) | TTS คุณภาพสูงในเบราว์เซอร์: en, ja, zh, es, fr, hi, it, pt | Apache-2.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Meta MMS-TTS (`facebook/mms-tts-khm`, `-lao`, `-mya`, `-zlm`/`-msa`, `-hin`, `-vie` …) | TTS ภาษาที่เครื่องไม่มีเสียง (ใช้ transformers.js ที่ vendor ไว้แล้ว) | **CC BY-NC 4.0** (เว็บส่วนตัวใช้ได้ ห้ามเชิงพาณิชย์) · บางรุ่นต้อง uroman (ตรวจทีละภาษา) | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Whisper (`Xenova/whisper-*`, มีอยู่แล้ว) | ถอดเสียงพูดตาม | MIT | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| `facebook/wav2vec2-xlsr-53-espeak-cv-ft` | รู้จำหน่วยเสียง (IPA) → ให้คะแนนออกเสียง (ทดลอง) | Apache-2.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Oxford 3000/5000, รายการ CEFR เชิงพาณิชย์ | — | **ห้ามใช้** (ลิขสิทธิ์) — ใช้ระดับจากความถี่แทน | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
 
 ---
 
