@@ -79,6 +79,30 @@ test.describe('กรองคำของภาษาที่ไม่ใช�
   });
 });
 
+test.describe('จีน: กรองตัวอักษรตัวเต็ม (OpenCC TSCharacters)', () => {
+  // ตารางจำลอง: ตัวเต็ม\tตัวย่อ (หลายค่าคั่นด้วยช่องว่าง) · 乾 อยู่ในทั้งสองฝั่ง = ใช้ร่วม ไม่นับเป็นตัวเต็มเฉพาะ
+  const TS = '# comment\n這\t这\n說\t说\n們\t们\n乾\t干 乾\n';
+  test('parseTsChars: เก็บเฉพาะตัวที่ไม่มีรูปตัวเองในค่า, ข้ามคอมเมนต์', () => {
+    const t = L.parseTsChars(TS);
+    expect([...t].sort()).toEqual(['們', '說', '這']);
+    expect(t.has('乾')).toBe(false);
+  });
+  test('buildPack zh: ตัดคำและประโยคที่มีตัวเต็มเฉพาะ', () => {
+    const trad = L.parseTsChars(TS);
+    const p = L.buildPack({
+      lang: 'lang-cn', code: 'zh', stop: new Set(), kaikki: null, tradChars: trad, src: {},
+      freq: L.parseFreq(['我 9', '这 8', '這 7', '說 6', '乾 5']),
+      candidates: [{ id: 1, text: '我这', en: 'x', th: '', au: false }, { id: 2, text: '我說', en: 'x', th: '', au: false }, { id: 3, text: '我乾', en: 'x', th: '', au: false }],
+    });
+    expect(p.w.map((x) => x.id)).toEqual(['我', '这', '乾']);
+    expect(p.s.map((x) => x.id).sort()).toEqual([1, 3]);
+  });
+  test('ภาษาอื่นไม่ถูกกรองด้วยตารางนี้', () => {
+    const p = L.buildPack({ lang: 'lang-jp', code: 'ja', stop: new Set(), kaikki: null, tradChars: L.parseTsChars(TS), src: {}, freq: L.parseFreq(['說 9']), candidates: [] });
+    expect(p.w.map((x) => x.id)).toEqual(['說']);
+  });
+});
+
 test.describe('kaikki (Wiktionary JSONL)', () => {
   const entry = {
     word: 'Water', lang_code: 'en', pos: 'noun',
@@ -264,6 +288,15 @@ test.describe('build.mjs (CLI) บนไฟล์ดิบจำลอง', () =
     expect(code).toBe(3);
     expect(msg).toMatch(/ประโยค/);
     expect(fs.existsSync(path.join(o, 'index.json'))).toBe(false);
+  });
+
+  test('lang-cn ไม่มี --opencc = ออกด้วยรหัสไม่ใช่ 0 พร้อมข้อความ ไม่สร้างไฟล์', () => {
+    const o = path.join(tmp, 'out5');
+    let code = 0, msg = '';
+    try { execFileSync('node', [BUILD, '--lang', 'lang-cn', '--freq', w('f5.txt', '我 5\n'), '--out', o], { stdio: 'pipe' }); } catch (e) { code = e.status; msg = String(e.stderr); }
+    expect(code).toBe(1);
+    expect(msg).toMatch(/opencc/i);
+    expect(fs.existsSync(o)).toBe(false);
   });
 
   test('ไม่มีไฟล์ความถี่ = ออกด้วยรหัสไม่ใช่ 0 และไม่สร้างไฟล์', () => {

@@ -41,7 +41,8 @@ if (!args.freq && !cfg.freq) {
 }
 if (!args.freq) die(1, 'ต้องระบุ --freq <ไฟล์> (ดาวน์โหลดจาก ' + cfg.freq + ' ของ hermitdave/FrequencyWords)');
 if (!fs.existsSync(args.freq)) die(1, 'ไม่พบไฟล์ความถี่: ' + args.freq);
-for (const f of [...args.sentences, args.links, args.audio, args.kaikki]) if (f && !fs.existsSync(f)) die(1, 'ไม่พบไฟล์: ' + f);
+if (cfg.code === 'zh' && !args.opencc) die(1, lang + ': ต้องระบุ --opencc <TSCharacters.txt> (OpenCC, ดาวน์โหลดตาม README) — ใช้ตัดตัวอักษรจีนตัวเต็มออก เพราะหน้าสอนตัวย่อ');
+for (const f of [...args.sentences, args.links, args.audio, args.kaikki, args.opencc]) if (f && !fs.existsSync(f)) die(1, 'ไม่พบไฟล์: ' + f);
 
 const outDir = path.resolve(args.out || path.join(here, '..', '..', 'lang-packs'));
 
@@ -100,8 +101,9 @@ if (args.audio) {
   }
 }
 
+const tradChars = args.opencc ? L.parseTsChars(fs.readFileSync(args.opencc, 'utf8')) : null;
 const pack = L.buildPack({
-  lang, code: cfg.code, freq, stop, kaikki,
+  lang, code: cfg.code, freq, stop, kaikki, tradChars,
   candidates: [...cands.values()].map(({ id, text, en, th, au }) => ({ id, text, en, th, au })),
   src: {
     freq: 'FrequencyWords@' + (args['freq-commit'] || 'unknown'),

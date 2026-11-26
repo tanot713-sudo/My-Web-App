@@ -114,6 +114,24 @@ function parseAudioLine(line) {
   return Number(p[0]);
 }
 
+// OpenCC TSCharacters.txt: "ตัวเต็ม⇥ตัวย่อ [ตัวย่อ2 …]" — ตัวเต็ม "เฉพาะ" = ตัวที่รูปของมันเองไม่อยู่ในรายการค่า
+// (乾 → 干 乾 ใช้ร่วมกับตัวย่อได้ จึงไม่นับ)
+function parseTsChars(text) {
+  var out = new Set(), lines = String(text).split(/\r?\n/);
+  for (var i = 0; i < lines.length; i++) {
+    var l = lines[i];
+    if (!l || l.charAt(0) === '#') continue;
+    var p = l.split('\t');
+    if (p.length < 2 || !p[0]) continue;
+    if (p[1].trim().split(/\s+/).indexOf(p[0]) === -1) out.add(p[0]);
+  }
+  return out;
+}
+function hasAny(text, set) {
+  for (var ch of String(text)) if (set.has(ch)) return true;
+  return false;
+}
+
 function buildPack(o) {
   var caps = Object.assign({}, DEFAULT_CAPS, o.caps || {});
   var stop = o.stop || new Set();
@@ -123,6 +141,7 @@ function buildPack(o) {
   for (i = 0; i < list.length && words.length < caps.words; i++) {
     var id = list[i].id, r = i + 1;
     if (stop.has(id) || !/^[\p{L}\p{M}]+(?:'[\p{L}\p{M}]+)*$/u.test(id)) continue;
+    if (o.code === 'zh' && o.tradChars && hasAny(id, o.tradChars)) continue; // หน้าสอนจีนตัวย่อ — ตัดคำที่มีตัวเต็มเฉพาะ
     var nonLatin = !!NON_LATIN[o.code];
     if (nonLatin && LATIN_ANY.test(id)) continue;
     if (o.code === 'ja' && KANA_ONE.test(id)) continue; // คะนะตัวเดียว = เศษจากการตัดคำของไฟล์ความถี่
@@ -142,6 +161,7 @@ function buildPack(o) {
   for (i = 0; i < cands.length; i++) {
     var c = cands[i], key = norm(c.text);
     if (seen.has(key) || !(c.en || c.th) || !lengthOk(c.text, o.code)) continue;
+    if (o.code === 'zh' && o.tradChars && hasAny(c.text, o.tradChars)) continue;
     var toks = tokenize(c.text, o.code);
     if (!toks.length) continue;
     var lv = 1, ok = true;
@@ -215,5 +235,5 @@ module.exports = {
   levelOfRank: levelOfRank, parseFreq: parseFreq, tokenize: tokenize, lengthOk: lengthOk,
   parseKaikkiLine: parseKaikkiLine, mergeKaikki: mergeKaikki,
   parseSentenceLine: parseSentenceLine, parseLinkLine: parseLinkLine, parseAudioLine: parseAudioLine,
-  buildPack: buildPack, packFileName: packFileName, packBytes: packBytes
+  buildPack: buildPack, parseTsChars: parseTsChars, packFileName: packFileName, packBytes: packBytes
 };

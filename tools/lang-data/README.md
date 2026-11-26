@@ -12,6 +12,7 @@
 | ประโยค | `https://downloads.tatoeba.org/exports/per_language/<tat>/<tat>_sentences.tsv.bz2` ของภาษาเป้าหมาย + `eng` + `tha` (ส่ง `--sentences` ซ้ำได้หลายไฟล์; ไฟล์รวม `sentences.tsv.bz2` ก็ได้) | คอลัมน์ `id⇥lang⇥text` |
 | ลิงก์คำแปล | `https://downloads.tatoeba.org/exports/links.tar.bz2` → `links.csv` | คอลัมน์ `id⇥id` |
 | เสียง (ไม่บังคับ) | `https://downloads.tatoeba.org/exports/sentences_with_audio.tar.bz2` | ใช้ติดธง `au` เฉพาะ license CC BY / BY-SA / CC0 |
+| ตารางตัวเต็ม→ตัวย่อ (**จำเป็นสำหรับ `lang-cn`**) | `https://raw.githubusercontent.com/BYVoid/OpenCC/master/data/dictionary/TSCharacters.txt` (OpenCC, Apache-2.0 — ใช้เป็นเครื่องมือ build กรองตัวอักษรตัวเต็มเฉพาะออก ไม่ได้แจกจ่ายตาราง) | ส่งด้วย `--opencc <ไฟล์>` · หน้าสอนจีนเป็นตัวย่อ จึงตัดคำ/ประโยคที่มีตัวเต็มเฉพาะ (ตัวที่รูปตัวเองไม่อยู่ในค่าของแถว) |
 | Wiktionary (ไม่บังคับ) | `https://kaikki.org/dictionary/rawdata.html` → ไฟล์ JSONL ของภาษาเป้าหมาย (ฉบับ en.wiktionary) | ให้ IPA, gloss อังกฤษ และ `translations` ภาษาไทย |
 
 **license**: ตาราง `docs/languages-design.md` §2 ยืนยันแล้วจากหน้าจริง (Tatoeba, FrequencyWords) · kaikki.org หน้าเว็บไม่ระบุ license ของข้อมูล จึงใช้เงื่อนไข CC BY-SA 4.0 ของ Wiktionary · หัวคอลัมน์ Tatoeba ตรวจกับไฟล์จริงแล้ว 2026-11-26
