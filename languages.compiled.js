@@ -515,7 +515,13 @@
   }
   function speak(text, langCode) {
     const LT = window.TanotLangTts;
-    if (LT && LT.useModel(langCode)) {
+    const m = LT ? LT.useModel(langCode) : false;
+    if (m === null) {
+      LT.unlock();
+      LT.whenVoices().then(() => speak(text, langCode));
+      return;
+    }
+    if (m) {
       try {
         window.speechSynthesis && window.speechSynthesis.cancel();
       } catch (e) {
@@ -13590,8 +13596,8 @@
     }) : void 0, []);
     if (!LT || !LT.has(code)) return null;
     const device = LT.deviceVoice(code), usable = LT.usable(code);
-    const model = usable && (LT.pref(code) === "model" || !device);
-    return /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19"), "data-k": "voice-picker" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-device", "aria-pressed": !model, disabled: !device, onClick: () => LT.setPref(code, "device") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-model", "aria-pressed": model, disabled: !usable, onClick: () => LT.setPref(code, "model") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25")));
+    const model = usable && (LT.pref(code) === "model" || device === false);
+    return /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E48\u0E32\u0E19"), "data-k": "voice-picker" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-device", "aria-pressed": !model, disabled: device === false, onClick: () => LT.setPref(code, "device") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "voice-model", "aria-pressed": model, disabled: !usable, onClick: () => LT.setPref(code, "model") }, tx("\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25")));
   }
   function TtsFallbackToast() {
     const [msg, setMsg] = useState(null);

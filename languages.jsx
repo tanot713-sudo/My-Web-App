@@ -608,7 +608,9 @@
         // ── L6 เสียงอ่าน: เครื่องไม่มีเสียงของภาษานี้ หรือผู้ใช้เลือก "เสียงโมเดล" → MMS-TTS ใน lang-tts.js (ล้ม = กลับมาที่เสียงเครื่องผ่าน fallback)
         function speak(text, langCode) {
             const LT = window.TanotLangTts;
-            if (LT && LT.useModel(langCode)) {
+            const m = LT ? LT.useModel(langCode) : false;
+            if (m === null) { LT.unlock(); LT.whenVoices().then(() => speak(text, langCode)); return; } // รายชื่อเสียงยังโหลดไม่เสร็จ — รอแล้วตัดสินใหม่ (ไม่โหลดโมเดลก่อนรู้)
+            if (m) {
                 try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
                 if (LT.speak(text, langCode, { fallback: () => speakDevice(text, langCode, true) })) return;
             } else if (LT) LT.stop();
@@ -17081,11 +17083,11 @@
             const [, bump] = useState(0);
             useEffect(() => (LT ? LT.on((ev) => { if (ev.type === 'voices' || ev.type === 'pref' || ev.type === 'error') bump(n => n + 1); }) : undefined), []);
             if (!LT || !LT.has(code)) return null;
-            const device = LT.deviceVoice(code), usable = LT.usable(code);
-            const model = usable && (LT.pref(code) === 'model' || !device);
+            const device = LT.deviceVoice(code), usable = LT.usable(code); // device: null = ยังไม่รู้ (รายชื่อเสียงยังโหลดไม่เสร็จ) — ไม่แสดงว่าเครื่องไม่มีเสียง
+            const model = usable && (LT.pref(code) === 'model' || device === false);
             return (
                 <div className="segmented" role="group" aria-label={tx('เสียงอ่าน')} data-k="voice-picker">
-                    <button type="button" data-k="voice-device" aria-pressed={!model} disabled={!device} onClick={() => LT.setPref(code, 'device')}>{tx('เสียงเครื่อง')}</button>
+                    <button type="button" data-k="voice-device" aria-pressed={!model} disabled={device === false} onClick={() => LT.setPref(code, 'device')}>{tx('เสียงเครื่อง')}</button>
                     <button type="button" data-k="voice-model" aria-pressed={model} disabled={!usable} onClick={() => LT.setPref(code, 'model')}>{tx('เสียงโมเดล')}</button>
                 </div>
             );

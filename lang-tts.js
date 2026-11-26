@@ -37,17 +37,39 @@
     emit({ type: 'pref', code: code });
   }
 
-  /* เครื่องมีเสียงของภาษานี้ไหม: true / false (ไม่มี speechSynthesis หรือรายชื่อเสียงไม่มีภาษานี้ — รายชื่อว่างนับเป็นไม่มี) */
+  /* รายชื่อเสียงของเครื่อง: Chrome/Edge โหลดแบบ async (ว่างช่วงแรกหลังเปิดหน้า) และ iOS/Firefox อาจคืนว่างชั่วคราว → "ว่าง" ยังไม่ใช่ "ไม่มีเสียง"
+     จนกว่าจะ settle: มีรายชื่อ / ได้ voiceschanged / ครบ VOICE_WAIT_MS นับจากโหลดสคริปต์ (นับตั้งแต่โหลดหน้า ไม่ใช่ตอนกด — ส่วนใหญ่ settle ก่อนผู้ใช้กดครั้งแรก
+     จึงไม่ต้องรอหลังคลิก ซึ่ง iOS อาจไม่ยอมให้ speechSynthesis.speak นอกจังหวะคลิก) · ครั้งเดียวต่อการเปิดหน้า
+     window.TANOT_LANG_TTS = { voiceWaitMs } ใช้เฉพาะเทสต์ */
+  var VOICE_WAIT_MS = (window.TANOT_LANG_TTS && window.TANOT_LANG_TTS.voiceWaitMs) || 1500;
+  var voicesSettled = false, voiceWaiters = [];
+  function voiceCount() { try { return (window.speechSynthesis.getVoices() || []).length; } catch (e) { return 0; } }
+  function settleVoices() {
+    if (voicesSettled) return;
+    voicesSettled = true;
+    voiceWaiters.splice(0).forEach(function (f) { try { f(); } catch (e) {} });
+    emit({ type: 'voices' });
+  }
+  function whenVoices() { return voicesSettled ? Promise.resolve() : new Promise(function (r) { voiceWaiters.push(r); }); }
+
+  /* เครื่องมีเสียงของภาษานี้ไหม: true / false / null (= ยังไม่รู้ รอรายชื่อเสียงอยู่) · ไม่มี speechSynthesis = false · settle แล้วยังว่าง = false */
   function deviceVoice(code) {
     try {
       if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return false;
       var voices = window.speechSynthesis.getVoices() || [];
+      if (!voices.length) return voicesSettled ? false : null;
       var prefix = String(code || '').split('-')[0].toLowerCase();
       return voices.some(function (v) { return v.lang && v.lang.toLowerCase().split(/[-_]/)[0] === prefix; });
     } catch (e) { return false; }
   }
   function usable(code) { var i = info(code); return !!(i && !failed[i.key]); }
-  function useModel(code) { return usable(code) && (pref(code) === 'model' || !deviceVoice(code)); }
+  /* true = ใช้โมเดล · false = เสียงเครื่อง · null = ยังไม่รู้ (ผู้เรียกรอ whenVoices() แล้วถามใหม่) */
+  function useModel(code) {
+    if (!usable(code)) return false;
+    if (pref(code) === 'model') return true;
+    var d = deviceVoice(code);
+    return d === null ? null : !d;
+  }
 
   function unlockAudio() {
     var AC = window.AudioContext || window.webkitAudioContext;
@@ -166,8 +188,10 @@
     return true;
   }
 
+  if (!window.speechSynthesis || voiceCount()) voicesSettled = true;
+  else setTimeout(settleVoices, VOICE_WAIT_MS);
   if (window.speechSynthesis && window.speechSynthesis.addEventListener) {
-    try { window.speechSynthesis.addEventListener('voiceschanged', function () { emit({ type: 'voices' }); }); } catch (e) {}
+    try { window.speechSynthesis.addEventListener('voiceschanged', function () { if (voicesSettled) emit({ type: 'voices' }); else settleVoices(); }); } catch (e) {}
   }
 
   window.TanotLangTts = {
@@ -175,6 +199,8 @@
     usable: usable,
     deviceVoice: deviceVoice,
     useModel: useModel,
+    whenVoices: whenVoices,
+    unlock: unlockAudio,
     pref: pref,
     setPref: setPref,
     speak: speak,

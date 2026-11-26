@@ -103,9 +103,14 @@ export async function pipeline(task, model, opts) {
 }
 /* voices = รายชื่อเสียงของเครื่อง (lang) · บันทึก speechSynthesis.speak + batch ที่ส่งเข้า tts-worker + ข้อความจาก Worker + เสียงที่เล่น */
 const SPY = (voices) => `(() => {
-  const VOICES = ${JSON.stringify(voices)}.map((lang) => ({ lang, name: 'v-' + lang, voiceURI: 'v-' + lang, localService: true, default: false }));
+  const mk = (l) => l.map((lang) => ({ lang, name: 'v-' + lang, voiceURI: 'v-' + lang, localService: true, default: false }));
+  let VOICES = mk(${JSON.stringify(voices)});
   window.__spoken = [];
-  const synth = { getVoices: () => VOICES.slice(), speak: (u) => window.__spoken.push({ text: u.text, lang: u.lang }), cancel() {}, pause() {}, resume() {}, speaking: false, pending: false, onvoiceschanged: null, addEventListener() {}, removeEventListener() {} };
+  const ls = [];
+  const synth = { getVoices: () => VOICES.slice(), speak: (u) => window.__spoken.push({ text: u.text, lang: u.lang }), cancel() {}, pause() {}, resume() {}, speaking: false, pending: false, onvoiceschanged: null,
+    addEventListener(t, f) { if (t === 'voiceschanged') ls.push(f); }, removeEventListener() {} };
+  /* จำลอง Chrome: รายชื่อเสียงมาทีหลังพร้อม voiceschanged */
+  window.__setVoices = (l) => { VOICES = mk(l); ls.forEach((f) => f({})); if (synth.onvoiceschanged) synth.onvoiceschanged({}); };
   Object.defineProperty(window, 'speechSynthesis', { configurable: true, get: () => synth });
   const W = window.Worker;
   window.__batches = []; window.__wmsgs = []; window.__workers = [];
@@ -183,6 +188,31 @@ test.describe('B) หน้า languages — เลือกเสียงเ�
     // กลับเป็นเสียงเครื่อง → ลบค่าออก
     await page.locator('[data-k="voice-device"]').click();
     expect(await page.evaluate(() => localStorage.getItem('lang-practice:ttsvoice'))).toBe('{}');
+    expect(errors).toEqual([]);
+  });
+
+  test('รายชื่อเสียงยังว่างตอนกด (โหลด async) → รอ voiceschanged · มีเสียงเขมรมาทีหลัง = เสียงเครื่อง ไม่สร้าง Worker · ระหว่างรอไม่แสดงว่าเครื่องไม่มีเสียง', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { voices: [], init: 'window.TANOT_LANG_TTS = { voiceWaitMs: 5000 }' });
+    await page.goto('/languages.html#lang-kh');
+    await expect(page.locator('[data-k="voice-device"]')).toBeEnabled();
+    await expect(page.locator('[data-k="voice-device"]')).toHaveAttribute('aria-pressed', 'true');
+    await listen(page);
+    await page.waitForTimeout(300);
+    expect(await page.evaluate(() => window.__spoken.length)).toBe(0); // ยังรออยู่ ไม่พูดและไม่โหลดโมเดล
+    await page.evaluate(() => window.__setVoices(['km-KH', 'en-US']));
+    await expect.poll(() => page.evaluate(() => window.__spoken.length)).toBe(1);
+    expect(await page.evaluate(() => window.__workers.filter((u) => /tts-worker/.test(u)))).toEqual([]);
+    await expect(page.locator('[data-k="voice-device"]')).toHaveAttribute('aria-pressed', 'true');
+    expect(errors).toEqual([]);
+  });
+
+  test('รายชื่อเสียงว่างตลอด → หลังรอครบใช้โมเดล · ปุ่มเสียงเครื่องกดไม่ได้หลังรู้แล้ว', async ({ context, page }) => {
+    const { errors } = await setup(context, page, { voices: [], init: 'window.TANOT_LANG_TTS = { voiceWaitMs: 800 }' });
+    await page.goto('/languages.html#lang-kh');
+    await listen(page);
+    await expect.poll(() => page.evaluate(() => window.__played)).toBeGreaterThan(0);
+    expect(await page.evaluate(() => window.__spoken)).toEqual([]);
+    await expect(page.locator('[data-k="voice-device"]')).toBeDisabled();
     expect(errors).toEqual([]);
   });
 
