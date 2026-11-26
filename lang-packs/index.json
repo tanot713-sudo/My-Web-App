@@ -12,6 +12,18 @@
     "Tatoeba 2026-11-26",
     "kaikki 2026-10-01"
    ]
+  },
+  "lang-jp": {
+   "file": "lang-jp-7eb3bfc1.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 149589,
+   "raw": 481011,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
   }
  }
 }
