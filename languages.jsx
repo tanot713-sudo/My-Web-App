@@ -13214,6 +13214,7 @@
                 if (!el) return;
                 if (el.offsetTop < r.scrollTop || el.offsetTop + el.offsetHeight > r.scrollTop + r.clientHeight) r.scrollTop = Math.max(0, el.offsetTop - 8);
             }, [cur, merged]);
+            useEffect(() => { lucide.createIcons(); }); // ไอคอนที่เกิดทีหลัง (ปุ่มเล่น/หยุด, แถบเลื่อน) — App วาดไอคอนเฉพาะตอน App เรนเดอร์
             useEffect(() => { setRec(r => (r.status === 'done' || r.status === 'error' ? { status: '', heard: '', score: null, err: '' } : r)); }, [cur]);
 
             const onMedia = (e) => {
@@ -13385,23 +13386,6 @@
                     )}
 
                     {hasCues && (
-                        <ol ref={listRef} className="relative space-y-1 max-h-[40vh] overflow-y-auto" data-k="subs-list">
-                            {merged.map((c, i) => (
-                                <li key={i} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 44px' }}>
-                                    <button className={'btn item' + (i === cur ? ' on' : '')} data-k="subs-cue" aria-current={i === cur ? 'true' : undefined}
-                                        onClick={() => (media ? playSentence(i) : setCur(i))}>
-                                        <span className="text-xs max-sm:text-sm text-gray-500 shrink-0 tabular-nums">{L.fmt(c.start)}</span>
-                                        <span className="flex-1 min-w-0 text-left">
-                                            <span className="block" data-i18n-skip>{showSub ? c.text : '···'}</span>
-                                            {c.thai && showTh && <span className="block text-sm text-gray-500" data-i18n-skip>{c.thai}</span>}
-                                        </span>
-                                    </button>
-                                </li>
-                            ))}
-                        </ol>
-                    )}
-
-                    {hasCues && (
                         <div className="space-y-3">
                             <div className="flex flex-wrap items-center gap-3">
                                 {rec.status !== 'recording'
@@ -13422,6 +13406,23 @@
                             {rec.status === 'error' && <p className="text-sm text-err-ink" role="alert">❌ {txs(rec.err)}</p>}
                         </div>
                     )}
+                    {hasCues && (
+                        <ol ref={listRef} className="relative space-y-2 max-h-[40vh] overflow-y-auto" data-k="subs-list">
+                            {merged.map((c, i) => (
+                                <li key={i} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 44px' }}>
+                                    <button className={'btn item !h-auto !min-h-11' + (i === cur ? ' on' : '')} data-k="subs-cue" aria-current={i === cur ? 'true' : undefined}
+                                        onClick={() => (media ? playSentence(i) : setCur(i))}>
+                                        <span className="text-xs max-sm:text-sm text-gray-500 shrink-0 tabular-nums">{L.fmt(c.start)}</span>
+                                        <span className="flex-1 min-w-0 text-left">
+                                            <span className="block" data-i18n-skip>{showSub ? c.text : '···'}</span>
+                                            {c.thai && showTh && <span className="block text-sm text-gray-500" data-i18n-skip>{c.thai}</span>}
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+
                 </div>
             );
         }
