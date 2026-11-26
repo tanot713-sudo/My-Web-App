@@ -561,6 +561,7 @@
             "ยังไม่ถูก": "Not quite",
             "ยังไม่มีชุดคำที่ใช้บ่อยของภาษา{l}": "No common-word set for {l} yet",
             "ระดับ": "Level",
+            "ระดับ {n} · {c} คำ": "Level {n} · {c} words",
             "ลองใหม่": "Try again",
             "เบราว์เซอร์นี้เปิดไฟล์ชุดคำไม่ได้ — ลองเบราว์เซอร์รุ่นใหม่": "This browser can't open the word set file — try a newer browser",
             "แปลโดย AI": "AI translation",
@@ -17285,16 +17286,14 @@
                                         <button type="button" data-k="kind-w" onClick={() => setKind('w')} aria-pressed={kind === 'w'}>{tx('คำ')}</button>
                                         <button type="button" data-k="kind-s" onClick={() => setKind('s')} aria-pressed={kind === 's'}>{tx('ประโยค')}</button>
                                     </div>
-                                    <div className="segmented flex-wrap" role="group" aria-label={tx('ระดับ')}>
+                                    <select data-k="packLevel" value={level} onChange={e => setLevel(+e.target.value)} aria-label={tx('ระดับ')} className="select w-auto">
                                         {LEVELS.map(l => (
-                                            <button type="button" key={l} data-k={'lv-' + l} onClick={() => setLevel(l)} aria-pressed={level === l}>
-                                                {l ? LangCalc.LEVEL_NAMES[l] : tx('ทุกระดับ')}
-                                            </button>
+                                            <option key={l} value={l}>{l ? tx('ระดับ {n} · {c} คำ', { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx('ทุกระดับ')}</option>
                                         ))}
-                                    </div>
+                                    </select>
                                 </div>
                                 <div className="flex items-center justify-between gap-2 flex-wrap">
-                                    <div className="segmented" role="group" aria-label={tx('โหมด')}>
+                                    <div className="segmented flex-wrap" role="group" aria-label={tx('โหมด')}>
                                         <button type="button" data-k="pmode-flashcard" onClick={() => setPmode('flashcard')} aria-pressed={pmode === 'flashcard'}>{tx('การ์ดคำ')}</button>
                                         <button type="button" data-k="pmode-translate" onClick={() => setPmode('translate')} aria-pressed={pmode === 'translate'}>{tx('พิมพ์คำแปล')}</button>
                                         <button type="button" data-k="pmode-dictation" onClick={() => setPmode('dictation')} aria-pressed={pmode === 'dictation'}>{tx('ฟังแล้วพิมพ์')}</button>
@@ -17344,16 +17343,16 @@
 
                                         {(flipped || result) && (
                                             <div className="space-y-3 border-t border-gray-200 pt-4">
-                                                <p className="text-lg font-semibold text-gray-800" data-k="packThai">
+                                                {pmode !== 'translate' && <p className="text-lg font-semibold text-gray-800" data-k="packThai">
                                                     {th.text ? <span data-i18n-skip>{th.text}</span> : <span className="text-gray-500">—</span>}
                                                     {th.src === 'ai' && <span className="badge ml-2" data-k="aiBadge">{tx('แปลโดย AI')}</span>}
-                                                </p>
+                                                </p>}
                                                 {sents.length > 0 && (
                                                     <ul className="list plain">
                                                         {sents.map(s => (
                                                             <li key={s.key} className="list-row" data-k="packSent">
                                                                 <div className="grow min-w-0">
-                                                                    <div className="title" data-i18n-skip lang={lang.code}>{s.t}</div>
+                                                                    <div className="title whitespace-normal break-words" data-i18n-skip lang={lang.code}>{s.t}</div>
                                                                     <div className="meta">{thaiLine(s, 'packSentThai')}</div>
                                                                 </div>
                                                                 <div className="end">

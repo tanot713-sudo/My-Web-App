@@ -200,7 +200,7 @@ test('หน้า: เลือก "คำที่ใช้บ่อย" → �
   await expect(page.locator('[data-k="packSent"]')).toHaveCount(2);
   await expect(page.locator('[data-k="packSent"]').first()).toContainText('The cat sleeps.');
   // สลับระดับกลับมาโหมดเดิมไม่โหลดซ้ำ
-  await page.click('[data-k="lv-2"]');
+  await page.selectOption('[data-k="packLevel"]', '2');
   await expect(page.locator('[data-k="packWord"]')).toHaveText('something');
   await page.click('[data-k="src-basic"]');
   await page.click('[data-k="src-pack"]');
@@ -247,7 +247,7 @@ test('หน้า: แปลไทยด้วย AI (summarize task lang-th mo
   await page.addInitScript(() => { window.TANOT_AI = { enabled: true }; });
   const hits = await routePacks(page);
   await openPacks(page);
-  await page.click('[data-k="lv-0"]');
+  await page.selectOption('[data-k="packLevel"]', '0');
   // ไปที่ try (ไม่มีไทยในไฟล์) — ข้าม the/cat/sleeps/let's/go
   for (let i = 0; i < 5; i++) { await page.click('[data-k="packFlip"]'); await page.click('[data-k="packGood"]'); }
   await expect(page.locator('[data-k="packWord"]')).toHaveText('try');
@@ -268,11 +268,36 @@ test('หน้า: แปลไทยด้วย AI (summarize task lang-th mo
   expect(errors).toEqual([]);
 });
 
+test('หน้า: ภาษาอังกฤษไม่มีไทยหลุด (นอกจากเนื้อหา data-i18n-skip) + สลับภาษาสด', async ({ page }) => {
+  const errors = await prepare(page);
+  await page.addInitScript(() => { localStorage.setItem('ome:lang', 'en'); window.TANOT_AI = { enabled: true }; });
+  await routePacks(page);
+  await openPacks(page);
+  await page.click('[data-k="packFlip"]');
+  const thai = () => page.evaluate(() => {
+    const root = document.querySelector('[data-k="packCard"]').closest('.max-w-3xl');
+    const out = [], w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    while (w.nextNode()) {
+      const n = w.currentNode, el = n.parentElement;
+      if (!/[\u0E00-\u0E7F]/.test(n.textContent) || el.closest('[data-i18n-skip]') || !el.getClientRects().length) continue;
+      out.push(n.textContent.trim());
+    }
+    root.querySelectorAll('[aria-label],option').forEach((e) => { const t = e.getAttribute('aria-label') || e.textContent; if (/[\u0E00-\u0E7F]/.test(t)) out.push(t); });
+    return out;
+  });
+  expect(await thai()).toEqual([]);
+  await expect(page.locator('[data-k="src-pack"]')).toHaveText('Common words');
+  await page.evaluate(() => OME_LANG.set('th'));
+  await expect(page.locator('[data-k="src-pack"]')).toHaveText('คำที่ใช้บ่อย');
+  await expect(page.locator('[data-k="packTranslate"]')).toHaveText('แปลไทย'); // ประโยค 31 ยังไม่มีไทย
+  expect(errors).toEqual([]);
+});
+
 test('หน้า: ไม่มีคลาวด์ → ไม่มีปุ่มแปล แสดงคำแปลอังกฤษ · ไม่มีชุด/โหลดไม่ได้/ไม่รองรับ gzip = ข้อความ ไม่พัง', async ({ page }) => {
   const errors = await prepare(page);
   await routePacks(page);
   await openPacks(page);
-  await page.click('[data-k="lv-0"]');
+  await page.selectOption('[data-k="packLevel"]', '0');
   for (let i = 0; i < 2; i++) { await page.click('[data-k="packFlip"]'); await page.click('[data-k="packGood"]'); }
   await expect(page.locator('[data-k="packWord"]')).toHaveText('sleeps');
   await page.click('[data-k="packFlip"]');
@@ -381,7 +406,7 @@ test.describe('ซิงก์ 2 เครื่อง', () => {
     for (const d of [A, B]) await openPacks(d.page);
     // A ให้คะแนน the · B (ยังไม่ซิงก์) ข้าม the ไปไม่ได้ — ใช้ระดับ A2 ให้คะแนน something
     await A.page.click('[data-k="packFlip"]'); await A.page.click('[data-k="packGood"]');
-    await B.page.click('[data-k="lv-2"]');
+    await B.page.selectOption('[data-k="packLevel"]', '2');
     await B.page.click('[data-k="packFlip"]'); await B.page.click('[data-k="packGood"]');
     for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
     for (const d of [A, B]) {
