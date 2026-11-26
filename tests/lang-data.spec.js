@@ -119,14 +119,14 @@ test.describe('buildPack', () => {
 
   test('คำ: ตัดคำใน stop, เรียงตามอันดับ, th/ipa/lv, gloss เฉพาะเมื่อไม่มี th', () => {
     const p = L.buildPack(base);
-    expect(p.v).toBe(1);
+    expect(p.v).toBe(2);
     expect(p.lang).toBe('lang-en');
     expect(p.w.map((x) => x.id)).toEqual(['the', 'cat', 'sat', 'on', 'mat', 'dog']);
     expect(p.w.find((x) => x.id === 'tom')).toBeUndefined();
     const the = p.w.find((x) => x.id === 'the');
-    expect(the).toEqual({ id: 'the', r: 1, th: '', g: 'Definite article.', ipa: '/ðə/', lv: 1 });
+    expect(the).toEqual({ id: 'the', r: 1, g: 'Definite article.', ipa: '/ðə/' }); // th ว่าง = ไม่มีช่อง, ไม่มี lv
     const cat = p.w.find((x) => x.id === 'cat');
-    expect(cat).toEqual({ id: 'cat', r: 2, th: 'แมว', ipa: '/kæt/', lv: 1 });
+    expect(cat).toEqual({ id: 'cat', r: 2, th: 'แมว', ipa: '/kæt/' });
     expect(cat.g).toBeUndefined();
   });
   test('คำที่ไม่มีคำแปลและไม่มี gloss ถูกตัด เมื่อมี kaikki', () => {
@@ -136,14 +136,15 @@ test.describe('buildPack', () => {
   test('ไม่มี kaikki: เก็บทุกคำที่ไม่ติด stop (th ว่าง)', () => {
     const p = L.buildPack({ ...base, kaikki: null });
     expect(p.w.map((x) => x.id)).toEqual(['the', 'cat', 'sat', 'on', 'mat', 'dog', 'zzz']);
-    expect(p.w[0].th).toBe('');
+    expect(p.w[0]).toEqual({ id: 'the', r: 1 });
   });
   test('ประโยค: ทุกคำต้องอยู่ในรายการคำที่เก็บ · ไม่ซ้ำข้อความ · ต้องมีคำแปล · แท็ก au/lv/w', () => {
     const p = L.buildPack(base);
     expect(p.s.map((x) => x.id).sort((a, b) => a - b)).toEqual([11, 13]);
     const s = p.s.find((x) => x.id === 11);
-    expect(s).toEqual({ id: 11, t: 'The cat sat on the mat.', th: 'แมวนั่งบนเสื่อ', en: 'The cat sat on the mat.', w: ['the', 'cat', 'sat', 'on', 'the', 'mat'], lv: 1, au: 1 });
-    expect(p.s.find((x) => x.id === 13).au).toBe(0);
+    expect(s).toEqual({ id: 11, t: 'The cat sat on the mat.', th: 'แมวนั่งบนเสื่อ', lv: 1, au: 1 }); // en = ข้อความเอง ไม่เขียนซ้ำ, ไม่มี w
+    expect(p.s.find((x) => x.id === 13)).toEqual({ id: 13, t: 'The dog sat.', lv: 1 });
+    expect(p.s.some((x) => 'w' in x || 'n' in x)).toBe(false);
   });
   test('เพดานคำ/ประโยค', () => {
     const p = L.buildPack({ ...base, caps: { words: 3, sentences: 1 } });
@@ -162,8 +163,13 @@ test.describe('buildPack', () => {
   test('ผลคงที่: เรียก 2 ครั้ง = JSON เดียวกัน และชื่อไฟล์ตาม hash เนื้อหา', () => {
     const a = L.buildPack(base), b = L.buildPack(base);
     expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+    const ba = L.packBytes(a), bb = L.packBytes(b);
+    expect(ba.gz.equals(bb.gz)).toBe(true); // gzip ซ้ำได้ไบต์เดิม
+    expect(ba.gz[9]).toBe(3);
+    expect(require('zlib').gunzipSync(ba.gz).toString()).toBe(JSON.stringify(a));
+    expect(ba.gz.length).toBeLessThan(ba.raw.length + 40);
     const ha = L.packFileName('lang-en', a);
-    expect(ha).toMatch(/^lang-en-[0-9a-f]{8}\.json$/);
+    expect(ha).toMatch(/^lang-en-[0-9a-f]{8}\.json\.gz$/);
     const c = L.buildPack({ ...base, caps: { words: 2, sentences: 1 } });
     expect(L.packFileName('lang-en', c)).not.toBe(ha);
   });
@@ -204,11 +210,15 @@ test.describe('build.mjs (CLI) บนไฟล์ดิบจำลอง', () =
     const e = idx.packs['lang-en'];
     expect(e.words).toBe(6);
     expect(e.sentences).toBe(2); // ประโยค 1 และ 4 (อังกฤษ: en = ข้อความเอง, th เฉพาะที่มีลิงก์ไทย)
-    const pack = JSON.parse(fs.readFileSync(path.join(out, e.file), 'utf8'));
+    const gzBuf = fs.readFileSync(path.join(out, e.file));
+    expect(e.bytes).toBe(gzBuf.length);
+    const pack = JSON.parse(require('zlib').gunzipSync(gzBuf).toString('utf8'));
+    expect(e.raw).toBe(Buffer.byteLength(JSON.stringify(pack)));
     expect(pack.src).toEqual({ freq: 'FrequencyWords@abc1234', tatoeba: '2026-11-26', wikt: 'kaikki 2026-11-26' });
     const s1 = pack.s.find((x) => x.id === 1);
     expect(s1.th).toBe('แมวนั่งบนเสื่อ');
     expect(s1.au).toBe(1);
+    expect(pack.v).toBe(2);
     expect(pack.s.find((x) => x.id === 6)).toBeUndefined(); // Tom ran. มีคำนอกรายการ
     run();
     const idx2 = JSON.parse(fs.readFileSync(path.join(out, 'index.json'), 'utf8'));

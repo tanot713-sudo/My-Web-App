@@ -3,6 +3,7 @@
 // ค่า LEVEL_BANDS ต้องตรงกับ LangCalc.LEVEL_BANDS ที่ L1 จะเพิ่มใน lang-calc.js (ที่เดียวในหน้าเว็บ)
 'use strict';
 var crypto = require('crypto');
+var zlib = require('zlib');
 
 // [อันดับสูงสุดของช่วง, ระดับ] — อันดับเกินช่วงสุดท้าย = ระดับ 6 (A1–C2)
 var LEVEL_BANDS = [[500, 1], [1200, 2], [2500, 3], [5000, 4], [8000, 5]];
@@ -117,10 +118,11 @@ function buildPack(o) {
     if (stop.has(id) || !/^[\p{L}\p{M}]+(?:'[\p{L}\p{M}]+)*$/u.test(id)) continue;
     var k = kaikki ? kaikki.get(id) : null;
     if (kaikki && !(k && (k.th || k.gloss))) continue;
-    var w = { id: id, r: r, th: k ? k.th : '' };
-    if (k && !k.th && k.gloss) w.g = k.gloss;
-    w.ipa = k ? k.ipa : '';
-    w.lv = levelOfRank(r);
+    // รูปแบบ v2: ไม่เขียนช่องที่ว่าง · ไม่เขียน lv ของคำ (คิดจาก r ด้วย LEVEL_BANDS)
+    var w = { id: id, r: r };
+    if (k && k.th) w.th = k.th;
+    else if (k && k.gloss) w.g = k.gloss;
+    if (k && k.ipa) w.ipa = k.ipa;
     words.push(w);
     kept.set(id, r);
   }
@@ -140,11 +142,15 @@ function buildPack(o) {
     }
     if (!ok) continue;
     seen.add(key);
-    buckets[lv].push({ id: c.id, t: c.text, th: c.th || '', en: c.en || '', w: toks, lv: lv, au: c.au ? 1 : 0 });
+    var row = { id: c.id, t: c.text, lv: lv, n: toks.length };
+    if (c.th) row.th = c.th;
+    if (c.en && c.en !== c.text) row.en = c.en; // en = ข้อความเอง (ภาษาอังกฤษ) ไม่เขียนซ้ำ
+    if (c.au) row.au = 1;
+    buckets[lv].push(row);
   }
   // เลือกวนทีละระดับจนครบเพดาน (ประโยคสั้นก่อนในแต่ละระดับ) — ไม่ให้ระดับง่ายกินโควตาทั้งหมด
   var b, pos = [0, 0, 0, 0, 0, 0, 0], picked = [];
-  for (b = 1; b <= 6; b++) buckets[b].sort(function (x, y) { return x.w.length - y.w.length || x.id - y.id; });
+  for (b = 1; b <= 6; b++) buckets[b].sort(function (x, y) { return x.n - y.n || x.id - y.id; });
   var progress = true;
   while (picked.length < caps.sentences && progress) {
     progress = false;
@@ -153,12 +159,21 @@ function buildPack(o) {
     }
   }
   picked.sort(function (x, y) { return x.id - y.id; });
-  return { v: 1, lang: o.lang, src: o.src, w: words, s: picked };
+  for (i = 0; i < picked.length; i++) delete picked[i].n; // ช่องชั่วคราวสำหรับเรียงเท่านั้น — ไม่ลงไฟล์
+  return { v: 2, lang: o.lang, src: o.src, w: words, s: picked };
 }
 
+// ไฟล์เก็บแบบ gzip (ระดับ 9) ต้นฉบับเดิมทุกไบต์เมื่อ build ซ้ำ: mtime = 0 (ค่าเริ่มต้นของ Node) และ OS byte ตายตัว = 3
+function packBytes(pack) {
+  var raw = Buffer.from(JSON.stringify(pack));
+  var gz = zlib.gzipSync(raw, { level: 9 });
+  gz[9] = 3;
+  return { raw: raw, gz: gz };
+}
+// ชื่อไฟล์ตาม hash ของเนื้อหา (JSON ก่อนบีบ) — เนื้อเปลี่ยนชื่อเปลี่ยน
 function packFileName(lang, pack) {
   var h = crypto.createHash('sha256').update(JSON.stringify(pack)).digest('hex').slice(0, 8);
-  return lang + '-' + h + '.json';
+  return lang + '-' + h + '.json.gz';
 }
 
 // รหัสต่อภาษา: freq = path ใน hermitdave/FrequencyWords (ตรวจด้วย HEAD ว่ามีไฟล์จริง 2026-11-26; null = repo ไม่มีไฟล์ → ไม่สร้าง pack) · tat = รหัส Tatoeba 3 ตัว (จากความรู้ ยังไม่ได้เปิดยืนยัน — sandbox เข้า tatoeba.org ไม่ได้)
@@ -188,5 +203,5 @@ module.exports = {
   levelOfRank: levelOfRank, parseFreq: parseFreq, tokenize: tokenize, lengthOk: lengthOk,
   parseKaikkiLine: parseKaikkiLine, mergeKaikki: mergeKaikki,
   parseSentenceLine: parseSentenceLine, parseLinkLine: parseLinkLine, parseAudioLine: parseAudioLine,
-  buildPack: buildPack, packFileName: packFileName
+  buildPack: buildPack, packFileName: packFileName, packBytes: packBytes
 };

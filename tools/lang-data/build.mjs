@@ -113,17 +113,17 @@ const pack = L.buildPack({
 // 3) เขียนไฟล์ + index.json (รวมกับของเดิม ภาษาอื่นไม่ถูกแตะ)
 fs.mkdirSync(outDir, { recursive: true });
 const file = L.packFileName(lang, pack);
-const body = JSON.stringify(pack);
-fs.writeFileSync(path.join(outDir, file), body);
+const { raw, gz } = L.packBytes(pack);
+fs.writeFileSync(path.join(outDir, file), gz);
 const idxPath = path.join(outDir, 'index.json');
 const idx = fs.existsSync(idxPath) ? JSON.parse(fs.readFileSync(idxPath, 'utf8')) : { v: 1, packs: {} };
 const old = idx.packs[lang];
 if (old && old.file !== file) fs.rmSync(path.join(outDir, old.file), { force: true });
-idx.packs[lang] = { file, words: pack.w.length, sentences: pack.s.length, sources: [pack.src.freq, 'Tatoeba ' + pack.src.tatoeba, pack.src.wikt].filter(Boolean) };
+idx.packs[lang] = { file, words: pack.w.length, sentences: pack.s.length, bytes: gz.length, raw: raw.length, sources: [pack.src.freq, 'Tatoeba ' + pack.src.tatoeba, pack.src.wikt].filter(Boolean) };
 idx.packs = Object.fromEntries(Object.entries(idx.packs).sort(([x], [y]) => (x < y ? -1 : 1)));
 fs.writeFileSync(idxPath, JSON.stringify(idx, null, 1) + '\n');
 
-const kb = Math.round(Buffer.byteLength(body) / 1024);
+const kb = Math.round(raw.length / 1024), gzKb = Math.round(gz.length / 1024);
 const withTh = pack.w.filter((w) => w.th).length, sTh = pack.s.filter((s) => s.th).length;
-process.stdout.write(`${lang}: ${file} · คำ ${pack.w.length} (มีคำแปลไทย ${withTh}) · ประโยค ${pack.s.length} (มีคำแปลไทย ${sTh}, มีเสียง ${pack.s.filter((s) => s.au).length}) · ${kb} KB\n`);
-if (kb > 700) process.stdout.write('คำเตือน: ไฟล์ใหญ่เกินเป้า ~600 KB — ลด caps หรือตรวจข้อมูลดิบ\n');
+process.stdout.write(`${lang}: ${file} · คำ ${pack.w.length} (มีคำแปลไทย ${withTh}) · ประโยค ${pack.s.length} (มีคำแปลไทย ${sTh}, มีเสียง ${pack.s.filter((s) => s.au).length}) · ${kb} KB → gzip ${gzKb} KB\n`);
+if (kb > 700) process.stdout.write('คำเตือน: ไฟล์ก่อนบีบใหญ่เกิน 700 KB — ลด caps หรือตรวจข้อมูลดิบ\n');
