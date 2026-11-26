@@ -147,6 +147,12 @@
         const HskIcon = icon('graduation-cap', 'w-4 h-4');
         const ListenIcon = icon('headphones', 'w-4 h-4');
         const MicIcon = icon('mic', 'w-5 h-5');
+        const CaptionsIcon = icon('captions', 'w-4 h-4');
+        const PlayIcon = icon('play', 'w-4 h-4');
+        const PauseIcon = icon('pause', 'w-4 h-4');
+        const SkipBackIcon = icon('skip-back', 'w-4 h-4');
+        const SkipForwardIcon = icon('skip-forward', 'w-4 h-4');
+        const RepeatIcon = icon('repeat', 'w-4 h-4');
         const HashIcon = icon('hash', 'w-4 h-4');
         const FlameIcon = icon('flame', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
@@ -173,6 +179,37 @@
         window.OME_PAGE_LIVE_LANG = true;
         /* LP_EN:BEGIN */
         const LP_EN = {
+            "ที่ได้ยิน:": "Heard:",
+            "ความใกล้เคียง {n}%": "Match {n}%",
+            "กำลังถอดเสียง...": "Transcribing...",
+            "พูดตามประโยคนี้": "Repeat this sentence",
+            "แสดงซับไทย": "Show Thai subtitles",
+            "ซ่อนซับไทย": "Hide Thai subtitles",
+            "แสดงซับ": "Show subtitles",
+            "ซ่อนซับ": "Hide subtitles",
+            "วนประโยค": "Loop sentence",
+            "หยุด": "Stop",
+            "เล่นประโยคนี้": "Play this sentence",
+            "ประโยคถัดไป": "Next sentence",
+            "ประโยคก่อนหน้า": "Previous sentence",
+            "โหลดสคริปต์ไม่สำเร็จ": "Could not load the script",
+            "ยังโหลดตัวถอดเสียงไม่เสร็จ ลองใหม่อีกครั้ง": "The transcriber has not finished loading — try again",
+            "ไม่พบเสียงพูดที่ถอดได้ในไฟล์นี้": "No transcribable speech found in this file",
+            "ไฟล์ยาวเกิน {min} นาที — สร้างซับบนเครื่องนี้ไม่ได้": "The file is longer than {min} minutes — subtitles can't be generated on this device",
+            "กำลังโหลดโมเดล (ครั้งแรกเท่านั้น)...": "Loading the model (first time only)...",
+            "กำลังถอดเสียงท่อนที่ {i}/{n}...": "Transcribing part {i}/{n}...",
+            "กำลังเตรียมตัวถอดเสียง...": "Preparing the transcriber...",
+            "กำลังถอดเสียง ({done}/{total})...": "Transcribing ({done}/{total})...",
+            "กำลังอ่านเสียงจากไฟล์...": "Reading the audio from the file...",
+            "ยกเลิก": "Cancel",
+            "สร้างซับด้วยการถอดเสียง": "Generate subtitles by transcription",
+            "อ่านไฟล์ซับไม่สำเร็จ": "Could not read the subtitle file",
+            "ไม่พบซับในไฟล์นี้ — ใช้ไฟล์ .srt หรือ .vtt": "No subtitles found in this file — use an .srt or .vtt file",
+            "{n} ประโยค": "{n} sentences",
+            "ซับไทย (ไม่บังคับ)": "Thai subtitles (optional)",
+            "เลือกซับ (.srt/.vtt)": "Choose subtitles (.srt/.vtt)",
+            "เลือกเสียง/วิดีโอ": "Choose audio/video",
+            "ซับไตเติล": "Subtitles",
             "← กลับ Tanot": "← Back to Tanot",
             "← เปลี่ยนประเภทข้อสอบ": "← Change exam type",
             "← เลือกเรื่องอื่น": "← Choose another story",
@@ -750,14 +787,14 @@
             return { typedDiff: aOut, correctDiff: bOut };
         }
         // component โชว์ diff ให้เห็นเป็นภาพ — ตัวที่พิมพ์ผิด/ขาดหาย ไฮไลต์แดง, ตัวที่ถูกไฮไลต์เขียว
-        function SpellDiff({ typed, correct }) {
+        function SpellDiff({ typed, correct, typedLabel }) {
             const { typedDiff, correctDiff } = useMemo(() => diffChars(typed.trim(), correct.trim()), [typed, correct]);
             const hasDiff = typedDiff.some(c => !c.same) || correctDiff.some(c => !c.same);
             if (!hasDiff) return null;
             return (
                 <div className="mt-2 text-sm font-mono leading-relaxed break-all">
                     <div>
-                        <span className="text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1">{tx('คุณพิมพ์:')}</span>
+                        <span className="text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1">{typedLabel || tx('คุณพิมพ์:')}</span>
                         {typedDiff.map((c, i) => (
                             <span key={i} className={c.same ? 'text-gray-500' : 'bg-red-100 text-err-ink rounded-sm'}>{c.ch}</span>
                         ))}
@@ -13070,6 +13107,325 @@
             );
         }
 
+        // ── ซับไตเติล (ROADMAP แถว 25 / L4) — เลือกไฟล์เสียง/วิดีโอในเครื่อง (object URL: ไม่อัปโหลด ไม่ซิงก์ ไม่ลง problem log)
+        //    + ซับ .srt/.vtt (ตรรกะ parse/จับคู่/คะแนนอยู่ใน lang-calc.js `LangCalc.subs`) → รายการประโยค เล่น/วนทีละประโยค
+        //    + พูดตาม (อัดไมค์ → ถอดเสียง → เทียบกับซับ) · ไม่มีซับ = ถอดเสียงทั้งไฟล์เป็นซับ ──
+        const SUBS_CLOUD_MAX_SEC = 1800; // สร้างซับผ่านคลาวด์เฉพาะไฟล์ ≤ 30 นาที (~1,400 Neurons ของโควตาฟรี 10,000/วัน) — ยาวกว่านั้นใช้ในเครื่อง
+        const SUBS_ASR_MODEL = 'Xenova/whisper-base';
+        const subsScriptCache = {};
+        function subsLoadScript(src) {
+            if (!subsScriptCache[src]) subsScriptCache[src] = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = src; s.onload = resolve;
+                s.onerror = () => { delete subsScriptCache[src]; reject(new Error('โหลดสคริปต์ไม่สำเร็จ')); };
+                document.head.appendChild(s);
+            });
+            return subsScriptCache[src];
+        }
+        const subsAsrCode = (langId) => LANGS[langId].code.split('-')[0]; // zh-HK → zh · pt-BR → pt (รหัสภาษาของ Whisper)
+        function subsErrText(e) {
+            if (e && e.name === 'AiError' && window.AiClient) return window.AiClient.friendlyMessage(e);
+            return window.TanotMedia && e && e.code ? window.TanotMedia.errorText(e) : (e && e.message ? e.message : String(e));
+        }
+        // ถอดคลิปสั้นจากไมค์: คลาวด์ก่อน (iPhone ไปทางนี้ทางเดียว) → ล้มแบบถอยได้และไม่ใช่ iOS ใช้ asr-worker ในเครื่อง
+        async function subsTranscribeClip(blob, langId) {
+            const pcm = await decodeBlobToPcm(blob);
+            const ai = window.AiClient;
+            if (ai && ai.available() && navigator.onLine !== false) {
+                try { return (((await ai.asr({ pcm, language: subsAsrCode(langId) })).text) || '').trim(); }
+                catch (e) { if (isIOS() || !ai.canFallback(e)) throw e; }
+            } else if (isIOS()) {
+                throw new Error('ฟีเจอร์ถอดเสียงอัตโนมัติยังไม่รองรับ iPhone/iPad — ลองฟังเสียงที่อัดเทียบกับต้นฉบับด้วยหูแทนได้');
+            }
+            return ((await transcribeSpeech(pcm, ASR_LANG_NAME[langId] || 'english')) || '').trim();
+        }
+
+        function SubtitlePanel({ awardXp, langId }) {
+            const L = window.LangCalc.subs;
+            const [media, setMedia] = useState(null);   // { url, name, video, file }
+            const [cues, setCues] = useState([]);
+            const [cuesTh, setCuesTh] = useState([]);
+            const [subsErr, setSubsErr] = useState('');
+            const [cur, setCur] = useState(0);
+            const [loop, setLoop] = useState(false);
+            const [rate, setRate] = useState(1);
+            const [showSub, setShowSub] = useState(true);
+            const [showTh, setShowTh] = useState(true);
+            const [playing, setPlaying] = useState(false);
+            const [gen, setGen] = useState(null);       // null | { msg } | { err } (ข้อความ = สตริงไทย หรือ [สตริงไทย, vars])
+            const [rec, setRec] = useState({ status: '', heard: '', score: null, err: '' }); // status: '' | recording | transcribing | done | error
+            const elRef = useRef(null), listRef = useRef(null), micRef = useRef(null), genCtrl = useRef(null);
+            const urlRef = useRef(''), rafRef = useRef(0), stopAt = useRef(null), ourSeek = useRef(false);
+            const mediaInput = useRef(null), subsInput = useRef(null), thInput = useRef(null);
+            const merged = useMemo(() => (cuesTh.length ? L.pairSubs(cues, cuesTh) : cues), [cues, cuesTh]);
+            // ตัว tick/คีย์ลัดอ่านค่าล่าสุดผ่าน ref (ไม่ผูก listener ใหม่ทุกเฟรม)
+            const live = useRef({});
+            live.current = { merged, cur, loop };
+
+            const pauseEl = () => { const el = elRef.current; stopAt.current = null; if (el) el.pause(); };
+            const stopTick = () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); rafRef.current = 0; };
+            const tick = () => {
+                const el = elRef.current;
+                if (!el) { rafRef.current = 0; return; }
+                const { merged: cs, cur: ci, loop: lp } = live.current, t = el.currentTime, stop = stopAt.current;
+                if (stop != null && t >= stop - 0.03) {
+                    if (lp && cs[ci]) { ourSeek.current = true; el.currentTime = cs[ci].start; }
+                    else { stopAt.current = null; el.pause(); rafRef.current = 0; return; }
+                } else if (stop == null) {
+                    const i = L.cueAt(cs, t);
+                    if (i >= 0 && i !== ci) setCur(i);
+                }
+                rafRef.current = requestAnimationFrame(tick);
+            };
+            const playSentence = (i) => {
+                const el = elRef.current, c = live.current.merged[i];
+                if (!el || !c) return;
+                setCur(i);
+                ourSeek.current = true; el.currentTime = c.start; stopAt.current = c.end;
+                live.current.cur = i; // ให้ tick รอบแรกเห็นประโยคใหม่ก่อน React วาดซ้ำ
+                const p = el.play(); if (p && p.catch) p.catch(() => {});
+            };
+            const go = (d) => { const n = live.current.merged.length; if (n) playSentence(Math.max(0, Math.min(n - 1, live.current.cur + d))); };
+            const toggle = () => { const el = elRef.current; if (!el) return; if (!el.paused) pauseEl(); else playSentence(live.current.cur); };
+            live.current.act = { go, toggle };
+
+            // คีย์ลัด ← → Space (ข้ามเมื่อพิมพ์/กดปุ่มอยู่)
+            useEffect(() => {
+                const onKey = (e) => {
+                    const t = e.target, tag = t && t.tagName;
+                    if (e.ctrlKey || e.metaKey || e.altKey || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (t && t.isContentEditable)) return;
+                    if (!live.current.merged.length) return;
+                    if (e.key === 'ArrowLeft') { e.preventDefault(); live.current.act.go(-1); }
+                    else if (e.key === 'ArrowRight') { e.preventDefault(); live.current.act.go(1); }
+                    else if (e.key === ' ' && tag !== 'BUTTON' && tag !== 'A' && tag !== 'VIDEO' && tag !== 'AUDIO') { e.preventDefault(); live.current.act.toggle(); }
+                };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            }, []);
+            useEffect(() => () => { // ปิดแผง: เลิกอัด/ถอด/RAF + คืน object URL
+                stopTick();
+                if (genCtrl.current) genCtrl.current.abort();
+                if (micRef.current && micRef.current.state === 'recording') { try { micRef.current.stop(); } catch (e) {} }
+                if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+            }, []);
+            useEffect(() => { if (elRef.current) elRef.current.playbackRate = rate; }, [rate, media]);
+            useEffect(() => { // เลื่อนรายการให้เห็นประโยคปัจจุบัน (ในกล่องรายการเท่านั้น ไม่เลื่อนทั้งหน้า)
+                const r = listRef.current, el = r && r.querySelector('[aria-current="true"]');
+                if (!el) return;
+                if (el.offsetTop < r.scrollTop || el.offsetTop + el.offsetHeight > r.scrollTop + r.clientHeight) r.scrollTop = Math.max(0, el.offsetTop - 8);
+            }, [cur, merged]);
+            useEffect(() => { setRec(r => (r.status === 'done' || r.status === 'error' ? { status: '', heard: '', score: null, err: '' } : r)); }, [cur]);
+
+            const onMedia = (e) => {
+                const f = e.target.files && e.target.files[0];
+                e.target.value = '';
+                if (!f) return;
+                pauseEl(); stopTick(); setPlaying(false);
+                if (genCtrl.current) genCtrl.current.abort();
+                if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+                urlRef.current = URL.createObjectURL(f);
+                setMedia({ url: urlRef.current, name: f.name, video: /^video\//.test(f.type) || /\.(mp4|m4v|mov|webm|mkv)$/i.test(f.name), file: f });
+                setGen(null);
+            };
+            // shortcut: อ่านซับเป็น UTF-8 เท่านั้น (ไฟล์ TIS-620/GBK จะเป็นอักขระเพี้ยน) · เปลี่ยนเมื่อมีผู้ใช้เจอจริง
+            const onSubs = (th) => (e) => {
+                const f = e.target.files && e.target.files[0];
+                e.target.value = '';
+                if (!f) return;
+                f.text().then((txt) => {
+                    const c = L.parseSubs(txt);
+                    if (!c.length) { setSubsErr('ไม่พบซับในไฟล์นี้ — ใช้ไฟล์ .srt หรือ .vtt'); return; }
+                    setSubsErr('');
+                    if (th) setCuesTh(c); else { pauseEl(); setCues(c); setCur(0); setGen(null); }
+                }, () => setSubsErr('อ่านไฟล์ซับไม่สำเร็จ'));
+            };
+
+            const generate = async () => {
+                if (!media) return;
+                const ctrl = new AbortController(), ai = window.AiClient, TM = window.TanotMedia;
+                genCtrl.current = ctrl;
+                let engine = 'cloud';
+                try {
+                    if (!TM) throw new Error('ยังโหลดตัวถอดเสียงไม่เสร็จ ลองใหม่อีกครั้ง');
+                    setGen({ msg: 'กำลังอ่านเสียงจากไฟล์...' });
+                    const dec = await TM.decode16k(await media.file.arrayBuffer());
+                    if (ctrl.signal.aborted) throw TM.error('abort');
+                    const cloudOk = !!(ai && ai.available() && navigator.onLine !== false);
+                    const useCloud = cloudOk && dec.duration <= SUBS_CLOUD_MAX_SEC;
+                    if (!useCloud && isIOS()) {
+                        setGen({ err: cloudOk ? ['ไฟล์ยาวเกิน {min} นาที — สร้างซับบนเครื่องนี้ไม่ได้', { min: SUBS_CLOUD_MAX_SEC / 60 }] : 'ฟีเจอร์ถอดเสียงอัตโนมัติยังไม่รองรับ iPhone/iPad — ลองฟังเสียงที่อัดเทียบกับต้นฉบับด้วยหูแทนได้' });
+                        return;
+                    }
+                    let res = null;
+                    if (useCloud) {
+                        try {
+                            await subsLoadScript('asr-cloud.js');
+                            res = await window.TanotAsrCloud.transcribe({
+                                dec, language: subsAsrCode(langId), signal: ctrl.signal,
+                                onProgress: (p) => setGen({ msg: ['กำลังถอดเสียง ({done}/{total})...', { done: p.done, total: p.total }] }),
+                            });
+                        } catch (e) {
+                            if (TM.classify(e) === 'abort' || isIOS() || !ai.canFallback(e)) throw e;
+                            engine = 'local'; // คลาวด์ล่มแบบที่ถอยได้ → โมเดลในเครื่อง (ไม่ใช่ iPhone)
+                        }
+                    } else engine = 'local';
+                    if (!res) {
+                        setGen({ msg: 'กำลังเตรียมตัวถอดเสียง...' });
+                        res = await TM.transcribeLocalDetailed({
+                            dec, modelId: SUBS_ASR_MODEL, lang: ASR_LANG_NAME[langId] || 'english', signal: ctrl.signal, device: 'auto', timestamps: true,
+                            onProgress: (p) => {
+                                if (p.stage === 'segment') setGen({ msg: ['กำลังถอดเสียงท่อนที่ {i}/{n}...', { i: p.i, n: p.n }] });
+                                else if (p.stage === 'model') setGen({ msg: 'กำลังโหลดโมเดล (ครั้งแรกเท่านั้น)...' });
+                            },
+                        });
+                    }
+                    const out = L.segmentsToCues(res.segments);
+                    if (!out.length) { setGen({ err: 'ไม่พบเสียงพูดที่ถอดได้ในไฟล์นี้' }); return; }
+                    setCues(out); setCur(0); setGen(null);
+                } catch (e) {
+                    if (TM && TM.classify(e) === 'abort') { setGen(null); return; }
+                    if (TM) TM.logError('asr', e, { stage: 'subs-generate', engine, lang: subsAsrCode(langId) }); // ไม่ส่งชื่อไฟล์/ข้อความ
+                    setGen({ err: ['ถอดเสียงไม่สำเร็จ: {m}', { m: subsErrText(e) }] });
+                }
+            };
+
+            const startRec = async () => {
+                const target = live.current.merged[live.current.cur];
+                if (!target) return;
+                pauseEl();
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const mr = new MediaRecorder(stream), chunks = [];
+                    mr.addEventListener('dataavailable', (ev) => { if (ev.data && ev.data.size) chunks.push(ev.data); });
+                    mr.addEventListener('stop', async () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        setRec({ status: 'transcribing', heard: '', score: null, err: '' });
+                        try {
+                            const heard = await subsTranscribeClip(new Blob(chunks, { type: mr.mimeType || 'audio/webm' }), langId);
+                            const score = L.similarity(heard, target.text), b = L.band(score);
+                            setRec({ status: 'done', heard, score, err: '' });
+                            if (b === 'correct') awardXp(15); else if (b === 'almost') awardXp(8);
+                        } catch (e) {
+                            setRec({ status: 'error', heard: '', score: null, err: ['ถอดเสียงไม่สำเร็จ: {m}', { m: subsErrText(e) }] });
+                        }
+                    });
+                    micRef.current = mr; mr.start();
+                    setRec({ status: 'recording', heard: '', score: null, err: '' });
+                } catch (e) {
+                    setRec({ status: 'error', heard: '', score: null, err: 'เปิดไมค์ไม่สำเร็จ — ตรวจสอบว่าอนุญาตให้เว็บนี้ใช้ไมโครโฟนแล้ว' });
+                }
+            };
+            const stopRec = () => { if (micRef.current && micRef.current.state === 'recording') micRef.current.stop(); };
+
+            const mediaProps = {
+                ref: elRef, src: media ? media.url : undefined, controls: true, preload: 'metadata',
+                onPlay: () => { setPlaying(true); stopTick(); rafRef.current = requestAnimationFrame(tick); },
+                onPause: () => { setPlaying(false); stopTick(); },
+                onEnded: () => { setPlaying(false); stopTick(); stopAt.current = null; },
+                onSeeking: () => { if (!ourSeek.current) stopAt.current = null; }, // ผู้ใช้ลากแถบเวลาเอง = เลิกคุมช่วงประโยค
+                onSeeked: () => {
+                    ourSeek.current = false;
+                    const el = elRef.current;
+                    if (el && stopAt.current == null) { const i = L.cueAt(live.current.merged, el.currentTime); if (i >= 0) setCur(i); }
+                },
+                onLoadedMetadata: () => { if (elRef.current) elRef.current.playbackRate = rate; },
+            };
+            const hasTh = merged.some(c => c.thai);
+            const hasCues = merged.length > 0;
+            const b = rec.score != null ? L.band(rec.score) : '';
+
+            return (
+                <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-800">{tx('ซับไตเติล')}</h3>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                        <input ref={mediaInput} type="file" accept="audio/*,video/*" className="hidden" data-k="subs-media" onChange={onMedia} />
+                        <input ref={subsInput} type="file" accept=".srt,.vtt,text/vtt,application/x-subrip,text/plain" className="hidden" data-k="subs-file" onChange={onSubs(false)} />
+                        <input ref={thInput} type="file" accept=".srt,.vtt,text/vtt,application/x-subrip,text/plain" className="hidden" data-k="subs-file-th" onChange={onSubs(true)} />
+                        <button className="btn" data-k="subs-pick-media" onClick={() => mediaInput.current.click()}>{tx('เลือกเสียง/วิดีโอ')}</button>
+                        <button className="btn" data-k="subs-pick-subs" onClick={() => subsInput.current.click()}>{tx('เลือกซับ (.srt/.vtt)')}</button>
+                        {hasCues && <button className="btn ghost" data-k="subs-pick-th" onClick={() => thInput.current.click()}>{tx('ซับไทย (ไม่บังคับ)')}</button>}
+                    </div>
+                    {(media || hasCues) && (
+                        <p className="text-sm text-gray-500" data-i18n-skip>
+                            {media ? media.name : ''}{media && hasCues ? ' · ' : ''}{hasCues ? tx('{n} ประโยค', { n: merged.length }) : ''}
+                        </p>
+                    )}
+                    {subsErr && <p className="text-sm text-err-ink" role="alert">{tx(subsErr)}</p>}
+
+                    {media && (media.video
+                        ? <video {...mediaProps} playsInline className="w-full rounded-xl max-h-[40vh]" data-k="subs-el"></video>
+                        : <audio {...mediaProps} className="w-full" data-k="subs-el"></audio>)}
+
+                    {media && !hasCues && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            {gen && gen.msg
+                                ? <button className="btn" data-k="subs-gen-cancel" onClick={() => { if (genCtrl.current) genCtrl.current.abort(); }}>{tx('ยกเลิก')}</button>
+                                : <button className="btn primary" data-k="subs-gen" onClick={generate}>{tx('สร้างซับด้วยการถอดเสียง')}</button>}
+                            {gen && gen.msg && <span className="text-sm text-gray-500" role="status">{txs(gen.msg)}</span>}
+                            {gen && gen.err && <span className="text-sm text-err-ink" role="alert">{txs(gen.err)}</span>}
+                        </div>
+                    )}
+
+                    {hasCues && (
+                        <div className="flex flex-wrap items-center gap-2">
+                            <button className="btn icon" data-k="subs-prev" aria-label={tx('ประโยคก่อนหน้า')} onClick={() => go(-1)} disabled={!media}><SkipBackIcon /></button>
+                            <button className="btn primary" data-k="subs-play" disabled={!media} onClick={() => (playing ? pauseEl() : playSentence(cur))}>
+                                {playing ? <PauseIcon /> : <PlayIcon />} {playing ? tx('หยุด') : tx('เล่นประโยคนี้')}
+                            </button>
+                            <button className="btn icon" data-k="subs-next" aria-label={tx('ประโยคถัดไป')} onClick={() => go(1)} disabled={!media}><SkipForwardIcon /></button>
+                            <button className="btn" data-k="subs-loop" aria-pressed={loop} onClick={() => setLoop(v => !v)}><RepeatIcon /> {tx('วนประโยค')}</button>
+                            <div className="segmented">
+                                <button data-k="subs-rate-075" aria-pressed={rate === 0.75} onClick={() => setRate(0.75)}>0.75×</button>
+                                <button data-k="subs-rate-1" aria-pressed={rate === 1} onClick={() => setRate(1)}>1×</button>
+                            </div>
+                            <button className="btn ghost" data-k="subs-hide" aria-pressed={!showSub} onClick={() => setShowSub(v => !v)}>{showSub ? tx('ซ่อนซับ') : tx('แสดงซับ')}</button>
+                            {hasTh && <button className="btn ghost" data-k="subs-hide-th" aria-pressed={!showTh} onClick={() => setShowTh(v => !v)}>{showTh ? tx('ซ่อนซับไทย') : tx('แสดงซับไทย')}</button>}
+                        </div>
+                    )}
+
+                    {hasCues && (
+                        <ol ref={listRef} className="relative space-y-1 max-h-[40vh] overflow-y-auto" data-k="subs-list">
+                            {merged.map((c, i) => (
+                                <li key={i} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 44px' }}>
+                                    <button className={'btn item' + (i === cur ? ' on' : '')} data-k="subs-cue" aria-current={i === cur ? 'true' : undefined}
+                                        onClick={() => (media ? playSentence(i) : setCur(i))}>
+                                        <span className="text-xs max-sm:text-sm text-gray-500 shrink-0 tabular-nums">{L.fmt(c.start)}</span>
+                                        <span className="flex-1 min-w-0 text-left">
+                                            <span className="block" data-i18n-skip>{showSub ? c.text : '···'}</span>
+                                            {c.thai && showTh && <span className="block text-sm text-gray-500" data-i18n-skip>{c.thai}</span>}
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ol>
+                    )}
+
+                    {hasCues && (
+                        <div className="space-y-3">
+                            <div className="flex flex-wrap items-center gap-3">
+                                {rec.status !== 'recording'
+                                    ? <button className="btn danger" data-k="subs-rec" disabled={rec.status === 'transcribing'} onClick={startRec}><MicIcon /> {tx('พูดตามประโยคนี้')}</button>
+                                    : <button className="btn primary" data-k="subs-rec-stop" onClick={stopRec}>{tx('⏹ หยุดอัด')}</button>}
+                                {rec.status === 'transcribing' && <span className="text-sm text-gray-500" role="status">{tx('กำลังถอดเสียง...')}</span>}
+                            </div>
+                            {rec.status === 'done' && (
+                                <div className={`p-4 rounded-xl border ${b === 'correct' ? 'bg-green-50 border-green-100' : b === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`} data-k="subs-result">
+                                    <p className="text-xs max-sm:text-sm text-gray-400 mb-1">{tx('ระบบได้ยินว่า:')}</p>
+                                    <p className="font-semibold text-gray-800 mb-2" data-i18n-skip>{rec.heard || tx('(ไม่ได้ยินเสียงพูด)')}</p>
+                                    <p className="text-sm font-semibold" data-k="subs-score">
+                                        {tx('ความใกล้เคียง {n}%', { n: Math.round(rec.score * 100) })} · {b === 'correct' ? tx('✅ ใกล้เคียงต้นฉบับมาก') : b === 'almost' ? tx('🟡 ใกล้เคียง แต่ยังไม่ตรงทั้งหมด') : tx('❌ ยังต่างจากต้นฉบับพอสมควร')}
+                                    </p>
+                                    {rec.heard && <SpellDiff typed={L.normalize(rec.heard)} correct={L.normalize(merged[cur].text)} typedLabel={tx('ที่ได้ยิน:')} />}
+                                </div>
+                            )}
+                            {rec.status === 'error' && <p className="text-sm text-err-ink" role="alert">❌ {txs(rec.err)}</p>}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         // ── อ่านเรื่องยาว (extensive reading) — บทความสั้นระดับ HSK1-3 ยาวกว่าบทสนทนาในโหมด
         //    "ฟังเรื่องสั้น" (ย่อหน้าเดียว ผู้เล่าคนเดียว ไม่ใช่บทสนทนา) เนื้อหาแต่งเองจากคำศัพท์/
         //    ไวยากรณ์ระดับพื้นฐาน-กลางที่คุ้นเคยกันดี (เหมือนบทสนทนาในโหมดฟัง — ยังไม่ผ่านการตรวจทาน
@@ -17030,6 +17386,9 @@
                                 <button data-k="lsub-shadowing" onClick={() => setSubMode('shadowing')} aria-pressed={subMode === 'shadowing'}>
                                     <MicIcon /> {tx('พูดตาม')}
                                 </button>
+                                <button data-k="lsub-subs" onClick={() => setSubMode('subs')} aria-pressed={subMode === 'subs'}>
+                                    <CaptionsIcon /> {tx('ซับไตเติล')}
+                                </button>
                                 <button data-k="lsub-reading" onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
                                     <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
@@ -17043,6 +17402,7 @@
                         <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
                             {subMode === 'listening' && <ListeningPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'subs' && <SubtitlePanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} langId={langId} />}
                         </div>
