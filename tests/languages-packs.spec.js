@@ -228,6 +228,7 @@ test('หน้า: พิมพ์คำแปล / ฟังแล้วพิ
   await page.fill('[data-k="packAnswer"]', 'dog');
   await page.click('[data-k="packCheck"]');
   await expect(page.locator('[data-k="packResult"]')).toHaveAttribute('data-r', 'wrong');
+  await page.click('[data-k="packNext"]'); // ให้คะแนนตอนกด "ข้อต่อไป" (ตอบผิด = Again)
   await page.click('[data-k="pmode-dictation"]');
   await expect(page.locator('[data-k="packListen"]')).toBeVisible();
   await page.click('[data-k="kind-s"]');
@@ -237,7 +238,7 @@ test('หน้า: พิมพ์คำแปล / ฟังแล้วพิ
   await page.click('[data-k="packGood"]');
   const srs = await page.evaluate(() => JSON.parse(localStorage.getItem('lang-practice:srs') || '{}'));
   expect(Object.keys(srs).sort()).toEqual(['lang-en::s::5', 'lang-en::w::cat', 'lang-en::w::the']);
-  expect(srs['lang-en::w::cat'].lapses || 0).toBeGreaterThanOrEqual(0);
+  expect(srs['lang-en::w::cat'].dueAt).toBeLessThan(srs['lang-en::w::the'].dueAt); // ผิด = กลับมาเร็วกว่า
   expect(errors).toEqual([]);
 });
 
@@ -301,10 +302,16 @@ test('หน้า: index 404 = ยังไม่มีชุดของภา
   await page.reload();
   await page.click('[data-k="src-pack"]');
   await expect(page.locator('[data-k="packError"]')).toBeVisible();
-  expect(errors).toEqual([]);
+  // เบราว์เซอร์ log "Failed to load resource" เองเมื่อ fetch ได้ 404/500 — ไม่ใช่ error ของโค้ด
+  expect(errors.filter((e) => !/Failed to load resource: the server responded with a status of (404|500)/.test(e))).toEqual([]);
 });
 
-test('ออฟไลน์: เปิดชุดซ้ำได้หลังใช้ครั้งแรก (sw.js แคช index + ไฟล์ชุด)', async ({ page, context }) => {
+test.describe('ออฟไลน์', () => {
+test.use({ serviceWorkers: 'allow' });
+// ให้ context.route / setOffline มีผลกับคำขอที่ service worker ส่งเอง (Chromium อ่านค่านี้ตอน SW เริ่ม) — เปิดเฉพาะกลุ่มนี้
+test.beforeAll(() => { process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS = '1'; });
+test.afterAll(() => { delete process.env.PW_EXPERIMENTAL_SERVICE_WORKER_NETWORK_EVENTS; });
+test('เปิดชุดซ้ำได้หลังใช้ครั้งแรก (sw.js แคช index + ไฟล์ชุด)', async ({ page, context }) => {
   await prepare(page);
   // service worker ต้องเห็นคำขอจริง → เสิร์ฟไฟล์จาก context.route (page.route ไม่ผ่าน SW)
   await context.route('**/lang-packs/index.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(INDEX) }));
@@ -328,6 +335,7 @@ test('ออฟไลน์: เปิดชุดซ้ำได้หลัง
   await expect(page.locator('[data-k="packCard"]')).toBeVisible();
   await context.setOffline(false);
 });
+});
 
 test('review.html แสดงการ์ด ::w:: / ::s:: จาก lang-practice:faces และเขียนผลกลับ', async ({ page }) => {
   const errors = await prepare(page);
@@ -342,14 +350,54 @@ test('review.html แสดงการ์ด ::w:: / ::s:: จาก lang-pract
     localStorage.setItem('lang-practice:faces', JSON.stringify({ 'lang-en::w::cat': ['cat', 'แมว'], 'lang-en::s::20': ['The cat sleeps.', 'แมวนอน'] }));
   }, past);
   await page.goto('/review.html#lang');
-  await expect(page.locator('#rvDeck')).toContainText(/cat|The cat sleeps\./);
-  await expect(page.locator('#rvDeck')).not.toContainText('ไม่มีการ์ดค้างทบทวน');
+  await expect(page.locator('#rvDue')).toContainText('2');
+  await expect(page.locator('#rvCard .q')).toHaveText(/^(cat|The cat sleeps\.)$/);
   const before = await page.evaluate(() => JSON.parse(localStorage.getItem('lang-practice:srs')));
-  await page.keyboard.press('Space');
-  await page.keyboard.press('3');
-  await page.waitForFunction((b) => {
-    const s = JSON.parse(localStorage.getItem('lang-practice:srs'));
-    return Object.keys(b).some((k) => s[k].dueAt > b[k].dueAt);
-  }, before);
+  for (let i = 0; i < 2; i++) {
+    await page.keyboard.press('Space');
+    await expect(page.locator('#rvCard .a')).toHaveText(/^(แมว|แมวนอน)$/);
+    await page.keyboard.press('3');
+  }
+  await expect(page.locator('#rvArea .empty')).toBeVisible();
+  const after = await page.evaluate(() => JSON.parse(localStorage.getItem('lang-practice:srs')));
+  Object.keys(before).forEach((k) => expect(after[k].dueAt).toBeGreaterThan(before[k].dueAt));
   expect(errors).toEqual([]);
+});
+
+test.describe('ซิงก์ 2 เครื่อง', () => {
+  const SRV = 'http://localhost:8148';
+  test.beforeEach(async ({ request }) => { await request.get(SRV + '/__reset'); });
+  test('การ์ดชุดคำจากเครื่อง A → เครื่อง B เห็นหน้าการ์ดใน review.html (lang-practice:faces) · ทั้งสองเครื่องให้คะแนนคนละคำไม่ทับกัน', async ({ browser }) => {
+    const mk = async () => {
+      const ctx = await browser.newContext({ baseURL: SRV });
+      const page = await ctx.newPage();
+      const errors = await prepare(page);
+      await routePacks(page);
+      await page.addInitScript(() => { window.TANOT_SYNC = { enabled: true, initialDelay: 60000, interval: 1e9 }; });
+      return { ctx, page, errors };
+    };
+    const A = await mk(), B = await mk();
+    const sync = (p) => p.evaluate(() => window.TanotData.syncNow().then((s) => s.state));
+    for (const d of [A, B]) await openPacks(d.page);
+    // A ให้คะแนน the · B (ยังไม่ซิงก์) ข้าม the ไปไม่ได้ — ใช้ระดับ A2 ให้คะแนน something
+    await A.page.click('[data-k="packFlip"]'); await A.page.click('[data-k="packGood"]');
+    await B.page.click('[data-k="lv-2"]');
+    await B.page.click('[data-k="packFlip"]'); await B.page.click('[data-k="packGood"]');
+    for (let i = 0; i < 2; i++) { await sync(A.page); await sync(B.page); }
+    for (const d of [A, B]) {
+      const st = await d.page.evaluate(() => ({ srs: JSON.parse(localStorage.getItem('lang-practice:srs') || '{}'), faces: JSON.parse(localStorage.getItem('lang-practice:faces') || '{}') }));
+      expect(Object.keys(st.srs).sort()).toEqual(['lang-en::w::something', 'lang-en::w::the']);
+      expect(st.faces).toEqual({ 'lang-en::w::the': ['the', 'คำนำหน้านาม'], 'lang-en::w::something': ['something', 'บางอย่าง'] });
+    }
+    // เครื่อง B เปิด review.html (ไม่ได้โหลดชุดคำ) โดยการ์ดของ A ถึงกำหนดแล้ว → เห็นหน้าการ์ด
+    await B.page.evaluate(() => {
+      const s = JSON.parse(localStorage.getItem('lang-practice:srs'));
+      s['lang-en::w::the'].dueAt = Date.now() - 1000;
+      localStorage.setItem('lang-practice:srs', JSON.stringify(s));
+      localStorage.removeItem('tanot:learn:faces:lang');
+    });
+    await B.page.goto('/review.html#lang');
+    await expect(B.page.locator('#rvCard .q')).toHaveText('the');
+    for (const d of [A, B]) { expect(d.errors).toEqual([]); await d.ctx.close(); }
+  });
 });

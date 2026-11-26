@@ -149,6 +149,9 @@
     { key: 'lang-practice:progress', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:notes', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:wrong', kind: 'sync', mode: 'map' },
+    // ภาษา L1 (docs/languages-design.md): หน้าการ์ดของการ์ด ::w::/::s:: (1 การ์ด = 1 doc) · คำแปลไทยจาก AI สร้างใหม่ได้ = cache
+    { key: 'lang-practice:faces', kind: 'sync', mode: 'map' },
+    { key: 'tanot:lang:th', kind: 'cache' },
     { prefix: 'lbe:', suffixes: [':srs', ':notes', ':written', ':completed'], kind: 'sync', mode: 'map' },
     { prefix: 'lbe:', suffix: ':exams', kind: 'sync', mode: 'list', idField: 'date' },
     { key: 'legal:drafts', kind: 'sync', mode: 'map' },

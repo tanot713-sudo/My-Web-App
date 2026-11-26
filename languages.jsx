@@ -545,7 +545,29 @@
             "文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 ข้อ": "文字・語彙 40 + 文法 31 + 読解 8 + 聴解 14 = 93 questions",
             "文章（ช่อง【{n}】）": "文章（blank【{n}】）",
             "文章の文法 · ช่องที่ {n}": "文章の文法 · blank {n}",
-            "聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ": "聽力 (listening) 14 + 閱讀 (reading) 30 = 44 questions"
+            "聽力 (ฟัง) 14 + 閱讀 (อ่าน) 30 = 44 ข้อ": "聽力 (listening) 14 + 閱讀 (reading) 30 = 44 questions",
+            "กำลังโหลดชุดคำ…": "Loading the word set…",
+            "คำ": "Words",
+            "คำที่ใช้บ่อย": "Common words",
+            "คำที่ใช้บ่อย — {l}": "Common words — {l}",
+            "ชนิด": "Type",
+            "ชุดคำ": "Word set",
+            "ชุดพื้นฐาน": "Basic set",
+            "ดูคำแปล": "Show meaning",
+            "ถึงกำหนดทวน {d} · ใหม่ {n}": "Due {d} · new {n}",
+            "ทุกระดับ": "All levels",
+            "ประโยค": "Sentences",
+            "ยังแปลไม่ครบ — ลองใหม่อีกครั้ง": "Some items were not translated — try again",
+            "ยังไม่ถูก": "Not quite",
+            "ยังไม่มีชุดคำที่ใช้บ่อยของภาษา{l}": "No common-word set for {l} yet",
+            "ระดับ": "Level",
+            "ลองใหม่": "Try again",
+            "เบราว์เซอร์นี้เปิดไฟล์ชุดคำไม่ได้ — ลองเบราว์เซอร์รุ่นใหม่": "This browser can't open the word set file — try a newer browser",
+            "แปลโดย AI": "AI translation",
+            "แปลไทย": "Translate to Thai",
+            "โหมด": "Mode",
+            "โหลดชุดคำไม่ได้ — ลองใหม่": "Couldn't load the word set — try again",
+            "ไม่มีการ์ดใหม่หรือการ์ดที่ถึงกำหนดในระดับนี้": "No new or due cards at this level"
         };
         /* LP_EN:END */
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
@@ -1211,9 +1233,15 @@
         const facePoolCache = {};
         function writeCardFaces(srs) {
             const cards = {}, langs = {};
+            const packFaces = readPackFaces(); // การ์ดชุดคำที่ใช้บ่อย (::w:: / ::s::) — หน้าการ์ดอยู่ใน lang-practice:faces
             Object.keys(srs || {}).forEach(key => {
                 const langId = key.split('::')[0];
                 if (!LANGS[langId]) return;
+                if (LangCalc.parseKey(key)) {
+                    const pf = packFaces[key];
+                    if (Array.isArray(pf)) { cards[key] = [String(pf[0] || ''), String(pf[1] || '')]; langs[langId] = LANGS[langId].title; }
+                    return;
+                }
                 if (!facePoolCache[langId]) {
                     const m = {};
                     vocabPool(langId).forEach(it => { m[it.key] = [String(it.word || ''), String(it.thai || '')]; });
@@ -17054,6 +17082,310 @@
         // แจ้งเตือนแบบ toast ลอยด้านล่างจอ ตอนกด speak() แล้วเบราว์เซอร์/อุปกรณ์ไม่มีเสียงอ่านของภาษานั้น
         // จริงๆ (ไม่ใช่แค่ยังโหลดไม่เสร็จ) — subscribe ผ่าน ttsNoticeSubs (module scope, ดูจุดประกาศที่
         // speak()) mount ครั้งเดียวที่ App() ไม่ต้องส่ง prop ผ่านทุก component ที่เรียก speak()
+        // ══════════════════════════════════════════════════════════════════════════════════
+        // คำที่ใช้บ่อย + ประโยคตัวอย่าง (ROADMAP แถว 22, docs/languages-design.md L1) — ข้อมูลจาก lang-packs/
+        // (สร้างโดย tools/lang-data) โหลดตอนเลือกครั้งแรก เก็บในหน่วยความจำเท่านั้น · ตรรกะอยู่ใน lang-calc.js
+        // การ์ด `${langId}::w::${คำ}` / `::s::${id}` อยู่ใน lang-practice:srs ร่วมกับการ์ดเดิม (FSRS เดียวกัน)
+        // หน้าการ์ดของการ์ดชุดนี้ → lang-practice:faces (sync map) ให้ review.html ทุกเครื่องแสดงได้แม้ยังไม่โหลดชุด
+        // คำแปลไทยจาก AI → tanot:lang:th (cache) · ห้ามเรียก /api/ocr จากหน้านี้
+        // ══════════════════════════════════════════════════════════════════════════════════
+        const PACK_FACES_KEY = 'lang-practice:faces';
+        const LANG_TH_KEY = 'tanot:lang:th';
+        const packStore = {}; // langId → Promise<{status:'ok', prep} | {status:'none'}>
+        let packIndexP = null;
+        function fetchPackIndex() {
+            if (!packIndexP) {
+                packIndexP = fetch('lang-packs/index.json').then(res => {
+                    if (res.status === 404) return null;
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    return res.json();
+                });
+                packIndexP.catch(() => { packIndexP = null; });
+            }
+            return packIndexP;
+        }
+        function loadPack(langId) {
+            if (!packStore[langId]) {
+                packStore[langId] = fetchPackIndex().then(index => {
+                    const file = LangCalc.packFile(index, langId);
+                    if (!file) return { status: 'none' };
+                    return fetch(file).then(res => {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        return res.arrayBuffer();
+                    }).then(buf => {
+                        const bytes = new Uint8Array(buf);
+                        if (!LangCalc.isGzip(bytes)) return new TextDecoder().decode(bytes);
+                        if (typeof DecompressionStream === 'undefined') { const e = new Error('gzip unsupported'); e.code = 'unsupported'; throw e; }
+                        return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'))).text();
+                    }).then(text => {
+                        const prep = LangCalc.prepare(JSON.parse(text), langId);
+                        if (!prep) throw new Error('bad pack');
+                        return { status: 'ok', prep };
+                    });
+                });
+                packStore[langId].catch(() => { delete packStore[langId]; });
+            }
+            return packStore[langId];
+        }
+        function readThCache() {
+            try { return (window.TanotData ? TanotData.read(LANG_TH_KEY, null) : JSON.parse(localStorage.getItem(LANG_TH_KEY) || 'null')) || { v: 1, m: {} }; }
+            catch (e) { return { v: 1, m: {} }; }
+        }
+        function writeThCache(v) { try { localStorage.setItem(LANG_TH_KEY, JSON.stringify(v)); } catch (e) {} }
+        // อ่านสด → แก้ → เขียน (TanotData.update ไม่ทำให้หน้าถือคีย์ → ไม่เด้งแถบรีโหลดเมื่ออีกเครื่องเพิ่มหน้าการ์ด)
+        function writePackFaces(entries) {
+            const fn = (m) => {
+                const out = (m && typeof m === 'object' && !Array.isArray(m)) ? Object.assign({}, m) : {};
+                let changed = false;
+                Object.keys(entries).forEach(k => {
+                    const f = entries[k], o = out[k];
+                    if (!o || o[0] !== f[0] || o[1] !== f[1]) { out[k] = f; changed = true; }
+                });
+                return changed ? out : undefined;
+            };
+            try {
+                if (window.TanotData && TanotData.update) TanotData.update(PACK_FACES_KEY, fn);
+                else { const next = fn(JSON.parse(localStorage.getItem(PACK_FACES_KEY) || '{}')); if (next) localStorage.setItem(PACK_FACES_KEY, JSON.stringify(next)); }
+            } catch (e) {}
+        }
+        function readPackFaces() {
+            try { const m = window.TanotData ? TanotData.read(PACK_FACES_KEY, {}) : JSON.parse(localStorage.getItem(PACK_FACES_KEY) || '{}'); return (m && typeof m === 'object') ? m : {}; }
+            catch (e) { return {}; }
+        }
+
+        function SourceSwitch({ source, setSource }) {
+            return (
+                <div className="segmented shrink-0" role="group" aria-label={tx('ชุดคำ')}>
+                    <button type="button" data-k="src-basic" onClick={() => setSource('basic')} aria-pressed={source === 'basic'}>{tx('ชุดพื้นฐาน')}</button>
+                    <button type="button" data-k="src-pack" onClick={() => setSource('pack')} aria-pressed={source === 'pack'}>{tx('คำที่ใช้บ่อย')}</button>
+                </div>
+            );
+        }
+
+        function PackView({ langId, srs, setSrs, setXp, source, setSource }) {
+            const lang = LANGS[langId];
+            const [state, setState] = useState({ status: 'loading' }); // loading | ok | none | error
+            const [retry, setRetry] = useState(0);
+            const [kind, setKind] = useState('w');
+            const [level, setLevel] = useState(1);
+            const [pmode, setPmode] = useState('flashcard'); // flashcard | translate | dictation
+            const [cur, setCur] = useState(null);     // การ์ดที่กำลังทำ (ล็อกไว้จนให้คะแนน)
+            const [flipped, setFlipped] = useState(false);
+            const [typed, setTyped] = useState('');
+            const [result, setResult] = useState(null);
+            const [thCache, setThCache] = useState(readThCache);
+            const [aiState, setAiState] = useState(null); // null | 'busy' | ข้อความ error
+            const inputRef = useRef(null);
+
+            useEffect(() => {
+                let alive = true;
+                setState({ status: 'loading' });
+                loadPack(langId).then(r => { if (alive) setState(r); }, err => { if (alive) setState({ status: 'error', code: err && err.code }); });
+                return () => { alive = false; };
+            }, [langId, retry]);
+            useEffect(() => { setCur(null); setFlipped(false); setTyped(''); setResult(null); setAiState(null); }, [langId, kind, level, pmode]);
+            useEffect(() => {
+                if (!window.TanotData || !TanotData.onChange) return undefined;
+                return TanotData.onChange(keys => { if (!keys.length || keys.indexOf(LANG_TH_KEY) >= 0) setThCache(readThCache()); });
+            }, []);
+
+            const prep = state.status === 'ok' ? state.prep : null;
+            const promptOf = (it) => LangCalc.thaiOf(it, thCache).text;
+            const candidates = useMemo(() => {
+                if (!prep) return [];
+                const q = LangCalc.queue(prep, srs, { kind, level, n: 40 });
+                return pmode === 'translate' ? q.filter(it => promptOf(it)) : q;
+            }, [prep, srs, kind, level, pmode, thCache]);
+            const counts = useMemo(() => prep ? {
+                due: LangCalc.dueItems(prep, srs, { kind }).length,
+                fresh: LangCalc.pickNew(prep, srs, { kind, level, n: Infinity }).length,
+            } : { due: 0, fresh: 0 }, [prep, srs, kind, level]);
+            const item = cur || candidates[0] || null;
+            const sents = useMemo(() => (item && item.kind === 'w' && prep) ? LangCalc.sentencesFor(prep, item.id, 3) : [], [item, prep]);
+            const th = item ? LangCalc.thaiOf(item, thCache) : null;
+            const aiOn = !!(window.AiClient && AiClient.available());
+            const missing = item ? LangCalc.missingThai([item].concat(sents), thCache) : [];
+
+            const rate = (rating) => {
+                if (!item) return;
+                setSrs(s => ({ ...s, [item.key]: fsrsSchedule(s[item.key] || {}, rating) }));
+                writePackFaces({ [item.key]: LangCalc.face(item, thCache) });
+                setCur(null); setFlipped(false); setTyped(''); setResult(null); setAiState(null);
+                if (pmode !== 'flashcard') setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
+            };
+            const flip = () => { if (!item) return; setCur(item); setFlipped(true); speak(item.t, lang.code); };
+            const check = () => {
+                if (!item || !typed.trim()) return;
+                setCur(item);
+                const g = gradeAnswer(typed, item.t);
+                setResult(g);
+                if (g === 'correct') setXp(x => x + 20); else if (g === 'almost') setXp(x => x + 10);
+            };
+            const next = () => rate(result === 'correct' ? 3 : result === 'almost' ? 2 : 1);
+            const translate = () => {
+                if (!missing.length || aiState === 'busy') return;
+                setCur(item);
+                setAiState('busy');
+                const name = LANG_EN[langId] || lang.title;
+                let cache = thCache;
+                LangCalc.chunk(missing, LangCalc.AI_BATCH).reduce((p, part) => p.then(() =>
+                    AiClient.summarize({ task: 'lang-th', model: 'fast', messages: LangCalc.thMessages(part, name) }).then(res => {
+                        cache = LangCalc.mergeTh(cache, part, LangCalc.parseTh(res && res.text, part.length));
+                    })), Promise.resolve()).then(() => {
+                    writeThCache(cache);
+                    setThCache(cache);
+                    // การ์ดที่สร้างแล้ว: หน้าการ์ดได้คำแปลใหม่ด้วย
+                    const upd = {};
+                    missing.forEach(it => { if (srs[it.key]) upd[it.key] = LangCalc.face(it, cache); });
+                    if (Object.keys(upd).length) writePackFaces(upd);
+                    setAiState(missing.every(it => LangCalc.thaiOf(it, cache).src === 'ai') ? null : 'ยังแปลไม่ครบ — ลองใหม่อีกครั้ง');
+                }, err => {
+                    if (cache !== thCache) { writeThCache(cache); setThCache(cache); }
+                    setAiState(['{m}', { m: AiClient.friendlyMessage(err) }]);
+                });
+            };
+
+            const thaiLine = (it, k) => {
+                const t = LangCalc.thaiOf(it, thCache);
+                if (!t.text) return null;
+                return (
+                    <span className="text-sm text-gray-500" data-k={k}>
+                        <span data-i18n-skip>{t.text}</span>
+                        {t.src === 'ai' && <span className="badge ml-2" data-k="aiBadge">{tx('แปลโดย AI')}</span>}
+                    </span>
+                );
+            };
+            const LEVELS = [0, 1, 2, 3, 4, 5, 6];
+
+            return (
+                <div className="flex-1 overflow-y-auto bg-gray-50">
+                    <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <h3 className="text-xl font-bold text-gray-900 mb-0">{tx('คำที่ใช้บ่อย — {l}', { l: langTitle(langId) })}</h3>
+                            <SourceSwitch source={source} setSource={setSource} />
+                        </div>
+
+                        {state.status === 'loading' && (
+                            <div className="card p-5 flex items-center gap-3" role="status"><span className="spinner" aria-hidden="true"></span>{tx('กำลังโหลดชุดคำ…')}</div>
+                        )}
+                        {state.status === 'none' && (
+                            <div className="card empty" data-k="packEmpty">{tx('ยังไม่มีชุดคำที่ใช้บ่อยของภาษา{l}', { l: langTitle(langId) })}</div>
+                        )}
+                        {state.status === 'error' && (
+                            <div className="card empty" data-k="packError" role="alert">
+                                <p className="mb-3">{state.code === 'unsupported' ? tx('เบราว์เซอร์นี้เปิดไฟล์ชุดคำไม่ได้ — ลองเบราว์เซอร์รุ่นใหม่') : tx('โหลดชุดคำไม่ได้ — ลองใหม่')}</p>
+                                {state.code !== 'unsupported' && <button type="button" data-k="packRetry" className="btn" onClick={() => setRetry(r => r + 1)}>{tx('ลองใหม่')}</button>}
+                            </div>
+                        )}
+
+                        {prep && (
+                            <>
+                                <div className="flex flex-wrap items-center gap-3">
+                                    <div className="segmented" role="group" aria-label={tx('ชนิด')}>
+                                        <button type="button" data-k="kind-w" onClick={() => setKind('w')} aria-pressed={kind === 'w'}>{tx('คำ')}</button>
+                                        <button type="button" data-k="kind-s" onClick={() => setKind('s')} aria-pressed={kind === 's'}>{tx('ประโยค')}</button>
+                                    </div>
+                                    <div className="segmented flex-wrap" role="group" aria-label={tx('ระดับ')}>
+                                        {LEVELS.map(l => (
+                                            <button type="button" key={l} data-k={'lv-' + l} onClick={() => setLevel(l)} aria-pressed={level === l}>
+                                                {l ? LangCalc.LEVEL_NAMES[l] : tx('ทุกระดับ')}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-between gap-2 flex-wrap">
+                                    <div className="segmented" role="group" aria-label={tx('โหมด')}>
+                                        <button type="button" data-k="pmode-flashcard" onClick={() => setPmode('flashcard')} aria-pressed={pmode === 'flashcard'}>{tx('การ์ดคำ')}</button>
+                                        <button type="button" data-k="pmode-translate" onClick={() => setPmode('translate')} aria-pressed={pmode === 'translate'}>{tx('พิมพ์คำแปล')}</button>
+                                        <button type="button" data-k="pmode-dictation" onClick={() => setPmode('dictation')} aria-pressed={pmode === 'dictation'}>{tx('ฟังแล้วพิมพ์')}</button>
+                                    </div>
+                                    <span className="text-sm font-semibold text-gray-500" aria-live="polite">{tx('ถึงกำหนดทวน {d} · ใหม่ {n}', { d: counts.due, n: counts.fresh })}</span>
+                                </div>
+
+                                {!item ? (
+                                    <div className="card empty" data-k="packDone">{tx('ไม่มีการ์ดใหม่หรือการ์ดที่ถึงกำหนดในระดับนี้')}</div>
+                                ) : (
+                                    <div className="card p-5 sm:p-6 space-y-4" data-k="packCard">
+                                        {pmode === 'flashcard' ? (
+                                            <>
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <p className="text-2xl font-bold text-gray-900 break-words" data-k="packWord" data-i18n-skip lang={lang.code}>{item.t}</p>
+                                                        {item.ipa && <p className="text-sm text-gray-500" data-i18n-skip>/{item.ipa}/</p>}
+                                                    </div>
+                                                    <button type="button" onClick={() => speak(item.t, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
+                                                </div>
+                                                {!flipped && <button type="button" data-k="packFlip" onClick={flip} className="btn primary lg w-full">{tx('ดูคำแปล')}</button>}
+                                            </>
+                                        ) : (
+                                            <>
+                                                {pmode === 'translate' ? (
+                                                    <p className="text-2xl font-bold text-gray-900" data-k="packPrompt" data-i18n-skip>{promptOf(item)}</p>
+                                                ) : (
+                                                    <button type="button" data-k="packListen" onClick={() => speak(item.t, lang.code)} className="btn"><Volume2 /> {tx('กดฟังเสียง (ฟังซ้ำได้)')}</button>
+                                                )}
+                                                <input data-k="packAnswer" ref={inputRef} type="text" value={typed} onChange={e => setTyped(e.target.value)}
+                                                    onKeyDown={e => e.key === 'Enter' && !result && check()} disabled={result !== null}
+                                                    placeholder={tx('พิมพ์คำตอบเป็นภาษา{l}...', { l: langTitle(langId) })}
+                                                    aria-label={tx('พิมพ์คำตอบเป็นภาษา{l}...', { l: langTitle(langId) })}
+                                                    autoCapitalize="none" spellCheck={false} enterKeyHint="done" className="input w-full" lang={lang.code} />
+                                                {result && (
+                                                    <div data-k="packResult" data-r={result} className={`callout ${result === 'correct' ? 'ok' : result === 'almost' ? 'warn' : 'err'}`}>
+                                                        <p className="font-bold mb-1">{result === 'correct' ? tx('ถูกต้อง! (+20 XP)') : result === 'almost' ? tx('เกือบถูก! ต่างแค่นิดเดียว (+10 XP)') : tx('ยังไม่ถูก')}</p>
+                                                        <p className="text-sm"><strong>{tx('คำตอบที่ถูกต้องคือ:')}</strong> <span data-i18n-skip lang={lang.code}>{item.t}</span></p>
+                                                        {result !== 'correct' && <SpellDiff typed={typed} correct={item.t} />}
+                                                    </div>
+                                                )}
+                                                {!result
+                                                    ? <button type="button" data-k="packCheck" onClick={check} disabled={!typed.trim()} className="btn primary lg w-full">{tx('ตรวจคำตอบ')}</button>
+                                                    : <button type="button" data-k="packNext" onClick={next} className="btn primary lg w-full">{tx('ข้อต่อไป')}</button>}
+                                            </>
+                                        )}
+
+                                        {(flipped || result) && (
+                                            <div className="space-y-3 border-t border-gray-200 pt-4">
+                                                <p className="text-lg font-semibold text-gray-800" data-k="packThai">
+                                                    {th.text ? <span data-i18n-skip>{th.text}</span> : <span className="text-gray-500">—</span>}
+                                                    {th.src === 'ai' && <span className="badge ml-2" data-k="aiBadge">{tx('แปลโดย AI')}</span>}
+                                                </p>
+                                                {sents.length > 0 && (
+                                                    <ul className="list plain">
+                                                        {sents.map(s => (
+                                                            <li key={s.key} className="list-row" data-k="packSent">
+                                                                <div className="grow min-w-0">
+                                                                    <div className="title" data-i18n-skip lang={lang.code}>{s.t}</div>
+                                                                    <div className="meta">{thaiLine(s, 'packSentThai')}</div>
+                                                                </div>
+                                                                <div className="end">
+                                                                    <button type="button" onClick={() => speak(s.t, lang.code)} className="btn ghost icon sm" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
+                                                                </div>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {aiOn && missing.length > 0 && (
+                                                    <button type="button" data-k="packTranslate" onClick={translate} disabled={aiState === 'busy'} className="btn">
+                                                        {aiState === 'busy' && <span className="spinner" aria-hidden="true"></span>}{tx('แปลไทย')}
+                                                    </button>
+                                                )}
+                                                {aiState && aiState !== 'busy' && <p className="form-msg" role="alert">{txs(aiState)}</p>}
+                                                {pmode === 'flashcard' && (
+                                                    <div className="flex items-center gap-3">
+                                                        <button type="button" data-k="packGood" onClick={() => { setXp(x => x + 10); rate(3); }} className="btn primary lg flex-1">{tx('จำได้ (+10 XP)')}</button>
+                                                        <button type="button" data-k="packAgain" onClick={() => rate(1)} className="btn lg flex-1">{tx('ยังไม่ได้')}</button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
         function TtsFallbackToast() {
             const [msg, setMsg] = useState(null);
             useEffect(() => {
@@ -17087,6 +17419,7 @@
             const [typed, setTyped] = useState('');
             const [result, setResult] = useState(null); // 'correct' | 'almost' | 'wrong' | null
             const [mode, setMode] = useState('translate'); // 'translate' | 'dictation' | 'flashcard'
+            const [vsource, setVsource] = useState('basic'); // แท็บฝึกฝน: 'basic' = วลีชุดเดิม · 'pack' = คำที่ใช้บ่อย (lang-packs/)
             const [flashFlipped, setFlashFlipped] = useState(false);
             const [xp, setXp] = useState(loadXp());
             const [streak, setStreak] = useState(loadStreak());
@@ -17543,13 +17876,16 @@
                                 </section>
                             </div>
                         </div>
+                        ) : view === 'practice' && vsource === 'pack' ? (
+                        <PackView langId={langId} srs={srs} setSrs={setSrs} setXp={setXp} source={vsource} setSource={setVsource} />
                         ) : view === 'practice' ? (
                         <div className="flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden">
 
                             <div className="w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto">
                                 <div className="card p-5 sm:p-8 min-h-full">
-                                    <div className="border-b border-gray-200 pb-4 mb-4">
+                                    <div className="border-b border-gray-200 pb-4 mb-4 flex items-center justify-between gap-3 flex-wrap">
                                         <h3 className="text-xl font-bold text-gray-900 mb-0">{tx('วลีสำหรับฝึก — {l}', { l: langTitle(langId) })}</h3>
+                                        <SourceSwitch source={vsource} setSource={setVsource} />
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mb-6">

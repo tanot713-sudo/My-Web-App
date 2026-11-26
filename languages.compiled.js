@@ -434,7 +434,29 @@
     "\u6587\u5B57\u30FB\u8A9E\u5F59 40 + \u6587\u6CD5 31 + \u8AAD\u89E3 8 + \u8074\u89E3 14 = 93 \u0E02\u0E49\u0E2D": "\u6587\u5B57\u30FB\u8A9E\u5F59 40 + \u6587\u6CD5 31 + \u8AAD\u89E3 8 + \u8074\u89E3 14 = 93 questions",
     "\u6587\u7AE0\uFF08\u0E0A\u0E48\u0E2D\u0E07\u3010{n}\u3011\uFF09": "\u6587\u7AE0\uFF08blank\u3010{n}\u3011\uFF09",
     "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 \u0E0A\u0E48\u0E2D\u0E07\u0E17\u0E35\u0E48 {n}": "\u6587\u7AE0\u306E\u6587\u6CD5 \xB7 blank {n}",
-    "\u807D\u529B (\u0E1F\u0E31\u0E07) 14 + \u95B1\u8B80 (\u0E2D\u0E48\u0E32\u0E19) 30 = 44 \u0E02\u0E49\u0E2D": "\u807D\u529B (listening) 14 + \u95B1\u8B80 (reading) 30 = 44 questions"
+    "\u807D\u529B (\u0E1F\u0E31\u0E07) 14 + \u95B1\u8B80 (\u0E2D\u0E48\u0E32\u0E19) 30 = 44 \u0E02\u0E49\u0E2D": "\u807D\u529B (listening) 14 + \u95B1\u8B80 (reading) 30 = 44 questions",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026": "Loading the word set\u2026",
+    "\u0E04\u0E33": "Words",
+    "\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22": "Common words",
+    "\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}": "Common words \u2014 {l}",
+    "\u0E0A\u0E19\u0E34\u0E14": "Type",
+    "\u0E0A\u0E38\u0E14\u0E04\u0E33": "Word set",
+    "\u0E0A\u0E38\u0E14\u0E1E\u0E37\u0E49\u0E19\u0E10\u0E32\u0E19": "Basic set",
+    "\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25": "Show meaning",
+    "\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}": "Due {d} \xB7 new {n}",
+    "\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A": "All levels",
+    "\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04": "Sentences",
+    "\u0E22\u0E31\u0E07\u0E41\u0E1B\u0E25\u0E44\u0E21\u0E48\u0E04\u0E23\u0E1A \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "Some items were not translated \u2014 try again",
+    "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01": "Not quite",
+    "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}": "No common-word set for {l} yet",
+    "\u0E23\u0E30\u0E14\u0E31\u0E1A": "Level",
+    "\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48": "Try again",
+    "\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48": "This browser can't open the word set file \u2014 try a newer browser",
+    "\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI": "AI translation",
+    "\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22": "Translate to Thai",
+    "\u0E42\u0E2B\u0E21\u0E14": "Mode",
+    "\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48": "Couldn't load the word set \u2014 try again",
+    "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49": "No new or due cards at this level"
   };
   const LANG_EN = {
     "lang-en": "English",
@@ -1047,9 +1069,18 @@
   const facePoolCache = {};
   function writeCardFaces(srs) {
     const cards = {}, langs = {};
+    const packFaces = readPackFaces();
     Object.keys(srs || {}).forEach((key) => {
       const langId = key.split("::")[0];
       if (!LANGS[langId]) return;
+      if (LangCalc.parseKey(key)) {
+        const pf = packFaces[key];
+        if (Array.isArray(pf)) {
+          cards[key] = [String(pf[0] || ""), String(pf[1] || "")];
+          langs[langId] = LANGS[langId].title;
+        }
+        return;
+      }
       if (!facePoolCache[langId]) {
         const m = {};
         vocabPool(langId).forEach((it) => {
@@ -13560,6 +13591,233 @@
     }
     return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
   }
+  const PACK_FACES_KEY = "lang-practice:faces";
+  const LANG_TH_KEY = "tanot:lang:th";
+  const packStore = {};
+  let packIndexP = null;
+  function fetchPackIndex() {
+    if (!packIndexP) {
+      packIndexP = fetch("lang-packs/index.json").then((res) => {
+        if (res.status === 404) return null;
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        return res.json();
+      });
+      packIndexP.catch(() => {
+        packIndexP = null;
+      });
+    }
+    return packIndexP;
+  }
+  function loadPack(langId) {
+    if (!packStore[langId]) {
+      packStore[langId] = fetchPackIndex().then((index) => {
+        const file = LangCalc.packFile(index, langId);
+        if (!file) return { status: "none" };
+        return fetch(file).then((res) => {
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          return res.arrayBuffer();
+        }).then((buf) => {
+          const bytes = new Uint8Array(buf);
+          if (!LangCalc.isGzip(bytes)) return new TextDecoder().decode(bytes);
+          if (typeof DecompressionStream === "undefined") {
+            const e = new Error("gzip unsupported");
+            e.code = "unsupported";
+            throw e;
+          }
+          return new Response(new Blob([bytes]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+        }).then((text) => {
+          const prep = LangCalc.prepare(JSON.parse(text), langId);
+          if (!prep) throw new Error("bad pack");
+          return { status: "ok", prep };
+        });
+      });
+      packStore[langId].catch(() => {
+        delete packStore[langId];
+      });
+    }
+    return packStore[langId];
+  }
+  function readThCache() {
+    try {
+      return (window.TanotData ? TanotData.read(LANG_TH_KEY, null) : JSON.parse(localStorage.getItem(LANG_TH_KEY) || "null")) || { v: 1, m: {} };
+    } catch (e) {
+      return { v: 1, m: {} };
+    }
+  }
+  function writeThCache(v) {
+    try {
+      localStorage.setItem(LANG_TH_KEY, JSON.stringify(v));
+    } catch (e) {
+    }
+  }
+  function writePackFaces(entries) {
+    const fn = (m) => {
+      const out = m && typeof m === "object" && !Array.isArray(m) ? Object.assign({}, m) : {};
+      let changed = false;
+      Object.keys(entries).forEach((k) => {
+        const f = entries[k], o = out[k];
+        if (!o || o[0] !== f[0] || o[1] !== f[1]) {
+          out[k] = f;
+          changed = true;
+        }
+      });
+      return changed ? out : void 0;
+    };
+    try {
+      if (window.TanotData && TanotData.update) TanotData.update(PACK_FACES_KEY, fn);
+      else {
+        const next = fn(JSON.parse(localStorage.getItem(PACK_FACES_KEY) || "{}"));
+        if (next) localStorage.setItem(PACK_FACES_KEY, JSON.stringify(next));
+      }
+    } catch (e) {
+    }
+  }
+  function readPackFaces() {
+    try {
+      const m = window.TanotData ? TanotData.read(PACK_FACES_KEY, {}) : JSON.parse(localStorage.getItem(PACK_FACES_KEY) || "{}");
+      return m && typeof m === "object" ? m : {};
+    } catch (e) {
+      return {};
+    }
+  }
+  function SourceSwitch({ source, setSource }) {
+    return /* @__PURE__ */ React.createElement("div", { className: "segmented shrink-0", role: "group", "aria-label": tx("\u0E0A\u0E38\u0E14\u0E04\u0E33") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-basic", onClick: () => setSource("basic"), "aria-pressed": source === "basic" }, tx("\u0E0A\u0E38\u0E14\u0E1E\u0E37\u0E49\u0E19\u0E10\u0E32\u0E19")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-pack", onClick: () => setSource("pack"), "aria-pressed": source === "pack" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22")));
+  }
+  function PackView({ langId, srs, setSrs, setXp, source, setSource }) {
+    const lang = LANGS[langId];
+    const [state, setState] = useState({ status: "loading" });
+    const [retry, setRetry] = useState(0);
+    const [kind, setKind] = useState("w");
+    const [level, setLevel] = useState(1);
+    const [pmode, setPmode] = useState("flashcard");
+    const [cur, setCur] = useState(null);
+    const [flipped, setFlipped] = useState(false);
+    const [typed, setTyped] = useState("");
+    const [result, setResult] = useState(null);
+    const [thCache, setThCache] = useState(readThCache);
+    const [aiState, setAiState] = useState(null);
+    const inputRef = useRef(null);
+    useEffect(() => {
+      let alive = true;
+      setState({ status: "loading" });
+      loadPack(langId).then((r) => {
+        if (alive) setState(r);
+      }, (err) => {
+        if (alive) setState({ status: "error", code: err && err.code });
+      });
+      return () => {
+        alive = false;
+      };
+    }, [langId, retry]);
+    useEffect(() => {
+      setCur(null);
+      setFlipped(false);
+      setTyped("");
+      setResult(null);
+      setAiState(null);
+    }, [langId, kind, level, pmode]);
+    useEffect(() => {
+      if (!window.TanotData || !TanotData.onChange) return void 0;
+      return TanotData.onChange((keys) => {
+        if (!keys.length || keys.indexOf(LANG_TH_KEY) >= 0) setThCache(readThCache());
+      });
+    }, []);
+    const prep = state.status === "ok" ? state.prep : null;
+    const promptOf = (it) => LangCalc.thaiOf(it, thCache).text;
+    const candidates = useMemo(() => {
+      if (!prep) return [];
+      const q = LangCalc.queue(prep, srs, { kind, level, n: 40 });
+      return pmode === "translate" ? q.filter((it) => promptOf(it)) : q;
+    }, [prep, srs, kind, level, pmode, thCache]);
+    const counts = useMemo(() => prep ? {
+      due: LangCalc.dueItems(prep, srs, { kind }).length,
+      fresh: LangCalc.pickNew(prep, srs, { kind, level, n: Infinity }).length
+    } : { due: 0, fresh: 0 }, [prep, srs, kind, level]);
+    const item = cur || candidates[0] || null;
+    const sents = useMemo(() => item && item.kind === "w" && prep ? LangCalc.sentencesFor(prep, item.id, 3) : [], [item, prep]);
+    const th = item ? LangCalc.thaiOf(item, thCache) : null;
+    const aiOn = !!(window.AiClient && AiClient.available());
+    const missing = item ? LangCalc.missingThai([item].concat(sents), thCache) : [];
+    const rate = (rating) => {
+      if (!item) return;
+      setSrs((s) => ({ ...s, [item.key]: fsrsSchedule(s[item.key] || {}, rating) }));
+      writePackFaces({ [item.key]: LangCalc.face(item, thCache) });
+      setCur(null);
+      setFlipped(false);
+      setTyped("");
+      setResult(null);
+      setAiState(null);
+      if (pmode !== "flashcard") setTimeout(() => inputRef.current && inputRef.current.focus(), 0);
+    };
+    const flip = () => {
+      if (!item) return;
+      setCur(item);
+      setFlipped(true);
+      speak(item.t, lang.code);
+    };
+    const check = () => {
+      if (!item || !typed.trim()) return;
+      setCur(item);
+      const g = gradeAnswer(typed, item.t);
+      setResult(g);
+      if (g === "correct") setXp((x) => x + 20);
+      else if (g === "almost") setXp((x) => x + 10);
+    };
+    const next = () => rate(result === "correct" ? 3 : result === "almost" ? 2 : 1);
+    const translate = () => {
+      if (!missing.length || aiState === "busy") return;
+      setCur(item);
+      setAiState("busy");
+      const name = LANG_EN[langId] || lang.title;
+      let cache = thCache;
+      LangCalc.chunk(missing, LangCalc.AI_BATCH).reduce((p, part) => p.then(() => AiClient.summarize({ task: "lang-th", model: "fast", messages: LangCalc.thMessages(part, name) }).then((res) => {
+        cache = LangCalc.mergeTh(cache, part, LangCalc.parseTh(res && res.text, part.length));
+      })), Promise.resolve()).then(() => {
+        writeThCache(cache);
+        setThCache(cache);
+        const upd = {};
+        missing.forEach((it) => {
+          if (srs[it.key]) upd[it.key] = LangCalc.face(it, cache);
+        });
+        if (Object.keys(upd).length) writePackFaces(upd);
+        setAiState(missing.every((it) => LangCalc.thaiOf(it, cache).src === "ai") ? null : "\u0E22\u0E31\u0E07\u0E41\u0E1B\u0E25\u0E44\u0E21\u0E48\u0E04\u0E23\u0E1A \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07");
+      }, (err) => {
+        if (cache !== thCache) {
+          writeThCache(cache);
+          setThCache(cache);
+        }
+        setAiState(["{m}", { m: AiClient.friendlyMessage(err) }]);
+      });
+    };
+    const thaiLine = (it, k) => {
+      const t = LangCalc.thaiOf(it, thCache);
+      if (!t.text) return null;
+      return /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500", "data-k": k }, /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, t.text), t.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI")));
+    };
+    const LEVELS = [0, 1, 2, 3, 4, 5, 6];
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(SourceSwitch, { source, setSource })), state.status === "loading" && /* @__PURE__ */ React.createElement("div", { className: "card p-5 flex items-center gap-3", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026")), state.status === "none" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packEmpty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), state.status === "error" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packError", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mb-3" }, state.code === "unsupported" ? tx("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), state.code !== "unsupported" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packRetry", className: "btn", onClick: () => setRetry((r) => r + 1) }, tx("\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48"))), prep && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E0A\u0E19\u0E34\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-w", onClick: () => setKind("w"), "aria-pressed": kind === "w" }, tx("\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-s", onClick: () => setKind("s"), "aria-pressed": kind === "s" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04"))), /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap", role: "group", "aria-label": tx("\u0E23\u0E30\u0E14\u0E31\u0E1A") }, LEVELS.map((l) => /* @__PURE__ */ React.createElement("button", { type: "button", key: l, "data-k": "lv-" + l, onClick: () => setLevel(l), "aria-pressed": level === l }, l ? LangCalc.LEVEL_NAMES[l] : tx("\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A"))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E42\u0E2B\u0E21\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-flashcard", onClick: () => setPmode("flashcard"), "aria-pressed": pmode === "flashcard" }, tx("\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-translate", onClick: () => setPmode("translate"), "aria-pressed": pmode === "translate" }, tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-dictation", onClick: () => setPmode("dictation"), "aria-pressed": pmode === "dictation" }, tx("\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C"))), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-semibold text-gray-500", "aria-live": "polite" }, tx("\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}", { d: counts.due, n: counts.fresh }))), !item ? /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packDone" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6 space-y-4", "data-k": "packCard" }, pmode === "flashcard" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900 break-words", "data-k": "packWord", "data-i18n-skip": true, lang: lang.code }, item.t), item.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-i18n-skip": true }, "/", item.ipa, "/")), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(item.t, lang.code), className: "btn icon shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))), !flipped && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packFlip", onClick: flip, className: "btn primary lg w-full" }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "translate" ? /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900", "data-k": "packPrompt", "data-i18n-skip": true }, promptOf(item)) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packListen", onClick: () => speak(item.t, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)")), /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        "data-k": "packAnswer",
+        ref: inputRef,
+        type: "text",
+        value: typed,
+        onChange: (e) => setTyped(e.target.value),
+        onKeyDown: (e) => e.key === "Enter" && !result && check(),
+        disabled: result !== null,
+        placeholder: tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}...", { l: langTitle(langId) }),
+        "aria-label": tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E20\u0E32\u0E29\u0E32{l}...", { l: langTitle(langId) }),
+        autoCapitalize: "none",
+        spellCheck: false,
+        enterKeyHint: "done",
+        className: "input w-full",
+        lang: lang.code
+      }
+    ), result && /* @__PURE__ */ React.createElement("div", { "data-k": "packResult", "data-r": result, className: `callout ${result === "correct" ? "ok" : result === "almost" ? "warn" : "err"}` }, /* @__PURE__ */ React.createElement("p", { className: "font-bold mb-1" }, result === "correct" ? tx("\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07! (+20 XP)") : result === "almost" ? tx("\u0E40\u0E01\u0E37\u0E2D\u0E1A\u0E16\u0E39\u0E01! \u0E15\u0E48\u0E32\u0E07\u0E41\u0E04\u0E48\u0E19\u0E34\u0E14\u0E40\u0E14\u0E35\u0E22\u0E27 (+10 XP)") : tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01")), /* @__PURE__ */ React.createElement("p", { className: "text-sm" }, /* @__PURE__ */ React.createElement("strong", null, tx("\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E04\u0E37\u0E2D:")), " ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true, lang: lang.code }, item.t)), result !== "correct" && /* @__PURE__ */ React.createElement(SpellDiff, { typed, correct: item.t })), !result ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packCheck", onClick: check, disabled: !typed.trim(), className: "btn primary lg w-full" }, tx("\u0E15\u0E23\u0E27\u0E08\u0E04\u0E33\u0E15\u0E2D\u0E1A")) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packNext", onClick: next, className: "btn primary lg w-full" }, tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B"))), (flipped || result) && /* @__PURE__ */ React.createElement("div", { className: "space-y-3 border-t border-gray-200 pt-4" }, /* @__PURE__ */ React.createElement("p", { className: "text-lg font-semibold text-gray-800", "data-k": "packThai" }, th.text ? /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, th.text) : /* @__PURE__ */ React.createElement("span", { className: "text-gray-500" }, "\u2014"), th.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI"))), sents.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain" }, sents.map((s) => /* @__PURE__ */ React.createElement("li", { key: s.key, className: "list-row", "data-k": "packSent" }, /* @__PURE__ */ React.createElement("div", { className: "grow min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "title", "data-i18n-skip": true, lang: lang.code }, s.t), /* @__PURE__ */ React.createElement("div", { className: "meta" }, thaiLine(s, "packSentThai"))), /* @__PURE__ */ React.createElement("div", { className: "end" }, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(s.t, lang.code), className: "btn ghost icon sm", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null)))))), aiOn && missing.length > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packTranslate", onClick: translate, disabled: aiState === "busy", className: "btn" }, aiState === "busy" && /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22")), aiState && aiState !== "busy" && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert" }, txs(aiState)), pmode === "flashcard" && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packGood", onClick: () => {
+      setXp((x) => x + 10);
+      rate(3);
+    }, className: "btn primary lg flex-1" }, tx("\u0E08\u0E33\u0E44\u0E14\u0E49 (+10 XP)")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packAgain", onClick: () => rate(1), className: "btn lg flex-1" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49"))))))));
+  }
   function TtsFallbackToast() {
     const [msg, setMsg] = useState(null);
     useEffect(() => {
@@ -13587,6 +13845,7 @@
     const [typed, setTyped] = useState("");
     const [result, setResult] = useState(null);
     const [mode, setMode] = useState("translate");
+    const [vsource, setVsource] = useState("basic");
     const [flashFlipped, setFlashFlipped] = useState(false);
     const [xp, setXp] = useState(loadXp());
     const [streak, setStreak] = useState(loadStreak());
@@ -13914,7 +14173,7 @@
       },
       /* @__PURE__ */ React.createElement("span", { className: "grow min-w-0 text-sm text-gray-700", "data-i18n-skip": true }, c.cat),
       /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 shrink-0" }, /* @__PURE__ */ React.createElement("span", { className: "badge" }, langTitle(c.id)))
-    )))))) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.map((c) => /* @__PURE__ */ React.createElement(
+    )))))) : view === "practice" && vsource === "pack" ? /* @__PURE__ */ React.createElement(PackView, { langId, srs, setSrs, setXp, source: vsource, setSource: setVsource }) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4 flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(SourceSwitch, { source: vsource, setSource: setVsource })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.map((c) => /* @__PURE__ */ React.createElement(
       "button",
       {
         key: c,

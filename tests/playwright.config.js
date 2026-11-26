@@ -175,6 +175,13 @@ module.exports = defineConfig({
       reuseExistingServer: !process.env.CI,
     },
     {
+      // languages-packs.spec.js: ซิงก์ lang-practice:faces / srs ของการ์ดชุดคำที่ใช้บ่อย 2 เครื่อง — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8148',
+      cwd: __dirname,
+      url: 'http://localhost:8148/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
+    {
       // palette.spec.js: ซิงก์ 2 เครื่อง + /api/push/reminders ตัวจริง (scope custom) — แยกพอร์ตเพราะ /__reset
       command: 'node --no-warnings sync-server.mjs 8145',
       cwd: __dirname,

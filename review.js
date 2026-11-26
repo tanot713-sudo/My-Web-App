@@ -2,7 +2,7 @@
    ทบทวนวันนี้ (ROADMAP Phase 5) — การ์ดที่ถึงกำหนดจากทุกหน้ารวมเป็นกองเดียว + XP/วันติดต่อกัน/เป้ารายวันจาก learn-core.js
    การ์ดอยู่ที่เดิมของแต่ละหน้า หน้านี้อ่านแล้วเขียนผลทบทวนกลับไปที่เดิมในรูปแบบเดียวกับที่หน้านั้นเขียนเอง:
      law  — IndexedDB tanot-barprep/notes (FSRS, ฟิลด์เดียวกับ classroom-law.js answerCard) + log tanot:barprep:activity
-     lang — lang-practice:srs {key: FSRS} · หน้าการ์ดจาก tanot:learn:faces:lang (หน้าภาษาเขียนไว้)
+     lang — lang-practice:srs {key: FSRS} · หน้าการ์ดจาก tanot:learn:faces:lang (หน้าภาษาเขียนไว้) + lang-practice:faces (การ์ด ::w::/::s:: ของชุดคำที่ใช้บ่อย)
      books — tanot:books:cards (sync list, FSRS ฟิลด์เดียวกับ law/lang) · หน้าการ์ด front/back อยู่ในแถวเอง
      biz/eng — lbe:<business|engineering>:srs {qKey: {interval, due}} ขั้นบันได · หน้าการ์ดจาก <script id="course-data"> ในหน้าห้องเรียน
    ══════════════════════════════════════════════════════════════════ */
@@ -115,8 +115,9 @@
         if (n && n.id != null && Number(n.dueAt) <= now) cards.push({ src: 'law', id: n.id, front: n.q, back: n.a, sub: n.subj, due: Number(n.dueAt), rec: n });
       });
       var faces = LC.read('tanot:learn:faces:lang', {}) || {}, fc = faces.cards || {}, langs = faces.langs || {};
+      var pf = LC.read('lang-practice:faces', {}) || {}; // การ์ดชุดคำที่ใช้บ่อย (::w:: / ::s::) — ซิงก์ข้ามเครื่อง
       langDue.forEach(function (e) {
-        var f = fc[e[0]];
+        var f = fc[e[0]] || (Array.isArray(pf[e[0]]) ? [String(pf[e[0]][0] || ''), String(pf[e[0]][1] || '')] : null);
         if (!f) { missing.lang++; return; }
         cards.push({ src: 'lang', id: e[0], front: f[0], back: f[1], sub: langs[e[0].split('::')[0]] || '', due: Number(e[1].dueAt), rec: e[1] });
       });
@@ -321,7 +322,7 @@
   window.addEventListener('tanot:learn', function () { renderKpis(); });
   if (window.TanotData && window.TanotData.onChange) {
     window.TanotData.onChange(function (keys) {
-      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
+      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^lang-practice:faces$|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
       if (deckChanged) loadDeck().then(renderDeck); else renderKpis();
     });
   }
