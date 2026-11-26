@@ -184,6 +184,12 @@
     if (it.en) return { text: it.en, src: 'en' };
     return { text: '', src: '' };
   }
+  // IPA ตามที่มีในไฟล์ (kaikki ใส่ /…/ หรือ […] มาแล้ว) — ไม่มีวงเล็บ/ทับเลยค่อยครอบ /…/
+  function ipaText(ipa) {
+    var t = String(ipa || '').trim();
+    if (!t) return '';
+    return /^[\/\[]|[\/\]]$/.test(t) ? t : '/' + t + '/';
+  }
   function face(it, thCache) { return [it.t, thaiOf(it, thCache).text]; }
   function missingThai(items, thCache) {
     var m = thMap(thCache);
@@ -239,6 +245,6 @@
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,
-    thaiOf: thaiOf, face: face, missingThai: missingThai, thMessages: thMessages, parseTh: parseTh, mergeTh: mergeTh, chunk: chunk
+    thaiOf: thaiOf, ipaText: ipaText, face: face, missingThai: missingThai, thMessages: thMessages, parseTh: parseTh, mergeTh: mergeTh, chunk: chunk
   };
 });

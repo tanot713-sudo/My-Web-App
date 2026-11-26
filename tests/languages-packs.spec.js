@@ -18,7 +18,7 @@ const PACK = {
   v: 2, lang: 'lang-en', src: { freq: 'FrequencyWords@test', tatoeba: '2026-11-01', wikt: '' },
   w: [
     { id: 'the', r: 1, th: 'คำนำหน้านาม', ipa: 'ðə' },
-    { id: 'cat', r: 2, th: 'แมว', ipa: 'kæt' },
+    { id: 'cat', r: 2, th: 'แมว', ipa: '/kæt/' },
     { id: 'sleeps', r: 3, th: '', ipa: '', g: 'is asleep' },
     { id: "let's", r: 4, th: 'มา…กันเถอะ', ipa: '' },
     { id: 'go', r: 5, th: 'ไป', ipa: 'ɡoʊ' },
@@ -129,6 +129,7 @@ test('คำแปล: ไทยในไฟล์ → AI → อังกฤษ
   expect(LCALC.thaiOf(sleeps, cache)).toEqual({ text: 'is asleep', src: 'en' });
   expect(LCALC.thaiOf(tryW, null)).toEqual({ text: '', src: '' });
   expect(LCALC.face(tryW, cache)).toEqual(['try', 'ลอง']);
+  expect(['/ju/', '[i]', 'kæt', ' ðə ', '/x]', ''].map(LCALC.ipaText)).toEqual(['/ju/', '[i]', '/kæt/', '/ðə/', '/x]', '']);
   expect(LCALC.missingThai([cat, sleeps, tryW], cache).map((x) => x.id)).toEqual(['sleeps']);
   const msgs = LCALC.thMessages([sleeps, p.sents[3]], 'English');
   expect(msgs[0].role).toBe('system');
@@ -191,6 +192,9 @@ test('หน้า: เลือก "คำที่ใช้บ่อย" → �
   expect(hits.pack).toBe(1);
   // คำแรกของระดับ A1 = อันดับ 1
   await expect(page.locator('[data-k="packWord"]')).toHaveText('the');
+  await expect(page.locator('[data-k="packIpa"]')).toHaveText('/ðə/');
+  // ไอคอนลำโพงของการ์ดที่เรนเดอร์หลังโหลดแบบ async ต้องเป็น <svg> (lucide แปลงแล้ว) ไม่ใช่ <i> ว่าง
+  await expect(page.locator('[data-k="packCard"] button[aria-label="ฟังเสียง"] svg')).toHaveCount(1);
   await page.click('[data-k="packFlip"]');
   await expect(page.locator('[data-k="packThai"]')).toContainText('คำนำหน้านาม');
   // ไปคำถัดไป: cat มีประโยคตัวอย่าง 2 ประโยค (สั้นก่อน)
@@ -198,6 +202,7 @@ test('หน้า: เลือก "คำที่ใช้บ่อย" → �
   await expect(page.locator('[data-k="packWord"]')).toHaveText('cat');
   await page.click('[data-k="packFlip"]');
   await expect(page.locator('[data-k="packSent"]')).toHaveCount(2);
+  await expect(page.locator('[data-k="packSent"] button svg')).toHaveCount(2);
   await expect(page.locator('[data-k="packSent"]').first()).toContainText('The cat sleeps.');
   // สลับระดับกลับมาโหมดเดิมไม่โหลดซ้ำ
   await page.selectOption('[data-k="packLevel"]', '2');

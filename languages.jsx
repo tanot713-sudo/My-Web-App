@@ -17178,6 +17178,8 @@
             const [aiState, setAiState] = useState(null); // null | 'busy' | ข้อความ error
             const inputRef = useRef(null);
 
+            // ไอคอน <i data-lucide> ต้องแปลงหลังทุกการเรนเดอร์ของคอมโพเนนต์นี้ (เรนเดอร์ใหม่เองหลังโหลดชุดแบบ async — effect ของ App ไม่ทำงาน)
+            useEffect(() => { lucide.createIcons(); });
             useEffect(() => {
                 let alive = true;
                 setState({ status: 'loading' });
@@ -17310,7 +17312,7 @@
                                                 <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0">
                                                         <p className="text-2xl font-bold text-gray-900 break-words" data-k="packWord" data-i18n-skip lang={lang.code}>{item.t}</p>
-                                                        {item.ipa && <p className="text-sm text-gray-500" data-i18n-skip>/{item.ipa}/</p>}
+                                                        {item.ipa && <p className="text-sm text-gray-500" data-k="packIpa" data-i18n-skip>{LangCalc.ipaText(item.ipa)}</p>}
                                                     </div>
                                                     <button type="button" onClick={() => speak(item.t, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                                 </div>
