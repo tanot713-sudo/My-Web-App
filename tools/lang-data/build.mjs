@@ -110,6 +110,17 @@ const pack = L.buildPack({
   }
 });
 
+// 2b) ข้อมูลน้อยเกินไป = ไม่สร้าง pack (ดีกว่าส่งข้อมูลขยะให้ผู้ใช้) · ลบ pack/รายการเดิมของภาษานี้ออก
+const minS = args['min-sentences'] !== undefined ? Number(args['min-sentences']) : L.MIN_SENTENCES;
+if (pack.s.length < minS) {
+  const ip = path.join(outDir, 'index.json');
+  if (fs.existsSync(ip)) {
+    const ix = JSON.parse(fs.readFileSync(ip, 'utf8'));
+    if (ix.packs[lang]) { fs.rmSync(path.join(outDir, ix.packs[lang].file), { force: true }); delete ix.packs[lang]; fs.writeFileSync(ip, JSON.stringify(ix, null, 1) + '\n'); }
+  }
+  die(3, `${lang}: ได้ประโยคแค่ ${pack.s.length} (< ${minS}) คำ ${pack.w.length} — ข้อมูลไม่พอ ไม่สร้าง pack`);
+}
+
 // 3) เขียนไฟล์ + index.json (รวมกับของเดิม ภาษาอื่นไม่ถูกแตะ)
 fs.mkdirSync(outDir, { recursive: true });
 const file = L.packFileName(lang, pack);

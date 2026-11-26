@@ -48,6 +48,37 @@ test.describe('ตัดคำ + ประโยค', () => {
   });
 });
 
+test.describe('กรองคำของภาษาที่ไม่ใช่ละติน', () => {
+  const mk = (code, lines, kk, cands) => L.buildPack({ lang: 'lang-x', code, freq: L.parseFreq(lines), stop: new Set(), kaikki: kk ? new Map(kk) : null, candidates: cands || [], src: {} });
+  test('ja: ตัดคะนะตัวเดียว, คำละติน, gloss บอกว่าเป็นพยางค์ ถ้าไม่มีคำแปลไทย', () => {
+    const p = mk('ja', ['い 100', 'の 99', '私 98', 'ok 97', 'こんにちは 96', 'ア 95', 'する 94'], [
+      ['い', { id: 'い', th: '', ipa: '', gloss: 'The hiragana syllable い.' }],
+      ['私', { id: '私', th: '', ipa: '', gloss: 'I; me.' }],
+      ['ok', { id: 'ok', th: '', ipa: '', gloss: 'okay' }],
+      ['こんにちは', { id: 'こんにちは', th: '', ipa: '', gloss: 'hello' }],
+      ['する', { id: 'する', th: '', ipa: '', gloss: 'to do' }],
+    ]);
+    expect(p.w.map((x) => x.id)).toEqual(['私', 'こんにちは', 'する']);
+  });
+  test('zh: เก็บตัวเดียวที่เป็นคำจริงได้ แต่ตัด radical/ตัวอักษร และคำละติน', () => {
+    const p = mk('zh', ['我 9', '的 8', 'i 7', '氵 6'], [
+      ['我', { id: '我', th: '', ipa: '', gloss: 'I; me' }],
+      ['的', { id: '的', th: '', ipa: '', gloss: "possessive particle" }],
+      ['氵', { id: '氵', th: '', ipa: '', gloss: 'Kangxi radical 85.' }],
+      ['i', { id: 'i', th: '', ipa: '', gloss: 'the letter i' }],
+    ]);
+    expect(p.w.map((x) => x.id)).toEqual(['我', '的']);
+  });
+  test('ภาษาละติน (en): ไม่ตัด "letter" gloss และไม่ตัดคำตัวเดียว', () => {
+    const p = mk('en', ['a 9', 'cat 8'], [['a', { id: 'a', th: '', ipa: '', gloss: 'The first letter of the English alphabet.' }], ['cat', { id: 'cat', th: '', ipa: '', gloss: 'feline' }]]);
+    expect(p.w.map((x) => x.id)).toEqual(['a', 'cat']);
+  });
+  test('มี th แล้วไม่ตัดแม้ gloss เป็นตัวอักษร', () => {
+    const p = mk('ja', ['私 9'], [['私', { id: '私', th: 'ฉัน', ipa: '', gloss: 'The kanji for watashi' }]]);
+    expect(p.w.length).toBe(1);
+  });
+});
+
 test.describe('kaikki (Wiktionary JSONL)', () => {
   const entry = {
     word: 'Water', lang_code: 'en', pos: 'noun',
@@ -201,7 +232,7 @@ test.describe('build.mjs (CLI) บนไฟล์ดิบจำลอง', () =
     ].join('\n') + '\n');
     const out = path.join(tmp, 'out');
     const args = [BUILD, '--lang', 'lang-en', '--freq', freq, '--sentences', sent, '--links', links, '--audio', audio, '--kaikki', kaikki,
-      '--out', out, '--freq-commit', 'abc1234', '--tatoeba-date', '2026-11-26', '--wikt-date', '2026-11-26'];
+      '--out', out, '--min-sentences', '1', '--freq-commit', 'abc1234', '--tatoeba-date', '2026-11-26', '--wikt-date', '2026-11-26'];
     const run = () => execFileSync('node', args, { encoding: 'utf8', cwd: tmp });
     const log = run();
     expect(log).toMatch(/lang-en/);
@@ -224,6 +255,15 @@ test.describe('build.mjs (CLI) บนไฟล์ดิบจำลอง', () =
     const idx2 = JSON.parse(fs.readFileSync(path.join(out, 'index.json'), 'utf8'));
     expect(idx2.packs['lang-en'].file).toBe(e.file);
     expect(fs.readdirSync(out).filter((f) => f.startsWith('lang-en-')).length).toBe(1);
+  });
+
+  test('ประโยคน้อยกว่าเกณฑ์ (ค่าเริ่มต้น 300) = ออก 3 ไม่สร้างไฟล์', () => {
+    const o = path.join(tmp, 'out4');
+    let code = 0, msg = '';
+    try { execFileSync('node', [BUILD, '--lang', 'lang-en', '--freq', w('f4.txt', 'the 5\ncat 4\n'), '--sentences', w('s4.tsv', '1\teng\tThe cat.\n'), '--out', o], { stdio: 'pipe' }); } catch (e) { code = e.status; msg = String(e.stderr); }
+    expect(code).toBe(3);
+    expect(msg).toMatch(/ประโยค/);
+    expect(fs.existsSync(path.join(o, 'index.json'))).toBe(false);
   });
 
   test('ไม่มีไฟล์ความถี่ = ออกด้วยรหัสไม่ใช่ 0 และไม่สร้างไฟล์', () => {

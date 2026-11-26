@@ -11,6 +11,13 @@ var DEFAULT_CAPS = { words: 3000, sentences: 3000 };
 var MAX_WORDS_LATIN = 12;
 var MAX_CHARS_CJK = 25;
 var CJK = { ja: 1, zh: 1, yue: 1 };
+// ภาษาที่ไม่ใช้อักษรละติน: คำที่เป็นอักษรละติน (ชื่อ/คำอังกฤษปนในซับไตเติล) ไม่เอาเข้าชุดคำ
+var NON_LATIN = { ja: 1, zh: 1, yue: 1, ko: 1, hi: 1, ar: 1, ru: 1, my: 1, km: 1, lo: 1 };
+var MIN_SENTENCES = 300; // น้อยกว่านี้ = ข้อมูลไม่พอใช้ → build.mjs ไม่สร้าง pack (ใช้ --min-sentences ปรับ)
+// gloss ที่อธิบายตัวอักษร/ส่วนประกอบอักษร ไม่ใช่ความหมายของคำ (ใช้กับภาษาที่ไม่ใช่ละตินเท่านั้น)
+var GLOSS_LETTER = /^(the\s+)?((hiragana|katakana|hangul|cyrillic|arabic|devanagari|latin|greek)\s+)?(syllable|syllabic|letter|character)\b|\b(letter|syllable|character) of the\b|^(a |the )?(kangxi |chinese |kanji |han )?(radical|stroke)\b|\bhiragana (syllable|character|letter)|\bkatakana (syllable|character|letter)|^(alternative|obsolete|archaic) (form|spelling) of/i;
+var KANA_ONE = /^[\p{Script=Hiragana}\p{Script=Katakana}ー]$/u;
+var LATIN_ANY = /\p{Script=Latin}/u;
 var SEGMENTED = { ja: 1, zh: 1, yue: 1, km: 1, lo: 1, my: 1 };
 
 function levelOfRank(r) {
@@ -116,7 +123,11 @@ function buildPack(o) {
   for (i = 0; i < list.length && words.length < caps.words; i++) {
     var id = list[i].id, r = i + 1;
     if (stop.has(id) || !/^[\p{L}\p{M}]+(?:'[\p{L}\p{M}]+)*$/u.test(id)) continue;
+    var nonLatin = !!NON_LATIN[o.code];
+    if (nonLatin && LATIN_ANY.test(id)) continue;
+    if (o.code === 'ja' && KANA_ONE.test(id)) continue; // คะนะตัวเดียว = เศษจากการตัดคำของไฟล์ความถี่
     var k = kaikki ? kaikki.get(id) : null;
+    if (nonLatin && k && !k.th && k.gloss && GLOSS_LETTER.test(k.gloss)) continue;
     if (kaikki && !(k && (k.th || k.gloss))) continue;
     // รูปแบบ v2: ไม่เขียนช่องที่ว่าง · ไม่เขียน lv ของคำ (คิดจาก r ด้วย LEVEL_BANDS)
     var w = { id: id, r: r };
@@ -199,6 +210,7 @@ var LANGS = {
 };
 
 module.exports = {
+  MIN_SENTENCES: MIN_SENTENCES,
   LEVEL_BANDS: LEVEL_BANDS, DEFAULT_CAPS: DEFAULT_CAPS, LANGS: LANGS,
   levelOfRank: levelOfRank, parseFreq: parseFreq, tokenize: tokenize, lengthOk: lengthOk,
   parseKaikkiLine: parseKaikkiLine, mergeKaikki: mergeKaikki,
