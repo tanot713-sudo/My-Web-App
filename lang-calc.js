@@ -1291,7 +1291,19 @@
     return roleplay.turnCard(langId, { typed: item.orig, fixed: item.fixed, changed: !!item.changed, thai: item.th || '' });
   }
 
+  // ── L4 ข้อ 5 การ์ดจากแถวซับ — ใช้คีย์ประโยคของ E3 (ประโยคเดียวกับที่เก็บจากสวมบทบาท/สรุปงาน = ใบเดียว)
+  // หน้า = ประโยคภาษาหลัก · หลัง = ซับไทยที่จับคู่ได้ (ไม่มี = ว่าง) · ไม่เก็บเวลา/เสียง/ชื่อไฟล์
+  function cueCard(langId, cue) {
+    var text = cue && typeof cue.text === 'string' ? cue.text.replace(/\s+/g, ' ').trim() : '';
+    var key = sentenceCardKeyOf(langId, text);
+    if (!key) return null;
+    var th = cue && typeof cue.thai === 'string' ? cue.thai.replace(/\s+/g, ' ').trim() : '';
+    return { key: key, face: [text.slice(0, 300), th.slice(0, 300)] };
+  }
+  function sentenceCardKeyOf(langId, text) { return roleplay.sentenceCardKey(langId, text); }
+
   return {
+    cueCard: cueCard,
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,
