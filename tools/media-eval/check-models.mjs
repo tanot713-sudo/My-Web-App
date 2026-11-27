@@ -70,6 +70,24 @@ for (const id of voices) {
   if (missing.length) { console.log('✗  ' + id + '@' + rev + ' (เสียงพูด) — ขาด: ' + missing.join(', ') + (missing.some((f) => f === 'onnx/model.onnx') ? ' · ไม่มี fp32 = WebGPU ถอย WASM เสมอสำหรับเสียงนี้ (ไม่ใช่ข้อผิดพลาดร้ายแรง — ตั้ง TTS_GPU_DTYPE_OVERRIDES หรือยอมรับ)' : '')); bad++; }
   else console.log('✓  ' + id + ' (เสียงพูด ' + [...new Set(need)].length + ' ไฟล์ครบ)');
 }
+/* L6 เสียงอ่านของหน้าเรียนภาษา (LANG_TTS ใน media-models.js): ไฟล์ ONNX (WASM — dtype ตาม LANG_TTS ไม่มี = q8) + tokenizer ที่ commit ที่ล็อก ·
+   is_uroman ต้องเป็น false · vocab.json ที่ commit นั้นต้องตรงกับ vocab ในตาราง (ตัวอักษรเดียว) — ไม่ตรง = langTtsChunks กรองผิดชุด */
+for (const [key, t] of SKIP_MEDIA ? [] : Object.entries(M.LANG_TTS)) {
+  const need = ['config.json', 'tokenizer.json', 'tokenizer_config.json', 'vocab.json', 'onnx/model' + SUFFIX[t.dtype || 'q8'] + '.onnx'];
+  let have;
+  try { have = await files(t.model, t.revision); } catch (e) { console.log('?? ' + t.model + '@' + t.revision + ' — ตรวจไม่ได้: ' + e.message); bad++; continue; }
+  if (!have) { console.log('✗  ' + t.model + '@' + t.revision + ' — ไม่พบ repo/commit นี้บน Hugging Face'); bad++; continue; }
+  const missing = need.filter((f) => !have.has(f));
+  if (missing.length) { console.log('✗  ' + key + ' ' + t.model + ' (เสียงอ่านภาษา) — ขาด: ' + missing.join(', ')); bad++; continue; }
+  try {
+    const raw = (f) => fetch('https://huggingface.co/' + t.model + '/resolve/' + t.revision + '/' + f, { headers }).then((r) => r.json());
+    const [tc, vocab] = await Promise.all([raw('tokenizer_config.json'), raw('vocab.json')]);
+    const chars = Object.keys(vocab).filter((c) => c.length === 1).sort().join('');
+    const okVocab = chars === [...t.vocab].sort().join('');
+    if (tc.is_uroman || !okVocab) { console.log('✗  ' + key + ' ' + t.model + (tc.is_uroman ? ' — ต้อง uroman' : '') + (okVocab ? '' : ' — vocab ไม่ตรงกับตาราง')); bad++; }
+    else console.log('✓  ' + key.padEnd(3) + t.model + ' (เสียงอ่านภาษา ' + need.length + ' ไฟล์ครบ, vocab ตรง)');
+  } catch (e) { console.log('?? ' + t.model + ' — อ่าน tokenizer ไม่ได้: ' + e.message); bad++; }
+}
 /* PaddleOCR (อ่านแบบใหม่ ทดลอง): ตาราง MODELS ใน ocr-paddle-calc.js — ไฟล์ต้องมีที่ revision ที่ล็อก · ขนาดจริงใช้ใส่ PR/ตาราง (bytes = ค่าประมาณของแถบดาวน์โหลดก่อนรู้ Content-Length) */
 if (ONLY_PADDLE) {
   const C = (await import(pathToFileURL(join(ROOT, 'ocr-paddle-calc.js')).href)).default;
