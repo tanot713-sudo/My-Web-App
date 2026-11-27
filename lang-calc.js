@@ -861,6 +861,147 @@
     return out;
   }
 
+  // ── L7 วัดระดับ + แผนรายวัน (ROADMAP แถว 28 · docs/languages-design.md L7) ───────────────────────
+  // ผลเป็น "ระดับโดยประมาณ" จากคำที่ผู้ใช้บอกว่ารู้ — ไม่ใช่ผลสอบ CEFR ทางการ · ใช้ LEVEL_BANDS/levelOf ของ L1 (ไม่ซ้ำตาราง)
+  // lang-practice:level = sync map {langId: {lv 1–6, words, at}} · lang-practice:plan = sync map {langId: {n}} (ใหม่/วัน)
+  var level = (function () {
+    var PER_BAND = 8, CHECKS = 4, KNOW_AT = 0.6, MIN_CHECK_OK = 3, PLAN_DEFAULT = 10, PLAN_MAX = 50, TZ_MS = 7 * 3600000, DAY = 86400000;
+    var RP_LEVELS = ['A1', 'A2', 'B1', 'B2'];   // ระดับของฉากสวมบทบาท (L5) มี 4 ขั้น
+
+    function isLang(id) { return typeof id === 'string' && Object.prototype.hasOwnProperty.call(LANG_CODE, id); }
+    function bandSpan(lv) {                      // จำนวนอันดับคำของแถบ (ตาม LEVEL_BANDS) — แถบ 6 ไม่มีขอบบน = ไม่ประมาณ
+      var i = lv - 1;
+      if (i < 0 || i >= LEVEL_BANDS.length) return 0;
+      return LEVEL_BANDS[i][0] - (i ? LEVEL_BANDS[i - 1][0] : 0);
+    }
+    function textOf(it, thCache) { return thaiOf(it, thCache).text; }
+
+    // ข้อสอบ: คำแถบละ ≤ 8 (เท่าที่แถบนั้นมี) + ข้อตรวจเลือกคำแปล 4 ข้อจากคำระดับ 1–2 (ผู้ที่กดรู้ทุกข้อจะตอบข้อตรวจไม่ได้)
+    function buildTest(prep, thCache, seed) {
+      if (!prep || !prep.words || !prep.words.length) return null;
+      var items = [], lv, picked = {};
+      for (lv = 1; lv <= 6; lv++) {
+        var band = prep.words.filter(function (w) { return w.lv === lv; });
+        shuffle(band, seed * 31 + lv).slice(0, PER_BAND).forEach(function (w) { items.push({ key: w.key, id: w.id, t: w.t, lv: lv }); picked[w.key] = 1; });
+      }
+      var pool = prep.words.filter(function (w) { return w.lv <= 2 && textOf(w, thCache); });
+      var all = prep.words.filter(function (w) { return textOf(w, thCache); });
+      var checks = [];
+      var cand = shuffle(pool, seed * 17 + 5);
+      for (var i = 0; i < cand.length && checks.length < CHECKS; i++) {
+        var w = cand[i], right = textOf(w, thCache), opts = [right];
+        var others = shuffle(all, seed * 13 + i + 1);
+        for (var j = 0; j < others.length && opts.length < 4; j++) {
+          var o = textOf(others[j], thCache);
+          if (opts.indexOf(o) < 0) opts.push(o);
+        }
+        if (opts.length < 4) continue;
+        opts = shuffle(opts, seed * 7 + i + 3);
+        checks.push({ key: w.key, id: w.id, t: w.t, options: opts, answer: opts.indexOf(right) });
+      }
+      return { items: shuffle(items, seed), checks: checks };
+    }
+
+    // answers [{lv, know}] · checks [{ok}] → {lv, name, words, ratios, capped, reliable} หรือ null (ไม่มีคำตอบที่ใช้ได้)
+    function estimate(answers, checks) {
+      var tot = {}, yes = {}, any = false;
+      (Array.isArray(answers) ? answers : []).forEach(function (a) {
+        if (!a || typeof a.know !== 'boolean' || !(a.lv >= 1 && a.lv <= 6) || Math.floor(a.lv) !== a.lv) return;
+        tot[a.lv] = (tot[a.lv] || 0) + 1; yes[a.lv] = (yes[a.lv] || 0) + (a.know ? 1 : 0); any = true;
+      });
+      if (!any) return null;
+      var ratios = {}, words = 0, lv = 0, top = 0, lvl;
+      for (lvl = 1; lvl <= 6; lvl++) {
+        if (!tot[lvl]) continue;
+        ratios[lvl] = yes[lvl] / tot[lvl]; top = lvl;
+        words += ratios[lvl] * bandSpan(lvl);
+        if (!lv && ratios[lvl] < KNOW_AT) lv = lvl;
+      }
+      var capped = !lv;
+      if (capped) lv = top;
+      var cs = (Array.isArray(checks) ? checks : []).filter(function (c) { return c && typeof c.ok === 'boolean'; });
+      var okN = cs.filter(function (c) { return c.ok; }).length;
+      var reliable = !cs.length || okN >= Math.min(MIN_CHECK_OK, cs.length);
+      return { lv: lv, name: LEVEL_NAMES[lv], words: Math.round(words), ratios: ratios, capped: capped, reliable: reliable };
+    }
+
+    function cleanLevels(raw) {
+      var out = {};
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+      Object.keys(raw).forEach(function (k) {
+        var v = raw[k];
+        if (!isLang(k) || !v || typeof v !== 'object') return;
+        var lv = Number(v.lv), w = Number(v.words), at = Number(v.at);
+        if (!(lv >= 1 && lv <= 6) || Math.floor(lv) !== lv || !(at > 0)) return;
+        out[k] = { lv: lv, words: w >= 0 && w <= 20000 ? Math.round(w) : 0, at: Math.floor(at) };
+      });
+      return out;
+    }
+    function levelFor(map, langId) {
+      var c = cleanLevels(map);
+      return Object.prototype.hasOwnProperty.call(c, langId) ? c[langId].lv : 0;
+    }
+    function setLevel(map, langId, res, now) {
+      var c = cleanLevels(map);
+      if (isLang(langId) && res && res.lv >= 1 && res.lv <= 6) c[langId] = { lv: Math.floor(res.lv), words: Math.max(0, Math.min(20000, Math.round(res.words) || 0)), at: now == null ? Date.now() : now };
+      return c;
+    }
+    function roleplayLevel(lv) { return RP_LEVELS[Math.max(0, Math.min(RP_LEVELS.length, Math.floor(lv) || 1) - 1)]; }
+
+    function posN(v) {
+      var n = Math.floor(Number(v));
+      return n >= 1 ? Math.min(n, PLAN_MAX) : (Number(v) === 0 ? 1 : PLAN_DEFAULT);
+    }
+    function cleanPlans(raw) {
+      var out = {};
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+      Object.keys(raw).forEach(function (k) {
+        if (isLang(k) && raw[k] && typeof raw[k] === 'object') out[k] = { n: posN(raw[k].n) };
+      });
+      return out;
+    }
+    function planFor(map, langId) {
+      var c = cleanPlans(map);
+      return Object.prototype.hasOwnProperty.call(c, langId) ? c[langId] : { n: PLAN_DEFAULT };
+    }
+    function setPlan(map, langId, n) {
+      var c = cleanPlans(map);
+      if (isLang(langId)) c[langId] = { n: posN(n) };
+      return c;
+    }
+
+    function dayStart(now) { return Math.floor((now + TZ_MS) / DAY) * DAY - TZ_MS; }   // 00:00 เวลาไทยของวันนั้น
+
+    // สถานะของวัน: done = คำใหม่ที่ทวนครั้งแรกวันนี้ · due = การ์ดของภาษานี้ที่ถึงกำหนด (ทุกชนิดรวมการ์ดเดิม — ตรงกับ LearnCore.dueCounts.lang)
+    function today(langId, srs, plan, now) {
+      now = now == null ? Date.now() : now;
+      var goal, ds = dayStart(now), done = 0, due = 0, prefix = langId + '::';
+      goal = plan && typeof plan === 'object' ? posN(plan.n) : PLAN_DEFAULT;
+      if (srs && typeof srs === 'object') {
+        Object.keys(srs).forEach(function (k) {
+          var r = srs[k];
+          if (k.indexOf(prefix) !== 0 || !r || typeof r !== 'object') return;
+          if (Number(r.dueAt) <= now) due++;
+          if (k.slice(prefix.length, prefix.length + 3) === 'w::' && Number(r.lastReview) >= ds && (Number(r.reps) || 0) + (Number(r.lapses) || 0) <= 1) done++;
+        });
+      }
+      var left = Math.max(0, goal - done);
+      return { goal: goal, done: done, left: left, due: due, met: done >= goal };
+    }
+    // คำใหม่ที่ควรเรียนต่อวันนี้ (เป้าที่เหลือ) — ใช้ pickNew ของ L1 ตามระดับที่เลือก
+    function newTarget(prep, srs, plan, opts) {
+      opts = opts || {};
+      var t = today(prep ? prep.langId : '', srs, plan, opts.now);
+      return pickNew(prep, srs, { kind: 'w', level: opts.level, n: t.left });
+    }
+
+    return {
+      buildTest: buildTest, estimate: estimate, cleanLevels: cleanLevels, levelFor: levelFor, setLevel: setLevel, roleplayLevel: roleplayLevel,
+      cleanPlans: cleanPlans, planFor: planFor, setPlan: setPlan, dayStart: dayStart, today: today, newTarget: newTarget,
+      PER_BAND: PER_BAND, CHECKS: CHECKS, KNOW_AT: KNOW_AT, PLAN_DEFAULT: PLAN_DEFAULT, PLAN_MAX: PLAN_MAX
+    };
+  })();
+
   return {
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
@@ -869,6 +1010,7 @@
     subs: subs, spell: spell,
     rng: rng, shuffle: shuffle, spans: spans, cloze: cloze, scramble: scramble, checkOrder: checkOrder, pairs: pairs,
     clozeFor: clozeFor, scrambleFor: scrambleFor, gameItems: gameItems,
+    level: level,
     LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, roleplayMessages: roleplay.roleplayMessages,
     parseRoleplay: roleplay.parseRoleplay, summaryMessages: roleplay.summaryMessages, parseSummary: roleplay.parseSummary, userCardKey: roleplay.userCardKey
   };
