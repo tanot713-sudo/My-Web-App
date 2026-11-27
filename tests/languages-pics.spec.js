@@ -617,3 +617,97 @@ test.describe('ซิงก์ 2 เครื่อง (พอร์ต 8150)', 
     await A.ctx.close(); await B.ctx.close();
   });
 });
+
+/* ══════════ 6) L9b — ภาพหัวฉากสวมบทบาท (ROADMAP แถว 38) ══════════ */
+const OLD_SCENES = ['greet', 'restaurant', 'interview', 'immigration', 'housing', 'bank', 'shopping', 'hospital'];
+
+test('L9b ตรรกะล้วน: concept ของฉากเดิม 8 ฉากต่อท้ายตาราง (ไม่เปลี่ยน id เดิม) · ทุกตัวผ่านตัวตรวจฝั่งเซิร์ฟเวอร์ (a-z/ขีด/เว้นวรรค ≤ 40 ≤ 4 คำ)', () => {
+  expect(P.CONCEPTS.slice(0, 3)).toEqual(['apple', 'banana', 'orange']);
+  expect(P.CONCEPTS.indexOf('tent')).toBe(P.CONCEPTS.length - 4);               // 258 ตัวเดิมอยู่หัวลำดับเดิม
+  expect(P.CONCEPTS.slice(-3)).toEqual(['name-tag', 'briefcase', 'passport']);  // ใหม่ต่อท้ายเท่านั้น
+  OLD_SCENES.forEach((id) => {
+    const c = P.sceneConcept(id);
+    expect(P.known(c), id).toBe(true);
+    expect(P.promptOf(c), id).toMatch(/^[a-z]+([ -][a-z]+){0,3}$/);
+    expect(P.promptOf(c).length).toBeLessThanOrEqual(40);
+  });
+  expect(OLD_SCENES.map((id) => P.sceneConcept(id))).toEqual(['name-tag', 'restaurant', 'briefcase', 'passport', 'house', 'bank', 'shop', 'hospital']);
+});
+
+test('L9b sceneConcept/scenePic: ฉากงาน (work*)/ฉากที่ไม่รู้จัก/ค่าแปลก = "" · เฉพาะภาพที่ผ่านแล้วได้ URL (pending/no/ไม่มีรายการ = "")', () => {
+  ['workmeeting', 'workinterview', 'nope', '', null, undefined, '__proto__', 'constructor'].forEach((id) => expect(P.sceneConcept(id), String(id)).toBe(''));
+  const map = { restaurant: { id: 'rest-img-0001', status: 'ok' }, bank: { id: 'bank-img-0001', status: 'pending' }, shop: { status: 'no' }, house: { id: 'house-img-001', status: 'ok' } };
+  expect(P.scenePic(map, 'restaurant')).toBe('/api/files?id=rest-img-0001&lp=1');
+  expect(P.scenePic(map, 'housing')).toBe('/api/files?id=house-img-001&lp=1');   // housing → concept house
+  expect(P.scenePic(map, 'bank')).toBe('');                                       // pending ห้ามแสดง
+  expect(P.scenePic(map, 'shopping')).toBe('');                                   // ไม่ใช้
+  expect(P.scenePic(map, 'hospital')).toBe('');                                   // ยังไม่มีรายการ
+  expect(P.scenePic(map, 'workmeeting')).toBe('');
+  expect(P.scenePic(null, 'restaurant')).toBe('');
+  expect(P.scenePic({ restaurant: { id: '../x', status: 'ok' } }, 'restaurant')).toBe('');
+});
+
+test('L9b คิวสร้าง: concept ใหม่ถูกนับในคิว/ตัวนับเดิม (ไม่มี preset/endpoint ใหม่)', () => {
+  const full = {}; P.CONCEPTS.slice(0, -3).forEach((c) => { full[c] = { status: 'no' }; });
+  expect(P.nextBatch(full, 50)).toEqual(['name-tag', 'briefcase', 'passport']);
+  expect(P.counts(full).todo).toBe(3);
+});
+
+const scenesMock = async (page) => {
+  await page.route('**/api/ai/chat', (r) => r.fulfill({ status: 200, contentType: 'text/event-stream', body: 'data: ' + JSON.stringify({ t: 'Hello.\n{"fix": "", "fixTh": "", "th": "สวัสดี"}' }) + '\n\ndata: {"done":true}\n\n' }));
+};
+const openScenes = async (page) => { await page.click('[data-k="tab-listen"]'); await page.click('[data-k="lsub-roleplay"]'); await expect(page.locator('[data-k="rp-scene-restaurant"]')).toBeVisible(); };
+const SCENE_MAP = { restaurant: { id: 'rest-img-0001', status: 'ok' }, hospital: { id: 'hosp-img-0001', status: 'ok' }, bank: { id: 'bank-img-0001', status: 'pending' }, shop: { status: 'no' } };
+
+test('ฉากสวมบทบาท: ภาพที่ผ่านแล้วขึ้นที่หัวฉาก (ปุ่มเลือกฉาก + หัวตอนสนทนา) · pending/ไม่ใช้/ไม่มีรายการ/ฉากงาน = ไม่มีภาพ · ไม่เรียก OCR', async ({ page }) => {
+  const { errors, api } = await open(page, { map: SCENE_MAP });
+  await scenesMock(page);
+  await openScenes(page);
+  for (const id of ['restaurant', 'hospital']) {
+    const img = page.locator(`[data-k="rp-scene-${id}"] [data-k="rp-scene-pic"]`);
+    await expect(img).toBeVisible();
+    expect(await img.getAttribute('src')).toBe('/api/files?id=' + SCENE_MAP[id === 'restaurant' ? 'restaurant' : 'hospital'].id + '&lp=1');
+    expect(await img.getAttribute('alt')).toBe('');
+  }
+  for (const id of ['greet', 'interview', 'immigration', 'housing', 'bank', 'shopping', 'workmeeting', 'workquote']) await expect(page.locator(`[data-k="rp-scene-${id}"] [data-k="rp-scene-pic"]`)).toHaveCount(0);
+  expect(api.get.map((g) => g.id)).not.toContain('bank-img-0001');   // pending ไม่ถูกขอด้วยซ้ำ
+  expect(api.get.every((g) => g.lp === '1')).toBe(true);
+  await page.click('[data-k="rp-scene-restaurant"]');
+  await page.click('[data-k="rp-start"]');
+  await expect(page.locator('[data-k="rp-head-pic"]')).toBeVisible();
+  expect(await page.locator('[data-k="rp-head-pic"]').getAttribute('src')).toContain('rest-img-0001');
+  await expect(page.locator('[data-k="rp-msg-ai"]').first()).toBeVisible();
+  expect(api.ocr).toBe(0);
+  expect(api.image).toEqual([]);                                      // หน้าฉากไม่สร้างภาพเอง
+  expect(errors).toEqual([]);
+});
+
+test('ฉากสวมบทบาท: ฉากที่ไม่มีภาพ = หน้าตาเดิม (ไม่มีรูปที่หัวตอนสนทนา)', async ({ page }) => {
+  await open(page, { map: SCENE_MAP });
+  await scenesMock(page);
+  await openScenes(page);
+  await page.click('[data-k="rp-scene-greet"]');
+  await page.click('[data-k="rp-start"]');
+  await expect(page.locator('[data-k="rp-head-pic"]')).toHaveCount(0);
+});
+
+test('ฉากสวมบทบาท: ไม่ใช่ pages.dev (ไม่มี TANOT_FILES) = ไม่มีภาพเลย แม้มีรายการใน storage · ไม่ขอไฟล์', async ({ page }) => {
+  const { errors, api } = await open(page, { enabled: false, ai: false, map: SCENE_MAP });
+  await openScenes(page);
+  await expect(page.locator('[data-k="rp-scene-pic"]')).toHaveCount(0);
+  expect(api.get).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('ฉากสวมบทบาท EN: ภาพไม่มี alt ไทย/ข้อความอธิบายเพิ่ม · ภาพไม่ล้นปุ่มที่ 390px', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 800 });
+  await open(page, { map: SCENE_MAP, lang: 'en' });
+  await scenesMock(page);
+  await openScenes(page);
+  const btn = page.locator('[data-k="rp-scene-restaurant"]');
+  const bb = await btn.boundingBox(), ib = await btn.locator('[data-k="rp-scene-pic"]').boundingBox();
+  expect(ib.x).toBeGreaterThanOrEqual(bb.x - 0.5);
+  expect(ib.x + ib.width).toBeLessThanOrEqual(bb.x + bb.width + 0.5);
+  expect(bb.height).toBeGreaterThanOrEqual(40);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});

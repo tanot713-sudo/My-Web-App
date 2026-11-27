@@ -17744,6 +17744,8 @@
             const lname = LANGS[langId].title, langCode = LANGS[langId].code;
             const en = OME_I18N.lang() === 'en';
             const [sceneId, setSceneId] = useState(null);
+            const picMap = usePics();                                     // L9b ภาพหัวฉาก — เฉพาะที่ผ่านแล้ว + pages.dev
+            const scenePic = (s) => (LP_PICS && LP_PICS.enabled() ? LC.pics.scenePic(picMap, s.id) : '');
             const measured = useMeasuredLevel(langId);
             const [level, setLevelRaw] = useState(() => LC.level.roleplayLevel(measured || 1));
             const levelTouched = useRef(false);
@@ -17899,8 +17901,13 @@
             const sceneBtn = (s) => (
                 <button key={s.id} data-k={'rp-scene-' + s.id} aria-pressed={sceneId === s.id} onClick={() => setSceneId(s.id)}
                     className={`stat-card${sceneId === s.id ? ' on' : ''}`}>
-                    <div className="font-semibold text-gray-800">{scName(s)}</div>
-                    <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                    <div className="flex items-center gap-3">
+                        {scenePic(s) && <img data-k="rp-scene-pic" src={scenePic(s)} alt="" width="56" height="56" className="h-14 w-14 shrink-0 rounded-lg object-contain" draggable="false" />}
+                        <div className="min-w-0">
+                            <div className="font-semibold text-gray-800">{scName(s)}</div>
+                            <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                        </div>
+                    </div>
                 </button>
             );
 
@@ -17958,7 +17965,10 @@
             return (
                 <div>
                     <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-                        <h3 className="text-lg font-semibold text-gray-800">{scName(sc)} <span className="badge">{level}</span></h3>
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-3">
+                            {scenePic(sc) && <img data-k="rp-head-pic" src={scenePic(sc)} alt="" width="64" height="64" className="h-16 w-16 shrink-0 rounded-lg object-contain" draggable="false" />}
+                            <span>{scName(sc)} <span className="badge">{level}</span></span>
+                        </h3>
                         <button data-k="rp-finish" className="btn" onClick={finish} disabled={busy || !history.some(h => h.role === 'user')}>{tx('จบฉาก')}</button>
                     </div>
                     <div className="space-y-3" aria-live="polite">

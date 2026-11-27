@@ -1345,7 +1345,9 @@
       'school', 'hospital', 'church', 'temple', 'shop|store', 'market', 'restaurant', 'hotel', 'bank', 'castle', 'tower', 'farm', 'park', 'zoo', 'library', 'museum', 'factory', 'stadium',
       // อื่นๆ
       'money|coin', 'ball', 'gift|present', 'balloon', 'drum', 'guitar', 'piano', 'violin', 'medicine', 'toy', 'doll', 'kite', 'map', 'bell', 'lock', 'battery',
-      'light-bulb|lightbulb', 'trophy', 'crown', 'sword', 'tent'
+      'light-bulb|lightbulb', 'trophy', 'crown', 'sword', 'tent',
+      // L9b ภาพหัวฉากสวมบทบาท (แถว 38) — ต่อท้ายเท่านั้น: วัตถุเดียวแทนฉาก (ฉากที่เป็นสถานที่ใช้ concept เดิม)
+      'name-tag', 'briefcase', 'passport'
     ].map(function (s) { var p = s.split('|'); return { id: p[0], names: p }; });
 
     var ORDER = {}, NAME = {};
@@ -1384,6 +1386,15 @@
     }
     function urlOf(id) { return typeof id === 'string' && ID_RE.test(id) ? '/api/files?id=' + id + '&lp=1' : ''; }
     function okId(map, concept) { var e = map && has(map, concept) ? map[concept] : null; return e && e.status === 'ok' && e.id ? e.id : ''; }
+
+    // L9b ฉากสวมบทบาท 8 ฉากเดิม → concept (ฉากงาน work* ไม่มีภาพ) · preset vocab = วัตถุเดียว ไม่มีคน จึงใช้ของ/สถานที่แทนฉาก
+    var SCENE_CONCEPT = {
+      greet: 'name-tag', restaurant: 'restaurant', interview: 'briefcase', immigration: 'passport',
+      housing: 'house', bank: 'bank', shopping: 'shop', hospital: 'hospital'
+    };
+    function sceneConcept(sceneId) { return typeof sceneId === 'string' && has(SCENE_CONCEPT, sceneId) ? SCENE_CONCEPT[sceneId] : ''; }
+    // URL ภาพหัวฉาก — เฉพาะที่ผ่านแล้ว ('' = ไม่แสดง)
+    function scenePic(map, sceneId) { var c = sceneConcept(sceneId); return c ? urlOf(okId(map, c)) : ''; }
 
     // concept ที่ยังไม่มีรายการ (ยังไม่เคยสร้าง/ไม่ใช้/รอตรวจ ทั้งหมดนับว่ามีแล้ว) ตามลำดับความสำคัญ — n ถูกบีบ 1..MAX_BATCH
     function nextBatch(map, n) {
@@ -1434,7 +1445,7 @@
     return {
       KEY: KEY, MAX_BATCH: MAX_BATCH, MIN_REMAINING: MIN_REMAINING, CONCEPTS: CONCEPTS.map(function (c) { return c.id; }),
       known: known, promptOf: promptOf, lookup: lookup, conceptOf: conceptOf, clean: clean, urlOf: urlOf, okId: okId,
-      nextBatch: nextBatch, shouldStop: shouldStop, counts: counts, list: list, withPics: withPics, picPairs: picPairs
+      sceneConcept: sceneConcept, scenePic: scenePic, nextBatch: nextBatch, shouldStop: shouldStop, counts: counts, list: list, withPics: withPics, picPairs: picPairs
     };
   })();
 
