@@ -644,6 +644,32 @@
     "\u0E15\u0E2D\u0E1A\u0E02\u0E49\u0E2D\u0E15\u0E23\u0E27\u0E08\u0E44\u0E21\u0E48\u0E1C\u0E48\u0E32\u0E19 \u2014 \u0E25\u0E2D\u0E07\u0E27\u0E31\u0E14\u0E43\u0E2B\u0E21\u0E48": "Check questions missed \u2014 try again",
     "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A": "Not enough words to measure"
   });
+  Object.assign(LP_EN, {
+    "\u0E20\u0E32\u0E1E\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C": "Word pictures",
+    "\u0E20\u0E32\u0E1E \u2192 \u0E04\u0E33": "Picture \u2192 word",
+    "\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E20\u0E32\u0E1E": "Match pictures",
+    "\u0E14\u0E39\u0E04\u0E33": "Show word",
+    "\u0E20\u0E32\u0E1E": "Pictures",
+    "\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48 {n}": "Picture {n}",
+    "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27 {ok} \xB7 \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 {p} \xB7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07 {t}": "Approved {ok} \xB7 to review {p} \xB7 not made {t}",
+    "\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D {r}": "AI quota left today: {r}",
+    "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E": "Number of pictures",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E": "Make {n} more",
+    "\u0E2B\u0E22\u0E38\u0E14": "Stop",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E": "Made {i}/{n}",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E04\u0E23\u0E1A {n} \u0E20\u0E32\u0E1E \u2014 \u0E15\u0E23\u0E27\u0E08\u0E41\u0E25\u0E49\u0E27\u0E01\u0E14 \u0E43\u0E0A\u0E49 / \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48 / \u0E44\u0E21\u0E48\u0E43\u0E0A\u0E49": "Made {n} \u2014 review each: use / redo / skip",
+    "\u0E2B\u0E22\u0E38\u0E14\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E44\u0E14\u0E49 {n} \u0E20\u0E32\u0E1E": "Stopped \u2014 made {n}",
+    "\u0E2B\u0E22\u0E38\u0E14\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E16\u0E36\u0E07 {m}": "Stopped \u2014 under {m} AI quota left today",
+    "\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27": "Today's AI quota is used up",
+    "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27": "Nothing left to make",
+    "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08": "To review",
+    "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27": "Approved",
+    "\u0E43\u0E0A\u0E49": "Use",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48": "Redo",
+    "\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E49": "Skip",
+    "\u0E40\u0E2D\u0E32\u0E2D\u0E2D\u0E01": "Remove",
+    "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49": "No pictures here"
+  });
   const LANG_EN = {
     "lang-en": "English",
     "lang-jp": "Japanese",
@@ -15117,6 +15143,126 @@
       return {};
     }
   }
+  const LP_PICS = window.TanotLangPics;
+  function usePics() {
+    const [map, setMap] = useState(() => LP_PICS ? LP_PICS.read() : {});
+    useEffect(() => LP_PICS ? LP_PICS.on(() => setMap(LP_PICS.read())) : void 0, []);
+    return map;
+  }
+  function PicsManager({ open, onClose }) {
+    const pics = usePics();
+    const dlgRef = useRef(null);
+    const abortRef = useRef(null);
+    const [view, setView] = useState("pending");
+    const [n, setN] = useState(10);
+    const [run, setRun] = useState(null);
+    const [note, setNote] = useState(null);
+    const [quota, setQuota] = useState(null);
+    const [acting, setActing] = useState({});
+    const PC = LangCalc.pics;
+    const c = PC.counts(pics);
+    const nn = Math.max(1, Math.min(PC.MAX_BATCH, Math.floor(Number(n)) || 1));
+    useEffect(() => {
+      lucide.createIcons();
+    });
+    useEffect(() => {
+      const d = dlgRef.current;
+      if (!d) return;
+      if (open && !d.open) d.showModal();
+      else if (!open && d.open) d.close();
+    }, [open]);
+    useEffect(() => {
+      if (!open || !window.AiClient) return;
+      AiClient.usage().then((u) => {
+        if (u && typeof u.remaining === "number") setQuota(u.remaining);
+      }, () => {
+      });
+    }, [open]);
+    useEffect(() => () => {
+      if (abortRef.current) abortRef.current.abort();
+    }, []);
+    const close = () => {
+      if (abortRef.current) abortRef.current.abort();
+      onClose();
+    };
+    const start = () => {
+      if (run) return;
+      const ctl = new AbortController();
+      abortRef.current = ctl;
+      setNote(null);
+      setRun({ i: 0, n: PC.nextBatch(pics, nn).length });
+      LP_PICS.run({
+        n: nn,
+        signal: ctl.signal,
+        onProgress: (p) => {
+          setRun({ i: p.i, n: p.n });
+          if (typeof p.remaining === "number") setQuota(Math.max(0, p.remaining));
+        }
+      }).then((r) => {
+        abortRef.current = null;
+        setRun(null);
+        if (typeof r.remaining === "number") setQuota(Math.max(0, r.remaining));
+        if (r.made) setView("pending");
+        setNote(r.reason === "done" ? ["\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E04\u0E23\u0E1A {n} \u0E20\u0E32\u0E1E \u2014 \u0E15\u0E23\u0E27\u0E08\u0E41\u0E25\u0E49\u0E27\u0E01\u0E14 \u0E43\u0E0A\u0E49 / \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48 / \u0E44\u0E21\u0E48\u0E43\u0E0A\u0E49", { n: r.made }] : r.reason === "low" ? ["\u0E2B\u0E22\u0E38\u0E14\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D\u0E44\u0E21\u0E48\u0E16\u0E36\u0E07 {m}", { m: PC.MIN_REMAINING }] : r.reason === "quota" ? "\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E2B\u0E21\u0E14\u0E41\u0E25\u0E49\u0E27" : r.reason === "cancel" ? ["\u0E2B\u0E22\u0E38\u0E14\u0E41\u0E25\u0E49\u0E27 \u2014 \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E44\u0E14\u0E49 {n} \u0E20\u0E32\u0E1E", { n: r.made }] : r.reason === "empty" ? "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48\u0E15\u0E49\u0E2D\u0E07\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27" : ["{m}", { m: AiClient.friendlyMessage(r.err) }]);
+      });
+    };
+    const stop = () => {
+      if (abortRef.current) abortRef.current.abort();
+    };
+    const act = (concept, fn) => {
+      setActing((a) => ({ ...a, [concept]: 1 }));
+      setNote(null);
+      Promise.resolve().then(fn).catch((e) => setNote(["{m}", { m: AiClient.friendlyMessage(e) }])).then(() => setActing((a) => {
+        const b = { ...a };
+        delete b[concept];
+        return b;
+      }));
+    };
+    const items = PC.list(pics, view);
+    const tab = (k, label, count) => /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-view-" + k, "aria-pressed": view === k, onClick: () => setView(k) }, tx(label), " (", count, ")");
+    return /* @__PURE__ */ React.createElement(
+      "dialog",
+      {
+        ref: dlgRef,
+        className: "dialog dialog-form",
+        "data-k": "pics-dialog",
+        "aria-label": tx("\u0E20\u0E32\u0E1E\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C"),
+        onClose: close,
+        onClick: (e) => {
+          if (e.target === e.currentTarget) close();
+        }
+      },
+      /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "dialog-head" }, /* @__PURE__ */ React.createElement("h3", null, tx("\u0E20\u0E32\u0E1E\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C"))), /* @__PURE__ */ React.createElement("div", { className: "dialog-body space-y-4" }, /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold text-gray-600", "data-k": "pics-counts" }, tx("\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27 {ok} \xB7 \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 {p} \xB7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07 {t}", { ok: c.ok, p: c.pending, t: c.todo })), quota != null && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "pics-quota" }, tx("\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D {r}", { r: Math.round(quota) })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement(
+        "input",
+        {
+          type: "number",
+          inputMode: "numeric",
+          min: "1",
+          max: PC.MAX_BATCH,
+          value: n,
+          "data-k": "pics-n",
+          className: "input w-24",
+          disabled: !!run,
+          onChange: (e) => setN(e.target.value),
+          "aria-label": tx("\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E")
+        }
+      ), !run ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run", className: "btn primary", onClick: start, disabled: !c.todo }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E", { n: nn })) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-stop", className: "btn", onClick: stop }, tx("\u0E2B\u0E22\u0E38\u0E14"))), run && /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", role: "status", "data-k": "pics-progress" }, /* @__PURE__ */ React.createElement("span", { className: "spinner mr-2", "aria-hidden": "true" }), tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E", run)), note && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "status", "data-k": "pics-note" }, txs(note)), /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E20\u0E32\u0E1E") }, tab("pending", "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08", c.pending), tab("ok", "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27", c.ok)), !items.length ? /* @__PURE__ */ React.createElement("div", { className: "empty", "data-k": "pics-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("ul", { className: "space-y-3", "data-k": "pics-list" }, items.map(({ concept, id }) => {
+        const busy = !!acting[concept];
+        return /* @__PURE__ */ React.createElement("li", { key: concept, className: "flex gap-3 items-start border border-gray-200 rounded-lg p-3", "data-k": "pic-row", "data-concept": concept }, /* @__PURE__ */ React.createElement(
+          "img",
+          {
+            src: view === "ok" ? LP_PICS.urlOf(id) : "/api/files?id=" + id,
+            alt: "",
+            width: "96",
+            height: "96",
+            loading: "lazy",
+            className: "w-24 h-24 object-cover rounded-md bg-gray-100 shrink-0",
+            "data-k": "pic-img"
+          }
+        ), /* @__PURE__ */ React.createElement("div", { className: "min-w-0 grow space-y-2" }, /* @__PURE__ */ React.createElement("p", { className: "font-semibold text-gray-900 break-words", "data-i18n-skip": true }, PC.promptOf(concept)), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2" }, view === "pending" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pic-ok", className: "btn primary", disabled: busy, onClick: () => act(concept, () => LP_PICS.approve(concept, id)) }, tx("\u0E43\u0E0A\u0E49")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pic-redo", className: "btn", disabled: busy, onClick: () => act(concept, () => LP_PICS.regenerate(concept, id)) }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E43\u0E2B\u0E21\u0E48")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pic-no", className: "btn", disabled: busy, onClick: () => act(concept, () => LP_PICS.reject(concept, id)) }, tx(view === "pending" ? "\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E49" : "\u0E40\u0E2D\u0E32\u0E2D\u0E2D\u0E01")))));
+      }))), /* @__PURE__ */ React.createElement("div", { className: "dialog-foot" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-close", className: "btn ghost", onClick: close }, tx("\u0E1B\u0E34\u0E14"))))
+    );
+  }
   function SourceSwitch({ source, setSource }) {
     return /* @__PURE__ */ React.createElement("div", { className: "segmented shrink-0", role: "group", "aria-label": tx("\u0E0A\u0E38\u0E14\u0E04\u0E33") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-basic", onClick: () => setSource("basic"), "aria-pressed": source === "basic" }, tx("\u0E0A\u0E38\u0E14\u0E1E\u0E37\u0E49\u0E19\u0E10\u0E32\u0E19")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-pack", onClick: () => setSource("pack"), "aria-pressed": source === "pack" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22")));
   }
@@ -15199,6 +15345,9 @@
     const [thCache, setThCache] = useState(readThCache);
     const [aiState, setAiState] = useState(null);
     const inputRef = useRef(null);
+    const pics = usePics();
+    const picsOn = !!(LP_PICS && LP_PICS.enabled());
+    const [picsOpen, setPicsOpen] = useState(false);
     useEffect(() => {
       lucide.createIcons();
     });
@@ -15229,19 +15378,30 @@
     }, []);
     const prep = state.status === "ok" ? state.prep : null;
     const promptOf = (it) => LangCalc.thaiOf(it, thCache).text;
+    const picItems = useMemo(() => prep && picsOn ? LangCalc.pics.withPics(prep.words, pics, langId) : [], [prep, pics, picsOn, langId]);
+    const picByKey = useMemo(() => {
+      const m = {};
+      picItems.forEach((h) => {
+        m[h.item.key] = h.id;
+      });
+      return m;
+    }, [picItems]);
     const candidates = useMemo(() => {
       if (!prep) return [];
-      const q = LangCalc.queue(prep, srs, { kind, level, n: 40 });
-      return pmode === "translate" ? q.filter((it) => promptOf(it)) : q;
-    }, [prep, srs, kind, level, pmode, thCache]);
+      const q = LangCalc.queue(prep, srs, { kind: pmode === "picword" ? "w" : kind, level, n: pmode === "picword" ? 400 : 40 });
+      return pmode === "translate" ? q.filter((it) => promptOf(it)) : pmode === "picword" ? q.filter((it) => picByKey[it.key]).slice(0, 40) : q;
+    }, [prep, srs, kind, level, pmode, thCache, picByKey]);
     const counts = useMemo(() => prep ? {
       due: LangCalc.dueItems(prep, srs, { kind }).length,
       fresh: LangCalc.pickNew(prep, srs, { kind, level, n: Infinity }).length
     } : { due: 0, fresh: 0 }, [prep, srs, kind, level]);
+    useEffect(() => {
+      if (prep && (pmode === "picword" && !picItems.length || pmode === "picpairs" && picItems.length < 2)) setPmode("flashcard");
+    }, [prep, pmode, picItems.length]);
     const item = cur || candidates[0] || null;
     const sents = useMemo(() => item && item.kind === "w" && prep ? LangCalc.sentencesFor(prep, item.id, 3) : [], [item, prep]);
     const th = item ? LangCalc.thaiOf(item, thCache) : null;
-    const isGame = pmode === "cloze" || pmode === "scramble" || pmode === "pairs";
+    const isGame = pmode === "cloze" || pmode === "scramble" || pmode === "pairs" || pmode === "picpairs";
     const aiOn = !!(window.AiClient && AiClient.available());
     const missing = item ? LangCalc.missingThai([item].concat(sents), thCache) : [];
     const rate = (rating) => {
@@ -15302,10 +15462,10 @@
       return /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500", "data-k": k }, /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, t.text), t.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI")));
     };
     const LEVELS = [0, 1, 2, 3, 4, 5, 6];
-    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(SourceSwitch, { source, setSource })), state.status === "loading" && /* @__PURE__ */ React.createElement("div", { className: "card p-5 flex items-center gap-3", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026")), state.status === "none" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packEmpty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), state.status === "error" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packError", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mb-3" }, state.code === "unsupported" ? tx("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), state.code !== "unsupported" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packRetry", className: "btn", onClick: () => setRetry((r) => r + 1) }, tx("\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48"))), prep && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(LevelPlanCard, { langId, prep, srs, thCache, onLevel: (lv) => {
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, LP_PICS && LP_PICS.admin() && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-open", className: "btn", onClick: () => setPicsOpen(true) }, tx("\u0E20\u0E32\u0E1E\u0E04\u0E33\u0E28\u0E31\u0E1E\u0E17\u0E4C")), /* @__PURE__ */ React.createElement(SourceSwitch, { source, setSource }))), LP_PICS && LP_PICS.admin() && /* @__PURE__ */ React.createElement(PicsManager, { open: picsOpen, onClose: () => setPicsOpen(false) }), state.status === "loading" && /* @__PURE__ */ React.createElement("div", { className: "card p-5 flex items-center gap-3", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026")), state.status === "none" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packEmpty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), state.status === "error" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packError", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mb-3" }, state.code === "unsupported" ? tx("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), state.code !== "unsupported" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packRetry", className: "btn", onClick: () => setRetry((r) => r + 1) }, tx("\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48"))), prep && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(LevelPlanCard, { langId, prep, srs, thCache, onLevel: (lv) => {
       levelTouched.current = false;
       setLevelRaw(lv);
-    } }), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, !isGame && /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E0A\u0E19\u0E34\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-w", onClick: () => setKind("w"), "aria-pressed": kind === "w" }, tx("\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-s", onClick: () => setKind("s"), "aria-pressed": kind === "s" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04"))), /* @__PURE__ */ React.createElement("select", { "data-k": "packLevel", value: level, onChange: (e) => setLevel(+e.target.value), "aria-label": tx("\u0E23\u0E30\u0E14\u0E31\u0E1A"), className: "select w-auto" }, LEVELS.map((l) => /* @__PURE__ */ React.createElement("option", { key: l, value: l }, l ? tx("\u0E23\u0E30\u0E14\u0E31\u0E1A {n} \xB7 {c} \u0E04\u0E33", { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx("\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A"))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap", role: "group", "aria-label": tx("\u0E42\u0E2B\u0E21\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-flashcard", onClick: () => setPmode("flashcard"), "aria-pressed": pmode === "flashcard" }, tx("\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-translate", onClick: () => setPmode("translate"), "aria-pressed": pmode === "translate" }, tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-dictation", onClick: () => setPmode("dictation"), "aria-pressed": pmode === "dictation" }, tx("\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-cloze", onClick: () => setPmode("cloze"), "aria-pressed": pmode === "cloze" }, tx("\u0E40\u0E15\u0E34\u0E21\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-scramble", onClick: () => setPmode("scramble"), "aria-pressed": pmode === "scramble" }, tx("\u0E40\u0E23\u0E35\u0E22\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-pairs", onClick: () => setPmode("pairs"), "aria-pressed": pmode === "pairs" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48"))), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-semibold text-gray-500", "aria-live": "polite" }, tx("\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}", { d: counts.due, n: counts.fresh }))), isGame ? /* @__PURE__ */ React.createElement(PackGame, { game: pmode, prep, srs, setSrs, setXp, level, thCache, langId, lang }) : !item ? /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packDone" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6 space-y-4", "data-k": "packCard" }, pmode === "flashcard" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900 break-words", "data-k": "packWord", "data-i18n-skip": true, lang: lang.code }, item.t), item.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "packIpa", "data-i18n-skip": true }, LangCalc.ipaText(item.ipa))), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(item.t, lang.code), className: "btn icon shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))), !flipped && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packFlip", onClick: flip, className: "btn primary lg w-full" }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "translate" ? /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900", "data-k": "packPrompt", "data-i18n-skip": true }, promptOf(item)) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packListen", onClick: () => speak(item.t, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)")), /* @__PURE__ */ React.createElement(
+    } }), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, !isGame && pmode !== "picword" && /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E0A\u0E19\u0E34\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-w", onClick: () => setKind("w"), "aria-pressed": kind === "w" }, tx("\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-s", onClick: () => setKind("s"), "aria-pressed": kind === "s" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04"))), /* @__PURE__ */ React.createElement("select", { "data-k": "packLevel", value: level, onChange: (e) => setLevel(+e.target.value), "aria-label": tx("\u0E23\u0E30\u0E14\u0E31\u0E1A"), className: "select w-auto" }, LEVELS.map((l) => /* @__PURE__ */ React.createElement("option", { key: l, value: l }, l ? tx("\u0E23\u0E30\u0E14\u0E31\u0E1A {n} \xB7 {c} \u0E04\u0E33", { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx("\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A"))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap", role: "group", "aria-label": tx("\u0E42\u0E2B\u0E21\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-flashcard", onClick: () => setPmode("flashcard"), "aria-pressed": pmode === "flashcard" }, tx("\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-translate", onClick: () => setPmode("translate"), "aria-pressed": pmode === "translate" }, tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-dictation", onClick: () => setPmode("dictation"), "aria-pressed": pmode === "dictation" }, tx("\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-cloze", onClick: () => setPmode("cloze"), "aria-pressed": pmode === "cloze" }, tx("\u0E40\u0E15\u0E34\u0E21\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-scramble", onClick: () => setPmode("scramble"), "aria-pressed": pmode === "scramble" }, tx("\u0E40\u0E23\u0E35\u0E22\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-pairs", onClick: () => setPmode("pairs"), "aria-pressed": pmode === "pairs" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48")), picItems.length > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-picword", onClick: () => setPmode("picword"), "aria-pressed": pmode === "picword" }, tx("\u0E20\u0E32\u0E1E \u2192 \u0E04\u0E33")), picItems.length > 1 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-picpairs", onClick: () => setPmode("picpairs"), "aria-pressed": pmode === "picpairs" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E20\u0E32\u0E1E"))), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-semibold text-gray-500", "aria-live": "polite" }, tx("\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}", { d: counts.due, n: counts.fresh }))), isGame ? /* @__PURE__ */ React.createElement(PackGame, { game: pmode, prep, srs, setSrs, setXp, level, thCache, langId, lang, pics }) : !item ? /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packDone" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6 space-y-4", "data-k": "packCard" }, pmode === "flashcard" || pmode === "picword" ? /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "picword" && picByKey[item.key] && /* @__PURE__ */ React.createElement("img", { "data-k": "packPic", src: LP_PICS.urlOf(picByKey[item.key]), alt: "", width: "160", height: "160", className: "mx-auto h-40 w-40 object-contain rounded-lg" }), (pmode === "flashcard" || flipped) && /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900 break-words", "data-k": "packWord", "data-i18n-skip": true, lang: lang.code }, item.t), item.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "packIpa", "data-i18n-skip": true }, LangCalc.ipaText(item.ipa))), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(item.t, lang.code), className: "btn icon shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))), !flipped && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packFlip", onClick: flip, className: "btn primary lg w-full" }, tx(pmode === "picword" ? "\u0E14\u0E39\u0E04\u0E33" : "\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "translate" ? /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900", "data-k": "packPrompt", "data-i18n-skip": true }, promptOf(item)) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packListen", onClick: () => speak(item.t, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)")), /* @__PURE__ */ React.createElement(
       "input",
       {
         "data-k": "packAnswer",
@@ -15323,12 +15483,12 @@
         className: "input w-full",
         lang: lang.code
       }
-    ), result && /* @__PURE__ */ React.createElement("div", { "data-k": "packResult", "data-r": result, className: `callout ${result === "correct" ? "ok" : result === "almost" ? "warn" : "err"}` }, /* @__PURE__ */ React.createElement("p", { className: "font-bold mb-1" }, result === "correct" ? tx("\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07! (+20 XP)") : result === "almost" ? tx("\u0E40\u0E01\u0E37\u0E2D\u0E1A\u0E16\u0E39\u0E01! \u0E15\u0E48\u0E32\u0E07\u0E41\u0E04\u0E48\u0E19\u0E34\u0E14\u0E40\u0E14\u0E35\u0E22\u0E27 (+10 XP)") : tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01")), /* @__PURE__ */ React.createElement("p", { className: "text-sm" }, /* @__PURE__ */ React.createElement("strong", null, tx("\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E04\u0E37\u0E2D:")), " ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true, lang: lang.code }, item.t)), result !== "correct" && /* @__PURE__ */ React.createElement(SpellDiff, { typed, correct: item.t })), !result ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packCheck", onClick: check, disabled: !typed.trim(), className: "btn primary lg w-full" }, tx("\u0E15\u0E23\u0E27\u0E08\u0E04\u0E33\u0E15\u0E2D\u0E1A")) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packNext", onClick: next, className: "btn primary lg w-full" }, tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B"))), (flipped || result) && /* @__PURE__ */ React.createElement("div", { className: "space-y-3 border-t border-gray-200 pt-4" }, pmode !== "translate" && /* @__PURE__ */ React.createElement("p", { className: "text-lg font-semibold text-gray-800", "data-k": "packThai" }, th.text ? /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, th.text) : /* @__PURE__ */ React.createElement("span", { className: "text-gray-500" }, "\u2014"), th.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI"))), sents.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain" }, sents.map((s) => /* @__PURE__ */ React.createElement("li", { key: s.key, className: "list-row", "data-k": "packSent" }, /* @__PURE__ */ React.createElement("div", { className: "grow min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "title whitespace-normal break-words", "data-i18n-skip": true, lang: lang.code }, s.t), /* @__PURE__ */ React.createElement("div", { className: "meta" }, thaiLine(s, "packSentThai"))), /* @__PURE__ */ React.createElement("div", { className: "end" }, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(s.t, lang.code), className: "btn ghost icon sm", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null)))))), aiOn && missing.length > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packTranslate", onClick: translate, disabled: aiState === "busy", className: "btn" }, aiState === "busy" && /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22")), aiState && aiState !== "busy" && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert" }, txs(aiState)), pmode === "flashcard" && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packGood", onClick: () => {
+    ), result && /* @__PURE__ */ React.createElement("div", { "data-k": "packResult", "data-r": result, className: `callout ${result === "correct" ? "ok" : result === "almost" ? "warn" : "err"}` }, /* @__PURE__ */ React.createElement("p", { className: "font-bold mb-1" }, result === "correct" ? tx("\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07! (+20 XP)") : result === "almost" ? tx("\u0E40\u0E01\u0E37\u0E2D\u0E1A\u0E16\u0E39\u0E01! \u0E15\u0E48\u0E32\u0E07\u0E41\u0E04\u0E48\u0E19\u0E34\u0E14\u0E40\u0E14\u0E35\u0E22\u0E27 (+10 XP)") : tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E16\u0E39\u0E01")), /* @__PURE__ */ React.createElement("p", { className: "text-sm" }, /* @__PURE__ */ React.createElement("strong", null, tx("\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E04\u0E37\u0E2D:")), " ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true, lang: lang.code }, item.t)), result !== "correct" && /* @__PURE__ */ React.createElement(SpellDiff, { typed, correct: item.t })), !result ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packCheck", onClick: check, disabled: !typed.trim(), className: "btn primary lg w-full" }, tx("\u0E15\u0E23\u0E27\u0E08\u0E04\u0E33\u0E15\u0E2D\u0E1A")) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packNext", onClick: next, className: "btn primary lg w-full" }, tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B"))), (flipped || result) && /* @__PURE__ */ React.createElement("div", { className: "space-y-3 border-t border-gray-200 pt-4" }, pmode !== "translate" && /* @__PURE__ */ React.createElement("p", { className: "text-lg font-semibold text-gray-800", "data-k": "packThai" }, th.text ? /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, th.text) : /* @__PURE__ */ React.createElement("span", { className: "text-gray-500" }, "\u2014"), th.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI"))), sents.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain" }, sents.map((s) => /* @__PURE__ */ React.createElement("li", { key: s.key, className: "list-row", "data-k": "packSent" }, /* @__PURE__ */ React.createElement("div", { className: "grow min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "title whitespace-normal break-words", "data-i18n-skip": true, lang: lang.code }, s.t), /* @__PURE__ */ React.createElement("div", { className: "meta" }, thaiLine(s, "packSentThai"))), /* @__PURE__ */ React.createElement("div", { className: "end" }, /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(s.t, lang.code), className: "btn ghost icon sm", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null)))))), aiOn && missing.length > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packTranslate", onClick: translate, disabled: aiState === "busy", className: "btn" }, aiState === "busy" && /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22")), aiState && aiState !== "busy" && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert" }, txs(aiState)), (pmode === "flashcard" || pmode === "picword") && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packGood", onClick: () => {
       setXp((x) => x + 10);
       rate(3);
     }, className: "btn primary lg flex-1" }, tx("\u0E08\u0E33\u0E44\u0E14\u0E49 (+10 XP)")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packAgain", onClick: () => rate(1), className: "btn lg flex-1" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49"))))))));
   }
-  function PackGame({ game, prep, srs, setSrs, setXp, level, thCache, langId, lang }) {
+  function PackGame({ game, prep, srs, setSrs, setXp, level, thCache, langId, lang, pics }) {
     const [round, setRound] = useState(0);
     const [q, setQ] = useState(null);
     const [picked, setPicked] = useState(null);
@@ -15339,6 +15499,8 @@
     const [bad, setBad] = useState(false);
     const srsRef = useRef(srs);
     srsRef.current = srs;
+    const picsRef = useRef(pics);
+    picsRef.current = pics;
     const rated = useRef({});
     const nextRef = useRef(null);
     useEffect(() => {
@@ -15360,6 +15522,11 @@
       setDone({});
       setBad(false);
       const base = { mode: game, level, thCache };
+      if (game === "picpairs") {
+        const p2 = LangCalc.pics.picPairs(prep, srsRef.current, picsRef.current, { level, seed, n: 5 });
+        setQ(p2 ? { game, p: p2, items: p2.items } : { game, empty: true });
+        return;
+      }
       if (game === "pairs") {
         const items = LangCalc.gameItems(prep, srsRef.current, { ...base, n: 12 });
         const p2 = LangCalc.pairs(items, thCache, 5, seed);
@@ -15486,7 +15653,7 @@
         lang: lang.code
       },
       l.text
-    ))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", role: "group", "aria-label": tx("\u0E04\u0E33\u0E41\u0E1B\u0E25") }, p.right.map((r) => /* @__PURE__ */ React.createElement(
+    ))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", role: "group", "aria-label": game === "picpairs" ? tx("\u0E20\u0E32\u0E1E") : tx("\u0E04\u0E33\u0E41\u0E1B\u0E25") }, p.right.map((r, ri) => /* @__PURE__ */ React.createElement(
       "button",
       {
         key: r.id,
@@ -15495,11 +15662,12 @@
         "data-id": r.id,
         disabled: !!done[r.id],
         "aria-pressed": !!sel && sel.side === "r" && sel.id === r.id,
+        "aria-label": r.pic ? tx("\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48 {n}", { n: ri + 1 }) : void 0,
         onClick: () => pickPair("r", r.id),
         className: `${btn} w-full ${done[r.id] ? "opacity-60" : ""}`,
         "data-i18n-skip": true
       },
-      r.text
+      r.pic ? /* @__PURE__ */ React.createElement("img", { src: r.pic, alt: "", width: "64", height: "64", className: "mx-auto h-16 w-16 object-contain" }) : r.text
     )))), bad && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert", "data-k": "pairBad" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E04\u0E39\u0E48\u0E01\u0E31\u0E19 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), all && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { "data-k": "gameResult", "data-r": "correct", className: "callout ok", role: "status" }, /* @__PURE__ */ React.createElement("p", { className: "font-bold" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48\u0E04\u0E23\u0E1A\u0E41\u0E25\u0E49\u0E27"))), /* @__PURE__ */ React.createElement("button", { type: "button", ref: nextRef, "data-k": "gameNext", onClick: next, className: "btn primary lg w-full" }, tx("\u0E23\u0E2D\u0E1A\u0E15\u0E48\u0E2D\u0E44\u0E1B"))));
   }
   function LangVoicePicker({ code }) {
