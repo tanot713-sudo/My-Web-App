@@ -617,6 +617,23 @@
     const rest = tx(c.slice(WORK_CAT_PREFIX.length));
     return short ? rest : tx("\u0E07\u0E32\u0E19") + ": " + rest;
   }
+  Object.assign(LP_EN, {
+    "\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49: \u0E43\u0E2B\u0E21\u0E48 {d}/{g} \xB7 \u0E17\u0E27\u0E19 {r}": "Today: new {d}/{g} \xB7 review {r}",
+    "\u0E04\u0E33\u0E43\u0E2B\u0E21\u0E48\u0E15\u0E48\u0E2D\u0E27\u0E31\u0E19": "New words per day",
+    "\u0E04\u0E23\u0E1A\u0E40\u0E1B\u0E49\u0E32\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49": "Daily target met",
+    "XP \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 {x}/{g}": "XP today {x}/{g}",
+    "\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A": "Check level",
+    "\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E43\u0E2B\u0E21\u0E48": "Check again",
+    "\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13 {l} \xB7 ~{w} \u0E04\u0E33": "Estimated level {l} \xB7 ~{w} words",
+    "\u0E04\u0E33\u0E19\u0E35\u0E49\u0E04\u0E38\u0E13\u0E23\u0E39\u0E49\u0E44\u0E2B\u0E21": "Do you know this word?",
+    "\u0E23\u0E39\u0E49": "I know it",
+    "\u0E44\u0E21\u0E48\u0E23\u0E39\u0E49": "I don't",
+    "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01": "Pick the right meaning",
+    "\u0E02\u0E49\u0E2D {i}/{n}": "Item {i}/{n}",
+    "\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E19\u0E35\u0E49\u0E27\u0E31\u0E14\u0E44\u0E14\u0E49\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14\u0E40\u0E17\u0E48\u0E32\u0E19\u0E35\u0E49": "This word set cannot measure higher",
+    "\u0E15\u0E2D\u0E1A\u0E02\u0E49\u0E2D\u0E15\u0E23\u0E27\u0E08\u0E44\u0E21\u0E48\u0E1C\u0E48\u0E32\u0E19 \u2014 \u0E25\u0E2D\u0E07\u0E27\u0E31\u0E14\u0E43\u0E2B\u0E21\u0E48": "Check questions missed \u2014 try again",
+    "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A": "Not enough words to measure"
+  });
   const LANG_EN = {
     "lang-en": "English",
     "lang-jp": "Japanese",
@@ -901,6 +918,37 @@
   function recordSpellFrom(langId, target, typed) {
     if (!LangCalc.spell.eligible(langId)) return;
     recordSpellPairs(langId, LangCalc.spell.wordsOf(target, typed));
+  }
+  const LEVEL_KEY = "lang-practice:level";
+  const PLAN_KEY = "lang-practice:plan";
+  function readMapKey(key, clean) {
+    try {
+      return clean(window.TanotData ? TanotData.read(key, {}) : JSON.parse(localStorage.getItem(key) || "{}"));
+    } catch (e) {
+      return {};
+    }
+  }
+  function writeMapKey(key, clean, fn) {
+    const f = (cur) => fn(clean(cur));
+    try {
+      if (window.TanotData && TanotData.update) TanotData.update(key, f);
+      else localStorage.setItem(key, JSON.stringify(f(JSON.parse(localStorage.getItem(key) || "{}"))));
+    } catch (e) {
+    }
+  }
+  const readLevels = () => readMapKey(LEVEL_KEY, LangCalc.level.cleanLevels);
+  const readPlans = () => readMapKey(PLAN_KEY, LangCalc.level.cleanPlans);
+  const writeLevel = (langId, res) => writeMapKey(LEVEL_KEY, LangCalc.level.cleanLevels, (m) => LangCalc.level.setLevel(m, langId, res, Date.now()));
+  const writePlan = (langId, n) => writeMapKey(PLAN_KEY, LangCalc.level.cleanPlans, (m) => LangCalc.level.setPlan(m, langId, n));
+  function useMeasuredLevel(langId) {
+    const [levels, setLevels] = useState(readLevels);
+    useEffect(() => {
+      if (!window.TanotData || !TanotData.onChange) return void 0;
+      return TanotData.onChange((keys) => {
+        if (!keys.length || keys.indexOf(LEVEL_KEY) >= 0) setLevels(readLevels());
+      });
+    }, []);
+    return LangCalc.level.levelFor(levels, langId);
   }
   function fsrsSchedule(n, rating) {
     return window.TanotFSRS.schedule(n, rating);
@@ -14241,7 +14289,16 @@
     const lname = LANGS[langId].title, langCode = LANGS[langId].code;
     const en = OME_I18N.lang() === "en";
     const [sceneId, setSceneId] = useState(null);
-    const [level, setLevel] = useState("A1");
+    const measured = useMeasuredLevel(langId);
+    const [level, setLevelRaw] = useState(() => LC.level.roleplayLevel(measured || 1));
+    const levelTouched = useRef(false);
+    const setLevel = (v) => {
+      levelTouched.current = true;
+      setLevelRaw(v);
+    };
+    useEffect(() => {
+      if (!levelTouched.current && measured) setLevelRaw(LC.level.roleplayLevel(measured));
+    }, [measured, langId]);
     const [phase, setPhase] = useState("pick");
     const [history, setHistory] = useState([]);
     const [draft, setDraft] = useState("");
@@ -14845,12 +14902,77 @@
   function SourceSwitch({ source, setSource }) {
     return /* @__PURE__ */ React.createElement("div", { className: "segmented shrink-0", role: "group", "aria-label": tx("\u0E0A\u0E38\u0E14\u0E04\u0E33") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-basic", onClick: () => setSource("basic"), "aria-pressed": source === "basic" }, tx("\u0E0A\u0E38\u0E14\u0E1E\u0E37\u0E49\u0E19\u0E10\u0E32\u0E19")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "src-pack", onClick: () => setSource("pack"), "aria-pressed": source === "pack" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22")));
   }
+  const PLAN_CHOICES = [5, 10, 15, 20, 30, 50];
+  function LevelPlanCard({ langId, prep, srs, thCache, onLevel }) {
+    const LV = LangCalc.level;
+    const [plans, setPlans] = useState(readPlans);
+    const [levels, setLevels] = useState(readLevels);
+    const [test, setTest] = useState(null);
+    useEffect(() => {
+      if (!window.TanotData || !TanotData.onChange) return void 0;
+      return TanotData.onChange((keys) => {
+        if (!keys.length || keys.indexOf(PLAN_KEY) >= 0) setPlans(readPlans());
+        if (!keys.length || keys.indexOf(LEVEL_KEY) >= 0) setLevels(readLevels());
+      });
+    }, []);
+    useEffect(() => {
+      setTest(null);
+    }, [langId]);
+    const plan = LV.planFor(plans, langId);
+    const measured = LV.levelFor(levels, langId);
+    const day = LV.today(langId, srs, plan);
+    const xpSum = window.LearnCore && LearnCore.summary ? LearnCore.summary() : null;
+    const choices = PLAN_CHOICES.indexOf(plan.n) >= 0 ? PLAN_CHOICES : PLAN_CHOICES.concat(plan.n).sort((a, b) => a - b);
+    const start = () => {
+      const t = LV.buildTest(prep, thCache, Date.now() % 1000003);
+      if (!t || !t.items.length) {
+        setTest({ phase: "none" });
+        return;
+      }
+      setTest({ items: t.items, checks: t.checks, i: 0, ans: [], cans: [], phase: "words", res: null });
+    };
+    const finish = (t, cans) => {
+      const res2 = LV.estimate(t.ans, cans.map((ok) => ({ ok })));
+      if (res2 && res2.reliable) {
+        writeLevel(langId, res2);
+        setLevels(readLevels());
+        onLevel(res2.lv);
+      }
+      setTest({ ...t, cans, phase: "result", res: res2 });
+    };
+    const answerWord = (know) => {
+      const it = test.items[test.i], ans = test.ans.concat({ lv: it.lv, know });
+      if (test.i + 1 < test.items.length) setTest({ ...test, ans, i: test.i + 1 });
+      else if (test.checks.length) setTest({ ...test, ans, i: 0, phase: "checks" });
+      else finish({ ...test, ans }, []);
+    };
+    const answerCheck = (idx) => {
+      const c = test.checks[test.i], cans = test.cans.concat(idx === c.answer);
+      if (test.i + 1 < test.checks.length) setTest({ ...test, cans, i: test.i + 1 });
+      else finish(test, cans);
+    };
+    const pct = Math.min(100, Math.round(day.done / day.goal * 100));
+    const res = test && test.res;
+    return /* @__PURE__ */ React.createElement("section", { className: "card p-4 sm:p-5 space-y-3", "data-k": "planCard" }, !test && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("p", { className: "text-base font-bold text-gray-900 mb-0", "data-k": "planToday", "aria-live": "polite" }, tx("\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49: \u0E43\u0E2B\u0E21\u0E48 {d}/{g} \xB7 \u0E17\u0E27\u0E19 {r}", { d: day.done, g: day.goal, r: day.due })), /* @__PURE__ */ React.createElement("label", { className: "flex items-center gap-2 text-sm text-gray-600" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E33\u0E43\u0E2B\u0E21\u0E48\u0E15\u0E48\u0E2D\u0E27\u0E31\u0E19")), /* @__PURE__ */ React.createElement("select", { "data-k": "planN", className: "select w-auto", value: plan.n, onChange: (e) => {
+      writePlan(langId, +e.target.value);
+      setPlans(readPlans());
+    } }, choices.map((n) => /* @__PURE__ */ React.createElement("option", { key: n, value: n }, n))))), /* @__PURE__ */ React.createElement("div", { className: "meter" + (day.met ? " ok" : ""), role: "progressbar", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": pct }, /* @__PURE__ */ React.createElement("i", { style: { width: pct + "%" } })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2 text-sm text-gray-600" }, day.met && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "planMet" }, tx("\u0E04\u0E23\u0E1A\u0E40\u0E1B\u0E49\u0E32\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49")), xpSum && /* @__PURE__ */ React.createElement("span", { "data-k": "planXp" }, tx("XP \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49 {x}/{g}", { x: xpSum.todayXp, g: xpSum.goal })), measured > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge", "data-k": "levelBadge" }, tx("\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13 {l} \xB7 ~{w} \u0E04\u0E33", { l: LangCalc.LEVEL_NAMES[measured], w: (levels[langId] || { words: 0 }).words }))), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelStart", className: "btn", onClick: start }, measured > 0 ? tx("\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A")))), test && test.phase === "none" && /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3", "data-k": "levelNone" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A")), /* @__PURE__ */ React.createElement("button", { type: "button", className: "btn", onClick: () => setTest(null) }, tx("\u0E1B\u0E34\u0E14"))), test && test.phase === "words" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4", "data-k": "levelWords" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 text-sm text-gray-500" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E04\u0E33\u0E19\u0E35\u0E49\u0E04\u0E38\u0E13\u0E23\u0E39\u0E49\u0E44\u0E2B\u0E21")), /* @__PURE__ */ React.createElement("span", { "aria-live": "polite" }, tx("\u0E02\u0E49\u0E2D {i}/{n}", { i: test.i + 1, n: test.items.length }))), /* @__PURE__ */ React.createElement("p", { className: "text-3xl font-bold text-gray-900 break-words text-center my-4", "data-k": "levelWord", "data-i18n-skip": true, lang: LANGS[langId].code }, test.items[test.i].t), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-2 gap-3" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelKnow", className: "btn primary lg", onClick: () => answerWord(true) }, tx("\u0E23\u0E39\u0E49")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelUnknown", className: "btn lg", onClick: () => answerWord(false) }, tx("\u0E44\u0E21\u0E48\u0E23\u0E39\u0E49"))), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelCancel", className: "btn ghost sm", onClick: () => setTest(null) }, tx("\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01"))), test && test.phase === "checks" && /* @__PURE__ */ React.createElement("div", { className: "space-y-4", "data-k": "levelChecks" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 text-sm text-gray-500" }, /* @__PURE__ */ React.createElement("span", null, tx("\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01")), /* @__PURE__ */ React.createElement("span", { "aria-live": "polite" }, tx("\u0E02\u0E49\u0E2D {i}/{n}", { i: test.i + 1, n: test.checks.length }))), /* @__PURE__ */ React.createElement("p", { className: "text-3xl font-bold text-gray-900 break-words text-center my-4", "data-k": "levelCheckWord", "data-i18n-skip": true, lang: LANGS[langId].code }, test.checks[test.i].t), /* @__PURE__ */ React.createElement("div", { className: "grid gap-2" }, test.checks[test.i].options.map((o, k) => /* @__PURE__ */ React.createElement("button", { key: k, type: "button", "data-k": "levelOpt", className: "btn lg", onClick: () => answerCheck(k) }, /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, o)))), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelCancel", className: "btn ghost sm", onClick: () => setTest(null) }, tx("\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01"))), test && test.phase === "result" && /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "data-k": "levelResult" }, res && res.reliable ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("p", { className: "text-lg font-bold text-gray-900 mb-0", "data-k": "levelResultText" }, tx("\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E42\u0E14\u0E22\u0E1B\u0E23\u0E30\u0E21\u0E32\u0E13 {l} \xB7 ~{w} \u0E04\u0E33", { l: res.name, w: res.words })), res.capped && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mb-0" }, tx("\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E19\u0E35\u0E49\u0E27\u0E31\u0E14\u0E44\u0E14\u0E49\u0E2A\u0E39\u0E07\u0E2A\u0E38\u0E14\u0E40\u0E17\u0E48\u0E32\u0E19\u0E35\u0E49"))) : /* @__PURE__ */ React.createElement("p", { className: "callout warn mb-0", role: "alert", "data-k": "levelUnreliable" }, tx("\u0E15\u0E2D\u0E1A\u0E02\u0E49\u0E2D\u0E15\u0E23\u0E27\u0E08\u0E44\u0E21\u0E48\u0E1C\u0E48\u0E32\u0E19 \u2014 \u0E25\u0E2D\u0E07\u0E27\u0E31\u0E14\u0E43\u0E2B\u0E21\u0E48")), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelAgain", className: "btn", onClick: start }, tx("\u0E27\u0E31\u0E14\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E43\u0E2B\u0E21\u0E48")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "levelClose", className: "btn primary", onClick: () => setTest(null) }, tx("\u0E1B\u0E34\u0E14")))));
+  }
   function PackView({ langId, srs, setSrs, setXp, source, setSource }) {
     const lang = LANGS[langId];
     const [state, setState] = useState({ status: "loading" });
     const [retry, setRetry] = useState(0);
     const [kind, setKind] = useState("w");
-    const [level, setLevel] = useState(1);
+    const measured = useMeasuredLevel(langId);
+    const [level, setLevelRaw] = useState(() => measured || 1);
+    const levelTouched = useRef(false);
+    const setLevel = (v) => {
+      levelTouched.current = true;
+      setLevelRaw(v);
+    };
+    useEffect(() => {
+      if (!levelTouched.current && measured) setLevelRaw(measured);
+    }, [measured, langId]);
     const [pmode, setPmode] = useState("flashcard");
     const [cur, setCur] = useState(null);
     const [flipped, setFlipped] = useState(false);
@@ -14962,7 +15084,10 @@
       return /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500", "data-k": k }, /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, t.text), t.src === "ai" && /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI")));
     };
     const LEVELS = [0, 1, 2, 3, 4, 5, 6];
-    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(SourceSwitch, { source, setSource })), state.status === "loading" && /* @__PURE__ */ React.createElement("div", { className: "card p-5 flex items-center gap-3", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026")), state.status === "none" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packEmpty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), state.status === "error" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packError", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mb-3" }, state.code === "unsupported" ? tx("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), state.code !== "unsupported" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packRetry", className: "btn", onClick: () => setRetry((r) => r + 1) }, tx("\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48"))), prep && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, !isGame && /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E0A\u0E19\u0E34\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-w", onClick: () => setKind("w"), "aria-pressed": kind === "w" }, tx("\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-s", onClick: () => setKind("s"), "aria-pressed": kind === "s" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04"))), /* @__PURE__ */ React.createElement("select", { "data-k": "packLevel", value: level, onChange: (e) => setLevel(+e.target.value), "aria-label": tx("\u0E23\u0E30\u0E14\u0E31\u0E1A"), className: "select w-auto" }, LEVELS.map((l) => /* @__PURE__ */ React.createElement("option", { key: l, value: l }, l ? tx("\u0E23\u0E30\u0E14\u0E31\u0E1A {n} \xB7 {c} \u0E04\u0E33", { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx("\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A"))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap", role: "group", "aria-label": tx("\u0E42\u0E2B\u0E21\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-flashcard", onClick: () => setPmode("flashcard"), "aria-pressed": pmode === "flashcard" }, tx("\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-translate", onClick: () => setPmode("translate"), "aria-pressed": pmode === "translate" }, tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-dictation", onClick: () => setPmode("dictation"), "aria-pressed": pmode === "dictation" }, tx("\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-cloze", onClick: () => setPmode("cloze"), "aria-pressed": pmode === "cloze" }, tx("\u0E40\u0E15\u0E34\u0E21\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-scramble", onClick: () => setPmode("scramble"), "aria-pressed": pmode === "scramble" }, tx("\u0E40\u0E23\u0E35\u0E22\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-pairs", onClick: () => setPmode("pairs"), "aria-pressed": pmode === "pairs" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48"))), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-semibold text-gray-500", "aria-live": "polite" }, tx("\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}", { d: counts.due, n: counts.fresh }))), isGame ? /* @__PURE__ */ React.createElement(PackGame, { game: pmode, prep, srs, setSrs, setXp, level, thCache, langId, lang }) : !item ? /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packDone" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6 space-y-4", "data-k": "packCard" }, pmode === "flashcard" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900 break-words", "data-k": "packWord", "data-i18n-skip": true, lang: lang.code }, item.t), item.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "packIpa", "data-i18n-skip": true }, LangCalc.ipaText(item.ipa))), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(item.t, lang.code), className: "btn icon shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))), !flipped && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packFlip", onClick: flip, className: "btn primary lg w-full" }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "translate" ? /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900", "data-k": "packPrompt", "data-i18n-skip": true }, promptOf(item)) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packListen", onClick: () => speak(item.t, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)")), /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement(SourceSwitch, { source, setSource })), state.status === "loading" && /* @__PURE__ */ React.createElement("div", { className: "card p-5 flex items-center gap-3", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u2026")), state.status === "none" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packEmpty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E17\u0E35\u0E48\u0E43\u0E0A\u0E49\u0E1A\u0E48\u0E2D\u0E22\u0E02\u0E2D\u0E07\u0E20\u0E32\u0E29\u0E32{l}", { l: langTitle(langId) })), state.status === "error" && /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packError", role: "alert" }, /* @__PURE__ */ React.createElement("p", { className: "mb-3" }, state.code === "unsupported" ? tx("\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E19\u0E35\u0E49\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E1F\u0E25\u0E4C\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C\u0E23\u0E38\u0E48\u0E19\u0E43\u0E2B\u0E21\u0E48") : tx("\u0E42\u0E2B\u0E25\u0E14\u0E0A\u0E38\u0E14\u0E04\u0E33\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48")), state.code !== "unsupported" && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packRetry", className: "btn", onClick: () => setRetry((r) => r + 1) }, tx("\u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48"))), prep && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement(LevelPlanCard, { langId, prep, srs, thCache, onLevel: (lv) => {
+      levelTouched.current = false;
+      setLevelRaw(lv);
+    } }), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, !isGame && /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E0A\u0E19\u0E34\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-w", onClick: () => setKind("w"), "aria-pressed": kind === "w" }, tx("\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "kind-s", onClick: () => setKind("s"), "aria-pressed": kind === "s" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04"))), /* @__PURE__ */ React.createElement("select", { "data-k": "packLevel", value: level, onChange: (e) => setLevel(+e.target.value), "aria-label": tx("\u0E23\u0E30\u0E14\u0E31\u0E1A"), className: "select w-auto" }, LEVELS.map((l) => /* @__PURE__ */ React.createElement("option", { key: l, value: l }, l ? tx("\u0E23\u0E30\u0E14\u0E31\u0E1A {n} \xB7 {c} \u0E04\u0E33", { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx("\u0E17\u0E38\u0E01\u0E23\u0E30\u0E14\u0E31\u0E1A"))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap", role: "group", "aria-label": tx("\u0E42\u0E2B\u0E21\u0E14") }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-flashcard", onClick: () => setPmode("flashcard"), "aria-pressed": pmode === "flashcard" }, tx("\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-translate", onClick: () => setPmode("translate"), "aria-pressed": pmode === "translate" }, tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E41\u0E1B\u0E25")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-dictation", onClick: () => setPmode("dictation"), "aria-pressed": pmode === "dictation" }, tx("\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E1E\u0E34\u0E21\u0E1E\u0E4C")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-cloze", onClick: () => setPmode("cloze"), "aria-pressed": pmode === "cloze" }, tx("\u0E40\u0E15\u0E34\u0E21\u0E04\u0E33")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-scramble", onClick: () => setPmode("scramble"), "aria-pressed": pmode === "scramble" }, tx("\u0E40\u0E23\u0E35\u0E22\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pmode-pairs", onClick: () => setPmode("pairs"), "aria-pressed": pmode === "pairs" }, tx("\u0E08\u0E31\u0E1A\u0E04\u0E39\u0E48"))), /* @__PURE__ */ React.createElement("span", { className: "text-sm font-semibold text-gray-500", "aria-live": "polite" }, tx("\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E17\u0E27\u0E19 {d} \xB7 \u0E43\u0E2B\u0E21\u0E48 {n}", { d: counts.due, n: counts.fresh }))), isGame ? /* @__PURE__ */ React.createElement(PackGame, { game: pmode, prep, srs, setSrs, setXp, level, thCache, langId, lang }) : !item ? /* @__PURE__ */ React.createElement("div", { className: "card empty", "data-k": "packDone" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E43\u0E2B\u0E21\u0E48\u0E2B\u0E23\u0E37\u0E2D\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E17\u0E35\u0E48\u0E16\u0E36\u0E07\u0E01\u0E33\u0E2B\u0E19\u0E14\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6 space-y-4", "data-k": "packCard" }, pmode === "flashcard" ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "flex items-start justify-between gap-3" }, /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900 break-words", "data-k": "packWord", "data-i18n-skip": true, lang: lang.code }, item.t), item.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "packIpa", "data-i18n-skip": true }, LangCalc.ipaText(item.ipa))), /* @__PURE__ */ React.createElement("button", { type: "button", onClick: () => speak(item.t, lang.code), className: "btn icon shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))), !flipped && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packFlip", onClick: flip, className: "btn primary lg w-full" }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25"))) : /* @__PURE__ */ React.createElement(React.Fragment, null, pmode === "translate" ? /* @__PURE__ */ React.createElement("p", { className: "text-2xl font-bold text-gray-900", "data-k": "packPrompt", "data-i18n-skip": true }, promptOf(item)) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "packListen", onClick: () => speak(item.t, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)")), /* @__PURE__ */ React.createElement(
       "input",
       {
         "data-k": "packAnswer",
