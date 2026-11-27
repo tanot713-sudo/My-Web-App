@@ -51,19 +51,19 @@
 
 ไม่มี repo ไหนมีเนื้อหาสำหรับผู้เรียนคนไทย
 
-### ข้อมูลเปิด / โมเดล (⚠️ license เขียนจากความรู้ — **ยังไม่ได้เปิดยืนยันใน session นี้**; L0 ต้องยืนยันก่อนใช้)
-| แหล่ง | ใช้ทำอะไร | license ที่คาด |
-|---|---|---|
-| Tatoeba (`downloads.tatoeba.org` — `sentences.csv`, `links.csv`, `sentences_with_audio.csv`, `tags`) | ประโยคตัวอย่าง + คู่แปล (ไทยมีน้อย → อังกฤษเป็นตัวกลาง) | ข้อความ CC BY 2.0 FR · เสียงแยก license รายผู้พูด (บางคน NC/ND) |
-| hermitdave/FrequencyWords (นับจาก OpenSubtitles 2018) | อันดับความถี่คำ ทุกภาษาที่เรามี ยกเว้นอาจขาด lo/km/my | โค้ด MIT · ข้อมูล CC BY-SA 4.0 (ต้องตรวจ) |
-| kaikki.org (Wiktionary ที่แยกเป็น JSON) | คำแปลไทยของคำ (ช่อง `translations` ของ en.wiktionary), การผันคำ, IPA | CC BY-SA 3.0/4.0 + GFDL |
-| CC-CEDICT | จีน (มีใช้อยู่แล้วตรวจ pinyin) | CC BY-SA 4.0 |
-| JMdict | ญี่ปุ่น | CC BY-SA 4.0 (EDRDG) |
-| Kokoro-82M (`onnx-community/Kokoro-82M-v1.0-ONNX`, ไลบรารี kokoro-js) | TTS คุณภาพสูงในเบราว์เซอร์: en, ja, zh, es, fr, hi, it, pt | Apache-2.0 |
-| Meta MMS-TTS (`facebook/mms-tts-khm`, `-lao`, `-mya`, `-zlm`/`-msa`, `-hin`, `-vie` …) | TTS ภาษาที่เครื่องไม่มีเสียง (ใช้ transformers.js ที่ vendor ไว้แล้ว) | **CC BY-NC 4.0** (เว็บส่วนตัวใช้ได้ ห้ามเชิงพาณิชย์) · บางรุ่นต้อง uroman (ตรวจทีละภาษา) |
-| Whisper (`Xenova/whisper-*`, มีอยู่แล้ว) | ถอดเสียงพูดตาม | MIT |
-| `facebook/wav2vec2-xlsr-53-espeak-cv-ft` | รู้จำหน่วยเสียง (IPA) → ให้คะแนนออกเสียง (ทดลอง) | Apache-2.0 |
-| Oxford 3000/5000, รายการ CEFR เชิงพาณิชย์ | — | **ห้ามใช้** (ลิขสิทธิ์) — ใช้ระดับจากความถี่แทน |
+### ข้อมูลเปิด / โมเดล (ตรวจ license ใน L0 เมื่อ 2026-11-26 — คอลัมน์ "สถานะ" บอกว่าเปิดยืนยันจากหน้าจริงได้หรือไม่)
+| แหล่ง | ใช้ทำอะไร | license | สถานะ |
+|---|---|---|---|
+| Tatoeba (`downloads.tatoeba.org` — `sentences.csv`, `links.csv`, `sentences_with_audio.csv`, `tags`) | ประโยคตัวอย่าง + คู่แปล (ไทยมีน้อย → อังกฤษเป็นตัวกลาง) | ข้อความ **CC BY 2.0 FR** (บางส่วน CC0 1.0; ประโยคญี่ปุ่น/อังกฤษส่วนหนึ่งมาจาก Tanaka Corpus = สาธารณสมบัติ) · เสียง = license ตามผู้อัดแต่ละคน ช่อง license ว่าง = ห้ามใช้นอก Tatoeba (สคริปต์ใช้ธงเสียงเฉพาะ CC BY/BY-SA/CC0) | ✅ ยืนยันจาก [tatoeba.org/en/downloads](https://tatoeba.org/en/downloads) 2026-11-26: "These files are released under CC BY 2.0 FR. A part of our sentences are also available under CC0 1.0." · รูปแบบไฟล์ตรงกับที่สคริปต์อ่านแล้ว (ตรวจกับไฟล์จริง: sentences `id⇥lang⇥text`, links `id⇥id`, audio `id⇥audio id⇥user⇥license⇥url`) |
+| hermitdave/FrequencyWords (นับจาก OpenSubtitles 2018) | อันดับความถี่คำ | โค้ด MIT · ข้อมูล **CC-by-sa-4.0** | ✅ ยืนยันจาก README + LICENSE ของ repo ([github.com/hermitdave/FrequencyWords](https://github.com/hermitdave/FrequencyWords#license), 2026-11-26): "MIT License for code. CC-by-sa-4.0 for content." · มีไฟล์ 50k ของ en zh_cn ko de fr it vi ms id ar es pt ru th (2018) และ ja hi (2016) · **ไม่มี**: yue, พม่า (my), เขมร (km), ลาว (lo) → ไม่มีชุดใหม่ของภาษาเหล่านี้จนกว่าจะมีแหล่งอื่นที่ license ตรวจแล้ว |
+| kaikki.org (Wiktionary ที่แยกเป็น JSON) | คำแปลไทยของคำ (ช่อง `translations`), IPA, gloss | เนื้อหา Wiktionary = CC BY-SA 4.0 + GFDL (ตามความรู้) · โค้ด Wiktextract = MIT (ยืนยันจาก README ของ tatuylonen/wiktextract) | ⚠️ **ยืนยันครึ่งเดียว** (2026-11-26): หน้า kaikki.org (`/index.html`, `/dictionary/rawdata.html`) **ไม่ระบุ license ของข้อมูล** และ `en.wiktionary.org/wiki/Wiktionary:Copyrights` เปิดไม่ได้ใน sandbox (403) · ใช้แบบ CC BY-SA 4.0 (ต้องระบุที่มา + แชร์ต่อแบบเดียวกัน — ลงใน credits.html แล้ว) · เจ้าของควรเปิดหน้า Copyrights ของ Wiktionary ยืนยันเอง · ข้อมูลที่ใช้: en.wiktionary dump 2026-10-01 |
+| CC-CEDICT | จีน (มีใช้อยู่แล้วตรวจ pinyin) | CC BY-SA 4.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| JMdict | ญี่ปุ่น | CC BY-SA 4.0 (EDRDG) | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Kokoro-82M (`onnx-community/Kokoro-82M-v1.0-ONNX`, ไลบรารี kokoro-js) | TTS คุณภาพสูงในเบราว์เซอร์: en, ja, zh, es, fr, hi, it, pt | Apache-2.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Meta MMS-TTS (`facebook/mms-tts-khm`, `-lao`, `-mya`, `-zlm`/`-msa`, `-hin`, `-vie` …) | TTS ภาษาที่เครื่องไม่มีเสียง (ใช้ transformers.js ที่ vendor ไว้แล้ว) | **CC BY-NC 4.0** (เว็บส่วนตัวใช้ได้ ห้ามเชิงพาณิชย์) · บางรุ่นต้อง uroman (ตรวจทีละภาษา) | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Whisper (`Xenova/whisper-*`, มีอยู่แล้ว) | ถอดเสียงพูดตาม | MIT | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| `facebook/wav2vec2-xlsr-53-espeak-cv-ft` | รู้จำหน่วยเสียง (IPA) → ให้คะแนนออกเสียง (ทดลอง) | Apache-2.0 | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
+| Oxford 3000/5000, รายการ CEFR เชิงพาณิชย์ | — | **ห้ามใช้** (ลิขสิทธิ์) — ใช้ระดับจากความถี่แทน | ⚠️ ยังไม่ได้ตรวจ (ไม่อยู่ในขอบเขต L0) |
 
 ---
 
@@ -88,17 +88,17 @@
 **เป้า**: เครื่องมือ owner-run ที่สร้างไฟล์ชุดข้อมูลต่อภาษาจากแหล่งเปิด ทำซ้ำได้ ล็อกเวอร์ชันแหล่ง
 1. เปิดหน้า license จริงของ Tatoeba, FrequencyWords, kaikki.org (และ CC-CEDICT/JMdict ถ้าใช้) บันทึกผลในตาราง §2 (แก้ ⚠️ เป็น ✅ + ลิงก์ + วันที่) · แหล่งไหน license ไม่ชัด = ไม่ใช้
 2. `tools/lang-data/` (แบบ `tools/media-eval`, ไม่รันใน CI, ไม่มี root package.json): `build.mjs` (Node ล้วน, ไม่มี dependency หรือ dependency ใน `tests/package.json`) + `README.md` (ขั้นตอนดาวน์โหลดไฟล์ดิบเอง — sandbox อาจเข้าเน็ตไม่ได้ ให้เจ้าของรันบนเครื่อง/Colab)
-3. ผลลัพธ์ `lang-packs/<code>-<เวอร์ชัน>.json` (เวอร์ชันในชื่อไฟล์ = เปลี่ยนเนื้อแล้วชื่อเปลี่ยน ไม่ต้องพึ่ง bump CACHE ให้ข้อมูลใหม่ถึงผู้ใช้) + `lang-packs/index.json` (`{v:1, packs:{"lang-en":{file, words, sentences, sources:[…]}}}`)
-4. รูปแบบไฟล์ (ย่อชื่อช่องเพื่อขนาด):
+3. ผลลัพธ์ `lang-packs/<code>-<hash8>.json.gz` (hash ของ JSON ก่อนบีบ = เปลี่ยนเนื้อแล้วชื่อเปลี่ยน ไม่ต้องพึ่ง bump CACHE) + `lang-packs/index.json` (ไม่บีบ): `{v:1, packs:{"lang-en":{file, words, sentences, bytes (gz), raw (ก่อนบีบ), sources:[…]}}}` · บีบด้วย zlib ระดับ 9, mtime = 0 และ OS byte = 3 → build ซ้ำได้ไบต์เดิม · **หน้าเว็บ (L1) แตกด้วย `DecompressionStream('gzip')`** (ต้องรองรับ: Chrome 80+, Safari 16.4+, Firefox 113+; ไม่รองรับ = บอกผู้ใช้ ไม่ถอยเงียบๆ)
+4. รูปแบบไฟล์ v2 (ย่อให้เล็ก: **ช่องที่ว่างไม่เขียน**):
    ```json
-   { "v": 1, "lang": "lang-en", "src": {"freq": "FrequencyWords@<commit>", "tatoeba": "<วันที่ดาวน์โหลด>", "wikt": "kaikki <วันที่>"},
-     "w": [ {"id": "the", "r": 1, "th": "...", "ipa": "...", "lv": 1} ],
-     "s": [ {"id": 1276, "t": "Let's try something.", "th": "...", "en": "...", "w": ["let's","try","something"], "lv": 1, "au": 0} ] }
+   { "v": 2, "lang": "lang-en", "src": {"freq": "FrequencyWords@<commit>", "tatoeba": "<วันที่ดาวน์โหลด>", "wikt": "kaikki <วันที่>"},
+     "w": [ {"id": "you", "r": 1, "th": "คุณ", "ipa": "/ju/"}, {"id": "the", "r": 3, "g": "Used before a noun phrase", "ipa": "/ðə/"} ],
+     "s": [ {"id": 1329, "t": "Hurry up.", "th": "เร็วเข้า", "lv": 2, "au": 1} ] }
    ```
-   - `w.id` = คำในรูป NFC ตัวพิมพ์เล็ก (ไม่มี `::`) · `r` อันดับความถี่ · `lv` ระดับ 1–6 (A1–C2) จากอันดับ: ≤500=1, ≤1200=2, ≤2500=3, ≤5000=4, ≤8000=5, อื่น=6 (ค่าใน `LangCalc.LEVEL_BANDS` ที่เดียว)
-   - `s.id` = id ประโยคของ Tatoeba (ถาวร) · `th` คำแปลไทยถ้ามีลิงก์ไทยใน Tatoeba ไม่งั้นว่าง · `en` คำแปลอังกฤษ (ตัวกลาง) · `lv` = ระดับของคำที่ยากที่สุดในประโยค · ประโยคยาว ≤ 12 คำ (ญี่ปุ่น/จีน ≤ 25 ตัวอักษร) · `au` = 1 เมื่อ Tatoeba มีเสียงที่ license อนุญาต (ยังไม่ใช้เสียงใน L1)
-   - เพดานต่อภาษา: คำ 3,000 · ประโยค 3,000 (เป้า ≤ ~600 KB ต่อไฟล์ ก่อน gzip)
-   - กรองคำ: ตัดชื่อเฉพาะ/คำหยาบ (รายการตัดใน `tools/lang-data/stop/<code>.txt`), ตัดคำที่ไม่มีคำแปล
+   - `w.id` = คำในรูป NFC ตัวพิมพ์เล็ก (ไม่มี `::`) · `r` อันดับความถี่ · **ไม่มีช่อง `lv` ของคำ** — คิดจาก `r` ด้วย `LEVEL_BANDS` (≤500=1, ≤1200=2, ≤2500=3, ≤5000=4, ≤8000=5, อื่น=6; ค่าที่เดียวใน `LangCalc.LEVEL_BANDS` + `tools/lang-data/lib.js` ต้องตรงกัน) · `th` คำแปลไทย (ไม่มี = ไม่มีช่อง) · `g` gloss อังกฤษ เขียนเฉพาะเมื่อไม่มี `th` (ให้หน้าเว็บแปลไทยตอนใช้) · `ipa` ไม่มี = ไม่มีช่อง
+   - `s.id` = id ประโยคของ Tatoeba (ถาวร) · `t` ประโยคภาษาเป้าหมาย · `th` ถ้ามีลิงก์ไทยใน Tatoeba · `en` คำแปลอังกฤษ (ตัวกลาง; **ภาษาอังกฤษไม่เขียน `en` เพราะ = `t`**; ภาษาอื่นไม่มี `en` = ไม่มีคำแปลอังกฤษ) · `lv` = ระดับของคำที่ยากที่สุดในประโยค · `au:1` เมื่อ Tatoeba มีเสียงที่ license อนุญาต (ไม่มี = ไม่เขียน; ยังไม่ใช้เสียงใน L1) · **ไม่มีช่องรายการคำ `w`** — L1/L2 ตัดคำเองด้วยกฎเดียวกับ `tokenize` ของ `tools/lang-data/lib.js` (ละติน: `[\p{L}\p{M}]+(['’][\p{L}\p{M}]+)*` NFC ตัวพิมพ์เล็ก ไม่นับตัวเลข · ja/zh/yue/km/lo/my: `Intl.Segmenter(code,{granularity:'word'})` เฉพาะที่ `isWordLike`) แล้วย้ายเป็นฟังก์ชันใน `lang-calc.js` พร้อมเทสต์เทียบผลกับ lib.js
+   - ประโยคยาว ≤ 12 คำ (ญี่ปุ่น/จีน/กวางตุ้ง ≤ 25 ตัวอักษร) · เพดานต่อภาษา: คำ 3,000 · ประโยค 3,000 · เป้าขนาด: ดูตัวเลขจริงใน ROADMAP แถว 21
+   - กรองคำ: ตัดชื่อเฉพาะ/คำหยาบ (รายการตัดใน `tools/lang-data/stop/<code>.txt`), ตัดคำที่ไม่มีคำแปล/gloss เมื่อมี kaikki
 5. คำแปลไทยที่ขาด: สคริปต์**ไม่**เรียก AI เอง (sandbox เข้า Workers AI ไม่ได้ และกันค่าใช้จ่ายซ่อน) → ช่องว่างไว้ แล้วหน้าเว็บแปลตอนใช้ (L1 ข้อ 5)
 6. ภาษาที่แหล่งขาด (ลาว/เขมร/พม่า มีใน FrequencyWords น้อยหรือไม่มี; Tatoeba น้อยมาก): รายงานจำนวนที่ได้จริงใน README · ไม่มีข้อมูล = ไม่มีไฟล์ (หน้าไม่แสดงชุดใหม่ของภาษานั้น) ห้ามแต่งข้อมูลเอง
 **ส่งมอบ**: สคริปต์ + README + ตาราง license ที่ยืนยันแล้ว + ไฟล์ตัวอย่าง 1 ภาษา (อังกฤษ) ถ้าดาวน์โหลดได้ · เจ้าของรันภาษาที่เหลือ (เพิ่มในแถว 0)
@@ -107,6 +107,7 @@
 **เป้า**: ทุกโหมดที่มีอยู่ (การ์ดคำ / พิมพ์คำแปล / ฟังแล้วพิมพ์ / ทวน FSRS) ใช้ชุดใหม่ได้ เลือกตามระดับ
 1. `lang-calc.js`: `packFile(index, langId)`, `cardKey(langId, kind, id)` → `lang-en::w::the` / `lang-en::s::1276` (**ไม่อิงดัชนี** — สร้างไฟล์ใหม่แล้วการ์ดเดิมยังตรง), `levelOf(rank)`, `pickNew(pack, srs, {level, n})` (คำใหม่ตามลำดับความถี่ที่ยังไม่มีการ์ด), `sentencesFor(pack, wordId, n)`, `toPoolItems(pack)` → `{key, word, thai, extra}` รูปเดียวกับ `vocabPool`
 2. หน้า: ตัวเลือกแหล่ง "ชุดพื้นฐาน (เดิม) / คำที่ใช้บ่อย (ระดับ A1…C2)" ในโหมดคำศัพท์ (segmented) · โหลด `lang-packs/index.json` + ไฟล์ของภาษาด้วย `fetch` ครั้งแรกที่เลือก (spinner + error ข้อความ "โหลดไม่ได้ — ลองใหม่" ไม่ทำหน้าพัง) · เก็บในหน่วยความจำ ไม่ลง localStorage
+2b. **รูปแบบไฟล์ v2 (จาก L0)**: ไฟล์เป็น `.json.gz` → แตกด้วย `DecompressionStream('gzip')` (ไม่รองรับ = ข้อความบอกผู้ใช้ ไม่ถอยเงียบๆ) · ไฟล์ไม่มี `lv` ของคำและไม่มี `w` ของประโยค: `levelOf(r)` ใช้ `LEVEL_BANDS` ชุดเดียวกับ `tools/lang-data/lib.js`, รายการคำของประโยคตัดด้วย `tokenize` ที่ย้ายมาไว้ใน `lang-calc.js` (เทสต์เทียบผลกับ lib.js) · `index.json` มี `bytes`/`raw` ใช้แสดงขนาดดาวน์โหลดได้
 3. ออฟไลน์: `sw.js` cache-first ของ asset same-origin เก็บไฟล์ให้หลังใช้ครั้งแรกอยู่แล้ว — ตรวจด้วยเทสต์ว่าออฟไลน์เปิดซ้ำได้ · **ไม่ precache** (หลาย MB รวม) · `index.json` ใส่ PRECACHE ได้ (เล็ก)
 4. review.html: เมื่อสร้าง/ให้คะแนนการ์ด `::w::`/`::s::` ต้องเขียนหน้าการ์ดลง faces — แก้ `writeCardFaces` ให้รวมรายการจาก pack ที่โหลดแล้ว + เก็บหน้าการ์ดของการ์ดชุดใหม่ใน**คีย์ใหม่** `lang-practice:faces` (sync map `{key: [word, thai]}`) เพราะ pack อาจยังไม่โหลดตอน `writeCardFaces` รัน และอีกเครื่องต้องเห็นหน้าการ์ด · `review.js` อ่าน `lang-practice:faces` เพิ่มจาก `tanot:learn:faces:lang` (TanotData.read) · ลงทะเบียน registry เหนือ prefix
 5. คำแปลไทยที่ขาด: ปุ่ม "แปลไทย" ต่อการ์ด/ประโยค → `AiClient.summarize({task:'lang-th', model:'fast', messages})` ส่งทีละ ≤ 20 รายการ (D1 `ai_cache` ทำให้ซ้ำฟรี) → ผลเก็บใน `tanot:lang:th` (**cache** kind — สร้างใหม่ได้) และหน้าการ์ดที่สร้างแล้วใน `lang-practice:faces` · ป้าย "แปลโดย AI" เล็กๆ ข้างคำแปลที่มาจาก AI (เป็นสถานะ ไม่ใช่คำอธิบาย) · ไม่มีคลาวด์ = แสดงคำแปลอังกฤษ (`en`) แทน

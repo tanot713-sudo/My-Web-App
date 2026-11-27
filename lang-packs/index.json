@@ -1,0 +1,149 @@
+{
+ "v": 1,
+ "packs": {
+  "lang-ar": {
+   "file": "lang-ar-2c9b5b83.json.gz",
+   "words": 3000,
+   "sentences": 1415,
+   "bytes": 111664,
+   "raw": 359459,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-cn": {
+   "file": "lang-cn-1b6e1e0a.json.gz",
+   "words": 3000,
+   "sentences": 1540,
+   "bytes": 129386,
+   "raw": 421503,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-de": {
+   "file": "lang-de-f338b3ec.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 127039,
+   "raw": 433701,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-en": {
+   "file": "lang-en-89b2cb74.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 138003,
+   "raw": 442896,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-es": {
+   "file": "lang-es-9c8f0009.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 117707,
+   "raw": 425560,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-fr": {
+   "file": "lang-fr-4620f930.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 112512,
+   "raw": 411292,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-it": {
+   "file": "lang-it-d44a7f6e.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 106965,
+   "raw": 414565,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-jp": {
+   "file": "lang-jp-517773de.json.gz",
+   "words": 3000,
+   "sentences": 412,
+   "bytes": 87543,
+   "raw": 261753,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-my": {
+   "file": "lang-my-1d4e1103.json.gz",
+   "words": 3000,
+   "sentences": 964,
+   "bytes": 106519,
+   "raw": 320974,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-pt": {
+   "file": "lang-pt-eaf73fa7.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 124100,
+   "raw": 447613,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-ru": {
+   "file": "lang-ru-286c3639.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 137818,
+   "raw": 546688,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  },
+  "lang-vn": {
+   "file": "lang-vn-811d808c.json.gz",
+   "words": 3000,
+   "sentences": 3000,
+   "bytes": 141948,
+   "raw": 476305,
+   "sources": [
+    "FrequencyWords@525f9b5",
+    "Tatoeba 2026-11-26",
+    "kaikki 2026-10-01"
+   ]
+  }
+ }
+}
