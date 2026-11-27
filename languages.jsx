@@ -13488,7 +13488,7 @@
             return ((await transcribeSpeech(pcm, ASR_LANG_NAME[langId] || 'english')) || '').trim();
         }
 
-        function SubtitlePanel({ awardXp, langId }) {
+        function SubtitlePanel({ awardXp, langId, srs, setSrs }) {
             const L = window.LangCalc.subs;
             const [media, setMedia] = useState(null);   // { url, name, video, file }
             const [cues, setCues] = useState([]);
@@ -13509,6 +13509,21 @@
             // ตัว tick/คีย์ลัดอ่านค่าล่าสุดผ่าน ref (ไม่ผูก listener ใหม่ทุกเฟรม)
             const live = useRef({});
             live.current = { merged, cur, loop };
+            // เก็บประโยคปัจจุบันเป็นการ์ด lang-xx::u::<hash> (คีย์เดียวกับ E3: กดซ้ำ/2 เครื่อง/ประโยคเดียวกับสวมบทบาท = ใบเดียว)
+            const [savedCue, setSavedCue] = useState({});
+            const curCard = merged[cur] ? window.LangCalc.cueCard(langId, merged[cur]) : null;
+            const curSaved = !!(curCard && (savedCue[curCard.key] || (srs && srs[curCard.key])));
+            const saveCue = () => {
+                if (!curCard) return;
+                const now = Date.now();
+                if (window.TanotData) window.TanotData.update('lang-practice:faces', (cur0) => {
+                    const m = (cur0 && typeof cur0 === 'object' && !Array.isArray(cur0)) ? cur0 : {};
+                    m[curCard.key] = curCard.face;
+                    return m;
+                });
+                if (setSrs) setSrs(s => (s[curCard.key] ? s : { ...s, [curCard.key]: { dueAt: now } }));
+                setSavedCue(sv => ({ ...sv, [curCard.key]: true }));
+            };
 
             const pauseEl = () => { const el = elRef.current; stopAt.current = null; if (el) el.pause(); };
             const stopTick = () => { if (rafRef.current) cancelAnimationFrame(rafRef.current); rafRef.current = 0; };
@@ -13740,6 +13755,7 @@
                                     ? <button className="btn danger" data-k="subs-rec" disabled={rec.status === 'transcribing'} onClick={startRec}><MicIcon /> {tx('พูดตามประโยคนี้')}</button>
                                     : <button className="btn primary" data-k="subs-rec-stop" onClick={stopRec}>{tx('⏹ หยุดอัด')}</button>}
                                 {rec.status === 'transcribing' && <span className="text-sm text-gray-500" role="status">{tx('กำลังถอดเสียง...')}</span>}
+                                {curCard && <button className="btn" data-k="subs-card" aria-pressed={curSaved} disabled={curSaved} onClick={saveCue}>{curSaved ? tx('เก็บแล้ว') : tx('เพิ่มเป็นการ์ด')}</button>}
                             </div>
                             {rec.status === 'done' && (
                                 <div className={`p-4 rounded-xl border ${b === 'correct' ? 'bg-green-50 border-green-100' : b === 'almost' ? 'bg-amber-50 border-amber-100' : 'bg-red-50 border-red-100'}`} data-k="subs-result">
@@ -18439,7 +18455,7 @@
                         <div className="bg-white rounded-xl border border-gray-200 p-5 sm:p-6">
                             {subMode === 'listening' && <ListeningPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} langId={langId} />}
-                            {subMode === 'subs' && <SubtitlePanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'subs' && <SubtitlePanel awardXp={awardXp} langId={langId} srs={srs} setSrs={setSrs} />}
                             {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'reader' && <ReaderPanel langId={langId} srs={srs} setSrs={setSrs} />}
                             {subMode === 'roleplay' && <RoleplayPanel awardXp={awardXp} langId={langId} setSrs={setSrs} />}

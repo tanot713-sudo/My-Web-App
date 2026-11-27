@@ -439,6 +439,48 @@ test.describe('หน้า: ซับไตเติล', () => {
 });
 
 const IOS_UA = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
+test.describe('หน้า: ซับไตเติล → การ์ด', () => {
+  const rd = (page, k) => page.evaluate((key) => { try { return JSON.parse(localStorage.getItem(key) || 'null'); } catch (e) { return null; } }, k);
+  test('เพิ่มเป็นการ์ด: คีย์/หน้าการ์ด/srs ถูก · กดซ้ำ = ใบเดียว · ประโยคเดียวกับสวมบทบาท = คีย์เดียว · ไม่มี /api', async ({ page }) => {
+    const LC = require('../lang-calc.js');
+    const { errors, api } = await openSubs(page);
+    await loadAll(page, { thai: true });
+    await page.locator('[data-k="subs-cue"]').nth(1).click();
+    const btn = page.locator('[data-k="subs-card"]');
+    await expect(btn).toBeEnabled();
+    await page.setViewportSize({ width: 390, height: 844 });
+    expect((await btn.boundingBox()).height).toBeGreaterThanOrEqual(40);
+    await btn.click();
+    await expect(btn).toBeDisabled();
+    const key = LC.sentenceCardKey('lang-en', 'How are you today?');
+    const faces = await rd(page, 'lang-practice:faces');
+    expect(Object.keys(faces)).toEqual([key]);
+    expect(faces[key]).toEqual(['How are you today?', 'วันนี้เป็นอย่างไรบ้าง']);
+    const srs = await rd(page, 'lang-practice:srs');
+    expect(Object.keys(srs)).toEqual([key]);
+    expect(typeof srs[key].dueAt).toBe('number');
+    // ไปประโยคอื่น = ปุ่มกลับมากดได้ · กลับมาประโยคเดิม = "เก็บแล้ว"
+    await page.locator('[data-k="subs-cue"]').nth(0).click();
+    await expect(btn).toBeEnabled();
+    await page.locator('[data-k="subs-cue"]').nth(1).click();
+    await expect(btn).toBeDisabled();
+    expect(Object.keys(await rd(page, 'lang-practice:srs')).length).toBe(1);
+    // ใบเดียวกับที่ E3 ทำจากประโยคเดียวกัน
+    expect(LC.turnCard('lang-en', { typed: 'x', fixed: 'How are you today?', changed: true, thai: '' }).key).toBe(key);
+    expect(api).toEqual([]);
+    expect(errors).toEqual([]);
+  });
+  test('การ์ดที่มีใน srs อยู่แล้ว = "เก็บแล้ว" และไม่ทับ SRS เดิม', async ({ page }) => {
+    const LC = require('../lang-calc.js');
+    const key = LC.sentenceCardKey('lang-en', 'Hello there.');
+    await page.addInitScript(([k]) => { if (!localStorage.getItem('lang-practice:srs')) localStorage.setItem('lang-practice:srs', JSON.stringify({ [k]: { dueAt: 5, reps: 3 } })); }, [key]);
+    await openSubs(page);
+    await loadAll(page);
+    await expect(page.locator('[data-k="subs-card"]')).toBeDisabled();
+    expect((await rd(page, 'lang-practice:srs'))[key]).toEqual({ dueAt: 5, reps: 3 });
+  });
+});
+
 test.describe('หน้า: ซับไตเติล บน iPhone', () => {
   test.use({ userAgent: IOS_UA });
 
@@ -498,4 +540,20 @@ test('หน้า: ซับไทยเป็น TIS-620 → เห็นไ�
   await expect(page.locator('[data-k="subs-cue"]').first()).toContainText('Café');
   await page.setInputFiles('[data-k="subs-file-th"]', { name: 'th.srt', mimeType: 'text/plain', buffer: srt(...TIS_SAWASDEE) });
   await expect(page.locator('[data-k="subs-cue"]').first()).toContainText('สวัสดี');
+});
+
+// ───────────────────────── L4 ข้อ 5: การ์ดจากแถวซับ ─────────────────────────
+test.describe('LangCalc.cueCard', () => {
+  const LC = require('../lang-calc.js');
+  test('หน้า = ประโยค · หลัง = ซับไทย · คีย์ = คีย์ประโยค E3', () => {
+    const c = LC.cueCard('lang-en', { start: 1, end: 2, text: '  Today I  checked the chiller. ', thai: 'วันนี้ฉันตรวจเครื่องทำความเย็น' });
+    expect(c.face).toEqual(['Today I checked the chiller.', 'วันนี้ฉันตรวจเครื่องทำความเย็น']);
+    expect(c.key).toBe(LC.sentenceCardKey('lang-en', 'Today I checked the chiller.'));
+    expect(c.key).toBe(LC.turnCard('lang-en', { typed: 'x', fixed: 'today i checked the chiller', changed: true, thai: '' }).key);
+  });
+  test('ไม่มีซับไทย = หลังว่าง · ข้อความว่าง = null', () => {
+    expect(LC.cueCard('lang-en', { text: 'Hello there.' }).face).toEqual(['Hello there.', '']);
+    expect(LC.cueCard('lang-en', { text: '  ' })).toBeNull();
+    expect(LC.cueCard('lang-en', null)).toBeNull();
+  });
 });
