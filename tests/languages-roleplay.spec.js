@@ -8,8 +8,8 @@ const LC = require(path.resolve(__dirname, '..', 'lang-calc.js'));
 const PHRASE_CATS = ['ทักทายและแนะนำตัว', 'การเดินทางและร้านอาหาร', 'การทำงานและสัมภาษณ์งาน', 'เดินทางเข้าประเทศ', 'หาที่พักและเช่าบ้าน', 'ธนาคารและซิมโทรศัพท์', 'ชีวิตประจำวันและซื้อของ', 'โรงพยาบาลและเหตุฉุกเฉิน'];
 
 test.describe('lang-calc (ตรรกะล้วน)', () => {
-  test('SCENES = 8 ฉาก ตรงกับหมวดวลีเดิมทุกหมวด', () => {
-    expect(LC.SCENES.map((s) => s.cat)).toEqual(PHRASE_CATS);
+  test('SCENES: 8 ฉากแรก (L5) ตรงกับหมวดวลีเดิมทุกหมวด ลำดับเดิม (E3 ต่อท้ายได้อย่างเดียว)', () => {
+    expect(LC.SCENES.slice(0, 8).map((s) => s.cat)).toEqual(PHRASE_CATS);
     LC.SCENES.forEach((s) => {
       expect(s.id).toMatch(/^[a-z]+$/);
       expect(s.th && s.en && s.role && s.goal).toBeTruthy();
@@ -106,7 +106,7 @@ test('หน้า: เลือกฉาก → AI เปิดฉาก → �
   await expect(page.locator('[data-k="rp-msg-ai"]')).toHaveCount(2);
   await page.locator('[data-k="rp-th"]').first().click();
   await expect(page.locator('[data-k="rp-th-text"]').first()).toContainText('สวัสดี คุณต้องการอะไร');
-  await page.locator('[data-k="rp-fix"]').first().click();
+  // E3: คำแก้แสดงคู่กับที่พิมพ์ใต้ข้อความผู้เรียนเลย (ไม่ต้องกดปุ่ม)
   await expect(page.locator('[data-k="rp-fix-text"]').first()).toContainText('I would like a menu.');
   await page.click('[data-k="rp-finish"]');
   await expect(page.locator('[data-k="rp-word"]')).toHaveCount(2);
