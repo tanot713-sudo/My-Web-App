@@ -636,6 +636,30 @@
             'หน่วยความจำไม่พอสำหรับเสียงโมเดล — ใช้เสียงเครื่องแทน': 'Not enough memory for the model voice — using the device voice',
             'เสียงโมเดลใช้ไม่ได้ — ใช้เสียงเครื่องแทน': 'Model voice failed — using the device voice'
         });
+        // ── E1 หมวดวลีงาน (ชื่อหมวดใน lang-data ขึ้นต้น "งาน: " — ชื่อเป็นส่วนหนึ่งของคีย์ SRS ห้ามเปลี่ยน)
+        Object.assign(LP_EN, {
+            'งาน': 'Work',
+            'หมวด': 'Category',
+            'ทุกหมวด': 'All categories',
+            'ประชุมหน้างาน': 'Site meetings',
+            'แจ้งเหตุขัดข้องและสถานะงานซ่อม': 'Breakdowns and repair status',
+            'ผู้รับเหมาและการตรวจรับงาน': 'Contractors and inspections',
+            'ความปลอดภัย (PTW, LOTO)': 'Safety (PTW, LOTO)',
+            'อีเมลและรายงาน': 'Emails and reports',
+            'ประเมินราคาและใบเสนอราคา': 'Estimates and quotations',
+            'เงื่อนไขสัญญา': 'Contract terms',
+            'นำเสนอลูกค้าและผู้บริหาร': 'Presenting to clients and managers',
+            'ขายและพรีเซลส์': 'Sales and presales',
+            'สัมภาษณ์งานตำแหน่งวิศวกร': 'Engineering job interviews'
+        });
+        const WORK_CAT_PREFIX = 'งาน: ';
+        function isWorkCat(c) { return String(c).indexOf(WORK_CAT_PREFIX) === 0; }
+        // ชื่อหมวดที่แสดง: หมวดงานแปลตามภาษา UI (short = ไม่มี "งาน: " ใช้ในกลุ่ม "งาน") · หมวดเดิมแสดงตามข้อมูล
+        function catLabel(c, short) {
+            if (!isWorkCat(c)) return c;
+            const rest = tx(c.slice(WORK_CAT_PREFIX.length));
+            return short ? rest : tx('งาน') + ': ' + rest;
+        }
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
             'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
             'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
@@ -13062,12 +13086,13 @@
         function ShadowingPanel({ awardXp, langId }) {
             const langCode = LANGS[langId].code;
             const asrLangName = ASR_LANG_NAME[langId] || 'english';
+            const cats = LANGS[langId].phrases;
+            const [cat, setCat] = useState(''); // '' = ทุกหมวด
             const pool = useMemo(() => {
-                const cats = LANGS[langId].phrases;
                 const out = [];
-                Object.keys(cats).forEach(cat => cats[cat].forEach(p => out.push(p)));
+                Object.keys(cats).forEach(c => { if (!cat || c === cat) cats[c].forEach(p => out.push(p)); });
                 return out;
-            }, [langId]);
+            }, [cats, cat]);
             const [idx, setIdx] = useState(0);
             const [isRecording, setIsRecording] = useState(false);
             const [status, setStatus] = useState(''); // '' | 'recording' | 'transcribing' | 'done' | 'error'
@@ -13078,7 +13103,7 @@
             const chunksRef = useRef([]);
             const streamRef = useRef(null);
 
-            useEffect(() => { setIdx(0); }, [langId]);
+            useEffect(() => { setIdx(0); setCat(''); }, [langId]);
 
             const current = pool[idx % pool.length];
             const reset = () => { setStatus(''); setTranscript(''); setGrade(null); setRecordedUrl(''); };
@@ -13132,7 +13157,13 @@
 
             return (
                 <div>
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('พูดตาม (Shadowing)')}</h3>
+                    <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                        <h3 className="text-lg font-semibold text-gray-800 mb-0">{tx('พูดตาม (Shadowing)')}</h3>
+                        <select data-k="shCat" value={cat} onChange={e => { setCat(e.target.value); setIdx(0); reset(); }} aria-label={tx('หมวด')} className="select w-auto max-w-full">
+                            <option value="">{tx('ทุกหมวด')}</option>
+                            {Object.keys(cats).map(c => <option key={c} value={c}>{catLabel(c)}</option>)}
+                        </select>
+                    </div>
 
                     <div className="bg-white rounded-xl border border-gray-200 p-6 text-center mb-4">
                         <div className="text-2xl font-bold text-gray-900 mb-1" data-i18n-skip>{current.target}</div>
@@ -18487,7 +18518,7 @@
                                             {todoCategories.slice(0, 6).map(c => (
                                                 <button key={`${c.id}:${c.cat}`} data-k="todoRow" onClick={() => goPractice(c.id, c.cat)}
                                                     className="list-row !border-0 w-full text-left rounded-lg">
-                                                    <span className="grow min-w-0 text-sm text-gray-700" data-i18n-skip>{c.cat}</span>
+                                                    <span className="grow min-w-0 text-sm text-gray-700" data-i18n-skip={isWorkCat(c.cat) ? undefined : true}>{catLabel(c.cat)}</span>
                                                     <span className="flex items-center gap-2 shrink-0"><span className="badge">{langTitle(c.id)}</span></span>
                                                 </button>
                                             ))}
@@ -18512,7 +18543,7 @@
                                     </div>
 
                                     <div className="flex flex-wrap gap-2 mb-6">
-                                        {categories.map(c => (
+                                        {categories.filter(c => !isWorkCat(c)).map(c => (
                                             <button
                                                 key={c}
                                                 data-k="category"
@@ -18525,6 +18556,24 @@
                                             </button>
                                         ))}
                                     </div>
+                                    {categories.some(isWorkCat) && (
+                                        <div role="group" aria-labelledby="workCatHead" className="mb-6">
+                                            <h4 id="workCatHead" className="text-sm font-bold text-gray-700 mb-2">{tx('งาน')}</h4>
+                                            <div className="flex flex-wrap gap-2">
+                                                {categories.filter(isWorkCat).map(c => (
+                                                    <button
+                                                        key={c}
+                                                        data-k="workCategory"
+                                                        onClick={() => selectCategory(c)}
+                                                        aria-pressed={category === c}
+                                                        className="chip"
+                                                    >
+                                                        {catLabel(c, true)}{isCategoryDone(langId, c) ? ' ✓' : ''}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div className="space-y-3">
                                         {list.map((p, i) => (
@@ -18535,6 +18584,7 @@
                                                 <div data-i18n-skip>
                                                     <div className="font-semibold text-gray-800" data-i18n-skip>{p.target}</div>
                                                     <div className="text-sm text-gray-500" data-i18n-skip>{p.thai}</div>
+                                                    {p.note && <div className="text-sm text-gray-500 mt-1" data-i18n-skip>{p.note}</div>}
                                                 </div>
                                                 <button onClick={() => speak(p.target, lang.code)} className="btn ghost icon sm shrink-0" aria-label={tx('ฟังเสียง')}>
                                                     <Volume2 />
