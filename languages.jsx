@@ -167,6 +167,7 @@
         // ไอคอนหูฟัง (headphones) ถูกใช้โดยแท็บ "ฟัง-พูด" บนหัวไปแล้ว (ListenIcon) เลยใช้ไอคอนหูแทน
         // สำหรับปุ่ม "ฟังแล้วเขียน" ในแท็บ "ฝึกเขียน" กันสับสนว่าเป็นฟีเจอร์เดียวกัน
         const EarIcon = icon('ear', 'w-3.5 h-3.5');
+        const SpellIcon = icon('spell-check', 'w-3.5 h-3.5');
 
         // ══════════════════════════════════════════════════════════════════════════════════
         // ภาษา UI (ไทย/อังกฤษ) — แปลเฉพาะกรอบ UI ของหน้า (ปุ่ม/หัวข้อ/ข้อความแจ้ง/คำสั่งในโจทย์) ส่วนเนื้อหา
@@ -636,6 +637,23 @@
             'หน่วยความจำไม่พอสำหรับเสียงโมเดล — ใช้เสียงเครื่องแทน': 'Not enough memory for the model voice — using the device voice',
             'เสียงโมเดลใช้ไม่ได้ — ใช้เสียงเครื่องแทน': 'Model voice failed — using the device voice'
         });
+        // ── E2 สมุดคำที่สะกดผิด — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'คำที่สะกดผิด': 'Misspelled words',
+            'ยังไม่มีคำที่สะกดผิด': 'No misspelled words yet',
+            'ท้ายคำ (tion/sion, able/ible…)': 'Word endings (tion/sion, able/ible…)',
+            'e ท้ายคำ': 'Final e',
+            'ตัวอักษรซ้ำ': 'Double letters',
+            'สระคู่ (ea/ee, ie/ei…)': 'Vowel pairs (ea/ee, ie/ei…)',
+            'สระเดี่ยว (a/e, i/y…)': 'Single vowels (a/e, i/y…)',
+            'เครื่องหมายกำกับเสียง': 'Accents',
+            'อื่นๆ': 'Other',
+            'ลบ': 'Delete',
+            '{w} คำ · {n} ครั้ง': '{w} words · {n} times',
+            'ฝึกกลุ่มนี้': 'Practise this group',
+            'ฝึกครบ {n} คำแล้ว': 'Finished all {n} words',
+            'กลับไปสมุดคำ': 'Back to the word list'
+        });
         // ── E1 หมวดวลีงาน (ชื่อหมวดใน lang-data ขึ้นต้น "งาน: " — ชื่อเป็นส่วนหนึ่งของคีย์ SRS ห้ามเปลี่ยน)
         Object.assign(LP_EN, {
             'งาน': 'Work',
@@ -920,6 +938,30 @@
                 out[k] = !va ? vb : !vb ? va : ((va.count || 0) >= (vb.count || 0) ? va : vb);
             });
             return out;
+        }
+
+        // ── E2 สมุดคำที่สะกดผิด (lang-practice:spell) — ตรรกะอยู่ใน LangCalc.spell · เขียนด้วย TanotData.update (อ่านสด → แก้ → เขียน
+        //    ไม่ถือคีย์ จึงไม่เด้งแถบรีโหลดเมื่ออีกเครื่องเพิ่มคำ) · ไม่แตะ lang-practice:wrong ──────────────────────
+        const SPELL_KEY = 'lang-practice:spell';
+        function readSpell() {
+            try { return LangCalc.spell.clean(window.TanotData ? TanotData.read(SPELL_KEY, {}) : JSON.parse(localStorage.getItem(SPELL_KEY) || '{}')); }
+            catch (e) { return {}; }
+        }
+        function writeSpell(fn) {
+            const f = (cur) => { const base = LangCalc.spell.clean(cur); const next = fn(base); return next === base ? undefined : next; };
+            try {
+                if (window.TanotData && TanotData.update) TanotData.update(SPELL_KEY, f);
+                else { const next = f(JSON.parse(localStorage.getItem(SPELL_KEY) || '{}')); if (next) localStorage.setItem(SPELL_KEY, JSON.stringify(next)); }
+            } catch (e) {}
+        }
+        // จดคำที่พิมพ์ผิด (typed ต่างจาก target เฉพาะคำที่ใกล้เคียงกัน) — ภาษาที่ไม่ใช่อักษรละตินข้ามเงียบๆ
+        function recordSpellPairs(langId, pairs) {
+            if (!pairs || !pairs.length || !LangCalc.spell.eligible(langId)) return;
+            writeSpell(m => LangCalc.spell.recordAll(m, langId, pairs, Date.now()));
+        }
+        function recordSpellFrom(langId, target, typed) {
+            if (!LangCalc.spell.eligible(langId)) return;
+            recordSpellPairs(langId, LangCalc.spell.wordsOf(target, typed));
         }
 
         // ── ระบบทวนคำศัพท์แบบเว้นช่วงเวลา (FSRS) — ตัวคำนวณอยู่ใน fsrs.js (ไฟล์กลาง ใช้ร่วมกับห้องเรียนกฎหมาย
@@ -3165,6 +3207,7 @@
                 const norm = normalizeAnswer(text);
                 const results = words.map(w => ({ ...w, used: norm.includes(normalizeAnswer(w.word)) }));
                 setChecked(results);
+                recordSpellPairs(langId, LangCalc.spell.nearIn(words.map(w => w.word), text));
                 results.forEach(r => { if (r.used) recordSrs(r.key, 3); });
                 const usedCount = results.filter(r => r.used).length;
                 if (usedCount > 0) awardXp(usedCount * 5);
@@ -3288,6 +3331,7 @@
             const check = () => {
                 const grade = gradeAnswer(typed, item.word);
                 setResult(grade);
+                recordSpellFrom(langId, item.word, typed);
                 recordSrs(item.key, { correct: 3, almost: 2, wrong: 1 }[grade]);
                 if (grade === 'correct') awardXp(15);
                 else if (grade === 'almost') awardXp(8);
@@ -3376,6 +3420,7 @@
             const checkHeuristic = () => {
                 const grade = gradeAnswer(typed, item.target);
                 setHeuristicResult(grade);
+                recordSpellFrom(langId, item.target, typed);
                 if (grade === 'correct') awardXp(10);
             };
 
@@ -3475,6 +3520,95 @@
             );
         }
 
+        // ── E2 สมุดคำที่สะกดผิด: คำที่พิมพ์ผิดจัดเป็นกลุ่มตามรูปแบบ · "ฝึกกลุ่มนี้" = ฟังแล้วเขียนเฉพาะคำในกลุ่ม ──────────────
+        const SPELL_KIND_LABEL = {
+            'suffix': 'ท้ายคำ (tion/sion, able/ible…)', 'silent-e': 'e ท้ายคำ', 'double': 'ตัวอักษรซ้ำ',
+            'vowel-pair': 'สระคู่ (ea/ee, ie/ei…)', 'vowel-swap': 'สระเดี่ยว (a/e, i/y…)', 'accent': 'เครื่องหมายกำกับเสียง', 'other': 'อื่นๆ',
+        };
+        function SpellDrill({ langId, lang, group, awardXp, onClose }) {
+            const words = group.words;
+            const [i, setI] = useState(0);
+            const [typed, setTyped] = useState('');
+            const [result, setResult] = useState(null); // 'correct' | 'wrong' | null
+            const item = words[i];
+            const done = i >= words.length;
+            useEffect(() => { lucide.createIcons(); }); // แผงนี้เรนเดอร์เองโดย App ไม่เรนเดอร์ตาม — ไอคอนต้องสร้างเอง
+            const check = () => {
+                if (!typed.trim() || !item) return;
+                if (normalizeAnswer(typed) === normalizeAnswer(item.word)) { setResult('correct'); awardXp(10); }
+                else { setResult('wrong'); recordSpellFrom(langId, item.word, typed); }
+            };
+            const next = () => { setI(n => n + 1); setTyped(''); setResult(null); };
+            if (done) {
+                return (
+                    <div className="text-center py-4" data-k="spell-done">
+                        <p className="text-gray-700 mb-3">{tx('ฝึกครบ {n} คำแล้ว', { n: words.length })}</p>
+                        <button type="button" data-k="spell-back" onClick={onClose} className="btn primary">{tx('กลับไปสมุดคำ')}</button>
+                    </div>
+                );
+            }
+            return (
+                <div data-k="spell-drill">
+                    <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                        <span className="badge accent">{tx(SPELL_KIND_LABEL[group.kind])}</span>
+                        <span className="text-sm text-gray-500">{i + 1} / {words.length}</span>
+                    </div>
+                    <div className="mb-3">
+                        <button type="button" data-k="spell-hear" onClick={() => speak(item.word, lang.code)} className="btn"><Volume2 /> {tx('กดฟังเสียง (ฟังซ้ำได้)')}</button>
+                    </div>
+                    <input data-k="spell-input" value={typed} onChange={e => setTyped(e.target.value)} onKeyDown={e => e.key === 'Enter' && !result && check()}
+                        disabled={!!result} placeholder={tx('พิมพ์คำที่ได้ยิน...')} autoCapitalize="off" autoCorrect="off" spellCheck={false} className="input w-full" />
+                    {result && (
+                        <div className={`mt-3 p-4 rounded-xl border ${result === 'correct' ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`} data-k={'spell-' + result}>
+                            <p className="text-sm text-gray-700">{tx('คำตอบที่ถูกต้องคือ')} <strong data-i18n-skip>{item.word}</strong></p>
+                            {result !== 'correct' && <SpellDiff typed={typed} correct={item.word} />}
+                        </div>
+                    )}
+                    {!result
+                        ? <button type="button" data-k="spell-check" onClick={check} disabled={!typed.trim()} className="btn primary lg w-full mt-4">{tx('ตรวจคำตอบ')}</button>
+                        : <button type="button" data-k="spell-next" onClick={next} className="btn primary lg w-full mt-4">{tx('ข้อต่อไป')}</button>}
+                </div>
+            );
+        }
+        function SpellBookPanel({ langId, lang, awardXp }) {
+            const [map, setMap] = useState(readSpell);
+            const [drill, setDrill] = useState(null); // kind ที่กำลังฝึก
+            useEffect(() => { setMap(readSpell()); setDrill(null); }, [langId]);
+            useEffect(() => {
+                if (!window.TanotData || !TanotData.onChange) return undefined;
+                return TanotData.onChange(keys => { if (!keys.length || keys.indexOf(SPELL_KEY) >= 0) setMap(readSpell()); });
+            }, []);
+            const groups = useMemo(() => LangCalc.spell.groups(map, langId), [map, langId]);
+            const group = drill ? groups.find(g => g.kind === drill) : null;
+            const closeDrill = () => { setDrill(null); setMap(readSpell()); };
+            const remove = (key) => { writeSpell(m => LangCalc.spell.remove(m, key)); setMap(readSpell()); };
+            if (drill && group) return <SpellDrill key={drill} langId={langId} lang={lang} group={group} awardXp={awardXp} onClose={closeDrill} />;
+            if (!groups.length) return <p className="text-sm text-gray-400" data-k="spell-empty">{tx('ยังไม่มีคำที่สะกดผิด')}</p>;
+            return (
+                <div className="space-y-5" data-k="spell-book">
+                    {groups.map(g => (
+                        <section key={g.kind} data-k="spell-group" data-kind={g.kind}>
+                            <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
+                                <h3 className="text-base font-semibold text-gray-800">
+                                    {tx(SPELL_KIND_LABEL[g.kind])} <span className="badge" data-k="spell-count">{tx('{w} คำ · {n} ครั้ง', { w: g.n, n: g.total })}</span>
+                                </h3>
+                                <button type="button" data-k="spell-drill-btn" onClick={() => setDrill(g.kind)} className="btn primary sm">{tx('ฝึกกลุ่มนี้')}</button>
+                            </div>
+                            <ul className="list plain" data-i18n-skip>
+                                {g.words.map(e => (
+                                    <li key={e.lang + e.word} className="list-row" data-k="spell-word">
+                                        <span className="flex-1 min-w-0 truncate font-mono">{e.word}</span>
+                                        <span className="badge">{e.count}×</span>
+                                        <button type="button" data-k="spell-del" onClick={() => remove(LangCalc.spell.keyOf(e.lang, e.word))} className="btn ghost icon sm" aria-label={tx('ลบ')}>✕</button>
+                                    </li>
+                                ))}
+                            </ul>
+                        </section>
+                    ))}
+                </div>
+            );
+        }
+
         // ── shell ของหน้า "ฝึกเขียน" — เลือกภาษา + สลับโหมดย่อย 5 แบบ ──────────────────────
         function WritingView({ langId, setLangId, xp, setXp, srs, setSrs, writing, setWriting, dueCounts }) {
             const lang = LANGS[langId];
@@ -3488,6 +3622,7 @@
                 { key: 'srsCompose', label: 'แต่งจากคำที่ทวน', Icon: ShuffleIcon, srsBased: true },
                 { key: 'dictation', label: 'ฟังแล้วเขียน', Icon: EarIcon, srsBased: true },
                 { key: 'translate', label: 'แปลไทย→ภาษา', Icon: LanguagesSmallIcon },
+                ...(LangCalc.spell.eligible(langId) ? [{ key: 'spell', label: 'คำที่สะกดผิด', Icon: SpellIcon }] : []),
             ];
             const langDue = (dueCounts && dueCounts[langId]) || 0;
             const [subMode, setSubMode] = useState(hasScript ? 'script' : 'compose');
@@ -3503,6 +3638,8 @@
                     setModeNotice(['ภาษา{l}ยังไม่มีโหมด "ฝึกเขียนตัวอักษร" (ตอนนี้มีแค่ภาษาจีน ญี่ปุ่น เกาหลี และอังกฤษ) — สลับไปโหมด "แต่งประโยคอิสระ" ให้แล้ว', { id: langId }]);
                 }
             }, [langId]);
+
+            useEffect(() => { if (subMode === 'spell' && !LangCalc.spell.eligible(langId)) setSubMode('compose'); }, [langId]);
 
             useEffect(() => {
                 if (!modeNotice) return;
@@ -3575,6 +3712,7 @@
                             {subMode === 'srsCompose' && <SrsComposePanel langId={langId} lang={lang} srs={srs} recordSrs={recordSrs} awardXp={awardXp} addWritingRecord={addWritingRecord} />}
                             {subMode === 'dictation' && <SrsDictationPanel langId={langId} lang={lang} srs={srs} recordSrs={recordSrs} awardXp={awardXp} />}
                             {subMode === 'translate' && <TranslatePanel langId={langId} lang={lang} awardXp={awardXp} addWritingRecord={addWritingRecord} />}
+                            {subMode === 'spell' && <SpellBookPanel langId={langId} lang={lang} awardXp={awardXp} />}
                         </div>
                     </div>
                 </div>
@@ -17944,6 +18082,7 @@
                 setCur(item);
                 const g = gradeAnswer(typed, item.t);
                 setResult(g);
+                recordSpellFrom(langId, item.t, typed);
                 if (g === 'correct') setXp(x => x + 20); else if (g === 'almost') setXp(x => x + 10);
             };
             const next = () => rate(result === 'correct' ? 3 : result === 'almost' ? 2 : 1);
@@ -18383,6 +18522,7 @@
                 if (!typed.trim()) return;
                 const grade = gradeAnswer(typed, current.target);
                 setResult(grade);
+                recordSpellFrom(langId, current.target, typed);
                 if (grade === 'correct') { setXp(x => x + 20); markProgress(true); clearWrong(); }
                 else if (grade === 'almost') { setXp(x => x + 10); }
                 else recordWrong();

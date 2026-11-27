@@ -149,6 +149,8 @@
     { key: 'lang-practice:progress', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:notes', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:wrong', kind: 'sync', mode: 'map' },
+    // ภาษา E2: สมุดคำที่สะกดผิด — 1 คำ = 1 doc (`<langId>::<คำ>`) · LangCalc.spell เป็นเจ้าของรูปแบบ/ตัวล้าง
+    { key: 'lang-practice:spell', kind: 'sync', mode: 'map' },
     // ภาษา L1 (docs/languages-design.md): หน้าการ์ดของการ์ด ::w::/::s:: (1 การ์ด = 1 doc) · คำแปลไทยจาก AI สร้างใหม่ได้ = cache
     { key: 'lang-practice:faces', kind: 'sync', mode: 'map' },
     { key: 'tanot:lang:th', kind: 'cache' },

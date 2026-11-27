@@ -549,12 +549,246 @@
   return { LEVELS: LEVELS, SCENES: SCENES, sceneOf: sceneOf, scenesFor: scenesFor, sentenceNorm: sentenceNorm, sentenceCardKey: sentenceCardKey, turnReview: turnReview, turnCard: turnCard, roleplayMessages: roleplayMessages, parseRoleplay: parseRoleplay, summaryMessages: summaryMessages, parseSummary: parseSummary, userCardKey: userCardKey };
   })();
 
+  // ── E2 สะกดผิด (ROADMAP แถว 34 · docs/languages-design.md §7) ───────────────────────
+  // จำคำที่พิมพ์ผิดตอนฟังแล้วเขียน/พิมพ์คำแปล/แต่งประโยค แล้วจัดเป็นรูปแบบ (สระคู่ ea/ee · สระเดี่ยว a/e · e ท้ายคำ · ตัวซ้ำ · -tion/-sion ฯลฯ)
+  // คีย์ lang-practice:spell = sync map `<langId>::<คำ ตัวพิมพ์เล็ก>` → {lang, word, kind, count, last, kinds:{kind:n}} (1 คำ = 1 doc)
+  // ใช้กับภาษาอักษรละติน (ตรรกะสระผูกกับอังกฤษ แต่ accent ใช้ได้กับเฟรนช์/สเปน/โปรตุเกส ฯลฯ) — ภาษาอื่นไม่บันทึก
+  var spell = (function () {
+    var KINDS = ['suffix', 'silent-e', 'double', 'vowel-pair', 'vowel-swap', 'accent', 'other'];
+    var MAX = 500, MAX_WORD = 40, MIN_WORD = 2;
+    var LATIN_LANGS = { 'lang-en': 1, 'lang-de': 1, 'lang-fr': 1, 'lang-it': 1, 'lang-vn': 1, 'lang-my': 1, 'lang-es': 1, 'lang-pt': 1 };
+    var SUFFIXES = [['tion', 'sion'], ['able', 'ible'], ['ance', 'ence'], ['ancy', 'ency'], ['ant', 'ent']];
+    var L = 'A-Za-z\\u00C0-\\u024F\\u1E00-\\u1EFF';
+    var TOKEN = new RegExp('[' + L + ']+(?:[\'\\u2019][' + L + ']+)*', 'g');
+    var WORD = new RegExp('^[' + L + ']+(?:[\'\\u2019-][' + L + ']+)*$');
+
+    function eligible(langId) { return LATIN_LANGS[langId] === 1; }
+    function norm(w) { return String(w == null ? '' : w).normalize('NFC').trim().toLowerCase(); }
+    function strip(w) { return w.normalize('NFD').replace(/[̀-ͯ]/g, '').normalize('NFC'); }
+    function cf(w) { return w.replace(/['’]/g, ''); }
+    function isWord(w) { return w.length >= MIN_WORD && w.length <= MAX_WORD && WORD.test(w); }
+    function tokens(text) { return String(text == null ? '' : text).normalize('NFC').match(TOKEN) || []; }
+
+    // ระยะแก้ไข (Levenshtein + สลับตัวติดกัน = 1 — recieve/receive นับ 1)
+    function dist(a, b) {
+      var m = a.length, n = b.length, d = [], i, j;
+      for (i = 0; i <= m; i++) { d[i] = [i]; }
+      for (j = 1; j <= n; j++) d[0][j] = j;
+      for (i = 1; i <= m; i++) {
+        for (j = 1; j <= n; j++) {
+          var c = a.charAt(i - 1) === b.charAt(j - 1) ? 0 : 1;
+          d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + c);
+          if (i > 1 && j > 1 && a.charAt(i - 1) === b.charAt(j - 2) && a.charAt(i - 2) === b.charAt(j - 1)) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+        }
+      }
+      return d[m][n];
+    }
+    function sim(a, b) { var n = Math.max(a.length, b.length); return n ? 1 - dist(a, b) / n : 1; }
+
+    function isVowel(s, i) { var c = s.charAt(i); return 'aeiou'.indexOf(c) >= 0 || (c === 'y' && i > 0); }
+    function vowelRuns(s) {
+      var runs = [], cur = '';
+      for (var i = 0; i < s.length; i++) {
+        if (isVowel(s, i)) cur += s.charAt(i); else if (cur) { runs.push(cur); cur = ''; }
+      }
+      if (cur) runs.push(cur);
+      return runs;
+    }
+    function consonants(s) { var o = ''; for (var i = 0; i < s.length; i++) if (!isVowel(s, i)) o += s.charAt(i); return o; }
+    function collapse(s) { return s.replace(/([^aeiouy])\1+/g, '$1'); }
+
+    function isSuffix(a, b) {
+      for (var k = 0; k < SUFFIXES.length; k++) {
+        for (var o = 0; o < 2; o++) {
+          var x = SUFFIXES[k][o], y = SUFFIXES[k][1 - o];
+          if (a.length > x.length + 1 && b.length > y.length + 1 && a.slice(-x.length) === x && b.slice(-y.length) === y &&
+              dist(a.slice(0, -x.length), b.slice(0, -y.length)) <= 2) return true;
+        }
+      }
+      return false;
+    }
+    function isSilentE(a, b) {
+      var ea = /[^aeiou]e$/.test(a), eb = /[^aeiou]e$/.test(b);
+      if (ea === eb) return false;
+      if (ea && /e$/.test(b)) return false;
+      if (eb && /e$/.test(a)) return false;
+      return dist(a.replace(/e$/, ''), b.replace(/e$/, '')) <= 1 && dist(a, b) >= 1;
+    }
+    function isDouble(a, b) { return dist(collapse(a), collapse(b)) < dist(a, b); }
+    function vowelKind(a, b) {
+      if (consonants(a) !== consonants(b)) return '';
+      var ra = vowelRuns(a), rb = vowelRuns(b);
+      if (ra.length !== rb.length) return 'vowel-swap';
+      for (var i = 0; i < ra.length; i++) if (ra[i] !== rb[i] && (ra[i].length > 1 || rb[i].length > 1)) return 'vowel-pair';
+      return 'vowel-swap';
+    }
+
+    // รูปแบบหลักของคู่ (target = ที่ถูก, typed = ที่พิมพ์) · '' = เหมือนกัน · ผิดหลายจุดเลือกตามลำดับ KINDS
+    function diffKind(target, typed) {
+      var a = norm(target), b = norm(typed);
+      if (cf(a) === cf(b)) return '';
+      var A = cf(strip(a)), B = cf(strip(b));
+      if (A === B) return 'accent';
+      var k = 'other';
+      if (isSuffix(A, B)) k = 'suffix';
+      else if (isSilentE(A, B)) k = 'silent-e';
+      else if (isDouble(A, B)) k = 'double';
+      else k = vowelKind(A, B) || 'other';
+      if (k === 'other' && dist(cf(a), cf(b)) > dist(A, B)) return 'accent';
+      return k;
+    }
+
+    // คู่ (คำที่ถูก, คำที่พิมพ์) ที่ต่างกันในประโยคเดียวกัน — จับคู่ด้วยลำดับคำ แล้วหาคำที่ใกล้ที่สุดในช่วงที่ไม่ตรงกัน
+    function wordsOf(target, typed) {
+      var ta = tokens(target), tb = tokens(typed), out = [];
+      if (!ta.length || !tb.length) return out;
+      var fa = ta.map(function (w) { return cf(norm(w)); }), fb = tb.map(function (w) { return cf(norm(w)); });
+      var m = fa.length, n = fb.length, i, j, dp = [];
+      for (i = 0; i <= m; i++) { dp[i] = []; for (j = 0; j <= n; j++) dp[i][j] = 0; }
+      for (i = m - 1; i >= 0; i--) for (j = n - 1; j >= 0; j--) dp[i][j] = fa[i] === fb[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+      var gaps = [], i0 = 0, j0 = 0;
+      i = 0; j = 0;
+      while (i < m && j < n) {
+        if (fa[i] === fb[j]) { gaps.push([i0, i, j0, j]); i++; j++; i0 = i; j0 = j; }
+        else if (dp[i + 1][j] >= dp[i][j + 1]) i++;
+        else j++;
+      }
+      gaps.push([i0, m, j0, n]);
+      gaps.forEach(function (g) {
+        var used = {};
+        for (var x = g[0]; x < g[1]; x++) {
+          var w = cf(norm(ta[x]));
+          if (w.length < 3) continue;
+          var best = -1, bs = 0;
+          for (var y = g[2]; y < g[3]; y++) {
+            if (used[y]) continue;
+            var t = cf(norm(tb[y]));
+            if (t.length < 2) continue;
+            var sc = sim(w, t);
+            if (sc >= 0.6 && sc > bs) { bs = sc; best = y; }
+          }
+          if (best < 0) continue;
+          var typedW = cf(norm(tb[best])), kind = diffKind(w, typedW);
+          if (!kind) continue;
+          used[best] = 1;
+          out.push({ word: norm(ta[x]), typed: norm(tb[best]), kind: kind });
+        }
+      });
+      return out;
+    }
+
+    // แต่งประโยค: คำที่ต้องใช้ แต่ในประโยคมีคำที่ใกล้เคียงโดยไม่ตรง = พิมพ์ผิด (พิมพ์ถูกหรือไม่ใช้เลย = ไม่นับ)
+    function nearIn(words, text) {
+      var tb = tokens(text).map(function (w) { return cf(norm(w)); }), have = {}, out = [], seen = {};
+      tb.forEach(function (t) { have[t] = 1; });
+      (words || []).forEach(function (raw) {
+        var w = cf(norm(raw));
+        if (w.length < 4 || seen[w] || !isWord(w)) return;
+        seen[w] = 1;
+        if (have[w]) return;
+        var best = '', bs = 0;
+        tb.forEach(function (t) {
+          if (t.length < 4 || (words || []).some(function (o) { return cf(norm(o)) === t; })) return;
+          var sc = sim(w, t);
+          if (sc >= 0.7 && sc > bs) { bs = sc; best = t; }
+        });
+        if (!best) return;
+        var kind = diffKind(w, best);
+        if (kind) out.push({ word: w, typed: best, kind: kind });
+      });
+      return out;
+    }
+
+    function keyOf(langId, word) {
+      var w = norm(word);
+      if (!/^lang-[a-z]{2,4}$/.test(String(langId || '')) || !isWord(w)) return '';
+      return langId + '::' + w;
+    }
+    function mainKind(kinds, prev, prevLast) {
+      var best = '', bn = 0;
+      KINDS.forEach(function (k) { if (kinds[k] > bn || (kinds[k] === bn && bn > 0 && k === prev)) { best = k; bn = kinds[k]; } });
+      return best || prev || 'other';
+    }
+    function copy(map) {
+      var out = {};
+      if (map && typeof map === 'object' && !Array.isArray(map)) Object.keys(map).forEach(function (k) { if (k !== '__proto__') out[k] = map[k]; });
+      return out;
+    }
+    function trim(out) {
+      var keys = Object.keys(out);
+      if (keys.length <= MAX) return out;
+      keys.sort(function (a, b) { return (out[a].last || 0) - (out[b].last || 0); });
+      for (var i = 0; i < keys.length - MAX; i++) delete out[keys[i]];
+      return out;
+    }
+
+    function record(map, langId, word, kind, now) {
+      var key = keyOf(langId, word);
+      if (!key || KINDS.indexOf(kind) < 0) return map;
+      var out = copy(map), e = out[key], t = typeof now === 'number' && isFinite(now) ? now : 0;
+      var kinds = {};
+      if (e && e.kinds) KINDS.forEach(function (k) { if (e.kinds[k] > 0) kinds[k] = e.kinds[k]; });
+      kinds[kind] = (kinds[kind] || 0) + 1;
+      // รูปแบบที่เจอบ่อยสุด · เท่ากัน = รูปแบบที่เพิ่งเจอล่าสุด
+      var best = kind, bn = kinds[kind];
+      KINDS.forEach(function (k) { if (kinds[k] > bn) { best = k; bn = kinds[k]; } });
+      out[key] = { lang: langId, word: norm(word), kind: best, count: ((e && e.count) || 0) + 1, last: t, kinds: kinds };
+      return trim(out);
+    }
+    function recordAll(map, langId, pairs, now) {
+      var out = map;
+      (pairs || []).forEach(function (p) { if (p) out = record(out, langId, p.word, p.kind, now); });
+      return out;
+    }
+
+    // ข้อมูลที่ซิงก์มาจากเครื่องอื่นเป็นข้อมูลภายนอก — ตรวจทุกช่องก่อนใช้
+    function clean(raw) {
+      var out = {};
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+      Object.keys(raw).forEach(function (key) {
+        var e = raw[key];
+        if (key === '__proto__' || !e || typeof e !== 'object' || Array.isArray(e)) return;
+        if (typeof e.word !== 'string' || typeof e.lang !== 'string' || keyOf(e.lang, e.word) !== key) return;
+        var count = Math.min(1000000, Math.max(1, Math.floor(Number(e.count)) || 1));
+        var kinds = {}, n = 0;
+        if (e.kinds && typeof e.kinds === 'object') KINDS.forEach(function (k) { var v = Math.floor(Number(e.kinds[k])); if (v > 0) { kinds[k] = Math.min(1000000, v); n++; } });
+        var kind = KINDS.indexOf(e.kind) >= 0 ? e.kind : (n ? mainKind(kinds) : 'other');
+        if (!n) kinds[kind] = count;
+        var last = Number(e.last);
+        out[key] = { lang: e.lang, word: norm(e.word), kind: kind, count: count, last: isFinite(last) && last > 0 ? last : 0, kinds: kinds };
+      });
+      return trim(out);
+    }
+
+    function groups(map, langId) {
+      var m = clean(map), by = {}, list = [];
+      Object.keys(m).forEach(function (k) { var e = m[k]; if (e.lang === langId) (by[e.kind] = by[e.kind] || []).push(e); });
+      KINDS.forEach(function (k) {
+        if (!by[k]) return;
+        var words = by[k].sort(function (a, b) { return b.count - a.count || b.last - a.last || (a.word < b.word ? -1 : 1); });
+        list.push({ kind: k, words: words, n: words.length, total: words.reduce(function (s, e) { return s + e.count; }, 0) });
+      });
+      // sort เสถียร (ES2019) — จำนวนครั้งเท่ากันคงลำดับ KINDS
+      return list.sort(function (a, b) { return b.total - a.total; });
+    }
+
+    function remove(map, key) {
+      if (typeof key !== 'string' || key === '__proto__' || !map || typeof map !== 'object' || !Object.prototype.hasOwnProperty.call(map, key)) return map;
+      var out = copy(map);
+      delete out[key];
+      return out;
+    }
+
+    return { KINDS: KINDS, MAX: MAX, eligible: eligible, diffKind: diffKind, wordsOf: wordsOf, nearIn: nearIn, keyOf: keyOf, record: record, recordAll: recordAll, clean: clean, groups: groups, remove: remove };
+  })();
+
+
   return {
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,
     thaiOf: thaiOf, ipaText: ipaText, face: face, missingThai: missingThai, thMessages: thMessages, parseTh: parseTh, mergeTh: mergeTh, chunk: chunk,
-    subs: subs,
+    subs: subs, spell: spell,
     LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, scenesFor: roleplay.scenesFor,
     sentenceNorm: roleplay.sentenceNorm, sentenceCardKey: roleplay.sentenceCardKey, turnReview: roleplay.turnReview, turnCard: roleplay.turnCard, roleplayMessages: roleplay.roleplayMessages,
     parseRoleplay: roleplay.parseRoleplay, summaryMessages: roleplay.summaryMessages, parseSummary: roleplay.parseSummary, userCardKey: roleplay.userCardKey
