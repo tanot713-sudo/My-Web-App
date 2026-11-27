@@ -161,10 +161,72 @@
     for (var i = 0; i < ASR_MODELS.length; i++) if (ASR_MODELS[i].id === modelId) return ASR_MODELS[i];
     return null;
   }
+  /* ── L6 เสียงอ่านของหน้าเรียนภาษา (languages.html → lang-tts.js) ──
+     ใช้เมื่อเครื่องไม่มีเสียงของภาษานั้น หรือผู้ใช้เลือก "เสียงโมเดล" เอง (ค่าเริ่มต้น = เสียงเครื่อง) · คีย์ = รหัสภาษาตัวหน้า (km, pt-BR → pt)
+     ตรวจกับ Hugging Face จริง 2026-11-26 (tokenizer_config.json: is_uroman/phonemize = false ทุกตัว) · revision = commit ที่ล็อกไว้ (URL …/resolve/<sha>/… = คีย์แคช)
+     • facebook/mms-tts-* (CC BY-NC 4.0) ไม่มีไฟล์ ONNX → ใช้ repo ที่แปลงแล้ว: Xenova/mms-tts-* (q8 = onnx/model_quantized.onnx ค่าเริ่มต้นของ WASM),
+       เขมร VanNet2003/mms-tts-khm-onnx (ONNX ของ KrorngAI/mms-tts-khm-finetuned, CC BY-NC 4.0), พม่า 233contentisContent/mms-tts-mya-onnx (ONNX ของ facebook/mms-tts-mya, CC BY-NC 4.0)
+       สองตัวหลังมีแค่ onnx/model.onnx → dtype fp32
+     • ข้าม: ลาว/มลายู (ไม่มี repo ONNX ที่ใช้กับ transformers.js), เกาหลี (is_uroman = true), จีน/ญี่ปุ่น/อิตาลี/อังกฤษ (ไม่มี MMS ONNX หรือเครื่องมีเสียงเสมอ)
+     • vocab = คีย์ตัวอักษรเดียวของ vocab.json ที่ commit นั้น — langTtsChunks กรองข้อความให้เหลือแค่ตัวในนี้ (ตัวนอก vocab ทำ ONNX พังได้ แบบเสียงไทยใน Section 4) */
+  var LANG_TTS = {
+    km: { model: 'VanNet2003/mms-tts-khm-onnx', revision: '0786bea2c6068d337964af8a1001cee8df4f84a5', dtype: 'fp32', vocab: " -1_q\u1780\u1781\u1782\u1783\u1784\u1785\u1786\u1787\u1788\u1789\u178a\u178b\u178c\u178e\u178f\u1790\u1791\u1792\u1793\u1794\u1795\u1796\u1797\u1798\u1799\u179a\u179b\u179c\u179f\u17a0\u17a1\u17a2\u17a5\u17a7\u17aa\u17ab\u17ac\u17ad\u17ae\u17af\u17b1\u17b6\u17b7\u17b8\u17b9\u17ba\u17bb\u17bc\u17bd\u17be\u17bf\u17c0\u17c1\u17c2\u17c3\u17c4\u17c5\u17c6\u17c7\u17c8\u17c9\u17ca\u17cb\u17cc\u17cd\u17ce\u17cf\u17d0\u17d2" },
+    my: { model: '233contentisContent/mms-tts-mya-onnx', revision: 'ba723f1daac33a98cc43442c789975ea95a63453', dtype: 'fp32', vocab: " '\u1000\u1001\u1002\u1004\u1005\u1006\u1007\u1008\u1009\u100a\u100b\u100c\u100d\u100f\u1010\u1011\u1012\u1013\u1014\u1015\u1016\u1017\u1018\u1019\u101a\u101b\u101c\u101d\u101e\u101f\u1021\u1023\u1024\u1025\u1026\u1027\u1029\u102b\u102c\u102d\u102e\u102f\u1030\u1031\u1032\u1036\u1037\u1038\u1039\u103a\u103b\u103c\u103d\u103e\u103f" },
+    hi: { model: 'Xenova/mms-tts-hin', revision: '3fc18cc9d5ce10023fb0d22e8339e318fdcae9d9', vocab: " '-012348_`\u0901\u0902\u0903\u0905\u0906\u0907\u0908\u0909\u090a\u090f\u0910\u0911\u0913\u0914\u0915\u0916\u0917\u0918\u091a\u091b\u091c\u091d\u091e\u091f\u0920\u0921\u0922\u0923\u0924\u0925\u0926\u0927\u0928\u092a\u092b\u092c\u092d\u092e\u092f\u0930\u0932\u0935\u0936\u0937\u0938\u0939\u093c\u093e\u093f\u0940\u0941\u0942\u0943\u0945\u0947\u0948\u0949\u094b\u094c\u094d\u200d" },
+    ar: { model: 'Xenova/mms-tts-ara', revision: 'e9dd80f91dcc6fb96b590806bb15421ec6d381c4', vocab: " _\u0621\u0622\u0623\u0624\u0625\u0626\u0627\u0628\u0629\u062a\u062b\u062c\u062d\u062e\u062f\u0630\u0631\u0632\u0633\u0634\u0635\u0636\u0637\u0638\u0639\u063a\u0641\u0642\u0643\u0644\u0645\u0646\u0647\u0648\u0649\u064a\u2013" },
+    vi: { model: 'Xenova/mms-tts-vie', revision: '7f40ca63bb6072ac57026210f2fea55242511214', vocab: " '-2_abcdeghiklmnopqrstuvxy\u00e0\u00e1\u00e2\u00e3\u00e8\u00e9\u00ea\u00ec\u00ed\u00f2\u00f3\u00f4\u00f5\u00f9\u00fa\u00fd\u0103\u0111\u0129\u0169\u01a1\u01b0\u1ea1\u1ea3\u1ea5\u1ea7\u1ea9\u1eab\u1ead\u1eaf\u1eb1\u1eb3\u1eb5\u1eb7\u1eb9\u1ebb\u1ebd\u1ebf\u1ec1\u1ec3\u1ec5\u1ec7\u1ec9\u1ecb\u1ecd\u1ecf\u1ed1\u1ed3\u1ed5\u1ed7\u1ed9\u1edb\u1edd\u1edf\u1ee1\u1ee3\u1ee5\u1ee7\u1ee9\u1eeb\u1eed\u1eef\u1ef1\u1ef3\u1ef5\u1ef7\u1ef9\u2013" },
+    ru: { model: 'Xenova/mms-tts-rus', revision: '4eae20fc9e3442ec4ad1254d7f703a8cbbbab692', vocab: " -0124_cmoq\u0430\u0431\u0432\u0433\u0434\u0435\u0436\u0437\u0438\u0439\u043a\u043b\u043c\u043d\u043e\u043f\u0440\u0441\u0442\u0443\u0444\u0445\u0446\u0447\u0448\u0449\u044a\u044b\u044c\u044d\u044e\u044f\u2013" },
+    es: { model: 'Xenova/mms-tts-spa', revision: '03f05a694412894ff930e9418fa05f52d66d6ad3', vocab: " 0123456789_abcdefghijklmnopqrstuvxyz\u00e1\u00e9\u00ed\u00f1\u00f3\u00fa\u00fc\u2014" },
+    fr: { model: 'Xenova/mms-tts-fra', revision: 'c7aa283bf5b599d3c804e4accab07f6394a2b4ae', vocab: " '-_abcdefghijklmnopqrstuvxyz\u00e0\u00e2\u00e7\u00e8\u00e9\u00ea\u00eb\u00ee\u00ef\u00f4\u00f9\u00fb\u00fc\u0153\u2013" },
+    de: { model: 'Xenova/mms-tts-deu', revision: 'b95ad64a0715453237dc47ed873235a0024b4275', vocab: " -012345678_abcdefghijklmnopqrstuvwxyz\u00df\u00e4\u00eb\u00ef\u00f6\u00fc\u2013" },
+    pt: { model: 'Xenova/mms-tts-por', revision: '0b60fe3ec9126a6b6158afac517198d756e55b87', vocab: " '-124_abcdefghijlmnopqrstuvxz\u00e0\u00e1\u00e2\u00e3\u00e7\u00e9\u00ea\u00ed\u00f3\u00f4\u00f5\u00fa\u2014" }
+  };
+  var LANG_TTS_BY_MODEL = {};
+  Object.keys(LANG_TTS).forEach(function (k) { LANG_TTS[k].key = k; LANG_TTS_BY_MODEL[LANG_TTS[k].model] = LANG_TTS[k]; });
+  var LANG_TTS_MAX = 120; // ท่อนยาวสุดที่ส่งเข้าโมเดล (VITS ช้าแบบ O(n²) ตามความยาว — วลีในหน้าสั้นกว่านี้เกือบทั้งหมด)
+  var LANG_SENT_RE = /[.!?;:\n\r\u3002\uff01\uff1f\u0964\u0965\u104a\u104b\u17d4\u17d5\u061f\u060c\u061b]+/;
+  var LANG_SKIP = { '_': 1, '`': 1, '0': 1, '1': 1, '2': 1, '3': 1, '4': 1, '5': 1, '6': 1, '7': 1, '8': 1, '9': 1 }; // อยู่ใน vocab บางตัวแต่ไม่ใช่เสียงพูด (เลขมีแค่บางหลัก → ตัดทั้งหมดให้เหมือนกัน)
+  var MARK_RE = null;
+  try { MARK_RE = new RegExp('\\p{M}', 'u'); } catch (e) { MARK_RE = /[\u0300-\u036f\u064b-\u065f\u0670]/; }
+  function langTtsInfo(code) {
+    var k = String(code || '').toLowerCase().split(/[-_]/)[0];
+    return Object.prototype.hasOwnProperty.call(LANG_TTS, k) ? LANG_TTS[k] : null;
+  }
+  /* ข้อความ → ท่อนที่มีแต่ตัวอักษรใน vocab: NFC → ตัวใน vocab เก็บ · ไม่อยู่แต่ตัวพิมพ์เล็กอยู่ = ใช้ตัวเล็ก · เครื่องหมายกำกับที่ไม่อยู่ (ฮะรากัตอาหรับ) = ตัดทิ้งไม่เว้นวรรค · อื่นๆ = ช่องว่าง
+     ตัดท่อนที่วรรคตอนจบประโยคก่อน แล้วที่ช่องว่าง ≤ LANG_TTS_MAX (ไม่มีช่องว่าง = ตัดที่ตัวที่ไม่ใช่เครื่องหมายกำกับ ไม่ฉีกสระ/วรรณยุกต์ออกจากพยัญชนะ) · ท่อนที่ไม่มีตัวอักษรจริง = ทิ้ง */
+  function langTtsChunks(code, text) {
+    var info = langTtsInfo(code), out = [];
+    if (!info || !text) return out;
+    var vocab = info.vocab, s = String(text);
+    try { s = s.normalize('NFC'); } catch (e) {}
+    s.split(LANG_SENT_RE).forEach(function (part) {
+      var t = '';
+      for (var i = 0; i < part.length; i++) {
+        var ch = part.charAt(i), lo = ch.toLowerCase();
+        if (LANG_SKIP[ch]) t += ' ';
+        else if (vocab.indexOf(ch) >= 0) t += ch;
+        else if (lo.length === 1 && vocab.indexOf(lo) >= 0) t += lo;
+        else if (!MARK_RE.test(ch)) t += ' ';
+      }
+      t = t.replace(/\s+/g, ' ').trim();
+      while (t.length > LANG_TTS_MAX) {
+        var cut = t.lastIndexOf(' ', LANG_TTS_MAX);
+        if (cut <= 0) { cut = LANG_TTS_MAX; while (cut > 1 && MARK_RE.test(t.charAt(cut))) cut--; }
+        out.push(t.slice(0, cut).trim());
+        t = t.slice(cut).trim();
+      }
+      out.push(t);
+    });
+    return out.filter(function (c) { return /[^\s'\-\u2013\u2014]/.test(c); });
+  }
   g.TanotMediaModels = {
     TTS_DTYPE_OVERRIDES: TTS_DTYPE_OVERRIDES,
     ASR_MODELS: ASR_MODELS,
-    ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || null; },
+    ttsDtype: function (modelId) { return TTS_DTYPE_OVERRIDES[modelId] || (LANG_TTS_BY_MODEL[modelId] && LANG_TTS_BY_MODEL[modelId].dtype) || null; },
+    LANG_TTS: LANG_TTS,
+    LANG_TTS_MAX: LANG_TTS_MAX,
+    langTtsInfo: langTtsInfo,
+    langTtsChunks: langTtsChunks,
     TTS_DEFAULT_VOICE: TTS_DEFAULT_VOICE,
     TTS_VOICE_IDS: TTS_VOICE_IDS,
     TTS_REVISION: TTS_REVISION,
@@ -174,7 +236,7 @@
       return Object.prototype.hasOwnProperty.call(TTS_MIGRATE, modelId) ? TTS_MIGRATE[modelId] : TTS_DEFAULT_VOICE;
     },
     /* commit ของ Hugging Face ที่ล็อกไว้ (ไม่มีในตาราง = 'main') — ส่งเป็น option revision ของ pipeline() ทุกทาง */
-    ttsRevision: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_REVISION, modelId) ? TTS_REVISION[modelId] : 'main'; },
+    ttsRevision: function (modelId) { return Object.prototype.hasOwnProperty.call(TTS_REVISION, modelId) ? TTS_REVISION[modelId] : (LANG_TTS_BY_MODEL[modelId] ? LANG_TTS_BY_MODEL[modelId].revision : 'main'); },
     /* ชื่อเสียงที่ผู้ใช้เห็น (ใช้ในข้อความ error) · id อื่น = id เอง */
     ttsVoiceLabel: function (modelId, lang) {
       var en = lang === 'en';
