@@ -1,4 +1,4 @@
-// เสียงพูดไทย (MMS-TTS) 2 ตัว: หญิง (Jori) / ชาย (Riko) — ล็อกรุ่นด้วย commit · ไม่มีทางถอยไปเสียงอื่น (โหลดไม่ได้ = error แล้วหยุด) · ภาษาอังกฤษอัตโนมัติ
+// เสียงพูดไทย 3 ตัว: หญิง (Jori) / ชาย (Riko) (MMS-TTS) / หญิง (Nat) (VITS จากศูนย์) — ล็อกรุ่นด้วย commit · ไม่มีทางถอยไปเสียงอื่น (โหลดไม่ได้ = error แล้วหยุด) · ภาษาอังกฤษอัตโนมัติ
 // + เว้นขอบท่อน + ปรับความดังอัตโนมัติ + ลดเสียงแหลม (low-pass) + ลองโหลดใหม่เมื่อเครือข่ายสะดุด (2026-10)
 // A) ตรรกะล้วน (Node: audio-gain.js, media-models.js) · B) หน้า text-to-speech จริงใน Chromium + C) วิดเจ็ตแชท (transformers.js หลอก — CI ไม่โหลดโมเดลจริง)
 // ข้อความตัวอย่างทุกชุดแต่งขึ้นเอง
@@ -12,8 +12,8 @@ const N = require('../tts-normalize.js');
 const S2 = { fm: 'Tanotfin/mms-tts-2081-FM-stable2-onnx', m: 'Tanotfin/mms-tts-2081-M-stable2-onnx', pod: 'Tanotfin/mms-thai-female-podcast-spk0-stable2-onnx' };
 const STABLE = { fm: 'Tanotfin/mms-tts-2081-FM-stable-onnx', m: 'Tanotfin/mms-tts-2081-M-stable-onnx', pod: 'Tanotfin/mms-thai-female-podcast-spk0-stable-onnx' };
 const OLD = { fm: 'Tanotfin/mms-tts-2081-FM-onnx', m: 'Tanotfin/mms-tts-2081-M-onnx', pod: 'phlebotomy1996/mms-thai-female-podcast-spk0', def: 'Tanotfin/mms-tts-2081-onnx' };
-const J = 'Tanotfin/mms-thai-jori-f5-onnx', R = 'Tanotfin/mms-thai-riko-f5-onnx';
-const REV = { [J]: 'b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913', [R]: 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451' };
+const J = 'Tanotfin/mms-thai-jori-f5-onnx', R = 'Tanotfin/mms-thai-riko-f5-onnx', NAT = 'Tanotfin/vits-thai-nat-onnx';
+const REV = { [J]: 'b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913', [R]: 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451', [NAT]: 'a87a8e1abb1e1a8cf38a4d188fbc877a87a378e4' };
 const EN = 'Xenova/mms-tts-eng';
 /* ทุกค่าที่เคยเลือกได้ในอดีต → Jori (ฝั่งหญิง) / Riko (ฝั่งชาย) */
 const MIGRATE = [[OLD.def, J], [OLD.fm, J], [STABLE.fm, J], [S2.fm, J], [OLD.pod, J], [STABLE.pod, J], [S2.pod, J], [OLD.m, R], [STABLE.m, R], [S2.m, R]];
@@ -86,29 +86,30 @@ test.describe('A) media-models.js — เสียงไทย Jori / Riko', () 
   const M = models();
   test('migrate: ฝั่งหญิงทุกตัว (ค่าเริ่มต้นเดิม/หญิง ทั่วไป/พอดแคสต์ ทุกชุด) → Jori · ฝั่งชายทุกชุด → Riko · Jori/Riko คงเดิม · ไม่รู้จัก/ว่าง/อังกฤษ → Jori', () => {
     for (const [from, to] of MIGRATE) expect(M.ttsMigrate(from), from).toBe(to);
-    expect(M.ttsMigrate(J)).toBe(J); expect(M.ttsMigrate(R)).toBe(R);
+    expect(M.ttsMigrate(J)).toBe(J); expect(M.ttsMigrate(R)).toBe(R); expect(M.ttsMigrate(NAT)).toBe(NAT);
     for (const id of [EN, 'x/y', '', undefined]) expect(M.ttsMigrate(id)).toBe(J);
     expect(M.TTS_DEFAULT_VOICE).toBe(J);
-    expect(Array.from(M.TTS_VOICE_IDS)).toEqual([J, R]);
+    expect(Array.from(M.TTS_VOICE_IDS)).toEqual([J, R, NAT]);
   });
   test('ไม่มีทางถอย: ตาราง/ฟังก์ชัน legacy ถูกลบ · ชื่อเสียง + ตัวจำแนก 404/403', () => {
     expect(M.TTS_LEGACY).toBeUndefined(); expect(M.ttsLegacy).toBeUndefined(); expect(M.ttsLegacyChain).toBeUndefined();
     expect(M.ttsVoiceLabel(J)).toBe('หญิง (Jori)'); expect(M.ttsVoiceLabel(R, 'en')).toBe('Male (Riko)');
+    expect(M.ttsVoiceLabel(NAT)).toBe('หญิง (Nat)'); expect(M.ttsVoiceLabel(NAT, 'en')).toBe('Female (Nat)');
     for (const m of ['Could not locate file: "https://x/y" (404)', 'HTTP 403 forbidden', 'Error: 404 Not Found']) expect(M.isNotFoundError(new Error(m)), m).toBe(true);
     for (const m of ['network error', 'Failed to fetch', 'out of memory']) expect(M.isNotFoundError(new Error(m)), m).toBe(false);
     expect(M.isNotFoundError(Object.assign(new Error('tanot-session: sign-in expired (403)'), { code: 'session' }))).toBe(false);
   });
   test('dtype: Jori/Riko = fp32 (มีแต่ onnx/model.onnx) · id เก่า (ไม่โหลดแล้ว) = ค่าเริ่มต้น · WebGPU fp32 ทุกตัว', () => {
-    for (const id of [J, R]) { expect(M.ttsDtype(id)).toBe('fp32'); expect(M.ttsGpuDtype(id)).toBe('fp32'); }
+    for (const id of [J, R, NAT]) { expect(M.ttsDtype(id)).toBe('fp32'); expect(M.ttsGpuDtype(id)).toBe('fp32'); }
     for (const id of [S2.fm, S2.m, STABLE.fm, STABLE.m, OLD.fm, OLD.m]) expect(M.ttsDtype(id)).toBe(null);
   });
   test('revision: Jori/Riko ล็อกด้วย commit 40 hex ของ Hugging Face · ตัวอื่น (อังกฤษ/ไม่รู้จัก) = main', () => {
-    expect(M.ttsRevision(J)).toBe(REV[J]); expect(M.ttsRevision(R)).toBe(REV[R]);
-    for (const id of [J, R]) expect(M.ttsRevision(id)).toMatch(/^[0-9a-f]{40}$/);
+    expect(M.ttsRevision(J)).toBe(REV[J]); expect(M.ttsRevision(R)).toBe(REV[R]); expect(M.ttsRevision(NAT)).toBe(REV[NAT]);
+    for (const id of [J, R, NAT]) expect(M.ttsRevision(id)).toMatch(/^[0-9a-f]{40}$/);
     for (const id of [S2.fm, S2.m, STABLE.fm, OLD.m, EN, 'x/y']) expect(M.ttsRevision(id)).toBe('main');
   });
   test('ธง "ลดเสียงแหลม" เริ่มต้น: Jori/Riko/อังกฤษ ปิด (ติ๊กเองได้) · 7 kHz', () => {
-    for (const id of [J, R, EN, 'x/y']) expect(M.ttsLowpassDefault(id), id).toBe(false);
+    for (const id of [J, R, NAT, EN, 'x/y']) expect(M.ttsLowpassDefault(id), id).toBe(false);
     expect(M.TTS_LOWPASS_HZ).toBe(7000);
   });
   test('isNetworkError: network error / Failed to fetch / Load failed = ใช่ · 404 / ไม่พบไฟล์ / หน่วยความจำ / บั๊กโค้ดทั่วไป = ไม่ใช่', () => {
@@ -283,17 +284,17 @@ const wavStats = (page, sel, seg) => page.evaluate(async ([s, sg]) => {
 }, [sel, seg || null]);
 
 test.describe('B) รายการเสียงไทย + ภาษาอัตโนมัติ + ทางถอย', () => {
-  test('รายการ: หญิง (Jori) · ชาย (Riko) เท่านั้น · ค่าเริ่มต้น Jori · ไม่มีตัวเลือกภาษา (#dlLang) · EN: Female (Jori) / Male (Riko)', async ({ context, page }) => {
+  test('รายการ: หญิง (Jori) · ชาย (Riko) · หญิง (Nat) เท่านั้น · ค่าเริ่มต้น Jori · ไม่มีตัวเลือกภาษา (#dlLang) · EN: Female (Jori) / Male (Riko)', async ({ context, page }) => {
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
     const opts = () => page.$$eval('#dlVoice option', (os) => os.map((o) => [o.value, o.textContent]));
-    expect(await opts()).toEqual([[J, 'หญิง (Jori)'], [R, 'ชาย (Riko)']]);
+    expect(await opts()).toEqual([[J, 'หญิง (Jori)'], [R, 'ชาย (Riko)'], [NAT, 'หญิง (Nat)']]);
     expect(await page.inputValue('#dlVoice')).toBe(J);
     await expect(page.locator('#dlLang')).toHaveCount(0);
     await expect(page.locator('#dlVoiceNote')).toHaveText('ข้อความภาษาอังกฤษล้วนจะใช้เสียงอังกฤษให้อัตโนมัติ');
     await page.selectOption('#dlVoice', R);
     await page.evaluate(() => OME_LANG.set('en'));
-    expect(await opts()).toEqual([[J, 'Female (Jori)'], [R, 'Male (Riko)']]);
+    expect(await opts()).toEqual([[J, 'Female (Jori)'], [R, 'Male (Riko)'], [NAT, 'Female (Nat)']]);
     expect(await page.inputValue('#dlVoice')).toBe(R); // สลับภาษา UI ไม่เปลี่ยนเสียงที่เลือก
     await expect(page.locator('#dlVoiceNote')).toHaveText('English-only text uses an English voice automatically');
     expect(errors).toEqual([]);
@@ -335,10 +336,10 @@ test.describe('B) รายการเสียงไทย + ภาษาอ�
     });
   }
 
-  test('Worker โหลด Jori/Riko ด้วย dtype fp32 + revision = commit ที่ล็อกไว้ (ไม่ใช่ main) · อังกฤษไม่ส่ง dtype/revision', async ({ context, page }) => {
+  test('Worker โหลด Jori/Riko/Nat ด้วย dtype fp32 + revision = commit ที่ล็อกไว้ (ไม่ใช่ main) · อังกฤษไม่ส่ง dtype/revision', async ({ context, page }) => {
     const errors = await setup(context, page);
     await page.goto('/text-to-speech.html');
-    for (const id of [J, R]) {
+    for (const id of [J, R, NAT]) {
       await page.selectOption('#dlVoice', id);
       await page.fill('#ttsText', TEXT);
       await page.click('#dlGenerateBtn'); await ok(page);
@@ -347,7 +348,7 @@ test.describe('B) รายการเสียงไทย + ภาษาอ�
     await page.click('#dlGenerateBtn'); await ok(page);
     const msgs = (await page.evaluate(() => window.__wmsgs)).filter((m) => m.type === 'fake-pipeline');
     const by = Object.fromEntries(msgs.map((m) => [m.model, [m.dtype, m.revision]]));
-    expect(by[J]).toEqual(['fp32', REV[J]]); expect(by[R]).toEqual(['fp32', REV[R]]); expect(by[EN]).toEqual([null, null]);
+    expect(by[J]).toEqual(['fp32', REV[J]]); expect(by[R]).toEqual(['fp32', REV[R]]); expect(by[NAT]).toEqual(['fp32', REV[NAT]]); expect(by[EN]).toEqual([null, null]);
     expect(errors).toEqual([]);
   });
 

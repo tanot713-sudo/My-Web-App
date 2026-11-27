@@ -334,7 +334,7 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
 
 /* ── 13. โมเดล Tanotfin ที่โค้ดโหลดได้ ── */
 {
-  const ALLOWED = ['mms-thai-jori-f5-onnx', 'mms-thai-riko-f5-onnx', 'distill-whisper-th-small-onnx', 'distill-whisper-th-medium-onnx'];
+  const ALLOWED = ['mms-thai-jori-f5-onnx', 'mms-thai-riko-f5-onnx', 'vits-thai-nat-onnx', 'distill-whisper-th-small-onnx', 'distill-whisper-th-medium-onnx'];
   const mm = read('media-models.js');
   const mig = mm.match(/var TTS_MIGRATE = \{[\s\S]*?\n  \};/);
   const bad = [];
@@ -350,7 +350,7 @@ else ok('credits', `${used.size} ไลบรารีมีใน credits.html 
     }
   }
   if (bad.length) fail('tanotfin-models', 'โมเดล Tanotfin นอกรายการที่อนุญาต (' + ALLOWED.join(', ') + '): ' + [...new Set(bad)].slice(0, 6).join('; '));
-  else ok('tanotfin-models', 'โมเดล Tanotfin ที่อ้างถึงมีแค่ 4 ตัว (+ ชื่อเก่าในตาราง TTS_MIGRATE)');
+  else ok('tanotfin-models', 'โมเดล Tanotfin ที่อ้างถึงมีแค่ 5 ตัว (+ ชื่อเก่าในตาราง TTS_MIGRATE)');
 }
 
 /* ── 1. bump CACHE ── */
