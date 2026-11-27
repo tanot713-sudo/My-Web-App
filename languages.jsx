@@ -636,6 +636,19 @@
             'หน่วยความจำไม่พอสำหรับเสียงโมเดล — ใช้เสียงเครื่องแทน': 'Not enough memory for the model voice — using the device voice',
             'เสียงโมเดลใช้ไม่ได้ — ใช้เสียงเครื่องแทน': 'Model voice failed — using the device voice'
         });
+        // ── L2 เกมคำศัพท์ (เติมคำ / เรียงประโยค / จับคู่) — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'เติมคำ': 'Fill in', 'เรียงประโยค': 'Order', 'จับคู่': 'Match',
+            'ล้าง': 'Clear', 'รอบต่อไป': 'Next round',
+            'คำที่หายไป': 'Missing word', 'ตัวเลือก': 'Choices', 'คำตอบของคุณ': 'Your answer', 'คำที่เหลือ': 'Remaining words',
+            'คำแปล': 'Meaning',
+            'ถูกต้อง! (+2 XP)': 'Correct! (+2 XP)',
+            'ยังไม่ถูก — คำตอบคือ': 'Not quite — the answer is',
+            'ประโยคที่ถูกต้อง': 'Correct sentence',
+            'จับคู่ครบแล้ว': 'All matched',
+            'ยังไม่ใช่คู่กัน — ลองใหม่': 'Not a pair — try again',
+            'ไม่มีคำที่เล่นเกมนี้ได้ในระดับนี้': 'No words available for this game at this level'
+        });
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
             'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
             'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
@@ -17800,6 +17813,7 @@
             const item = cur || candidates[0] || null;
             const sents = useMemo(() => (item && item.kind === 'w' && prep) ? LangCalc.sentencesFor(prep, item.id, 3) : [], [item, prep]);
             const th = item ? LangCalc.thaiOf(item, thCache) : null;
+            const isGame = pmode === 'cloze' || pmode === 'scramble' || pmode === 'pairs';
             const aiOn = !!(window.AiClient && AiClient.available());
             const missing = item ? LangCalc.missingThai([item].concat(sents), thCache) : [];
 
@@ -17878,10 +17892,10 @@
                         {prep && (
                             <>
                                 <div className="flex flex-wrap items-center gap-3">
-                                    <div className="segmented" role="group" aria-label={tx('ชนิด')}>
+                                    {!isGame && <div className="segmented" role="group" aria-label={tx('ชนิด')}>
                                         <button type="button" data-k="kind-w" onClick={() => setKind('w')} aria-pressed={kind === 'w'}>{tx('คำ')}</button>
                                         <button type="button" data-k="kind-s" onClick={() => setKind('s')} aria-pressed={kind === 's'}>{tx('ประโยค')}</button>
-                                    </div>
+                                    </div>}
                                     <select data-k="packLevel" value={level} onChange={e => setLevel(+e.target.value)} aria-label={tx('ระดับ')} className="select w-auto">
                                         {LEVELS.map(l => (
                                             <option key={l} value={l}>{l ? tx('ระดับ {n} · {c} คำ', { n: LangCalc.LEVEL_NAMES[l], c: prep.levels[l] }) : tx('ทุกระดับ')}</option>
@@ -17893,11 +17907,16 @@
                                         <button type="button" data-k="pmode-flashcard" onClick={() => setPmode('flashcard')} aria-pressed={pmode === 'flashcard'}>{tx('การ์ดคำ')}</button>
                                         <button type="button" data-k="pmode-translate" onClick={() => setPmode('translate')} aria-pressed={pmode === 'translate'}>{tx('พิมพ์คำแปล')}</button>
                                         <button type="button" data-k="pmode-dictation" onClick={() => setPmode('dictation')} aria-pressed={pmode === 'dictation'}>{tx('ฟังแล้วพิมพ์')}</button>
+                                        <button type="button" data-k="pmode-cloze" onClick={() => setPmode('cloze')} aria-pressed={pmode === 'cloze'}>{tx('เติมคำ')}</button>
+                                        <button type="button" data-k="pmode-scramble" onClick={() => setPmode('scramble')} aria-pressed={pmode === 'scramble'}>{tx('เรียงประโยค')}</button>
+                                        <button type="button" data-k="pmode-pairs" onClick={() => setPmode('pairs')} aria-pressed={pmode === 'pairs'}>{tx('จับคู่')}</button>
                                     </div>
                                     <span className="text-sm font-semibold text-gray-500" aria-live="polite">{tx('ถึงกำหนดทวน {d} · ใหม่ {n}', { d: counts.due, n: counts.fresh })}</span>
                                 </div>
 
-                                {!item ? (
+                                {isGame ? (
+                                    <PackGame game={pmode} prep={prep} srs={srs} setSrs={setSrs} setXp={setXp} level={level} thCache={thCache} langId={langId} lang={lang} />
+                                ) : !item ? (
                                     <div className="card empty" data-k="packDone">{tx('ไม่มีการ์ดใหม่หรือการ์ดที่ถึงกำหนดในระดับนี้')}</div>
                                 ) : (
                                     <div className="card p-5 sm:p-6 space-y-4" data-k="packCard">
@@ -17977,6 +17996,190 @@
                             </>
                         )}
                     </div>
+                </div>
+            );
+        }
+
+        // ── L2 เกมจากชุดคำ: เติมคำ / เรียงประโยค / จับคู่ — คำที่เล่นถูก/ผิด = ให้คะแนนการ์ด ::w:: เดิม (3/1) + หน้าการ์ดตาม L1 · XP 2 ต่อข้อถูก
+        function PackGame({ game, prep, srs, setSrs, setXp, level, thCache, langId, lang }) {
+            const [round, setRound] = useState(0);
+            const [q, setQ] = useState(null);          // null = กำลังสร้าง · { empty:true } = ไม่มีคำที่เล่นได้
+            const [picked, setPicked] = useState(null); // เติมคำ: ตัวเลือกที่กด
+            const [ans, setAns] = useState([]);         // เรียงประโยค: id ชิ้นที่วางแล้ว
+            const [res, setRes] = useState(null);       // เรียงประโยค: { ok }
+            const [sel, setSel] = useState(null);       // จับคู่: { side, id }
+            const [done, setDone] = useState({});       // จับคู่: id ที่จับถูกแล้ว
+            const [bad, setBad] = useState(false);
+            const srsRef = useRef(srs); srsRef.current = srs;
+            const rated = useRef({});
+            const nextRef = useRef(null);
+            useEffect(() => { lucide.createIcons(); });
+
+            const rate = (item, rating) => {
+                if (rated.current[item.key]) return;
+                rated.current[item.key] = true;
+                setSrs(s => ({ ...s, [item.key]: fsrsSchedule(s[item.key] || {}, rating) }));
+                writePackFaces({ [item.key]: LangCalc.face(item, thCache) });
+            };
+            useEffect(() => {
+                const seed = Math.floor(Math.random() * 1e9);
+                rated.current = {};
+                setPicked(null); setAns([]); setRes(null); setSel(null); setDone({}); setBad(false);
+                const base = { mode: game, level, thCache };
+                if (game === 'pairs') {
+                    const items = LangCalc.gameItems(prep, srsRef.current, { ...base, n: 12 });
+                    const p = LangCalc.pairs(items, thCache, 5, seed);
+                    setQ(p ? { game, p, items: items.filter(it => p.left.some(l => l.id === it.id)) } : { game, empty: true });
+                    return;
+                }
+                const item = LangCalc.gameItems(prep, srsRef.current, { ...base, n: 1 })[0];
+                const g = item && (game === 'cloze' ? LangCalc.clozeFor(prep, item, seed) : LangCalc.scrambleFor(prep, item, seed));
+                setQ(g ? { game, item, g } : { game, empty: true });
+            }, [game, prep, level, round]);
+
+            const next = () => setRound(r => r + 1);
+            useEffect(() => { if (nextRef.current) nextRef.current.focus(); }, [picked, res]);
+
+            // คีย์บอร์ด: เติมคำ = 1–4 เลือกตัวเลือก · เรียงประโยค = Backspace เอาชิ้นล่าสุดกลับ
+            useEffect(() => {
+                const onKey = (e) => {
+                    if (e.ctrlKey || e.metaKey || e.altKey) return;
+                    const el = document.activeElement;
+                    if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+                    if (!q || q.empty || q.game !== game) return;
+                    if (game === 'cloze' && picked === null && /^[1-9]$/.test(e.key) && +e.key <= q.g.options.length) { e.preventDefault(); chooseCloze(+e.key - 1); }
+                    else if (game === 'scramble' && !res && e.key === 'Backspace' && ans.length) { e.preventDefault(); setAns(a => a.slice(0, -1)); }
+                };
+                window.addEventListener('keydown', onKey);
+                return () => window.removeEventListener('keydown', onKey);
+            });
+
+            const chooseCloze = (i) => {
+                if (picked !== null || !q) return;
+                const ok = i === q.g.correct;
+                setPicked(i);
+                rate(q.item, ok ? 3 : 1);
+                if (ok) setXp(x => x + 2);
+            };
+            const checkScramble = () => {
+                const r = LangCalc.checkOrder(q.g, ans);
+                setRes(r);
+                rate(q.item, r.ok ? 3 : 1);
+                if (r.ok) setXp(x => x + 2);
+            };
+            const pickPair = (side, id) => {
+                if (done[id] && side) return;
+                if (!sel || sel.side === side) { setSel({ side, id }); setBad(false); return; }
+                const lid = side === 'l' ? id : sel.id, rid = side === 'r' ? id : sel.id;
+                const item = q.items.find(it => it.id === lid);
+                if (lid === rid) {
+                    setDone(d => ({ ...d, [lid]: true }));
+                    if (!rated.current[item.key]) { rate(item, 3); setXp(x => x + 2); }
+                    setBad(false);
+                } else {
+                    rate(q.items.find(it => it.id === lid), 1);
+                    rate(q.items.find(it => it.id === rid), 1);
+                    setBad(true);
+                }
+                setSel(null);
+            };
+
+            if (!q || q.game !== game) return <div className="card p-5 flex items-center gap-3" role="status"><span className="spinner" aria-hidden="true"></span></div>;
+            if (q.empty) return <div className="card empty" data-k="gameEmpty">{tx('ไม่มีคำที่เล่นเกมนี้ได้ในระดับนี้')}</div>;
+            const btn = 'btn lg !h-auto !min-h-11 whitespace-normal break-words';
+
+            if (game === 'cloze') {
+                const { g, item } = q;
+                const answered = picked !== null, ok = answered && picked === g.correct;
+                return (
+                    <div className="card p-5 sm:p-6 space-y-4" data-k="gameCard">
+                        <p className="text-xl font-semibold text-gray-900 break-words" data-k="clozeSentence" data-i18n-skip lang={lang.code}>
+                            {g.before}<span data-k="clozeBlank" className={answered ? (ok ? 'text-emerald-600' : 'text-red-600') : 'px-2 border-b-2 border-gray-400'} aria-label={tx('คำที่หายไป')}>{answered ? g.answer : '＿＿＿'}</span>{g.after}
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label={tx('ตัวเลือก')}>
+                            {g.options.map((o, i) => (
+                                <button key={i} type="button" data-k="clozeOpt" data-i={i} disabled={answered && i !== picked && i !== g.correct}
+                                    onClick={() => chooseCloze(i)}
+                                    className={`${btn} justify-start ${answered && i === g.correct ? 'primary' : answered && i === picked ? 'danger' : ''}`}>
+                                    <span className="opacity-60 mr-2">{i + 1}</span><span data-i18n-skip lang={lang.code}>{o}</span>
+                                </button>
+                            ))}
+                        </div>
+                        {answered && (
+                            <div className="space-y-3">
+                                <div data-k="gameResult" data-r={ok ? 'correct' : 'wrong'} className={`callout ${ok ? 'ok' : 'err'}`} role="status">
+                                    <p className="font-bold mb-1">{ok ? tx('ถูกต้อง! (+2 XP)') : <>{tx('ยังไม่ถูก — คำตอบคือ')} <span data-i18n-skip lang={lang.code}>{g.answer}</span></>}</p>
+                                    {LangCalc.thaiOf(g.sent, thCache).text && <p className="text-sm" data-i18n-skip>{LangCalc.thaiOf(g.sent, thCache).text}</p>}
+                                </div>
+                                <button type="button" ref={nextRef} data-k="gameNext" onClick={next} className="btn primary lg w-full">{tx('ข้อต่อไป')}</button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            if (game === 'scramble') {
+                const { g } = q;
+                const texts = g.pieces.map(p => p.t);
+                const bank = g.order.filter(id => ans.indexOf(id) < 0);
+                const sep = LangCalc.LANG_CODE[langId] && /^(ja|zh|yue|km|lo|my)$/.test(LangCalc.LANG_CODE[langId]) ? '' : ' ';
+                const piece = (id, where) => (
+                    <button key={where + id} type="button" data-k={where === 'a' ? 'scrAnsPiece' : 'scrPiece'} disabled={!!res}
+                        onClick={() => setAns(a => where === 'a' ? a.filter(x => x !== id) : a.concat(id))}
+                        className="btn lg !h-auto !min-h-11 whitespace-normal break-words" data-i18n-skip lang={lang.code}>{texts[id]}</button>
+                );
+                return (
+                    <div className="card p-5 sm:p-6 space-y-4" data-k="gameCard">
+                        {LangCalc.thaiOf(g.sent, thCache).text && <p className="text-lg font-semibold text-gray-800" data-k="scrMeaning" data-i18n-skip>{LangCalc.thaiOf(g.sent, thCache).text}</p>}
+                        <div className="flex flex-wrap gap-2 min-h-12 p-2 rounded-lg border border-dashed border-gray-300" data-k="scrAns" role="group" aria-label={tx('คำตอบของคุณ')}>
+                            {ans.map(id => piece(id, 'a'))}
+                        </div>
+                        <div className="flex flex-wrap gap-2" data-k="scrBank" role="group" aria-label={tx('คำที่เหลือ')}>
+                            {bank.map(id => piece(id, 'b'))}
+                        </div>
+                        {!res ? (
+                            <div className="flex items-center gap-3">
+                                <button type="button" data-k="scrCheck" onClick={checkScramble} disabled={ans.length !== texts.length} className="btn primary lg flex-1">{tx('ตรวจคำตอบ')}</button>
+                                <button type="button" data-k="scrClear" onClick={() => setAns([])} disabled={!ans.length} className="btn lg">{tx('ล้าง')}</button>
+                            </div>
+                        ) : (
+                            <div className="space-y-3">
+                                <div data-k="gameResult" data-r={res.ok ? 'correct' : 'wrong'} className={`callout ${res.ok ? 'ok' : 'err'}`} role="status">
+                                    <p className="font-bold mb-1">{res.ok ? tx('ถูกต้อง! (+2 XP)') : tx('ประโยคที่ถูกต้อง')}</p>
+                                    {!res.ok && <p className="text-sm" data-i18n-skip lang={lang.code}>{texts.join(sep)}</p>}
+                                </div>
+                                <button type="button" ref={nextRef} data-k="gameNext" onClick={next} className="btn primary lg w-full">{tx('ข้อต่อไป')}</button>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
+            const { p } = q;
+            const all = p.left.every(l => done[l.id]);
+            return (
+                <div className="card p-5 sm:p-6 space-y-4" data-k="gameCard">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-3" role="group" aria-label={tx('คำ')}>
+                            {p.left.map(l => (
+                                <button key={l.id} type="button" data-k="pairL" data-id={l.id} disabled={!!done[l.id]} aria-pressed={!!sel && sel.side === 'l' && sel.id === l.id}
+                                    onClick={() => pickPair('l', l.id)} className={`${btn} w-full ${done[l.id] ? 'opacity-60' : ''}`} data-i18n-skip lang={lang.code}>{l.text}</button>
+                            ))}
+                        </div>
+                        <div className="space-y-3" role="group" aria-label={tx('คำแปล')}>
+                            {p.right.map(r => (
+                                <button key={r.id} type="button" data-k="pairR" data-id={r.id} disabled={!!done[r.id]} aria-pressed={!!sel && sel.side === 'r' && sel.id === r.id}
+                                    onClick={() => pickPair('r', r.id)} className={`${btn} w-full ${done[r.id] ? 'opacity-60' : ''}`} data-i18n-skip>{r.text}</button>
+                            ))}
+                        </div>
+                    </div>
+                    {bad && <p className="form-msg" role="alert" data-k="pairBad">{tx('ยังไม่ใช่คู่กัน — ลองใหม่')}</p>}
+                    {all && (
+                        <div className="space-y-3">
+                            <div data-k="gameResult" data-r="correct" className="callout ok" role="status"><p className="font-bold">{tx('จับคู่ครบแล้ว')}</p></div>
+                            <button type="button" ref={nextRef} data-k="gameNext" onClick={next} className="btn primary lg w-full">{tx('รอบต่อไป')}</button>
+                        </div>
+                    )}
                 </div>
             );
         }
