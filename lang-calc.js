@@ -861,12 +861,164 @@
     return out;
   }
 
+  // ── L3 อ่านจากข้อความ (ROADMAP แถว 24 · docs/languages-design.md L3) ───────────────────────────────
+  // ข้อความของผู้ใช้อยู่ในหน่วยความจำของหน้า + ร่างล่าสุดใน lang-practice:reader (local, ≤ 20,000 ตัวอักษร) — ไม่ซิงก์ ไม่ลง log
+  // แตะคำ → คำแปลจาก pack ก่อน → ไม่มี = ถาม AI (JSON {lemma, th, pos, note}) → การ์ด `lang-xx::u::<lemma>` ใน lang-practice:srs
+  // หน้าการ์ดใน lang-practice:faces = [คำ, คำแปล, ประโยคที่เจอ ≤ 200] · ไม่เก็บทั้งข้อความ · ตัดคำใช้ spans/tokenize ของ L1/L2
+  var reader = (function () {
+    var MAX_TEXT = 20000, EXAMPLE_MAX = 200;
+    var LOOKUP_MAX = { lemma: 80, th: 120, pos: 20, note: 200 }, TRANSLATE_MAX = 400;
+    var WORD_INDEX = typeof WeakMap === 'function' ? new WeakMap() : null;
+
+    // ข้อความที่เก็บ/แสดง: NFC (ตำแหน่งของ spans อิงข้อความ NFC), ขึ้นบรรทัดแบบ LF, ตัดที่เพดาน
+    function clip(text) {
+      return String(text == null ? '' : text).replace(/\r\n?/g, '\n').normalize('NFC').slice(0, MAX_TEXT);
+    }
+
+    // ข้อความ → ชิ้นต่อเนื่องที่ต่อกันได้ข้อความเดิม: คำ (tok) กับส่วนที่ไม่ใช่คำ (tok = null) — ใช้ spans ของ L2
+    function pieces(text, code, opts) {
+      var t = clip(text), out = [], pos = 0;
+      spans(t, code, opts).forEach(function (sp) {
+        if (sp.start > pos) out.push({ s: t.slice(pos, sp.start), tok: null, start: pos, end: sp.start });
+        out.push({ s: t.slice(sp.start, sp.end), tok: sp.tok, start: sp.start, end: sp.end });
+        pos = sp.end;
+      });
+      if (pos < t.length) out.push({ s: t.slice(pos), tok: null, start: pos, end: t.length });
+      return out;
+    }
+
+    // ประโยคที่คร่อมตำแหน่ง start..end: จบที่ . ! ? … (ตามด้วยช่องว่าง/จบข้อความ) · 。！？ · ขึ้นบรรทัดใหม่
+    function sentenceAt(text, start, end) {
+      var t = String(text), a = Math.max(0, Math.min(start, t.length)), b = Math.min(Math.max(end, a), t.length);
+      var s = a, e = b, c;
+      while (s > 0) {
+        c = t.charAt(s - 1);
+        if (c === '\n' || '。！？'.indexOf(c) >= 0) break;
+        if ('.!?…'.indexOf(c) >= 0 && (s - 1) < a && (s >= t.length || /\s/.test(t.charAt(s)))) break;
+        s--;
+      }
+      while (e < t.length) {
+        c = t.charAt(e);
+        if (c === '\n') break;
+        if ('。！？'.indexOf(c) >= 0) { e++; break; }
+        if ('.!?…'.indexOf(c) >= 0) {
+          var k = e + 1;
+          while (k < t.length && '.!?…'.indexOf(t.charAt(k)) >= 0) k++;
+          if (k >= t.length || /\s/.test(t.charAt(k))) { e = k; break; }
+        }
+        e++;
+      }
+      var piece = t.slice(s, e), lead = piece.length - piece.replace(/^\s+/, '').length;
+      return { start: s + lead, end: s + lead + piece.trim().length, text: piece.trim() };
+    }
+
+    // ประโยคที่เจอสำหรับหน้าการ์ด ≤ 200 ตัว — ยาวเกินตัดเป็นหน้าต่างรอบคำ (ตัดที่ช่องว่างถ้ามี) ที่ยังมีคำนั้นอยู่
+    function example(text, start, end) {
+      var sn = sentenceAt(text, start, end), t = sn.text;
+      if (t.length <= EXAMPLE_MAX) return t;
+      var ws = start - sn.start, we = end - sn.start, room = Math.max(0, EXAMPLE_MAX - (we - ws));
+      var from = Math.max(0, ws - Math.floor(room / 2)), to = Math.min(t.length, from + EXAMPLE_MAX);
+      from = Math.max(0, to - EXAMPLE_MAX);
+      if (from > 0) { var sp = t.indexOf(' ', from); if (sp >= 0 && sp < ws) from = sp + 1; }
+      if (to < t.length) { var sq = t.lastIndexOf(' ', to); if (sq > we) to = sq; }
+      return t.slice(from, to).trim();
+    }
+
+    function wordIndex(prep) {
+      var idx = WORD_INDEX && WORD_INDEX.get(prep);
+      if (idx) return idx;
+      idx = {};
+      prep.words.forEach(function (w) { idx[w.id] = w; });
+      if (WORD_INDEX) WORD_INDEX.set(prep, idx);
+      return idx;
+    }
+    function find(prep, tok) {
+      if (!prep || !prep.words) return null;
+      var w = wordIndex(prep)[tok];
+      return w && Object.prototype.hasOwnProperty.call(wordIndex(prep), tok) ? w : null;
+    }
+
+    // สถานะของคำ: 'card' มีการ์ดแล้ว (::u:: หรือ ::w::) · 'hard' ใน pack แต่ระดับสูงกว่าที่ผู้ใช้เลือก · 'unknown' ไม่อยู่ใน pack
+    // ไม่มี pack = แยกได้แค่ 'card' (ไม่ไฮไลต์ทุกคำเป็นไม่รู้จัก) · level 0 = ไม่แยก "ยากกว่า"
+    function classify(tok, ctx) {
+      var langId = ctx.langId, srs = ctx.srs;
+      if (srs && typeof srs === 'object') {
+        var has = Object.prototype.hasOwnProperty;
+        if (has.call(srs, langId + '::u::' + tok) || has.call(srs, cardKey(langId, 'w', tok))) return 'card';
+      }
+      if (!ctx.prep) return '';
+      var w = find(ctx.prep, tok);
+      if (!w) return 'unknown';
+      return ctx.level && w.lv > ctx.level ? 'hard' : '';
+    }
+
+    // รายการของคำใน pack พร้อมคำแปลที่ใช้ได้ (ไทย → AI cache → ว่าง) · ไม่อยู่ใน pack = null
+    function entry(prep, tok, thCache) {
+      var w = find(prep, tok);
+      if (!w) return null;
+      var t = thaiOf(w, thCache);
+      return { lemma: w.id, th: t.src === 'en' ? '' : t.text, src: t.src === 'en' ? '' : t.src, lv: w.lv, ipa: w.ipa, en: w.en, key: w.key };
+    }
+
+    function parseObject(raw) {
+      var s = String(raw == null ? '' : raw).replace(/```(?:json)?/gi, '');
+      var a = s.indexOf('{'), b = s.lastIndexOf('}');
+      if (a < 0 || b <= a) return null;
+      try { var o = JSON.parse(s.slice(a, b + 1)); return o && typeof o === 'object' && !Array.isArray(o) ? o : null; } catch (e) { return null; }
+    }
+    function text1(v, max) { return typeof v === 'string' ? v.replace(/\s+/g, ' ').trim().slice(0, max) : ''; }
+
+    function lookupMessages(word, sentence, langName) {
+      var sys = 'You are a ' + (langName || 'foreign-language') + ' tutor for a Thai learner. The learner tapped a word in a text they are reading. ' +
+        'Reply with ONE JSON object only, no other text: {"lemma": "dictionary form of the word", "th": "Thai meaning that fits this sentence", ' +
+        '"pos": "part of speech in English, one or two words", "note": "one short Thai sentence about usage or nuance, or empty"}. ' +
+        'Write th and note in Thai.';
+      return [
+        { role: 'system', content: sys },
+        { role: 'user', content: 'Word: ' + word + '\nSentence: ' + (sentence || word) }
+      ];
+    }
+    // ผล AI → {lemma, th, pos, note} (ตัดความยาว) · ไม่ใช่ JSON/ไม่มีทั้ง lemma และ th = null
+    function parseLookup(raw) {
+      var o = parseObject(raw);
+      if (!o) return null;
+      var r = { lemma: text1(o.lemma, LOOKUP_MAX.lemma), th: text1(o.th, LOOKUP_MAX.th), pos: text1(o.pos, LOOKUP_MAX.pos), note: text1(o.note, LOOKUP_MAX.note) };
+      return r.lemma || r.th ? r : null;
+    }
+
+    function translateMessages(sentence, langName) {
+      return [
+        { role: 'system', content: 'Translate the ' + (langName || 'foreign-language') + ' sentence into natural Thai. Reply with the Thai translation only — no quotes, no notes, no romanization.' },
+        { role: 'user', content: String(sentence || '') }
+      ];
+    }
+    function parseTranslation(raw) {
+      var s = String(raw == null ? '' : raw).replace(/```[a-z]*/gi, '').trim();
+      s = s.replace(/^["“”'‘’「」]+|["“”'‘’「」]+$/g, '').trim();
+      return s.slice(0, TRANSLATE_MAX);
+    }
+
+    // การ์ดจากข้อความ: คีย์ ::u::<lemma> (ใช้กฎเดียวกับ L5) + หน้าการ์ด [คำ, คำแปล, ประโยคที่เจอ ≤ 200]
+    function cardFor(langId, o) {
+      var key = roleplay.userCardKey(langId, o && o.word);
+      if (!key) return null;
+      var word = String(o.word).replace(/\s+/g, ' ').trim().slice(0, LOOKUP_MAX.lemma);
+      return { key: key, face: [word, text1(o.thai, LOOKUP_MAX.th), String(o.example || '').replace(/\s+/g, ' ').trim().slice(0, EXAMPLE_MAX)] };
+    }
+
+    return {
+      MAX_TEXT: MAX_TEXT, EXAMPLE_MAX: EXAMPLE_MAX, clip: clip, pieces: pieces, sentenceAt: sentenceAt, example: example,
+      classify: classify, entry: entry, lookupMessages: lookupMessages, parseLookup: parseLookup,
+      translateMessages: translateMessages, parseTranslation: parseTranslation, cardFor: cardFor
+    };
+  })();
+
   return {
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,
     thaiOf: thaiOf, ipaText: ipaText, face: face, missingThai: missingThai, thMessages: thMessages, parseTh: parseTh, mergeTh: mergeTh, chunk: chunk,
-    subs: subs, spell: spell,
+    subs: subs, spell: spell, reader: reader,
     rng: rng, shuffle: shuffle, spans: spans, cloze: cloze, scramble: scramble, checkOrder: checkOrder, pairs: pairs,
     clozeFor: clozeFor, scrambleFor: scrambleFor, gameItems: gameItems,
     LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, roleplayMessages: roleplay.roleplayMessages,
