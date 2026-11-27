@@ -185,6 +185,9 @@
     <div class="card lib"><div class="lib-top"><span class="lib-name">F5-TTS (SWivid)</span><span class="badge">MIT · CC-BY-NC 4.0</span></div>
       <div class="lib-desc" data-cr="c72">โมเดลต้นแบบของ F5-TTS-THAI (โค้ด MIT, น้ำหนักโมเดลที่ฝึกไว้ CC-BY-NC 4.0)</div>
       <div class="lib-meta"><span data-cr="c49">แปลงข้อความเป็นเสียง</span><a href="https://github.com/SWivid/F5-TTS" target="_blank" rel="noopener">github.com/SWivid/F5-TTS</a></div></div>
+    <div class="card lib"><div class="lib-top"><span class="lib-name">VoxCPM2 (OpenBMB)</span><span class="badge">Apache-2.0</span></div>
+      <div class="lib-desc" data-cr="c94">โมเดลสร้างเสียงพูด (TTS) ที่ใช้สังเคราะห์เสียงสำหรับฝึกเสียงไทย "หญิง (Nat)" จากเสียงอ้างอิงที่ออกแบบขึ้นเอง (ไม่ใช่เสียงของใคร) — Nat ฝึกจากศูนย์ ไม่ใช้น้ำหนักของ MMS/F5 (ไม่ได้รัน VoxCPM2 ในเว็บนี้)</div>
+      <div class="lib-meta"><span data-cr="c49">แปลงข้อความเป็นเสียง</span><a href="https://github.com/OpenBMB/VoxCPM" target="_blank" rel="noopener">github.com/OpenBMB/VoxCPM</a></div></div>
     <div class="card lib"><div class="lib-top"><span class="lib-name">Hangeul Stroke Order (Adam Stone)</span><span class="badge">CC BY-SA 4.0</span></div>
       <div class="lib-desc" data-cr="c28">ภาพ SVG แผนภาพลำดับขีดตัวจามอฮันกึล (เกาหลี) 35 ตัว วาดด้วยมือและตรวจสอบแล้วโดย Adam Stone — ใช้ในโหมดฝึกเขียนตัวอักษรภาษาเกาหลี สัญญาอนุญาต ShareAlike กำหนดให้ต้องให้เครดิตเสมอ (แสดงไว้ใต้ภาพทุกครั้งด้วย)</div>
       <div class="lib-meta"><span data-cr="c51">ฝึกภาษา</span><a href="https://github.com/MagisterAdamus/hangeul-stroke-order" target="_blank" rel="noopener">github.com/MagisterAdamus/hangeul-stroke-order</a></div></div>
@@ -246,6 +249,7 @@
 (function () {
   var EN = {
  "c71": "Thai speech model (F5-TTS fine-tuned by VIZINTZOR) — used to synthesize the training audio for the Thai voices \"Female (Jori)\" / \"Male (Riko)\" (not run on this site) · personal / non-commercial use only",
+ "c94": "Speech-generation (TTS) model used to synthesize the training audio for the Thai voice \"Female (Nat)\" from a self-designed reference voice (not a real person) — Nat is trained from scratch, without MMS/F5 weights (VoxCPM2 does not run on this site)",
  "c72": "The base model of F5-TTS-THAI (code MIT, pretrained weights CC-BY-NC 4.0)",
  "c74": "OCR models of the \"New reader (experimental)\": PP-OCRv5_mobile_det (finds text boxes) + th_PP-OCRv5_mobile_rec (reads Thai) + PP-LCNet_x1_0_doc_ori (page orientation) + UVDoc (flattens pages in photos). Official ONNX files downloaded from Hugging Face on first use and kept on your device, not bundled in this site\'s code",
  "c75": "PaddleOCR pre/post-processing in plain JavaScript (text boxes, line crops, character decoding, page orientation, UVDoc), run with ONNX Runtime Web — bundled with this site in vendor/paddleocr/ (version 1.2.0)",

@@ -17,7 +17,8 @@
   var TTS_DTYPE_OVERRIDES = {
     /* Jori / Riko — มีแต่ onnx/model.onnx (fp32) ไม่มีไฟล์ quantized ·  */
     'Tanotfin/mms-thai-jori-f5-onnx': 'fp32',
-    'Tanotfin/mms-thai-riko-f5-onnx': 'fp32'
+    'Tanotfin/mms-thai-riko-f5-onnx': 'fp32',
+    'Tanotfin/vits-thai-nat-onnx': 'fp32'
   };
   /* เสียงไทย (2026-10): เหลือ 2 ตัว — หญิง (Jori) ค่าเริ่มต้น · ชาย (Riko)
      ทั้งคู่ fine-tune จาก VIZINTZOR MMS-TTS-THAI-FEMALEV2 / MALEV2 ด้วยเสียงที่สังเคราะห์โดย F5-TTS-THAI แล้วตั้งความสุ่มต่ำแบบ stable2
@@ -27,7 +28,11 @@
      id ที่เคยเลือกไว้ทุกตัว (พอดแคสต์/หญิง ทั่วไป/ชาย ทั่วไป ทุกชุด) แปลงเป็น Jori/Riko ด้วย ttsMigrate · ค่าที่ไม่รู้จัก → Jori */
   var TTS_DEFAULT_VOICE = 'Tanotfin/mms-thai-jori-f5-onnx';
   var TTS_MALE = 'Tanotfin/mms-thai-riko-f5-onnx';
-  var TTS_VOICE_IDS = [TTS_DEFAULT_VOICE, TTS_MALE];
+  /* Nat (2026-11): VITS ฝึกจากศูนย์ (ไม่ใช้น้ำหนัก MMS/F5 — ไม่ติด CC-BY-NC) ด้วยเสียงที่สังเคราะห์โดย VoxCPM2 (Apache-2.0) จากเสียงที่ออกแบบเอง
+     tools/voice-training สคริปต์ 10 → 6 → 12 → 13 (เลือก checkpoint 66k ด้วย CER) → 14 · speaking_rate 0.85 ฝังใน ONNX
+     tokenizer เป็นของเราเอง (ตัวอักษรไทย + ช่องว่างระหว่างตัว "_") แต่รับข้อความเดียวกับ Jori/Riko (tts-normalize.js forMms) */
+  var TTS_NAT = 'Tanotfin/vits-thai-nat-onnx';
+  var TTS_VOICE_IDS = [TTS_DEFAULT_VOICE, TTS_MALE, TTS_NAT];
   var TTS_MIGRATE = {
     'Tanotfin/mms-tts-2081-onnx': TTS_DEFAULT_VOICE,
     'Tanotfin/mms-tts-2081-FM-onnx': TTS_DEFAULT_VOICE,
@@ -46,7 +51,8 @@
   /* รุ่นนี้ฝัง speaking_rate ไว้ใน ONNX (Jori 0.8 / Riko 0.75) ด้วยสคริปต์ 9 (tools/voice-training/tanot_mms_speed.py) · รุ่นก่อนหน้า (ความเร็วเดิม) = 9a95f85… / 55d6042… */
   var TTS_REVISION = {
     'Tanotfin/mms-thai-jori-f5-onnx': 'b9b254f86dfdf0c3ea4b49d8a6c92c4da5d4b913',
-    'Tanotfin/mms-thai-riko-f5-onnx': 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451'
+    'Tanotfin/mms-thai-riko-f5-onnx': 'd61cbf24ee518b31cbaa29c8a9eb8f251d5f4451',
+    'Tanotfin/vits-thai-nat-onnx': 'a87a8e1abb1e1a8cf38a4d188fbc877a87a378e4'
   };
   /* "ลดเสียงแหลม" (ตัวกรอง low-pass 2nd-order biquad Q 0.707 ที่ TTS_LOWPASS_HZ — audio-gain.js): หญิง ทั่วไป (22.05 kHz) มีเสียงแหลมจนมีเสียงรบกวนเล็กน้อย (เจ้าของฟังจริง)
      ค่าเริ่มต้นเปิดเฉพาะเสียงที่อยู่ในตารางนี้ (Jori/Riko ไม่เปิด — ผู้ใช้ติ๊กเองได้) · ใช้กับเสียงที่ sampleRate > 16 kHz เท่านั้น (โมเดล 16 kHz ไม่มีย่านเหนือ 8 kHz ให้กรอง) · ผู้ใช้สลับเองได้ (tanot:tts:opts.lowpass) */
@@ -242,6 +248,7 @@
       var en = lang === 'en';
       if (modelId === TTS_DEFAULT_VOICE) return en ? 'Female (Jori)' : 'หญิง (Jori)';
       if (modelId === TTS_MALE) return en ? 'Male (Riko)' : 'ชาย (Riko)';
+      if (modelId === TTS_NAT) return en ? 'Female (Nat)' : 'หญิง (Nat)';
       return String(modelId || '');
     },
     /* ไฟล์โมเดลไม่อยู่บนเซิร์ฟเวอร์ (404/403 ฯลฯ ที่ไม่ใช่เซสชันหมดอายุ) */

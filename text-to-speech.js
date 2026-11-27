@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    แปลงข้อความเป็นเสียง — ขั้นตอนเดียว (2026-10): ใส่ข้อความ → เลือกเสียง → สร้าง → ฟัง/ดาวน์โหลด
    MMS-TTS (transformers.js) ในพูล Web Worker → .wav + .mp3 (audio-encode-worker.js) ในเบราว์เซอร์ล้วนๆ ไม่มีเซิร์ฟเวอร์
-   เสียงไทย 2 ตัว (Jori / Riko — media-models.js) · ข้อความไม่มีอักษรไทยเลย = เสียงอังกฤษอัตโนมัติ (กฎเดียวกับ ai-chat-widget.js)
+   เสียงไทย 3 ตัว (Jori / Riko / Nat — media-models.js) · ข้อความไม่มีอักษรไทยเลย = เสียงอังกฤษอัตโนมัติ (กฎเดียวกับ ai-chat-widget.js)
    ตัวเลือกที่เหลือทั้งหมดอยู่ในส่วนพับ "ตัวเลือกเพิ่มเติม" (#moreBox)
    + การ์ด "เสียง/วิดีโอ → ข้อความ" (Whisper) แยกต่างหาก
    ══════════════════════════════════════════════════════════════════ */
@@ -24,7 +24,7 @@
       noReader: 'โหลดตัวอ่านไฟล์ไม่สำเร็จ (อาจเป็นเพราะเน็ตช้า/ถูกบล็อก) ลองรีเฟรชหน้าใหม่', readingFile: 'กำลังอ่านไฟล์ {name}…', noText: 'ไม่พบข้อความในไฟล์นี้',
       imported: 'นำเข้าข้อความจาก {name} แล้ว ({n} ตัวอักษร) — ตรวจทานก่อนกด "สร้างไฟล์เสียง" ได้', readFail: 'อ่านไฟล์ไม่สำเร็จ: {msg}',
       typeFirst: 'พิมพ์ข้อความก่อน',
-      v_jori: 'หญิง (Jori)', v_riko: 'ชาย (Riko)',
+      v_jori: 'หญิง (Jori)', v_riko: 'ชาย (Riko)', v_nat: 'หญิง (Nat)',
       etaFew: 'อีกไม่กี่วินาที', etaSec: 'อีกประมาณ {s} วินาที', etaMin: 'อีกประมาณ {m} นาที', etaMinSec: 'อีกประมาณ {m} นาที {s} วินาที',
       emptyAfterFilter: 'ข้อความหลังตัดอักขระที่โมเดลไม่รู้จักออกแล้วว่างเปล่า ลองพิมพ์เป็นภาษาไทยดู',
       prepTh: 'กำลังเตรียมโมเดลเสียง (ครั้งแรกต้องดาวน์โหลดจาก Hugging Face — ครั้งต่อไปจะเร็วขึ้นเพราะแคชไว้แล้ว)…',
@@ -82,7 +82,7 @@
       noReader: 'Could not load the file reader (slow or blocked network?). Try reloading the page', readingFile: 'Reading {name}…', noText: 'No text found in this file',
       imported: 'Imported text from {name} ({n} characters) — review it before pressing "Create audio file"', readFail: 'Could not read the file: {msg}',
       typeFirst: 'Type some text first',
-      v_jori: 'Female (Jori)', v_riko: 'Male (Riko)',
+      v_jori: 'Female (Jori)', v_riko: 'Male (Riko)', v_nat: 'Female (Nat)',
       etaFew: 'a few seconds left', etaSec: 'about {s} seconds left', etaMin: 'about {m} min left', etaMinSec: 'about {m} min {s} s left',
       emptyAfterFilter: 'Nothing is left after removing characters the model does not know. Try typing in Thai',
       prepTh: 'Preparing the voice model (the first time it downloads from Hugging Face — later runs are faster because it is cached)…',
@@ -585,10 +585,11 @@
     $('dlWavLink').href = wavUrl;
     $('dlMp3Link').href = mp3Url;
   }
-  /* เสียงไทย 2 ตัว (ตัวแรก = ค่าเริ่มต้น TTS_DEFAULT_VOICE) · ทางถอย/dtype/revision อยู่ที่ media-models.js · เสียงอังกฤษไม่อยู่ในรายการ — ใช้อัตโนมัติเมื่อข้อความไม่มีอักษรไทยเลย */
+  /* เสียงไทย 3 ตัว (ตัวแรก = ค่าเริ่มต้น TTS_DEFAULT_VOICE) · ทางถอย/dtype/revision อยู่ที่ media-models.js · เสียงอังกฤษไม่อยู่ในรายการ — ใช้อัตโนมัติเมื่อข้อความไม่มีอักษรไทยเลย */
   var TTS_VOICES = [
     { id: 'Tanotfin/mms-thai-jori-f5-onnx', k: 'v_jori' },
-    { id: 'Tanotfin/mms-thai-riko-f5-onnx', k: 'v_riko' }
+    { id: 'Tanotfin/mms-thai-riko-f5-onnx', k: 'v_riko' },
+    { id: 'Tanotfin/vits-thai-nat-onnx', k: 'v_nat' }
   ];
   var EN_VOICE = 'Xenova/mms-tts-eng';
   /* ภาษาของข้อความ = ภาษาของเสียง: มีอักษรไทยอย่างน้อย 1 ตัว → ไทย ไม่งั้นอังกฤษ (กฎเดียวกับ ai-chat-widget.js pickTtsModel) */
