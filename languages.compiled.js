@@ -51,6 +51,12 @@
   const HskIcon = icon("graduation-cap", "w-4 h-4");
   const ListenIcon = icon("headphones", "w-4 h-4");
   const MicIcon = icon("mic", "w-5 h-5");
+  const CaptionsIcon = icon("captions", "w-4 h-4");
+  const PlayIcon = icon("play", "w-4 h-4");
+  const PauseIcon = icon("pause", "w-4 h-4");
+  const SkipBackIcon = icon("skip-back", "w-4 h-4");
+  const SkipForwardIcon = icon("skip-forward", "w-4 h-4");
+  const RepeatIcon = icon("repeat", "w-4 h-4");
   const HashIcon = icon("hash", "w-4 h-4");
   const FlameIcon = icon("flame", "w-4 h-4");
   const BrushIcon = icon("brush", "w-3.5 h-3.5");
@@ -62,6 +68,37 @@
   const EarIcon = icon("ear", "w-3.5 h-3.5");
   window.OME_PAGE_LIVE_LANG = true;
   const LP_EN = {
+    "\u0E17\u0E35\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19:": "Heard:",
+    "\u0E04\u0E27\u0E32\u0E21\u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 {n}%": "Match {n}%",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07...": "Transcribing...",
+    "\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E19\u0E35\u0E49": "Repeat this sentence",
+    "\u0E41\u0E2A\u0E14\u0E07\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22": "Show Thai subtitles",
+    "\u0E0B\u0E48\u0E2D\u0E19\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22": "Hide Thai subtitles",
+    "\u0E41\u0E2A\u0E14\u0E07\u0E0B\u0E31\u0E1A": "Show subtitles",
+    "\u0E0B\u0E48\u0E2D\u0E19\u0E0B\u0E31\u0E1A": "Hide subtitles",
+    "\u0E27\u0E19\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04": "Loop sentence",
+    "\u0E2B\u0E22\u0E38\u0E14": "Stop",
+    "\u0E40\u0E25\u0E48\u0E19\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E19\u0E35\u0E49": "Play this sentence",
+    "\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E16\u0E31\u0E14\u0E44\u0E1B": "Next sentence",
+    "\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32": "Previous sentence",
+    "\u0E42\u0E2B\u0E25\u0E14\u0E2A\u0E04\u0E23\u0E34\u0E1B\u0E15\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08": "Could not load the script",
+    "\u0E22\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E15\u0E31\u0E27\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E40\u0E2A\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "The transcriber has not finished loading \u2014 try again",
+    "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E17\u0E35\u0E48\u0E16\u0E2D\u0E14\u0E44\u0E14\u0E49\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49": "No transcribable speech found in this file",
+    "\u0E44\u0E1F\u0E25\u0E4C\u0E22\u0E32\u0E27\u0E40\u0E01\u0E34\u0E19 {min} \u0E19\u0E32\u0E17\u0E35 \u2014 \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E0B\u0E31\u0E1A\u0E1A\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49": "The file is longer than {min} minutes \u2014 subtitles can't be generated on this device",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E40\u0E17\u0E48\u0E32\u0E19\u0E31\u0E49\u0E19)...": "Loading the model (first time only)...",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E17\u0E48\u0E2D\u0E19\u0E17\u0E35\u0E48 {i}/{n}...": "Transcribing part {i}/{n}...",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E15\u0E23\u0E35\u0E22\u0E21\u0E15\u0E31\u0E27\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07...": "Preparing the transcriber...",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07 ({done}/{total})...": "Transcribing ({done}/{total})...",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E08\u0E32\u0E01\u0E44\u0E1F\u0E25\u0E4C...": "Reading the audio from the file...",
+    "\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01": "Cancel",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E0B\u0E31\u0E1A\u0E14\u0E49\u0E27\u0E22\u0E01\u0E32\u0E23\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07": "Generate subtitles by transcription",
+    "\u0E2D\u0E48\u0E32\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E0B\u0E31\u0E1A\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08": "Could not read the subtitle file",
+    "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E0B\u0E31\u0E1A\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E44\u0E1F\u0E25\u0E4C .srt \u0E2B\u0E23\u0E37\u0E2D .vtt": "No subtitles found in this file \u2014 use an .srt or .vtt file",
+    "{n} \u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04": "{n} sentences",
+    "\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22 (\u0E44\u0E21\u0E48\u0E1A\u0E31\u0E07\u0E04\u0E31\u0E1A)": "Thai subtitles (optional)",
+    "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E0B\u0E31\u0E1A (.srt/.vtt)": "Choose subtitles (.srt/.vtt)",
+    "\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E2A\u0E35\u0E22\u0E07/\u0E27\u0E34\u0E14\u0E35\u0E42\u0E2D": "Choose audio/video",
+    "\u0E0B\u0E31\u0E1A\u0E44\u0E15\u0E40\u0E15\u0E34\u0E25": "Subtitles",
     "\u2190 \u0E01\u0E25\u0E31\u0E1A Tanot": "\u2190 Back to Tanot",
     "\u2190 \u0E40\u0E1B\u0E25\u0E35\u0E48\u0E22\u0E19\u0E1B\u0E23\u0E30\u0E40\u0E20\u0E17\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A": "\u2190 Change exam type",
     "\u2190 \u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2D\u0E37\u0E48\u0E19": "\u2190 Choose another story",
@@ -680,11 +717,11 @@
     bOut.reverse();
     return { typedDiff: aOut, correctDiff: bOut };
   }
-  function SpellDiff({ typed, correct }) {
+  function SpellDiff({ typed, correct, typedLabel }) {
     const { typedDiff, correctDiff } = useMemo(() => diffChars(typed.trim(), correct.trim()), [typed, correct]);
     const hasDiff = typedDiff.some((c) => !c.same) || correctDiff.some((c) => !c.same);
     if (!hasDiff) return null;
-    return /* @__PURE__ */ React.createElement("div", { className: "mt-2 text-sm font-mono leading-relaxed break-all" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1" }, tx("\u0E04\u0E38\u0E13\u0E1E\u0E34\u0E21\u0E1E\u0E4C:")), typedDiff.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: c.same ? "text-gray-500" : "bg-red-100 text-err-ink rounded-sm" }, c.ch))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1" }, tx("\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07:")), correctDiff.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: c.same ? "text-gray-700" : "bg-green-100 text-ok-ink font-bold rounded-sm" }, c.ch))));
+    return /* @__PURE__ */ React.createElement("div", { className: "mt-2 text-sm font-mono leading-relaxed break-all" }, /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1" }, typedLabel || tx("\u0E04\u0E38\u0E13\u0E1E\u0E34\u0E21\u0E1E\u0E4C:")), typedDiff.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: c.same ? "text-gray-500" : "bg-red-100 text-err-ink rounded-sm" }, c.ch))), /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("span", { className: "text-xs max-sm:text-sm font-sans font-bold text-gray-400 uppercase mr-1" }, tx("\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07:")), correctDiff.map((c, i) => /* @__PURE__ */ React.createElement("span", { key: i, className: c.same ? "text-gray-700" : "bg-green-100 text-ok-ink font-bold rounded-sm" }, c.ch))));
   }
   function loadWrong() {
     try {
@@ -9726,6 +9763,357 @@
     };
     return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21 (Shadowing)")), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "text-2xl font-bold text-gray-900 mb-1", "data-i18n-skip": true }, current.target), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-400 mb-3", "data-i18n-skip": true }, current.thai), /* @__PURE__ */ React.createElement("button", { onClick: () => speak(current.target, langCode), className: "btn ghost sm" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-3 mb-4" }, !isRecording ? /* @__PURE__ */ React.createElement("button", { onClick: startRecording, className: "btn danger lg" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2D\u0E31\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07")) : /* @__PURE__ */ React.createElement("button", { onClick: stopRecording, className: "btn primary lg" }, tx("\u23F9 \u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")), status === "transcribing" && /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400" }, tx("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E2D\u0E32\u0E08\u0E0A\u0E49\u0E32 \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25)..."))), recordedUrl && /* @__PURE__ */ React.createElement("div", { className: "mb-4 text-center" }, /* @__PURE__ */ React.createElement("audio", { controls: true, src: recordedUrl, className: "mx-auto w-full" })), status === "done" && /* @__PURE__ */ React.createElement("div", { className: `p-4 rounded-xl border mb-4 ${grade === "correct" ? "bg-green-50 border-green-100" : grade === "almost" ? "bg-amber-50 border-amber-100" : "bg-red-50 border-red-100"}` }, /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400 mb-1" }, tx("\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E27\u0E48\u0E32:")), /* @__PURE__ */ React.createElement("p", { className: "font-semibold text-gray-800 mb-2" }, transcript || tx("(\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14)")), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold" }, grade === "correct" ? tx("\u2705 \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E21\u0E32\u0E01") : grade === "almost" ? tx("\u{1F7E1} \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E15\u0E23\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14") : tx("\u274C \u0E22\u0E31\u0E07\u0E15\u0E48\u0E32\u0E07\u0E08\u0E32\u0E01\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E1E\u0E2D\u0E2A\u0E21\u0E04\u0E27\u0E23"))), status === "error" && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mb-4" }, "\u274C ", txs(transcript)), /* @__PURE__ */ React.createElement("button", { onClick: next, className: "btn primary lg w-full" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E15\u0E48\u0E2D\u0E44\u0E1B")));
   }
+  const SUBS_CLOUD_MAX_SEC = 1800;
+  const SUBS_ASR_MODEL = "Xenova/whisper-base";
+  const SUBS_LEGACY_ENC = {
+    "lang-jp": "shift_jis",
+    "lang-cn": "gbk",
+    "lang-yue": "big5",
+    "lang-kr": "euc-kr",
+    "lang-ru": "windows-1251",
+    "lang-ar": "windows-1256",
+    "lang-vn": "windows-1258",
+    "lang-en": "windows-1252",
+    "lang-de": "windows-1252",
+    "lang-fr": "windows-1252",
+    "lang-it": "windows-1252",
+    "lang-es": "windows-1252",
+    "lang-pt": "windows-1252",
+    "lang-my": "windows-1252"
+  };
+  const subsScriptCache = {};
+  function subsLoadScript(src) {
+    if (!subsScriptCache[src]) subsScriptCache[src] = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = src;
+      s.onload = resolve;
+      s.onerror = () => {
+        delete subsScriptCache[src];
+        reject(new Error("\u0E42\u0E2B\u0E25\u0E14\u0E2A\u0E04\u0E23\u0E34\u0E1B\u0E15\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08"));
+      };
+      document.head.appendChild(s);
+    });
+    return subsScriptCache[src];
+  }
+  const subsAsrCode = (langId) => LANGS[langId].code.split("-")[0];
+  function subsErrText(e) {
+    if (e && e.name === "AiError" && window.AiClient) return window.AiClient.friendlyMessage(e);
+    return window.TanotMedia && e && e.code ? window.TanotMedia.errorText(e) : e && e.message ? e.message : String(e);
+  }
+  async function subsTranscribeClip(blob, langId) {
+    const pcm = await decodeBlobToPcm(blob);
+    const ai = window.AiClient;
+    if (ai && ai.available() && navigator.onLine !== false) {
+      try {
+        return ((await ai.asr({ pcm, language: subsAsrCode(langId) })).text || "").trim();
+      } catch (e) {
+        if (isIOS() || !ai.canFallback(e)) throw e;
+      }
+    } else if (isIOS()) {
+      throw new Error("\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u2014 \u0E25\u0E2D\u0E07\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E17\u0E35\u0E48\u0E2D\u0E31\u0E14\u0E40\u0E17\u0E35\u0E22\u0E1A\u0E01\u0E31\u0E1A\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E14\u0E49\u0E27\u0E22\u0E2B\u0E39\u0E41\u0E17\u0E19\u0E44\u0E14\u0E49");
+    }
+    return (await transcribeSpeech(pcm, ASR_LANG_NAME[langId] || "english") || "").trim();
+  }
+  function SubtitlePanel({ awardXp, langId }) {
+    const L = window.LangCalc.subs;
+    const [media, setMedia] = useState(null);
+    const [cues, setCues] = useState([]);
+    const [cuesTh, setCuesTh] = useState([]);
+    const [subsErr, setSubsErr] = useState("");
+    const [cur, setCur] = useState(0);
+    const [loop, setLoop] = useState(false);
+    const [rate, setRate] = useState(1);
+    const [showSub, setShowSub] = useState(true);
+    const [showTh, setShowTh] = useState(true);
+    const [playing, setPlaying] = useState(false);
+    const [gen, setGen] = useState(null);
+    const [rec, setRec] = useState({ status: "", heard: "", score: null, err: "" });
+    const elRef = useRef(null), listRef = useRef(null), micRef = useRef(null), genCtrl = useRef(null);
+    const urlRef = useRef(""), rafRef = useRef(0), stopAt = useRef(null), ourSeek = useRef(false);
+    const mediaInput = useRef(null), subsInput = useRef(null), thInput = useRef(null);
+    const merged = useMemo(() => cuesTh.length ? L.pairSubs(cues, cuesTh) : cues, [cues, cuesTh]);
+    const live = useRef({});
+    live.current = { merged, cur, loop };
+    const pauseEl = () => {
+      const el = elRef.current;
+      stopAt.current = null;
+      if (el) el.pause();
+    };
+    const stopTick = () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+    };
+    const tick = () => {
+      const el = elRef.current;
+      if (!el) {
+        rafRef.current = 0;
+        return;
+      }
+      const { merged: cs, cur: ci, loop: lp } = live.current, t = el.currentTime, stop = stopAt.current;
+      if (stop != null && t >= stop - 0.03) {
+        if (lp && cs[ci]) {
+          ourSeek.current = true;
+          el.currentTime = cs[ci].start;
+        } else {
+          stopAt.current = null;
+          el.pause();
+          rafRef.current = 0;
+          return;
+        }
+      } else if (stop == null) {
+        const i = L.cueAt(cs, t);
+        if (i >= 0 && i !== ci) setCur(i);
+      }
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    const playSentence = (i) => {
+      const el = elRef.current, c = live.current.merged[i];
+      if (!el || !c) return;
+      setCur(i);
+      ourSeek.current = true;
+      el.currentTime = c.start;
+      stopAt.current = c.end;
+      live.current.cur = i;
+      const p = el.play();
+      if (p && p.catch) p.catch(() => {
+      });
+    };
+    const go = (d) => {
+      const n = live.current.merged.length;
+      if (n) playSentence(Math.max(0, Math.min(n - 1, live.current.cur + d)));
+    };
+    const toggle = () => {
+      const el = elRef.current;
+      if (!el) return;
+      if (!el.paused) pauseEl();
+      else playSentence(live.current.cur);
+    };
+    live.current.act = { go, toggle };
+    useEffect(() => {
+      const onKey = (e) => {
+        const t = e.target, tag = t && t.tagName;
+        if (e.ctrlKey || e.metaKey || e.altKey || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t && t.isContentEditable) return;
+        if (!live.current.merged.length) return;
+        if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          live.current.act.go(-1);
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          live.current.act.go(1);
+        } else if (e.key === " " && tag !== "BUTTON" && tag !== "A" && tag !== "VIDEO" && tag !== "AUDIO") {
+          e.preventDefault();
+          live.current.act.toggle();
+        }
+      };
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }, []);
+    useEffect(() => () => {
+      stopTick();
+      if (genCtrl.current) genCtrl.current.abort();
+      if (micRef.current && micRef.current.state === "recording") {
+        try {
+          micRef.current.stop();
+        } catch (e) {
+        }
+      }
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+    }, []);
+    useEffect(() => {
+      if (elRef.current) elRef.current.playbackRate = rate;
+    }, [rate, media]);
+    useEffect(() => {
+      const r = listRef.current, el = r && r.querySelector('[aria-current="true"]');
+      if (!el) return;
+      if (el.offsetTop < r.scrollTop || el.offsetTop + el.offsetHeight > r.scrollTop + r.clientHeight) r.scrollTop = Math.max(0, el.offsetTop - 8);
+    }, [cur, merged]);
+    useEffect(() => {
+      lucide.createIcons();
+    });
+    useEffect(() => {
+      setRec((r) => r.status === "done" || r.status === "error" ? { status: "", heard: "", score: null, err: "" } : r);
+    }, [cur]);
+    const onMedia = (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      pauseEl();
+      stopTick();
+      setPlaying(false);
+      if (genCtrl.current) genCtrl.current.abort();
+      if (urlRef.current) URL.revokeObjectURL(urlRef.current);
+      urlRef.current = URL.createObjectURL(f);
+      setMedia({ url: urlRef.current, name: f.name, video: /^video\//.test(f.type) || /\.(mp4|m4v|mov|webm|mkv)$/i.test(f.name), file: f });
+      setGen(null);
+    };
+    const onSubs = (th) => (e) => {
+      const f = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!f) return;
+      f.arrayBuffer().then((buf) => {
+        const c = L.parseSubs(L.decode(new Uint8Array(buf), th ? "windows-874" : SUBS_LEGACY_ENC[langId] || null));
+        if (!c.length) {
+          setSubsErr("\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E0B\u0E31\u0E1A\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E44\u0E1F\u0E25\u0E4C .srt \u0E2B\u0E23\u0E37\u0E2D .vtt");
+          return;
+        }
+        setSubsErr("");
+        if (th) setCuesTh(c);
+        else {
+          pauseEl();
+          setCues(c);
+          setCur(0);
+          setGen(null);
+        }
+      }, () => setSubsErr("\u0E2D\u0E48\u0E32\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E0B\u0E31\u0E1A\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08"));
+    };
+    const generate = async () => {
+      if (!media) return;
+      const ctrl = new AbortController(), ai = window.AiClient, TM = window.TanotMedia;
+      genCtrl.current = ctrl;
+      let engine = "cloud";
+      try {
+        if (!TM) throw new Error("\u0E22\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E15\u0E31\u0E27\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E40\u0E2A\u0E23\u0E47\u0E08 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07");
+        setGen({ msg: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E08\u0E32\u0E01\u0E44\u0E1F\u0E25\u0E4C..." });
+        const dec = await TM.decode16k(await media.file.arrayBuffer());
+        if (ctrl.signal.aborted) throw TM.error("abort");
+        const cloudOk = !!(ai && ai.available() && navigator.onLine !== false);
+        const useCloud = cloudOk && dec.duration <= SUBS_CLOUD_MAX_SEC;
+        if (!useCloud && isIOS()) {
+          setGen({ err: cloudOk ? ["\u0E44\u0E1F\u0E25\u0E4C\u0E22\u0E32\u0E27\u0E40\u0E01\u0E34\u0E19 {min} \u0E19\u0E32\u0E17\u0E35 \u2014 \u0E2A\u0E23\u0E49\u0E32\u0E07\u0E0B\u0E31\u0E1A\u0E1A\u0E19\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E19\u0E35\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49", { min: SUBS_CLOUD_MAX_SEC / 60 }] : "\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E2D\u0E31\u0E15\u0E42\u0E19\u0E21\u0E31\u0E15\u0E34\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u2014 \u0E25\u0E2D\u0E07\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E17\u0E35\u0E48\u0E2D\u0E31\u0E14\u0E40\u0E17\u0E35\u0E22\u0E1A\u0E01\u0E31\u0E1A\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E14\u0E49\u0E27\u0E22\u0E2B\u0E39\u0E41\u0E17\u0E19\u0E44\u0E14\u0E49" });
+          return;
+        }
+        let res = null;
+        if (useCloud) {
+          try {
+            await subsLoadScript("asr-cloud.js");
+            res = await window.TanotAsrCloud.transcribe({
+              dec,
+              language: subsAsrCode(langId),
+              signal: ctrl.signal,
+              onProgress: (p) => setGen({ msg: ["\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07 ({done}/{total})...", { done: p.done, total: p.total }] })
+            });
+          } catch (e) {
+            if (TM.classify(e) === "abort" || isIOS() || !ai.canFallback(e)) throw e;
+            engine = "local";
+          }
+        } else engine = "local";
+        if (!res) {
+          setGen({ msg: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E40\u0E15\u0E23\u0E35\u0E22\u0E21\u0E15\u0E31\u0E27\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07..." });
+          res = await TM.transcribeLocalDetailed({
+            dec,
+            modelId: SUBS_ASR_MODEL,
+            lang: ASR_LANG_NAME[langId] || "english",
+            signal: ctrl.signal,
+            device: "auto",
+            timestamps: true,
+            onProgress: (p) => {
+              if (p.stage === "segment") setGen({ msg: ["\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E17\u0E48\u0E2D\u0E19\u0E17\u0E35\u0E48 {i}/{n}...", { i: p.i, n: p.n }] });
+              else if (p.stage === "model") setGen({ msg: "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E40\u0E17\u0E48\u0E32\u0E19\u0E31\u0E49\u0E19)..." });
+            }
+          });
+        }
+        const out = L.segmentsToCues(res.segments);
+        if (!out.length) {
+          setGen({ err: "\u0E44\u0E21\u0E48\u0E1E\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14\u0E17\u0E35\u0E48\u0E16\u0E2D\u0E14\u0E44\u0E14\u0E49\u0E43\u0E19\u0E44\u0E1F\u0E25\u0E4C\u0E19\u0E35\u0E49" });
+          return;
+        }
+        setCues(out);
+        setCur(0);
+        setGen(null);
+      } catch (e) {
+        if (TM && TM.classify(e) === "abort") {
+          setGen(null);
+          return;
+        }
+        if (TM) TM.logError("asr", e, { stage: "subs-generate", engine, lang: subsAsrCode(langId) });
+        setGen({ err: ["\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08: {m}", { m: subsErrText(e) }] });
+      }
+    };
+    const startRec = async () => {
+      const target = live.current.merged[live.current.cur];
+      if (!target) return;
+      pauseEl();
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mr = new MediaRecorder(stream), chunks = [];
+        mr.addEventListener("dataavailable", (ev) => {
+          if (ev.data && ev.data.size) chunks.push(ev.data);
+        });
+        mr.addEventListener("stop", async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          setRec({ status: "transcribing", heard: "", score: null, err: "" });
+          try {
+            const heard = await subsTranscribeClip(new Blob(chunks, { type: mr.mimeType || "audio/webm" }), langId);
+            const score = L.similarity(heard, target.text), b2 = L.band(score);
+            setRec({ status: "done", heard, score, err: "" });
+            if (b2 === "correct") awardXp(15);
+            else if (b2 === "almost") awardXp(8);
+          } catch (e) {
+            setRec({ status: "error", heard: "", score: null, err: ["\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08: {m}", { m: subsErrText(e) }] });
+          }
+        });
+        micRef.current = mr;
+        mr.start();
+        setRec({ status: "recording", heard: "", score: null, err: "" });
+      } catch (e) {
+        setRec({ status: "error", heard: "", score: null, err: "\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E21\u0E04\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A\u0E27\u0E48\u0E32\u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15\u0E43\u0E2B\u0E49\u0E40\u0E27\u0E47\u0E1A\u0E19\u0E35\u0E49\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E42\u0E04\u0E23\u0E42\u0E1F\u0E19\u0E41\u0E25\u0E49\u0E27" });
+      }
+    };
+    const stopRec = () => {
+      if (micRef.current && micRef.current.state === "recording") micRef.current.stop();
+    };
+    const mediaProps = {
+      ref: elRef,
+      src: media ? media.url : void 0,
+      controls: true,
+      preload: "metadata",
+      onPlay: () => {
+        setPlaying(true);
+        stopTick();
+        rafRef.current = requestAnimationFrame(tick);
+      },
+      onPause: () => {
+        setPlaying(false);
+        stopTick();
+      },
+      onEnded: () => {
+        setPlaying(false);
+        stopTick();
+        stopAt.current = null;
+      },
+      onSeeking: () => {
+        if (!ourSeek.current) stopAt.current = null;
+      },
+      // ผู้ใช้ลากแถบเวลาเอง = เลิกคุมช่วงประโยค
+      onSeeked: () => {
+        ourSeek.current = false;
+        const el = elRef.current;
+        if (el && stopAt.current == null) {
+          const i = L.cueAt(live.current.merged, el.currentTime);
+          if (i >= 0) setCur(i);
+        }
+      },
+      onLoadedMetadata: () => {
+        if (elRef.current) elRef.current.playbackRate = rate;
+      }
+    };
+    const hasTh = merged.some((c) => c.thai);
+    const hasCues = merged.length > 0;
+    const b = rec.score != null ? L.band(rec.score) : "";
+    return /* @__PURE__ */ React.createElement("div", { className: "space-y-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800" }, tx("\u0E0B\u0E31\u0E1A\u0E44\u0E15\u0E40\u0E15\u0E34\u0E25")), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2" }, /* @__PURE__ */ React.createElement("input", { ref: mediaInput, type: "file", accept: "audio/*,video/*", className: "hidden", "data-k": "subs-media", onChange: onMedia }), /* @__PURE__ */ React.createElement("input", { ref: subsInput, type: "file", accept: ".srt,.vtt,text/vtt,application/x-subrip,text/plain", className: "hidden", "data-k": "subs-file", onChange: onSubs(false) }), /* @__PURE__ */ React.createElement("input", { ref: thInput, type: "file", accept: ".srt,.vtt,text/vtt,application/x-subrip,text/plain", className: "hidden", "data-k": "subs-file-th", onChange: onSubs(true) }), /* @__PURE__ */ React.createElement("button", { className: "btn", "data-k": "subs-pick-media", onClick: () => mediaInput.current.click() }, tx("\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E2A\u0E35\u0E22\u0E07/\u0E27\u0E34\u0E14\u0E35\u0E42\u0E2D")), /* @__PURE__ */ React.createElement("button", { className: "btn", "data-k": "subs-pick-subs", onClick: () => subsInput.current.click() }, tx("\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E0B\u0E31\u0E1A (.srt/.vtt)")), hasCues && /* @__PURE__ */ React.createElement("button", { className: "btn ghost", "data-k": "subs-pick-th", onClick: () => thInput.current.click() }, tx("\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22 (\u0E44\u0E21\u0E48\u0E1A\u0E31\u0E07\u0E04\u0E31\u0E1A)"))), (media || hasCues) && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-i18n-skip": true }, media ? media.name : "", media && hasCues ? " \xB7 " : "", hasCues ? tx("{n} \u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04", { n: merged.length }) : ""), subsErr && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink", role: "alert" }, tx(subsErr)), media && (media.video ? /* @__PURE__ */ React.createElement("video", { ...mediaProps, playsInline: true, className: "w-full rounded-xl max-h-[40vh]", "data-k": "subs-el" }) : /* @__PURE__ */ React.createElement("audio", { ...mediaProps, className: "w-full", "data-k": "subs-el" })), media && !hasCues && /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2" }, gen && gen.msg ? /* @__PURE__ */ React.createElement("button", { className: "btn", "data-k": "subs-gen-cancel", onClick: () => {
+      if (genCtrl.current) genCtrl.current.abort();
+    } }, tx("\u0E22\u0E01\u0E40\u0E25\u0E34\u0E01")) : /* @__PURE__ */ React.createElement("button", { className: "btn primary", "data-k": "subs-gen", onClick: generate }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E0B\u0E31\u0E1A\u0E14\u0E49\u0E27\u0E22\u0E01\u0E32\u0E23\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07")), gen && gen.msg && /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500", role: "status" }, txs(gen.msg)), gen && gen.err && /* @__PURE__ */ React.createElement("span", { className: "text-sm text-err-ink", role: "alert" }, txs(gen.err))), hasCues && /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2" }, /* @__PURE__ */ React.createElement("button", { className: "btn icon", "data-k": "subs-prev", "aria-label": tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E01\u0E48\u0E2D\u0E19\u0E2B\u0E19\u0E49\u0E32"), onClick: () => go(-1), disabled: !media }, /* @__PURE__ */ React.createElement(SkipBackIcon, null)), /* @__PURE__ */ React.createElement("button", { className: "btn primary", "data-k": "subs-play", disabled: !media, onClick: () => playing ? pauseEl() : playSentence(cur) }, playing ? /* @__PURE__ */ React.createElement(PauseIcon, null) : /* @__PURE__ */ React.createElement(PlayIcon, null), " ", playing ? tx("\u0E2B\u0E22\u0E38\u0E14") : tx("\u0E40\u0E25\u0E48\u0E19\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E19\u0E35\u0E49")), /* @__PURE__ */ React.createElement("button", { className: "btn icon", "data-k": "subs-next", "aria-label": tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E16\u0E31\u0E14\u0E44\u0E1B"), onClick: () => go(1), disabled: !media }, /* @__PURE__ */ React.createElement(SkipForwardIcon, null)), /* @__PURE__ */ React.createElement("button", { className: "btn", "data-k": "subs-loop", "aria-pressed": loop, onClick: () => setLoop((v) => !v) }, /* @__PURE__ */ React.createElement(RepeatIcon, null), " ", tx("\u0E27\u0E19\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04")), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "subs-rate-075", "aria-pressed": rate === 0.75, onClick: () => setRate(0.75) }, "0.75\xD7"), /* @__PURE__ */ React.createElement("button", { "data-k": "subs-rate-1", "aria-pressed": rate === 1, onClick: () => setRate(1) }, "1\xD7")), /* @__PURE__ */ React.createElement("button", { className: "btn ghost", "data-k": "subs-hide", "aria-pressed": !showSub, onClick: () => setShowSub((v) => !v) }, showSub ? tx("\u0E0B\u0E48\u0E2D\u0E19\u0E0B\u0E31\u0E1A") : tx("\u0E41\u0E2A\u0E14\u0E07\u0E0B\u0E31\u0E1A")), hasTh && /* @__PURE__ */ React.createElement("button", { className: "btn ghost", "data-k": "subs-hide-th", "aria-pressed": !showTh, onClick: () => setShowTh((v) => !v) }, showTh ? tx("\u0E0B\u0E48\u0E2D\u0E19\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22") : tx("\u0E41\u0E2A\u0E14\u0E07\u0E0B\u0E31\u0E1A\u0E44\u0E17\u0E22"))), hasCues && /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-3" }, rec.status !== "recording" ? /* @__PURE__ */ React.createElement("button", { className: "btn danger", "data-k": "subs-rec", disabled: rec.status === "transcribing", onClick: startRec }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("button", { className: "btn primary", "data-k": "subs-rec-stop", onClick: stopRec }, tx("\u23F9 \u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")), rec.status === "transcribing" && /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500", role: "status" }, tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07..."))), rec.status === "done" && /* @__PURE__ */ React.createElement("div", { className: `p-4 rounded-xl border ${b === "correct" ? "bg-green-50 border-green-100" : b === "almost" ? "bg-amber-50 border-amber-100" : "bg-red-50 border-red-100"}`, "data-k": "subs-result" }, /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400 mb-1" }, tx("\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E27\u0E48\u0E32:")), /* @__PURE__ */ React.createElement("p", { className: "font-semibold text-gray-800 mb-2", "data-i18n-skip": true }, rec.heard || tx("(\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14)")), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", "data-k": "subs-score" }, tx("\u0E04\u0E27\u0E32\u0E21\u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 {n}%", { n: Math.round(rec.score * 100) }), " \xB7 ", b === "correct" ? tx("\u2705 \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E21\u0E32\u0E01") : b === "almost" ? tx("\u{1F7E1} \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E15\u0E23\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14") : tx("\u274C \u0E22\u0E31\u0E07\u0E15\u0E48\u0E32\u0E07\u0E08\u0E32\u0E01\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E1E\u0E2D\u0E2A\u0E21\u0E04\u0E27\u0E23")), rec.heard && /* @__PURE__ */ React.createElement(SpellDiff, { typed: L.normalize(rec.heard), correct: L.normalize(merged[cur].text), typedLabel: tx("\u0E17\u0E35\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19:") })), rec.status === "error" && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink", role: "alert" }, "\u274C ", txs(rec.err))), hasCues && /* @__PURE__ */ React.createElement("ol", { ref: listRef, className: "relative space-y-2 max-h-[40vh] overflow-y-auto", "data-k": "subs-list" }, merged.map((c, i) => /* @__PURE__ */ React.createElement("li", { key: i, style: { contentVisibility: "auto", containIntrinsicSize: "auto 44px" } }, /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        className: "btn item !h-auto !min-h-11" + (i === cur ? " on" : ""),
+        "data-k": "subs-cue",
+        "aria-current": i === cur ? "true" : void 0,
+        onClick: () => media ? playSentence(i) : setCur(i)
+      },
+      /* @__PURE__ */ React.createElement("span", { className: "text-xs max-sm:text-sm text-gray-500 shrink-0 tabular-nums" }, L.fmt(c.start)),
+      /* @__PURE__ */ React.createElement("span", { className: "flex-1 min-w-0 text-left" }, /* @__PURE__ */ React.createElement("span", { className: "block", "data-i18n-skip": true }, showSub ? c.text : "\xB7\xB7\xB7"), c.thai && showTh && /* @__PURE__ */ React.createElement("span", { className: "block text-sm text-gray-500", "data-i18n-skip": true }, c.thai))
+    )))));
+  }
   const READING_PASSAGES = [
     {
       level: 1,
@@ -13590,7 +13978,7 @@
     if (!LISTEN_SPEAK_LANGS.includes(langId)) {
       return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-xl mx-auto p-6 text-center" }, /* @__PURE__ */ React.createElement("p", { className: "text-gray-500 mb-4" }, tx("\u0E42\u0E2B\u0E21\u0E14\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14 \u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07 \u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29 \u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19 \u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35 \u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07 \u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19 \u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A \u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35 \u0E2A\u0E40\u0E1B\u0E19 \u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A \u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22 \u0E2E\u0E34\u0E19\u0E14\u0E35 \u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A \u0E41\u0E25\u0E30\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49")), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 justify-center flex-wrap" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-cn"), className: "btn primary" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-en"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-jp"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-kr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-yue"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-de"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-fr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-it"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-es"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2A\u0E40\u0E1B\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-pt"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ru"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-in"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2E\u0E34\u0E19\u0E14\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ar"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-vn"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21")))));
     }
-    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-subs", onClick: () => setSubMode("subs"), "aria-pressed": subMode === "subs" }, /* @__PURE__ */ React.createElement(CaptionsIcon, null), " ", tx("\u0E0B\u0E31\u0E1A\u0E44\u0E15\u0E40\u0E15\u0E34\u0E25")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "subs" && /* @__PURE__ */ React.createElement(SubtitlePanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
   }
   const PACK_FACES_KEY = "lang-practice:faces";
   const LANG_TH_KEY = "tanot:lang:th";
