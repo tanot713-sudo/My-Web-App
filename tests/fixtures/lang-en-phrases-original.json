@@ -1,0 +1,146 @@
+{
+ "ทักทายและแนะนำตัว": [
+  {
+   "target": "Hello, nice to meet you.",
+   "thai": "สวัสดี ยินดีที่ได้รู้จัก"
+  },
+  {
+   "target": "My name is ...",
+   "thai": "ฉันชื่อ ..."
+  },
+  {
+   "target": "How are you?",
+   "thai": "คุณเป็นอย่างไรบ้าง"
+  },
+  {
+   "target": "Thank you very much.",
+   "thai": "ขอบคุณมาก"
+  }
+ ],
+ "การเดินทางและร้านอาหาร": [
+  {
+   "target": "How much is this?",
+   "thai": "อันนี้ราคาเท่าไหร่"
+  },
+  {
+   "target": "Where is the bathroom?",
+   "thai": "ห้องน้ำอยู่ที่ไหน"
+  },
+  {
+   "target": "I would like to order this.",
+   "thai": "ฉันต้องการสั่งอันนี้"
+  },
+  {
+   "target": "Can you help me, please?",
+   "thai": "ช่วยฉันได้ไหม"
+  }
+ ],
+ "การทำงานและสัมภาษณ์งาน": [
+  {
+   "target": "I am looking for a job.",
+   "thai": "ฉันกำลังหางาน"
+  },
+  {
+   "target": "What is your work experience?",
+   "thai": "คุณมีประสบการณ์ทำงานอะไรบ้าง"
+  },
+  {
+   "target": "I am available to start immediately.",
+   "thai": "ฉันพร้อมเริ่มงานได้ทันที"
+  },
+  {
+   "target": "Could you explain the job responsibilities?",
+   "thai": "ช่วยอธิบายหน้าที่ของงานนี้ได้ไหม"
+  }
+ ],
+ "เดินทางเข้าประเทศ": [
+  {
+   "target": "Can I see your passport, please?",
+   "thai": "ขอดูหนังสือเดินทางของคุณหน่อยได้ไหม"
+  },
+  {
+   "target": "What is the purpose of your visit?",
+   "thai": "จุดประสงค์ของการมาเยือนคุณคืออะไร"
+  },
+  {
+   "target": "I'm here on business.",
+   "thai": "ฉันมาที่นี่เพื่อธุรกิจ"
+  },
+  {
+   "target": "How long will you be staying?",
+   "thai": "คุณจะพักอยู่นานแค่ไหน"
+  }
+ ],
+ "หาที่พักและเช่าบ้าน": [
+  {
+   "target": "How much is the rent per month?",
+   "thai": "ค่าเช่าต่อเดือนเท่าไหร่"
+  },
+  {
+   "target": "Is the apartment furnished?",
+   "thai": "อพาร์ตเมนต์มีเฟอร์นิเจอร์ให้ไหม"
+  },
+  {
+   "target": "When can I move in?",
+   "thai": "ฉันย้ายเข้าได้เมื่อไหร่"
+  },
+  {
+   "target": "Is there a deposit required?",
+   "thai": "ต้องวางเงินมัดจำไหม"
+  }
+ ],
+ "ธนาคารและซิมโทรศัพท์": [
+  {
+   "target": "I'd like to open a bank account.",
+   "thai": "ฉันอยากเปิดบัญชีธนาคาร"
+  },
+  {
+   "target": "Where can I buy a SIM card?",
+   "thai": "ซื้อซิมการ์ดได้ที่ไหน"
+  },
+  {
+   "target": "What's the exchange rate today?",
+   "thai": "อัตราแลกเปลี่ยนวันนี้เท่าไหร่"
+  },
+  {
+   "target": "My card isn't working.",
+   "thai": "บัตรของฉันใช้ไม่ได้"
+  }
+ ],
+ "ชีวิตประจำวันและซื้อของ": [
+  {
+   "target": "Where is the nearest supermarket?",
+   "thai": "ซูเปอร์มาร์เก็ตที่ใกล้ที่สุดอยู่ที่ไหน"
+  },
+  {
+   "target": "Do you accept credit cards?",
+   "thai": "รับบัตรเครดิตไหม"
+  },
+  {
+   "target": "Can I get a discount?",
+   "thai": "ขอส่วนลดได้ไหม"
+  },
+  {
+   "target": "What time does the store close?",
+   "thai": "ร้านปิดกี่โมง"
+  }
+ ],
+ "โรงพยาบาลและเหตุฉุกเฉิน": [
+  {
+   "target": "I need to see a doctor.",
+   "thai": "ฉันต้องพบหมอ"
+  },
+  {
+   "target": "Call an ambulance, please!",
+   "thai": "ช่วยเรียกรถพยาบาลด้วย"
+  },
+  {
+   "target": "I'm allergic to this medicine.",
+   "thai": "ฉันแพ้ยานี้"
+  },
+  {
+   "target": "Where is the nearest hospital?",
+   "thai": "โรงพยาบาลที่ใกล้ที่สุดอยู่ที่ไหน"
+  }
+ ]
+}

@@ -541,6 +541,30 @@
     "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E43\u0E0A\u0E48\u0E04\u0E39\u0E48\u0E01\u0E31\u0E19 \u2014 \u0E25\u0E2D\u0E07\u0E43\u0E2B\u0E21\u0E48": "Not a pair \u2014 try again",
     "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E17\u0E35\u0E48\u0E40\u0E25\u0E48\u0E19\u0E40\u0E01\u0E21\u0E19\u0E35\u0E49\u0E44\u0E14\u0E49\u0E43\u0E19\u0E23\u0E30\u0E14\u0E31\u0E1A\u0E19\u0E35\u0E49": "No words available for this game at this level"
   });
+  Object.assign(LP_EN, {
+    "\u0E07\u0E32\u0E19": "Work",
+    "\u0E2B\u0E21\u0E27\u0E14": "Category",
+    "\u0E17\u0E38\u0E01\u0E2B\u0E21\u0E27\u0E14": "All categories",
+    "\u0E1B\u0E23\u0E30\u0E0A\u0E38\u0E21\u0E2B\u0E19\u0E49\u0E32\u0E07\u0E32\u0E19": "Site meetings",
+    "\u0E41\u0E08\u0E49\u0E07\u0E40\u0E2B\u0E15\u0E38\u0E02\u0E31\u0E14\u0E02\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E30\u0E2A\u0E16\u0E32\u0E19\u0E30\u0E07\u0E32\u0E19\u0E0B\u0E48\u0E2D\u0E21": "Breakdowns and repair status",
+    "\u0E1C\u0E39\u0E49\u0E23\u0E31\u0E1A\u0E40\u0E2B\u0E21\u0E32\u0E41\u0E25\u0E30\u0E01\u0E32\u0E23\u0E15\u0E23\u0E27\u0E08\u0E23\u0E31\u0E1A\u0E07\u0E32\u0E19": "Contractors and inspections",
+    "\u0E04\u0E27\u0E32\u0E21\u0E1B\u0E25\u0E2D\u0E14\u0E20\u0E31\u0E22 (PTW, LOTO)": "Safety (PTW, LOTO)",
+    "\u0E2D\u0E35\u0E40\u0E21\u0E25\u0E41\u0E25\u0E30\u0E23\u0E32\u0E22\u0E07\u0E32\u0E19": "Emails and reports",
+    "\u0E1B\u0E23\u0E30\u0E40\u0E21\u0E34\u0E19\u0E23\u0E32\u0E04\u0E32\u0E41\u0E25\u0E30\u0E43\u0E1A\u0E40\u0E2A\u0E19\u0E2D\u0E23\u0E32\u0E04\u0E32": "Estimates and quotations",
+    "\u0E40\u0E07\u0E37\u0E48\u0E2D\u0E19\u0E44\u0E02\u0E2A\u0E31\u0E0D\u0E0D\u0E32": "Contract terms",
+    "\u0E19\u0E33\u0E40\u0E2A\u0E19\u0E2D\u0E25\u0E39\u0E01\u0E04\u0E49\u0E32\u0E41\u0E25\u0E30\u0E1C\u0E39\u0E49\u0E1A\u0E23\u0E34\u0E2B\u0E32\u0E23": "Presenting to clients and managers",
+    "\u0E02\u0E32\u0E22\u0E41\u0E25\u0E30\u0E1E\u0E23\u0E35\u0E40\u0E0B\u0E25\u0E2A\u0E4C": "Sales and presales",
+    "\u0E2A\u0E31\u0E21\u0E20\u0E32\u0E29\u0E13\u0E4C\u0E07\u0E32\u0E19\u0E15\u0E33\u0E41\u0E2B\u0E19\u0E48\u0E07\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23": "Engineering job interviews"
+  });
+  const WORK_CAT_PREFIX = "\u0E07\u0E32\u0E19: ";
+  function isWorkCat(c) {
+    return String(c).indexOf(WORK_CAT_PREFIX) === 0;
+  }
+  function catLabel(c, short) {
+    if (!isWorkCat(c)) return c;
+    const rest = tx(c.slice(WORK_CAT_PREFIX.length));
+    return short ? rest : tx("\u0E07\u0E32\u0E19") + ": " + rest;
+  }
   const LANG_EN = {
     "lang-en": "English",
     "lang-jp": "Japanese",
@@ -9747,12 +9771,15 @@
   function ShadowingPanel({ awardXp, langId }) {
     const langCode = LANGS[langId].code;
     const asrLangName = ASR_LANG_NAME[langId] || "english";
+    const cats = LANGS[langId].phrases;
+    const [cat, setCat] = useState("");
     const pool = useMemo(() => {
-      const cats = LANGS[langId].phrases;
       const out = [];
-      Object.keys(cats).forEach((cat) => cats[cat].forEach((p) => out.push(p)));
+      Object.keys(cats).forEach((c) => {
+        if (!cat || c === cat) cats[c].forEach((p) => out.push(p));
+      });
       return out;
-    }, [langId]);
+    }, [cats, cat]);
     const [idx, setIdx] = useState(0);
     const [isRecording, setIsRecording] = useState(false);
     const [status, setStatus] = useState("");
@@ -9764,6 +9791,7 @@
     const streamRef = useRef(null);
     useEffect(() => {
       setIdx(0);
+      setCat("");
     }, [langId]);
     const current = pool[idx % pool.length];
     const reset = () => {
@@ -9823,7 +9851,11 @@
       }, { once: true });
       mediaRef.current.stop();
     };
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21 (Shadowing)")), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "text-2xl font-bold text-gray-900 mb-1", "data-i18n-skip": true }, current.target), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-400 mb-3", "data-i18n-skip": true }, current.thai), /* @__PURE__ */ React.createElement("button", { onClick: () => speak(current.target, langCode), className: "btn ghost sm" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-3 mb-4" }, !isRecording ? /* @__PURE__ */ React.createElement("button", { onClick: startRecording, className: "btn danger lg" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2D\u0E31\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07")) : /* @__PURE__ */ React.createElement("button", { onClick: stopRecording, className: "btn primary lg" }, tx("\u23F9 \u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")), status === "transcribing" && /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400" }, tx("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E2D\u0E32\u0E08\u0E0A\u0E49\u0E32 \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25)..."))), recordedUrl && /* @__PURE__ */ React.createElement("div", { className: "mb-4 text-center" }, /* @__PURE__ */ React.createElement("audio", { controls: true, src: recordedUrl, className: "mx-auto w-full" })), status === "done" && /* @__PURE__ */ React.createElement("div", { className: `p-4 rounded-xl border mb-4 ${grade === "correct" ? "bg-green-50 border-green-100" : grade === "almost" ? "bg-amber-50 border-amber-100" : "bg-red-50 border-red-100"}` }, /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400 mb-1" }, tx("\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E27\u0E48\u0E32:")), /* @__PURE__ */ React.createElement("p", { className: "font-semibold text-gray-800 mb-2" }, transcript || tx("(\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14)")), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold" }, grade === "correct" ? tx("\u2705 \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E21\u0E32\u0E01") : grade === "almost" ? tx("\u{1F7E1} \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E15\u0E23\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14") : tx("\u274C \u0E22\u0E31\u0E07\u0E15\u0E48\u0E32\u0E07\u0E08\u0E32\u0E01\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E1E\u0E2D\u0E2A\u0E21\u0E04\u0E27\u0E23"))), status === "error" && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mb-4" }, "\u274C ", txs(transcript)), /* @__PURE__ */ React.createElement("button", { onClick: next, className: "btn primary lg w-full" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E15\u0E48\u0E2D\u0E44\u0E1B")));
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center justify-between gap-3 mb-4" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-0" }, tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21 (Shadowing)")), /* @__PURE__ */ React.createElement("select", { "data-k": "shCat", value: cat, onChange: (e) => {
+      setCat(e.target.value);
+      setIdx(0);
+      reset();
+    }, "aria-label": tx("\u0E2B\u0E21\u0E27\u0E14"), className: "select w-auto max-w-full" }, /* @__PURE__ */ React.createElement("option", { value: "" }, tx("\u0E17\u0E38\u0E01\u0E2B\u0E21\u0E27\u0E14")), Object.keys(cats).map((c) => /* @__PURE__ */ React.createElement("option", { key: c, value: c }, catLabel(c))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-6 text-center mb-4" }, /* @__PURE__ */ React.createElement("div", { className: "text-2xl font-bold text-gray-900 mb-1", "data-i18n-skip": true }, current.target), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-400 mb-3", "data-i18n-skip": true }, current.thai), /* @__PURE__ */ React.createElement("button", { onClick: () => speak(current.target, langCode), className: "btn ghost sm" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A"))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-col items-center gap-3 mb-4" }, !isRecording ? /* @__PURE__ */ React.createElement("button", { onClick: startRecording, className: "btn danger lg" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2D\u0E31\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07")) : /* @__PURE__ */ React.createElement("button", { onClick: stopRecording, className: "btn primary lg" }, tx("\u23F9 \u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")), status === "transcribing" && /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400" }, tx("\u23F3 \u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E04\u0E23\u0E31\u0E49\u0E07\u0E41\u0E23\u0E01\u0E2D\u0E32\u0E08\u0E0A\u0E49\u0E32 \u0E40\u0E1E\u0E23\u0E32\u0E30\u0E01\u0E33\u0E25\u0E31\u0E07\u0E42\u0E2B\u0E25\u0E14\u0E42\u0E21\u0E40\u0E14\u0E25)..."))), recordedUrl && /* @__PURE__ */ React.createElement("div", { className: "mb-4 text-center" }, /* @__PURE__ */ React.createElement("audio", { controls: true, src: recordedUrl, className: "mx-auto w-full" })), status === "done" && /* @__PURE__ */ React.createElement("div", { className: `p-4 rounded-xl border mb-4 ${grade === "correct" ? "bg-green-50 border-green-100" : grade === "almost" ? "bg-amber-50 border-amber-100" : "bg-red-50 border-red-100"}` }, /* @__PURE__ */ React.createElement("p", { className: "text-xs max-sm:text-sm text-gray-400 mb-1" }, tx("\u0E23\u0E30\u0E1A\u0E1A\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E27\u0E48\u0E32:")), /* @__PURE__ */ React.createElement("p", { className: "font-semibold text-gray-800 mb-2" }, transcript || tx("(\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14)")), /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold" }, grade === "correct" ? tx("\u2705 \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E21\u0E32\u0E01") : grade === "almost" ? tx("\u{1F7E1} \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07 \u0E41\u0E15\u0E48\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E15\u0E23\u0E07\u0E17\u0E31\u0E49\u0E07\u0E2B\u0E21\u0E14") : tx("\u274C \u0E22\u0E31\u0E07\u0E15\u0E48\u0E32\u0E07\u0E08\u0E32\u0E01\u0E15\u0E49\u0E19\u0E09\u0E1A\u0E31\u0E1A\u0E1E\u0E2D\u0E2A\u0E21\u0E04\u0E27\u0E23"))), status === "error" && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mb-4" }, "\u274C ", txs(transcript)), /* @__PURE__ */ React.createElement("button", { onClick: next, className: "btn primary lg w-full" }, tx("\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E15\u0E48\u0E2D\u0E44\u0E1B")));
   }
   const SUBS_CLOUD_MAX_SEC = 1800;
   const SUBS_ASR_MODEL = "Xenova/whisper-base";
@@ -11004,7 +11036,7 @@
       setFinished(false);
     };
     const current = queue[qIdx];
-    const catLabel = ((_a = NUMBERS_DATES_CATS.find((c) => c.key === (current == null ? void 0 : current.cat))) == null ? void 0 : _a.label) || (current == null ? void 0 : current.cat);
+    const catLabel2 = ((_a = NUMBERS_DATES_CATS.find((c) => c.key === (current == null ? void 0 : current.cat))) == null ? void 0 : _a.label) || (current == null ? void 0 : current.cat);
     const pick = (c) => {
       if (selected != null) return;
       setSelected(c);
@@ -11041,7 +11073,7 @@
         "aria-pressed": catKey === c.key
       },
       tx(c.label)
-    ))), /* @__PURE__ */ React.createElement("div", { className: "bg-gray-50 border border-gray-100 rounded-xl p-6 text-center mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, tx(catLabel)), /* @__PURE__ */ React.createElement("div", { className: "text-3xl font-extrabold text-gray-900 mt-1", "data-i18n-skip": true }, current.prompt), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mt-1" }, tx("\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E04\u0E33\u0E2D\u0E48\u0E32\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07", { l: langTitle(langId) }))), /* @__PURE__ */ React.createElement(McChoices, { choices: current.choices, correct: current.correct, selected, onPick: pick }), selected != null && /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => speak(current.target, langCode), className: "btn ghost sm" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: next, className: "btn primary" }, qIdx + 1 >= queue.length ? tx("\u0E14\u0E39\u0E1C\u0E25\u0E2A\u0E23\u0E38\u0E1B") : tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B"))));
+    ))), /* @__PURE__ */ React.createElement("div", { className: "bg-gray-50 border border-gray-100 rounded-xl p-6 text-center mb-4" }, /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, tx(catLabel2)), /* @__PURE__ */ React.createElement("div", { className: "text-3xl font-extrabold text-gray-900 mt-1", "data-i18n-skip": true }, current.prompt), /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mt-1" }, tx("\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E04\u0E33\u0E2D\u0E48\u0E32\u0E19\u0E20\u0E32\u0E29\u0E32{l}\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07", { l: langTitle(langId) }))), /* @__PURE__ */ React.createElement(McChoices, { choices: current.choices, correct: current.correct, selected, onPick: pick }), selected != null && /* @__PURE__ */ React.createElement("div", { className: "mt-4 flex items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("button", { onClick: () => speak(current.target, langCode), className: "btn ghost sm" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: next, className: "btn primary" }, qIdx + 1 >= queue.length ? tx("\u0E14\u0E39\u0E1C\u0E25\u0E2A\u0E23\u0E38\u0E1B") : tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B"))));
   }
   const LISTENING_PASSAGES_DE = [
     {
@@ -15021,9 +15053,9 @@
         onClick: () => goPractice(c.id, c.cat),
         className: "list-row !border-0 w-full text-left rounded-lg"
       },
-      /* @__PURE__ */ React.createElement("span", { className: "grow min-w-0 text-sm text-gray-700", "data-i18n-skip": true }, c.cat),
+      /* @__PURE__ */ React.createElement("span", { className: "grow min-w-0 text-sm text-gray-700", "data-i18n-skip": isWorkCat(c.cat) ? void 0 : true }, catLabel(c.cat)),
       /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 shrink-0" }, /* @__PURE__ */ React.createElement("span", { className: "badge" }, langTitle(c.id)))
-    )))))) : view === "practice" && vsource === "pack" ? /* @__PURE__ */ React.createElement(PackView, { langId, srs, setSrs, setXp, source: vsource, setSource: setVsource }) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4 flex flex-wrap items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2" }, /* @__PURE__ */ React.createElement(SourceSwitch, { source: vsource, setSource: setVsource }), /* @__PURE__ */ React.createElement(LangVoicePicker, { code: LANGS[langId].code }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.map((c) => /* @__PURE__ */ React.createElement(
+    )))))) : view === "practice" && vsource === "pack" ? /* @__PURE__ */ React.createElement(PackView, { langId, srs, setSrs, setXp, source: vsource, setSource: setVsource }) : view === "practice" ? /* @__PURE__ */ React.createElement("div", { className: "flex-1 flex flex-col md:flex-row overflow-y-auto md:overflow-hidden" }, /* @__PURE__ */ React.createElement("div", { className: "w-full md:w-1/2 md:h-full border-b md:border-b-0 md:border-r border-gray-200 bg-gray-100 p-4 sm:p-6 md:overflow-y-auto" }, /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-8 min-h-full" }, /* @__PURE__ */ React.createElement("div", { className: "border-b border-gray-200 pb-4 mb-4 flex flex-wrap items-center justify-between gap-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-xl font-bold text-gray-900 mb-0" }, tx("\u0E27\u0E25\u0E35\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E1D\u0E36\u0E01 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap items-center gap-2" }, /* @__PURE__ */ React.createElement(SourceSwitch, { source: vsource, setSource: setVsource }), /* @__PURE__ */ React.createElement(LangVoicePicker, { code: LANGS[langId].code }))), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2 mb-6" }, categories.filter((c) => !isWorkCat(c)).map((c) => /* @__PURE__ */ React.createElement(
       "button",
       {
         key: c,
@@ -15035,13 +15067,24 @@
       },
       c,
       isCategoryDone(langId, c) ? " \u2713" : ""
-    ))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, list.map((p, i) => /* @__PURE__ */ React.createElement(
+    ))), categories.some(isWorkCat) && /* @__PURE__ */ React.createElement("div", { role: "group", "aria-labelledby": "workCatHead", className: "mb-6" }, /* @__PURE__ */ React.createElement("h4", { id: "workCatHead", className: "text-sm font-bold text-gray-700 mb-2" }, tx("\u0E07\u0E32\u0E19")), /* @__PURE__ */ React.createElement("div", { className: "flex flex-wrap gap-2" }, categories.filter(isWorkCat).map((c) => /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: c,
+        "data-k": "workCategory",
+        onClick: () => selectCategory(c),
+        "aria-pressed": category === c,
+        className: "chip"
+      },
+      catLabel(c, true),
+      isCategoryDone(langId, c) ? " \u2713" : ""
+    )))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3" }, list.map((p, i) => /* @__PURE__ */ React.createElement(
       "div",
       {
         key: i,
         className: `p-4 rounded-xl border flex items-center justify-between gap-3 ${i === index ? "border-brand bg-brandLight" : "border-gray-100"}`
       },
-      /* @__PURE__ */ React.createElement("div", { "data-i18n-skip": true }, /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800", "data-i18n-skip": true }, p.target), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500", "data-i18n-skip": true }, p.thai)),
+      /* @__PURE__ */ React.createElement("div", { "data-i18n-skip": true }, /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800", "data-i18n-skip": true }, p.target), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500", "data-i18n-skip": true }, p.thai), p.note && /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500 mt-1", "data-i18n-skip": true }, p.note)),
       /* @__PURE__ */ React.createElement("button", { onClick: () => speak(p.target, lang.code), className: "btn ghost icon sm shrink-0", "aria-label": tx("\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null))
     ))), /* @__PURE__ */ React.createElement("div", { className: "mt-6 pt-4 border-t border-gray-200" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-1" }, /* @__PURE__ */ React.createElement("h4", { className: "text-sm font-bold text-gray-700 flex items-center gap-2" }, /* @__PURE__ */ React.createElement(NotebookIcon, null), " ", tx("\u0E42\u0E19\u0E49\u0E15\u0E02\u0E2D\u0E07\u0E09\u0E31\u0E19 \u2014 {l}", { l: langTitle(langId) })), /* @__PURE__ */ React.createElement("div", { className: "segmented shrink-0" }, /* @__PURE__ */ React.createElement(
       "button",
