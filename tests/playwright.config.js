@@ -202,5 +202,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8149/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // languages-pics.spec.js: /api/ai/image preset vocab ตัวจริง + R2/AI ปลอม + ซิงก์ tanot:lang:pics 2 เครื่อง — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8150',
+      cwd: __dirname,
+      url: 'http://localhost:8150/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

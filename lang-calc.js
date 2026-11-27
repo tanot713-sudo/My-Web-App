@@ -1302,8 +1302,144 @@
   }
   function sentenceCardKeyOf(langId, text) { return roleplay.sentenceCardKey(langId, text); }
 
+  // ── L9 ภาพประกอบคำศัพท์ด้วย FLUX (ROADMAP แถว 31 · docs/languages-design.md L9) ───────────────────
+  // ภาพผูกกับ "ความหมาย" (concept) ไม่ใช่ภาษา → ภาพเดียวใช้ได้ทั้ง 18 ภาษา · ไฟล์อยู่ R2 ns images อย่างเดียว (ไม่ commit เข้า repo)
+  // tanot:lang:pics = sync map { concept: { id (ไฟล์ R2), status: 'pending'|'ok'|'no' } } — ไม่ผ่านเจ้าของกด ✓ ไม่แสดงในการ์ด
+  // ข้อมูลที่ซิงก์มาผ่าน clean() ก่อนใช้เสมอ · prompt จริงอยู่ฝั่งเซิร์ฟเวอร์ (preset vocab ของ functions/api/ai/image.js) — ฝั่งนี้ส่งได้แค่ชื่อ concept
+  var pics = (function () {
+    var KEY = 'tanot:lang:pics';
+    var MAX_BATCH = 50;            // สร้างต่อครั้งไม่เกิน (เจ้าของตัดสิน)
+    var MIN_REMAINING = 3000;      // เหลือโควตา Neurons ต่ำกว่านี้ = หยุด (เผื่อแชท/ถอดเสียง) — ต้องเท่ากับ VOCAB_RESERVE ของ image.js (เทสต์ตรวจ)
+    var MAX_ENTRIES = 2000;
+    var KEY_RE = /^[a-z][a-z0-9-]{1,39}$/, ID_RE = /^[A-Za-z0-9_-]{8,64}$/;
+    // concept ตามลำดับความสำคัญ (พื้นฐานก่อน) · "id|ชื่ออื่น|…" — ชื่ออื่นใช้จับ gloss อังกฤษของคำในชุดคำ · id = ชื่อที่ส่งเป็น prompt (ขีด = เว้นวรรค)
+    // ใส่เฉพาะคำนามรูปธรรมที่วาดเป็นวัตถุเดียวได้ — คำนามธรรม/กริยา/คำที่กำกวมมากไม่ทำภาพ
+    var CONCEPTS = [
+      // อาหาร
+      'apple', 'banana', 'orange', 'grape|grapes', 'strawberry', 'watermelon', 'mango', 'lemon', 'pineapple', 'pear', 'peach', 'coconut',
+      'tomato', 'potato', 'carrot', 'onion', 'garlic', 'corn|maize', 'cucumber', 'mushroom', 'cabbage', 'pumpkin',
+      'rice', 'bread', 'noodles|noodle', 'egg', 'milk', 'cheese', 'butter', 'fish', 'chicken', 'pork', 'beef', 'shrimp|prawn',
+      'soup', 'salad', 'cake', 'cookie|biscuit', 'ice-cream', 'chocolate', 'candy|sweet', 'sugar', 'salt', 'coffee', 'tea', 'water',
+      'juice', 'beer', 'wine', 'pizza', 'hamburger|burger', 'sandwich', 'sausage', 'honey',
+      // สัตว์
+      'dog', 'cat', 'bird', 'horse', 'cow', 'pig', 'sheep', 'goat', 'duck', 'rabbit', 'mouse', 'elephant', 'tiger', 'lion', 'bear',
+      'monkey', 'snake', 'turtle|tortoise', 'frog', 'butterfly', 'bee', 'ant', 'spider', 'crab', 'whale', 'dolphin', 'shark', 'wolf',
+      'fox', 'deer', 'giraffe', 'penguin', 'owl', 'eagle', 'camel', 'crocodile',
+      // ร่างกาย
+      'head', 'eye', 'ear', 'nose', 'mouth', 'tooth|teeth', 'hand', 'finger', 'arm', 'leg', 'foot', 'heart', 'hair', 'tongue', 'brain', 'knee',
+      // คน
+      'baby', 'boy', 'girl', 'doctor', 'teacher', 'nurse', 'farmer', 'chef|cook', 'police-officer|policeman',
+      // บ้านและของใช้
+      'house|home', 'door', 'window', 'table', 'chair', 'bed', 'sofa|couch', 'lamp', 'key', 'clock', 'mirror', 'television|tv', 'telephone|phone',
+      'refrigerator|fridge', 'toilet', 'kitchen', 'roof', 'stairs', 'bottle', 'cup', 'plate', 'bowl', 'spoon', 'fork', 'knife', 'umbrella',
+      'bag', 'suitcase|luggage', 'book', 'pen', 'pencil', 'paper', 'scissors', 'towel', 'soap', 'toothbrush', 'candle', 'broom', 'ladder', 'hammer',
+      'computer', 'laptop', 'camera', 'wallet', 'ring', 'necklace', 'box', 'basket', 'bucket', 'rope', 'newspaper', 'envelope',
+      // เสื้อผ้า
+      'shirt', 'pants|trousers', 'dress', 'skirt', 'shoe|shoes', 'sock|socks', 'hat', 'coat|jacket', 'glasses|eyeglasses', 'scarf', 'glove|gloves', 'belt', 'watch|wristwatch',
+      // เดินทาง
+      'car', 'bus', 'train', 'bicycle|bike', 'motorcycle', 'airplane|plane|aeroplane', 'ship', 'boat', 'truck', 'taxi', 'helicopter', 'bridge', 'airport', 'traffic-light',
+      // ธรรมชาติ
+      'sun', 'moon', 'star', 'cloud', 'rain', 'snow', 'mountain', 'river', 'sea|ocean', 'beach', 'lake', 'tree', 'flower', 'leaf', 'grass', 'forest', 'fire',
+      'rainbow', 'island', 'waterfall', 'rock|stone', 'sand', 'volcano', 'desert', 'lightning',
+      // สถานที่
+      'school', 'hospital', 'church', 'temple', 'shop|store', 'market', 'restaurant', 'hotel', 'bank', 'castle', 'tower', 'farm', 'park', 'zoo', 'library', 'museum', 'factory', 'stadium',
+      // อื่นๆ
+      'money|coin', 'ball', 'gift|present', 'balloon', 'drum', 'guitar', 'piano', 'violin', 'medicine', 'toy', 'doll', 'kite', 'map', 'bell', 'lock', 'battery',
+      'light-bulb|lightbulb', 'trophy', 'crown', 'sword', 'tent'
+    ].map(function (s) { var p = s.split('|'); return { id: p[0], names: p }; });
+
+    var ORDER = {}, NAME = {};
+    CONCEPTS.forEach(function (c, i) {
+      ORDER[c.id] = i;
+      c.names.forEach(function (n, j) { var k = n.replace(/-/g, ' '); if (!Object.prototype.hasOwnProperty.call(NAME, k)) NAME[k] = c.id; });
+    });
+    function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
+    function known(id) { return typeof id === 'string' && has(ORDER, id); }
+    function promptOf(id) { return known(id) ? id.replace(/-/g, ' ') : ''; }
+
+    // gloss/คำอังกฤษ → concept id ('' = ไม่ใช่คำที่ทำภาพ) — ตัดที่ ; , ( : แล้วตัดคำนำหน้า a/an/the
+    function lookup(text) {
+      if (typeof text !== 'string') return '';
+      var t = text.toLowerCase().replace(/\s+/g, ' ').trim().split(/[;,(:\/]/)[0].replace(/[.!]+$/, '').trim();
+      t = t.replace(/^(?:a|an|the|one) /, '').trim();
+      return t && t.length <= 40 && has(NAME, t) ? NAME[t] : '';
+    }
+    // คำในชุดคำ → concept: ชุดภาษาอังกฤษใช้ตัวคำเอง, ภาษาอื่นใช้ gloss อังกฤษ (item.en) · คำที่ไม่ใช่ w = ''
+    function conceptOf(item, langId) {
+      if (!item || item.kind !== 'w') return '';
+      return lookup(langId === 'lang-en' ? item.t : item.en);
+    }
+
+    function clean(raw) {
+      var out = {};
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return out;
+      var n = 0;
+      Object.keys(raw).forEach(function (k) {
+        var v = raw[k];
+        if (n >= MAX_ENTRIES || k === '__proto__' || !KEY_RE.test(k) || !v || typeof v !== 'object') return;
+        if (v.status === 'no') { out[k] = { status: 'no' }; n++; }
+        else if ((v.status === 'ok' || v.status === 'pending') && typeof v.id === 'string' && ID_RE.test(v.id)) { out[k] = { id: v.id, status: v.status }; n++; }
+      });
+      return out;
+    }
+    function urlOf(id) { return typeof id === 'string' && ID_RE.test(id) ? '/api/files?id=' + id + '&lp=1' : ''; }
+    function okId(map, concept) { var e = map && has(map, concept) ? map[concept] : null; return e && e.status === 'ok' && e.id ? e.id : ''; }
+
+    // concept ที่ยังไม่มีรายการ (ยังไม่เคยสร้าง/ไม่ใช้/รอตรวจ ทั้งหมดนับว่ามีแล้ว) ตามลำดับความสำคัญ — n ถูกบีบ 1..MAX_BATCH
+    function nextBatch(map, n) {
+      var k = Math.max(1, Math.min(MAX_BATCH, Math.floor(Number(n)) || 1)), out = [];
+      for (var i = 0; i < CONCEPTS.length && out.length < k; i++) if (!map || !has(map, CONCEPTS[i].id)) out.push(CONCEPTS[i].id);
+      return out;
+    }
+    // ต้องหยุดสร้างเมื่อเหลือโควตาต่ำกว่าเกณฑ์ · ค่าไม่ใช่ตัวเลข = หยุด (ไม่รู้โควตา = ไม่เผา)
+    function shouldStop(remaining) { return !(Number(remaining) >= MIN_REMAINING); }
+    function counts(map) {
+      var c = { pending: 0, ok: 0, no: 0, todo: 0, total: CONCEPTS.length };
+      CONCEPTS.forEach(function (x) { var e = map && has(map, x.id) ? map[x.id] : null; if (e) c[e.status]++; else c.todo++; });
+      return c;
+    }
+    function list(map, status) {
+      return CONCEPTS.filter(function (x) { return map && has(map, x.id) && map[x.id].status === status; })
+        .map(function (x) { return { concept: x.id, id: map[x.id].id || '' }; });
+    }
+    // คำในชุดที่มีภาพที่ผ่านแล้ว · แต่ละ concept ใช้คำเดียว (คำอันดับดีสุดก่อน) → [{item, concept, id}]
+    function withPics(items, map, langId) {
+      var out = [], seen = {};
+      (items || []).forEach(function (it) {
+        var c = conceptOf(it, langId);
+        if (!c || seen[c]) return;
+        var id = okId(map, c);
+        if (!id) return;
+        seen[c] = 1;
+        out.push({ item: it, concept: c, id: id });
+      });
+      return out;
+    }
+    // เกมจับคู่คำ-ภาพ: คำที่มีภาพ (ถึงกำหนด/ใหม่ตามคิวของระดับ) n คู่ · ภาพฝั่งขวาสลับลำดับไม่ซ้ำตำแหน่งเดิม — ไม่ถึง 2 คู่ = null
+    function picPairs(prep, srs, map, opts) {
+      opts = opts || {};
+      var n = opts.n || 5, base = queue(prep, srs, { kind: 'w', level: opts.level, n: 300, now: opts.now });
+      var hit = withPics(base, map, prep && prep.langId).slice(0, n);
+      if (hit.length < 2) return null;
+      var left = hit.map(function (h) { return { id: h.item.id, key: h.item.key, text: h.item.t }; });
+      var pictures = hit.map(function (h) { return { id: h.item.id, pic: urlOf(h.id) }; });
+      var right = pictures, s = Number(opts.seed) || 0;
+      for (var j = 0; j < 12; j++) {
+        right = shuffle(pictures, s + j);
+        if (right.some(function (r, p) { return r.id !== left[p].id; })) break;
+      }
+      return { left: left, right: right, items: hit.map(function (h) { return h.item; }) };
+    }
+
+    return {
+      KEY: KEY, MAX_BATCH: MAX_BATCH, MIN_REMAINING: MIN_REMAINING, CONCEPTS: CONCEPTS.map(function (c) { return c.id; }),
+      known: known, promptOf: promptOf, lookup: lookup, conceptOf: conceptOf, clean: clean, urlOf: urlOf, okId: okId,
+      nextBatch: nextBatch, shouldStop: shouldStop, counts: counts, list: list, withPics: withPics, picPairs: picPairs
+    };
+  })();
+
   return {
-    cueCard: cueCard,
+    cueCard: cueCard, pics: pics,
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
     levelOf: levelOf, tokenize: tokenize, packFile: packFile, isGzip: isGzip, cardKey: cardKey, parseKey: parseKey,
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,

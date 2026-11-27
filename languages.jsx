@@ -757,6 +757,33 @@
             'ตอบข้อตรวจไม่ผ่าน — ลองวัดใหม่': 'Check questions missed — try again',
             'ไม่มีคำพอสำหรับวัดระดับ': 'Not enough words to measure'
         });
+        // ── L9 ภาพประกอบคำศัพท์ — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'ภาพคำศัพท์': 'Word pictures',
+            'ภาพ → คำ': 'Picture → word',
+            'จับคู่ภาพ': 'Match pictures',
+            'ดูคำ': 'Show word',
+            'ภาพ': 'Pictures',
+            'ภาพที่ {n}': 'Picture {n}',
+            'ผ่านแล้ว {ok} · รอตรวจ {p} · ยังไม่สร้าง {t}': 'Approved {ok} · to review {p} · not made {t}',
+            'โควตา AI วันนี้เหลือ {r}': 'AI quota left today: {r}',
+            'จำนวนภาพ': 'Number of pictures',
+            'สร้างอีก {n} ภาพ': 'Make {n} more',
+            'หยุด': 'Stop',
+            'สร้างแล้ว {i}/{n} ภาพ': 'Made {i}/{n}',
+            'สร้างครบ {n} ภาพ — ตรวจแล้วกด ใช้ / สร้างใหม่ / ไม่ใช้': 'Made {n} — review each: use / redo / skip',
+            'หยุดแล้ว — สร้างได้ {n} ภาพ': 'Stopped — made {n}',
+            'หยุดแล้ว — โควตา AI วันนี้เหลือไม่ถึง {m}': 'Stopped — under {m} AI quota left today',
+            'โควตา AI วันนี้หมดแล้ว': "Today's AI quota is used up",
+            'ไม่มีภาพที่ต้องสร้างแล้ว': 'Nothing left to make',
+            'รอตรวจ': 'To review',
+            'ผ่านแล้ว': 'Approved',
+            'ใช้': 'Use',
+            'สร้างใหม่': 'Redo',
+            'ไม่ใช้': 'Skip',
+            'เอาออก': 'Remove',
+            'ยังไม่มีภาพในกลุ่มนี้': 'No pictures here'
+        });
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
             'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
             'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
@@ -18541,6 +18568,122 @@
             catch (e) { return {}; }
         }
 
+        // ── L9 ภาพประกอบคำศัพท์ (ROADMAP แถว 31, docs/languages-design.md L9) — ตรรกะล้วนอยู่ใน LangCalc.pics · ส่วนที่แตะเครือข่ายอยู่ใน lang-pics.js
+        // ภาพอยู่ R2 อย่างเดียว (ใช้ได้เฉพาะ pages.dev) · ทุกภาพ pending จนเจ้าของกด "ใช้" · ไม่มีข้อความอธิบาย ไม่เรียก /api/ocr
+        const LP_PICS = window.TanotLangPics;
+        function usePics() {
+            const [map, setMap] = useState(() => (LP_PICS ? LP_PICS.read() : {}));
+            useEffect(() => (LP_PICS ? LP_PICS.on(() => setMap(LP_PICS.read())) : undefined), []);
+            return map;
+        }
+        function PicsManager({ open, onClose }) {
+            const pics = usePics();
+            const dlgRef = useRef(null);
+            const abortRef = useRef(null);
+            const [view, setView] = useState('pending'); // pending | ok
+            const [n, setN] = useState(10);
+            const [run, setRun] = useState(null);        // null | { i, n }
+            const [note, setNote] = useState(null);
+            const [quota, setQuota] = useState(null);
+            const [acting, setActing] = useState({});
+            const PC = LangCalc.pics;
+            const c = PC.counts(pics);
+            const nn = Math.max(1, Math.min(PC.MAX_BATCH, Math.floor(Number(n)) || 1));
+            useEffect(() => { lucide.createIcons(); });
+            useEffect(() => {
+                const d = dlgRef.current;
+                if (!d) return;
+                if (open && !d.open) d.showModal(); else if (!open && d.open) d.close();
+            }, [open]);
+            useEffect(() => {
+                if (!open || !window.AiClient) return;
+                AiClient.usage().then(u => { if (u && typeof u.remaining === 'number') setQuota(u.remaining); }, () => {});
+            }, [open]);
+            useEffect(() => () => { if (abortRef.current) abortRef.current.abort(); }, []);
+            const close = () => { if (abortRef.current) abortRef.current.abort(); onClose(); };
+            const start = () => {
+                if (run) return;
+                const ctl = new AbortController();
+                abortRef.current = ctl;
+                setNote(null);
+                setRun({ i: 0, n: PC.nextBatch(pics, nn).length });
+                LP_PICS.run({
+                    n: nn, signal: ctl.signal,
+                    onProgress: (p) => { setRun({ i: p.i, n: p.n }); if (typeof p.remaining === 'number') setQuota(Math.max(0, p.remaining)); },
+                }).then(r => {
+                    abortRef.current = null;
+                    setRun(null);
+                    if (typeof r.remaining === 'number') setQuota(Math.max(0, r.remaining));
+                    if (r.made) setView('pending');
+                    setNote(r.reason === 'done' ? ['สร้างครบ {n} ภาพ — ตรวจแล้วกด ใช้ / สร้างใหม่ / ไม่ใช้', { n: r.made }]
+                        : r.reason === 'low' ? ['หยุดแล้ว — โควตา AI วันนี้เหลือไม่ถึง {m}', { m: PC.MIN_REMAINING }]
+                        : r.reason === 'quota' ? 'โควตา AI วันนี้หมดแล้ว'
+                        : r.reason === 'cancel' ? ['หยุดแล้ว — สร้างได้ {n} ภาพ', { n: r.made }]
+                        : r.reason === 'empty' ? 'ไม่มีภาพที่ต้องสร้างแล้ว'
+                        : ['{m}', { m: AiClient.friendlyMessage(r.err) }]);
+                });
+            };
+            const stop = () => { if (abortRef.current) abortRef.current.abort(); };
+            const act = (concept, fn) => {
+                setActing(a => ({ ...a, [concept]: 1 }));
+                setNote(null);
+                Promise.resolve().then(fn).catch(e => setNote(['{m}', { m: AiClient.friendlyMessage(e) }])).then(() => setActing(a => { const b = { ...a }; delete b[concept]; return b; }));
+            };
+            const items = PC.list(pics, view);
+            const tab = (k, label, count) => (
+                <button type="button" data-k={'pics-view-' + k} aria-pressed={view === k} onClick={() => setView(k)}>{tx(label)} ({count})</button>
+            );
+            return (
+                <dialog ref={dlgRef} className="dialog dialog-form" data-k="pics-dialog" aria-label={tx('ภาพคำศัพท์')}
+                    onClose={close} onClick={e => { if (e.target === e.currentTarget) close(); }}>
+                    <div>
+                        <div className="dialog-head"><h3>{tx('ภาพคำศัพท์')}</h3></div>
+                        <div className="dialog-body space-y-4">
+                            <p className="text-sm font-semibold text-gray-600" data-k="pics-counts">{tx('ผ่านแล้ว {ok} · รอตรวจ {p} · ยังไม่สร้าง {t}', { ok: c.ok, p: c.pending, t: c.todo })}</p>
+                            {quota != null && <p className="text-sm text-gray-500" data-k="pics-quota">{tx('โควตา AI วันนี้เหลือ {r}', { r: Math.round(quota) })}</p>}
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <input type="number" inputMode="numeric" min="1" max={PC.MAX_BATCH} value={n} data-k="pics-n" className="input w-24" disabled={!!run}
+                                    onChange={e => setN(e.target.value)} aria-label={tx('จำนวนภาพ')} />
+                                {!run
+                                    ? <button type="button" data-k="pics-run" className="btn primary" onClick={start} disabled={!c.todo}>{tx('สร้างอีก {n} ภาพ', { n: nn })}</button>
+                                    : <button type="button" data-k="pics-stop" className="btn" onClick={stop}>{tx('หยุด')}</button>}
+                            </div>
+                            {run && <p className="text-sm font-semibold" role="status" data-k="pics-progress"><span className="spinner mr-2" aria-hidden="true"></span>{tx('สร้างแล้ว {i}/{n} ภาพ', run)}</p>}
+                            {note && <p className="form-msg" role="status" data-k="pics-note">{txs(note)}</p>}
+                            <div className="segmented" role="group" aria-label={tx('ภาพ')}>
+                                {tab('pending', 'รอตรวจ', c.pending)}
+                                {tab('ok', 'ผ่านแล้ว', c.ok)}
+                            </div>
+                            {!items.length ? <div className="empty" data-k="pics-empty">{tx('ยังไม่มีภาพในกลุ่มนี้')}</div> : (
+                                <ul className="space-y-3" data-k="pics-list">
+                                    {items.map(({ concept, id }) => {
+                                        const busy = !!acting[concept];
+                                        return (
+                                            <li key={concept} className="flex gap-3 items-start border border-gray-200 rounded-lg p-3" data-k="pic-row" data-concept={concept}>
+                                                <img src={view === 'ok' ? LP_PICS.urlOf(id) : '/api/files?id=' + id} alt="" width="96" height="96" loading="lazy"
+                                                    className="w-24 h-24 object-cover rounded-md bg-gray-100 shrink-0" data-k="pic-img" />
+                                                <div className="min-w-0 grow space-y-2">
+                                                    <p className="font-semibold text-gray-900 break-words" data-i18n-skip>{PC.promptOf(concept)}</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {view === 'pending' && <button type="button" data-k="pic-ok" className="btn primary" disabled={busy} onClick={() => act(concept, () => LP_PICS.approve(concept, id))}>{tx('ใช้')}</button>}
+                                                        <button type="button" data-k="pic-redo" className="btn" disabled={busy} onClick={() => act(concept, () => LP_PICS.regenerate(concept, id))}>{tx('สร้างใหม่')}</button>
+                                                        <button type="button" data-k="pic-no" className="btn" disabled={busy} onClick={() => act(concept, () => LP_PICS.reject(concept, id))}>{tx(view === 'pending' ? 'ไม่ใช้' : 'เอาออก')}</button>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            )}
+                        </div>
+                        <div className="dialog-foot">
+                            <button type="button" data-k="pics-close" className="btn ghost" onClick={close}>{tx('ปิด')}</button>
+                        </div>
+                    </div>
+                </dialog>
+            );
+        }
+
         function SourceSwitch({ source, setSource }) {
             return (
                 <div className="segmented shrink-0" role="group" aria-label={tx('ชุดคำ')}>
@@ -18690,6 +18833,9 @@
             const [thCache, setThCache] = useState(readThCache);
             const [aiState, setAiState] = useState(null); // null | 'busy' | ข้อความ error
             const inputRef = useRef(null);
+            const pics = usePics();                       // L9 ภาพคำศัพท์ (tanot:lang:pics) — แสดงเฉพาะที่ผ่านแล้ว
+            const picsOn = !!(LP_PICS && LP_PICS.enabled());
+            const [picsOpen, setPicsOpen] = useState(false);
 
             // ไอคอน <i data-lucide> ต้องแปลงหลังทุกการเรนเดอร์ของคอมโพเนนต์นี้ (เรนเดอร์ใหม่เองหลังโหลดชุดแบบ async — effect ของ App ไม่ทำงาน)
             useEffect(() => { lucide.createIcons(); });
@@ -18707,19 +18853,25 @@
 
             const prep = state.status === 'ok' ? state.prep : null;
             const promptOf = (it) => LangCalc.thaiOf(it, thCache).text;
+            const picItems = useMemo(() => (prep && picsOn) ? LangCalc.pics.withPics(prep.words, pics, langId) : [], [prep, pics, picsOn, langId]);
+            const picByKey = useMemo(() => { const m = {}; picItems.forEach(h => { m[h.item.key] = h.id; }); return m; }, [picItems]);
             const candidates = useMemo(() => {
                 if (!prep) return [];
-                const q = LangCalc.queue(prep, srs, { kind, level, n: 40 });
-                return pmode === 'translate' ? q.filter(it => promptOf(it)) : q;
-            }, [prep, srs, kind, level, pmode, thCache]);
+                const q = LangCalc.queue(prep, srs, { kind: pmode === 'picword' ? 'w' : kind, level, n: pmode === 'picword' ? 400 : 40 });
+                return pmode === 'translate' ? q.filter(it => promptOf(it)) : pmode === 'picword' ? q.filter(it => picByKey[it.key]).slice(0, 40) : q;
+            }, [prep, srs, kind, level, pmode, thCache, picByKey]);
             const counts = useMemo(() => prep ? {
                 due: LangCalc.dueItems(prep, srs, { kind }).length,
                 fresh: LangCalc.pickNew(prep, srs, { kind, level, n: Infinity }).length,
             } : { due: 0, fresh: 0 }, [prep, srs, kind, level]);
+            // ภาพหายไป (เอาออก/สลับภาษา) ขณะอยู่โหมดภาพ = กลับโหมดการ์ดคำ — ปุ่มโหมดภาพซ่อนอยู่ ไม่งั้นติดอยู่โหมดที่ไม่มีทางออก
+            useEffect(() => {
+                if (prep && ((pmode === 'picword' && !picItems.length) || (pmode === 'picpairs' && picItems.length < 2))) setPmode('flashcard');
+            }, [prep, pmode, picItems.length]);
             const item = cur || candidates[0] || null;
             const sents = useMemo(() => (item && item.kind === 'w' && prep) ? LangCalc.sentencesFor(prep, item.id, 3) : [], [item, prep]);
             const th = item ? LangCalc.thaiOf(item, thCache) : null;
-            const isGame = pmode === 'cloze' || pmode === 'scramble' || pmode === 'pairs';
+            const isGame = pmode === 'cloze' || pmode === 'scramble' || pmode === 'pairs' || pmode === 'picpairs';
             const aiOn = !!(window.AiClient && AiClient.available());
             const missing = item ? LangCalc.missingThai([item].concat(sents), thCache) : [];
 
@@ -18780,8 +18932,12 @@
                     <div className="max-w-3xl mx-auto p-4 sm:p-6 space-y-5">
                         <div className="flex items-center justify-between gap-3 flex-wrap">
                             <h3 className="text-xl font-bold text-gray-900 mb-0">{tx('คำที่ใช้บ่อย — {l}', { l: langTitle(langId) })}</h3>
-                            <SourceSwitch source={source} setSource={setSource} />
+                            <div className="flex items-center gap-2 flex-wrap">
+                                {LP_PICS && LP_PICS.admin() && <button type="button" data-k="pics-open" className="btn" onClick={() => setPicsOpen(true)}>{tx('ภาพคำศัพท์')}</button>}
+                                <SourceSwitch source={source} setSource={setSource} />
+                            </div>
                         </div>
+                        {LP_PICS && LP_PICS.admin() && <PicsManager open={picsOpen} onClose={() => setPicsOpen(false)} />}
 
                         {state.status === 'loading' && (
                             <div className="card p-5 flex items-center gap-3" role="status"><span className="spinner" aria-hidden="true"></span>{tx('กำลังโหลดชุดคำ…')}</div>
@@ -18800,7 +18956,7 @@
                             <>
                                 <LevelPlanCard langId={langId} prep={prep} srs={srs} thCache={thCache} onLevel={(lv) => { levelTouched.current = false; setLevelRaw(lv); }} />
                                 <div className="flex flex-wrap items-center gap-3">
-                                    {!isGame && <div className="segmented" role="group" aria-label={tx('ชนิด')}>
+                                    {!isGame && pmode !== 'picword' && <div className="segmented" role="group" aria-label={tx('ชนิด')}>
                                         <button type="button" data-k="kind-w" onClick={() => setKind('w')} aria-pressed={kind === 'w'}>{tx('คำ')}</button>
                                         <button type="button" data-k="kind-s" onClick={() => setKind('s')} aria-pressed={kind === 's'}>{tx('ประโยค')}</button>
                                     </div>}
@@ -18818,26 +18974,31 @@
                                         <button type="button" data-k="pmode-cloze" onClick={() => setPmode('cloze')} aria-pressed={pmode === 'cloze'}>{tx('เติมคำ')}</button>
                                         <button type="button" data-k="pmode-scramble" onClick={() => setPmode('scramble')} aria-pressed={pmode === 'scramble'}>{tx('เรียงประโยค')}</button>
                                         <button type="button" data-k="pmode-pairs" onClick={() => setPmode('pairs')} aria-pressed={pmode === 'pairs'}>{tx('จับคู่')}</button>
+                                        {picItems.length > 0 && <button type="button" data-k="pmode-picword" onClick={() => setPmode('picword')} aria-pressed={pmode === 'picword'}>{tx('ภาพ → คำ')}</button>}
+                                        {picItems.length > 1 && <button type="button" data-k="pmode-picpairs" onClick={() => setPmode('picpairs')} aria-pressed={pmode === 'picpairs'}>{tx('จับคู่ภาพ')}</button>}
                                     </div>
                                     <span className="text-sm font-semibold text-gray-500" aria-live="polite">{tx('ถึงกำหนดทวน {d} · ใหม่ {n}', { d: counts.due, n: counts.fresh })}</span>
                                 </div>
 
                                 {isGame ? (
-                                    <PackGame game={pmode} prep={prep} srs={srs} setSrs={setSrs} setXp={setXp} level={level} thCache={thCache} langId={langId} lang={lang} />
+                                    <PackGame game={pmode} prep={prep} srs={srs} setSrs={setSrs} setXp={setXp} level={level} thCache={thCache} langId={langId} lang={lang} pics={pics} />
                                 ) : !item ? (
                                     <div className="card empty" data-k="packDone">{tx('ไม่มีการ์ดใหม่หรือการ์ดที่ถึงกำหนดในระดับนี้')}</div>
                                 ) : (
                                     <div className="card p-5 sm:p-6 space-y-4" data-k="packCard">
-                                        {pmode === 'flashcard' ? (
+                                        {(pmode === 'flashcard' || pmode === 'picword') ? (
                                             <>
-                                                <div className="flex items-start justify-between gap-3">
-                                                    <div className="min-w-0">
-                                                        <p className="text-2xl font-bold text-gray-900 break-words" data-k="packWord" data-i18n-skip lang={lang.code}>{item.t}</p>
-                                                        {item.ipa && <p className="text-sm text-gray-500" data-k="packIpa" data-i18n-skip>{LangCalc.ipaText(item.ipa)}</p>}
+                                                {pmode === 'picword' && picByKey[item.key] && <img data-k="packPic" src={LP_PICS.urlOf(picByKey[item.key])} alt="" width="160" height="160" className="mx-auto h-40 w-40 object-contain rounded-lg" />}
+                                                {(pmode === 'flashcard' || flipped) && (
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <p className="text-2xl font-bold text-gray-900 break-words" data-k="packWord" data-i18n-skip lang={lang.code}>{item.t}</p>
+                                                            {item.ipa && <p className="text-sm text-gray-500" data-k="packIpa" data-i18n-skip>{LangCalc.ipaText(item.ipa)}</p>}
+                                                        </div>
+                                                        <button type="button" onClick={() => speak(item.t, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
                                                     </div>
-                                                    <button type="button" onClick={() => speak(item.t, lang.code)} className="btn icon shrink-0" aria-label={tx('ฟังเสียง')}><Volume2 /></button>
-                                                </div>
-                                                {!flipped && <button type="button" data-k="packFlip" onClick={flip} className="btn primary lg w-full">{tx('ดูคำแปล')}</button>}
+                                                )}
+                                                {!flipped && <button type="button" data-k="packFlip" onClick={flip} className="btn primary lg w-full">{tx(pmode === 'picword' ? 'ดูคำ' : 'ดูคำแปล')}</button>}
                                             </>
                                         ) : (
                                             <>
@@ -18891,7 +19052,7 @@
                                                     </button>
                                                 )}
                                                 {aiState && aiState !== 'busy' && <p className="form-msg" role="alert">{txs(aiState)}</p>}
-                                                {pmode === 'flashcard' && (
+                                                {(pmode === 'flashcard' || pmode === 'picword') && (
                                                     <div className="flex items-center gap-3">
                                                         <button type="button" data-k="packGood" onClick={() => { setXp(x => x + 10); rate(3); }} className="btn primary lg flex-1">{tx('จำได้ (+10 XP)')}</button>
                                                         <button type="button" data-k="packAgain" onClick={() => rate(1)} className="btn lg flex-1">{tx('ยังไม่ได้')}</button>
@@ -18909,7 +19070,7 @@
         }
 
         // ── L2 เกมจากชุดคำ: เติมคำ / เรียงประโยค / จับคู่ — คำที่เล่นถูก/ผิด = ให้คะแนนการ์ด ::w:: เดิม (3/1) + หน้าการ์ดตาม L1 · XP 2 ต่อข้อถูก
-        function PackGame({ game, prep, srs, setSrs, setXp, level, thCache, langId, lang }) {
+        function PackGame({ game, prep, srs, setSrs, setXp, level, thCache, langId, lang, pics }) {
             const [round, setRound] = useState(0);
             const [q, setQ] = useState(null);          // null = กำลังสร้าง · { empty:true } = ไม่มีคำที่เล่นได้
             const [picked, setPicked] = useState(null); // เติมคำ: ตัวเลือกที่กด
@@ -18919,6 +19080,7 @@
             const [done, setDone] = useState({});       // จับคู่: id ที่จับถูกแล้ว
             const [bad, setBad] = useState(false);
             const srsRef = useRef(srs); srsRef.current = srs;
+            const picsRef = useRef(pics); picsRef.current = pics;
             const rated = useRef({});
             const nextRef = useRef(null);
             useEffect(() => { lucide.createIcons(); });
@@ -18934,6 +19096,11 @@
                 rated.current = {};
                 setPicked(null); setAns([]); setRes(null); setSel(null); setDone({}); setBad(false);
                 const base = { mode: game, level, thCache };
+                if (game === 'picpairs') {   // L9: จับคู่คำ ↔ ภาพ (เฉพาะคำที่มีภาพที่ผ่านแล้ว) — ผลเขียนลงการ์ด ::w:: เดิมแบบเดียวกับจับคู่
+                    const p = LangCalc.pics.picPairs(prep, srsRef.current, picsRef.current, { level, seed, n: 5 });
+                    setQ(p ? { game, p, items: p.items } : { game, empty: true });
+                    return;
+                }
                 if (game === 'pairs') {
                     const items = LangCalc.gameItems(prep, srsRef.current, { ...base, n: 12 });
                     const p = LangCalc.pairs(items, thCache, 5, seed);
@@ -19074,10 +19241,13 @@
                                     onClick={() => pickPair('l', l.id)} className={`${btn} w-full ${done[l.id] ? 'opacity-60' : ''}`} data-i18n-skip lang={lang.code}>{l.text}</button>
                             ))}
                         </div>
-                        <div className="space-y-3" role="group" aria-label={tx('คำแปล')}>
-                            {p.right.map(r => (
+                        <div className="space-y-3" role="group" aria-label={game === 'picpairs' ? tx('ภาพ') : tx('คำแปล')}>
+                            {p.right.map((r, ri) => (
                                 <button key={r.id} type="button" data-k="pairR" data-id={r.id} disabled={!!done[r.id]} aria-pressed={!!sel && sel.side === 'r' && sel.id === r.id}
-                                    onClick={() => pickPair('r', r.id)} className={`${btn} w-full ${done[r.id] ? 'opacity-60' : ''}`} data-i18n-skip>{r.text}</button>
+                                    aria-label={r.pic ? tx('ภาพที่ {n}', { n: ri + 1 }) : undefined}
+                                    onClick={() => pickPair('r', r.id)} className={`${btn} w-full ${done[r.id] ? 'opacity-60' : ''}`} data-i18n-skip>
+                                    {r.pic ? <img src={r.pic} alt="" width="64" height="64" className="mx-auto h-16 w-16 object-contain" /> : r.text}
+                                </button>
                             ))}
                         </div>
                     </div>

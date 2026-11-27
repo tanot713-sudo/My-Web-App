@@ -154,6 +154,8 @@
     // ภาษา L1 (docs/languages-design.md): หน้าการ์ดของการ์ด ::w::/::s:: (1 การ์ด = 1 doc) · คำแปลไทยจาก AI สร้างใหม่ได้ = cache
     { key: 'lang-practice:faces', kind: 'sync', mode: 'map' },
     { key: 'tanot:lang:th', kind: 'cache' },
+    // ภาษา L9: ภาพประกอบคำศัพท์ — 1 concept = 1 doc {id (ไฟล์ R2 ns images), status pending|ok|no} · LangCalc.pics เป็นเจ้าของรูปแบบ/ตัวล้าง
+    { key: 'tanot:lang:pics', kind: 'sync', mode: 'map' },
     // ภาษา L3: ร่างข้อความที่วางในแผง "อ่านจากข้อความ" (≤ 20,000 ตัวอักษร) — ข้อความส่วนตัว อยู่ในเครื่องเท่านั้น ไม่ซิงก์/ไม่สำรอง
     { key: 'lang-practice:reader', kind: 'local' },
     // ภาษา L7: ระดับโดยประมาณ + แผนรายวัน — 1 ภาษา = 1 doc · LangCalc.level เป็นเจ้าของรูปแบบ/ตัวล้าง
