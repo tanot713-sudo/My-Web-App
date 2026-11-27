@@ -708,6 +708,158 @@
     return { KINDS: KINDS, MAX: MAX, eligible: eligible, diffKind: diffKind, wordsOf: wordsOf, nearIn: nearIn, keyOf: keyOf, record: record, recordAll: recordAll, clean: clean, groups: groups, remove: remove };
   })();
 
+  // ── L2 เกม: เติมคำ / เรียงประโยค / จับคู่ (ROADMAP แถว 23) ───────────────────────────────────────
+  // ทุกการสุ่มใช้ seed (ทดสอบซ้ำได้) · ตัดคำใช้กฎเดียวกับ tokenize (spans = tokenize + ตำแหน่ง)
+  var GAME_MAX_PIECES = 12;   // เรียงประโยค: เกินนี้ไม่เล่น (ชิ้นน้อยกว่า 3 ก็ไม่เล่น)
+  var GAME_DISTRACTORS = 3;
+
+  function rng(seed) {      // mulberry32
+    var a = (Number(seed) | 0) >>> 0;
+    return function () {
+      a = (a + 0x6D2B79F5) >>> 0;
+      var t = a;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffle(list, seed) {
+    var a = list.slice(), r = rng(seed);
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(r() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+  function hasSegmenter(code, opts) {
+    return !!SEGMENTED[code] && !(opts && opts.noSegmenter) && typeof Intl !== 'undefined' && !!Intl.Segmenter;
+  }
+
+  // คำในข้อความ + ตำแหน่ง (ข้อความ NFC) — tok ตรงกับ tokenize()
+  function spans(text, code, opts) {
+    var t = String(text).normalize('NFC'), out = [];
+    if (hasSegmenter(code, opts)) {
+      var it = new Intl.Segmenter(code, { granularity: 'word' }).segment(t)[Symbol.iterator](), n;
+      while (!(n = it.next()).done) {
+        var v = n.value;
+        if (v.isWordLike && LETTER_RE.test(v.segment)) out.push({ start: v.index, end: v.index + v.segment.length, tok: norm(v.segment) });
+      }
+      return out;
+    }
+    var re = new RegExp(WORD_RE.source, 'gu'), m;
+    try { re = new RegExp(WORD_RE.source, WORD_RE.flags); } catch (e) {}
+    re.lastIndex = 0;
+    while ((m = re.exec(t))) out.push({ start: m.index, end: m.index + m[0].length, tok: norm(m[0]).replace(/’/g, "'") });
+    return out;
+  }
+
+  function wordById(prep, id) {
+    var ws = prep.words;
+    for (var i = 0; i < ws.length; i++) if (ws[i].id === id) return ws[i];
+    return null;
+  }
+
+  // เติมคำ: ซ่อนคำ wordId ในประโยค + ตัวเลือก (คำจริง + ตัวหลอกระดับใกล้ ≤ 3) — null เมื่อคำไม่อยู่ในประโยคหรือไม่มีตัวหลอกเลย
+  function cloze(prep, sent, wordId, seed) {
+    if (!prep || !sent) return null;
+    var id = norm(wordId), text = String(sent.t).normalize('NFC');
+    var sp = spans(text, prep.code), hit = null, i;
+    for (i = 0; i < sp.length; i++) if (sp[i].tok === id) { hit = sp[i]; break; }
+    if (!hit) return null;
+    var target = wordById(prep, id), lv = target ? target.lv : 3;
+    var inSent = {};
+    sp.forEach(function (x) { inSent[x.tok] = 1; });
+    var cands = prep.words.filter(function (w) { return !inSent[w.id] && w.id !== id; });
+    var tier = function (w) { var d = Math.abs(w.lv - lv); return d <= 1 ? 0 : d; };
+    var pick = shuffle(cands, seed).map(function (w, k) { return [tier(w), k, w]; })
+      .sort(function (a, b) { return a[0] - b[0] || a[1] - b[1]; }).slice(0, GAME_DISTRACTORS).map(function (e) { return e[2].t; });
+    if (!pick.length) return null;
+    var options = shuffle([id].concat(pick), Number(seed) + 1);
+    return {
+      sent: sent, before: text.slice(0, hit.start), answer: text.slice(hit.start, hit.end), after: text.slice(hit.end),
+      options: options, correct: options.indexOf(id), id: id
+    };
+  }
+
+  // ชิ้นของประโยคสำหรับเรียง: เว้นวรรค = แยกตามช่องว่าง (เครื่องหมายติดคำ) · ไม่เว้นวรรค = Segmenter (เครื่องหมายต่อท้ายชิ้นก่อน)
+  // ไม่มี Segmenter = ทีละตัวอักษร (เกิน 12 ตัว = รวมเป็นกลุ่มให้ ≤ 12 ชิ้น)
+  function pieceTexts(text, code, opts) {
+    var t = String(text).normalize('NFC').trim(), out = [];
+    if (!SEGMENTED[code]) return t ? t.split(/\s+/) : [];
+    if (hasSegmenter(code, opts)) {
+      var it = new Intl.Segmenter(code, { granularity: 'word' }).segment(t)[Symbol.iterator](), n;
+      while (!(n = it.next()).done) {
+        var seg = n.value.segment;
+        if (!seg.trim()) continue;
+        if (!n.value.isWordLike && out.length) out[out.length - 1] += seg; else out.push(seg);
+      }
+      return out;
+    }
+    var chars = Array.from(t.replace(/\s+/g, '')), size = Math.max(1, Math.ceil(chars.length / GAME_MAX_PIECES));
+    for (var i = 0; i < chars.length; i += size) out.push(chars.slice(i, i + size).join(''));
+    return out;
+  }
+
+  // เรียงประโยค: pieces = ลำดับที่ถูก (id = ตำแหน่งเดิม) · order = id ที่สลับแล้ว (ไม่เท่าลำดับเดิมเมื่อสลับได้)
+  function scramble(text, code, seed, opts) {
+    var texts = pieceTexts(text, code, opts);
+    if (texts.length < 3 || texts.length > GAME_MAX_PIECES) return null;
+    var pieces = texts.map(function (t, i) { return { id: i, t: t }; });
+    var ids = pieces.map(function (p) { return p.id; }), order = ids, s = Number(seed) || 0;
+    for (var k = 0; k < 24; k++) {
+      order = shuffle(ids, s + k);
+      if (order.some(function (id, pos) { return texts[id] !== texts[pos]; })) break;
+    }
+    return { pieces: pieces, order: order };
+  }
+  // ผู้เล่นเรียง id → ถูกเมื่อข้อความทุกตำแหน่งตรง (ชิ้นซ้ำสลับกันได้) · right = จำนวนตำแหน่งที่ตรง
+  function checkOrder(game, ids) {
+    var want = game.pieces.map(function (p) { return p.t; }), right = 0, i;
+    var got = (ids || []).map(function (id) { var p = game.pieces[id]; return p ? p.t : null; });
+    for (i = 0; i < got.length && i < want.length; i++) if (got[i] === want[i]) right++;
+    return { ok: got.length === want.length && right === want.length, right: right };
+  }
+
+  // จับคู่: คำ (คอลัมน์ซ้าย ตามลำดับที่ให้) ↔ คำแปล (คอลัมน์ขวา สลับ) — ข้ามคำที่ไม่มีคำแปลหรือคำแปลซ้ำกัน · < 2 คู่ = null
+  function pairs(items, thCache, n, seed) {
+    var left = [], meanings = [], seen = {};
+    for (var i = 0; i < (items || []).length && left.length < (n || 5); i++) {
+      var it = items[i], m = thaiOf(it, thCache).text, k = m.toLowerCase();
+      if (!m || seen[k]) continue;
+      seen[k] = 1;
+      left.push({ id: it.id, key: it.key, text: it.t });
+      meanings.push({ id: it.id, text: m });
+    }
+    if (left.length < 2) return null;
+    var right = meanings, s = Number(seed) || 0;
+    for (var j = 0; j < 12; j++) {
+      right = shuffle(meanings, s + j);
+      if (right.some(function (r, p) { return r.id !== left[p].id; })) break;
+    }
+    return { left: left, right: right };
+  }
+
+  function clozeFor(prep, item, seed) {
+    var ss = sentencesFor(prep, item.id, 5);
+    for (var i = 0; i < ss.length; i++) { var q = cloze(prep, ss[i], item.id, seed); if (q) return q; }
+    return null;
+  }
+  function scrambleFor(prep, item, seed) {
+    var ss = sentencesFor(prep, item.id, 5);
+    for (var i = 0; i < ss.length; i++) { var g = scramble(ss[i].t, prep.code, seed); if (g) { g.sent = ss[i]; g.id = item.id; return g; } }
+    return null;
+  }
+  // คำที่เล่นโหมดนี้ได้ (cloze|scramble|pairs): ถึงกำหนดก่อน แล้วของใหม่ตามความถี่ — เกมแค่เลือกคำ ผลเขียนลงการ์ด ::w:: เดิม
+  function gameItems(prep, srs, opts) {
+    opts = opts || {};
+    var n = opts.n || 10, mode = opts.mode || 'cloze', out = [];
+    var base = queue(prep, srs, { kind: 'w', level: opts.level, n: Math.max(n * 8, 60), now: opts.now });
+    for (var i = 0; i < base.length && out.length < n; i++) {
+      var it = base[i];
+      var ok = mode === 'scramble' ? !!scrambleFor(prep, it, 0) : mode === 'pairs' ? !!thaiOf(it, opts.thCache).text : !!clozeFor(prep, it, 0);
+      if (ok) out.push(it);
+    }
+    return out;
+  }
 
   return {
     LEVEL_BANDS: LEVEL_BANDS, LEVEL_NAMES: LEVEL_NAMES, LANG_CODE: LANG_CODE, AI_BATCH: AI_BATCH, TH_CACHE_MAX: TH_CACHE_MAX,
@@ -715,6 +867,8 @@
     prepare: prepare, pickNew: pickNew, dueItems: dueItems, queue: queue, sentencesFor: sentencesFor, toPoolItems: toPoolItems,
     thaiOf: thaiOf, ipaText: ipaText, face: face, missingThai: missingThai, thMessages: thMessages, parseTh: parseTh, mergeTh: mergeTh, chunk: chunk,
     subs: subs, spell: spell,
+    rng: rng, shuffle: shuffle, spans: spans, cloze: cloze, scramble: scramble, checkOrder: checkOrder, pairs: pairs,
+    clozeFor: clozeFor, scrambleFor: scrambleFor, gameItems: gameItems,
     LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, roleplayMessages: roleplay.roleplayMessages,
     parseRoleplay: roleplay.parseRoleplay, summaryMessages: roleplay.summaryMessages, parseSummary: roleplay.parseSummary, userCardKey: roleplay.userCardKey
   };
