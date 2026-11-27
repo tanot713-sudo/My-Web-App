@@ -728,6 +728,24 @@
             const rest = tx(c.slice(WORK_CAT_PREFIX.length));
             return short ? rest : tx('งาน') + ': ' + rest;
         }
+        // ── L7 วัดระดับ + แผนรายวัน — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'วันนี้: ใหม่ {d}/{g} · ทวน {r}': 'Today: new {d}/{g} · review {r}',
+            'คำใหม่ต่อวัน': 'New words per day',
+            'ครบเป้าวันนี้': 'Daily target met',
+            'XP วันนี้ {x}/{g}': 'XP today {x}/{g}',
+            'วัดระดับ': 'Check level',
+            'วัดระดับใหม่': 'Check again',
+            'ระดับโดยประมาณ {l} · ~{w} คำ': 'Estimated level {l} · ~{w} words',
+            'คำนี้คุณรู้ไหม': 'Do you know this word?',
+            'รู้': 'I know it',
+            'ไม่รู้': "I don't",
+            'เลือกคำแปลที่ถูก': 'Pick the right meaning',
+            'ข้อ {i}/{n}': 'Item {i}/{n}',
+            'ชุดคำนี้วัดได้สูงสุดเท่านี้': 'This word set cannot measure higher',
+            'ตอบข้อตรวจไม่ผ่าน — ลองวัดใหม่': 'Check questions missed — try again',
+            'ไม่มีคำพอสำหรับวัดระดับ': 'Not enough words to measure'
+        });
         const LANG_EN = { 'lang-en': 'English', 'lang-jp': 'Japanese', 'lang-cn': 'Mandarin Chinese', 'lang-yue': 'Cantonese', 'lang-kr': 'Korean',
             'lang-de': 'German', 'lang-in': 'Hindi', 'lang-fr': 'French', 'lang-it': 'Italian', 'lang-mm': 'Burmese', 'lang-kh': 'Khmer',
             'lang-la': 'Lao', 'lang-vn': 'Vietnamese', 'lang-my': 'Malay', 'lang-ar': 'Arabic', 'lang-es': 'Spanish', 'lang-pt': 'Portuguese (Brazil)',
@@ -1000,6 +1018,35 @@
         function recordSpellFrom(langId, target, typed) {
             if (!LangCalc.spell.eligible(langId)) return;
             recordSpellPairs(langId, LangCalc.spell.wordsOf(target, typed));
+        }
+
+        // ── L7 ระดับโดยประมาณ + แผนรายวัน (lang-practice:level|plan = sync map ต่อภาษา; ตัวล้าง/ตรรกะอยู่ใน LangCalc.level)
+        //    อ่านด้วย TanotData.read เขียนด้วย TanotData.update (ไม่ถือคีย์ → ไม่เด้งแถบรีโหลดเมื่ออีกเครื่องเปลี่ยน) ──────────
+        const LEVEL_KEY = 'lang-practice:level';
+        const PLAN_KEY = 'lang-practice:plan';
+        function readMapKey(key, clean) {
+            try { return clean(window.TanotData ? TanotData.read(key, {}) : JSON.parse(localStorage.getItem(key) || '{}')); }
+            catch (e) { return {}; }
+        }
+        function writeMapKey(key, clean, fn) {
+            const f = (cur) => fn(clean(cur));
+            try {
+                if (window.TanotData && TanotData.update) TanotData.update(key, f);
+                else localStorage.setItem(key, JSON.stringify(f(JSON.parse(localStorage.getItem(key) || '{}'))));
+            } catch (e) {}
+        }
+        const readLevels = () => readMapKey(LEVEL_KEY, LangCalc.level.cleanLevels);
+        const readPlans = () => readMapKey(PLAN_KEY, LangCalc.level.cleanPlans);
+        const writeLevel = (langId, res) => writeMapKey(LEVEL_KEY, LangCalc.level.cleanLevels, m => LangCalc.level.setLevel(m, langId, res, Date.now()));
+        const writePlan = (langId, n) => writeMapKey(PLAN_KEY, LangCalc.level.cleanPlans, m => LangCalc.level.setPlan(m, langId, n));
+        // ระดับที่วัดไว้ของภาษา (0 = ยังไม่เคยวัด) — ใช้เป็นค่าเริ่มต้นของตัวเลือกระดับ, อัปเดตเมื่ออีกเครื่องวัดใหม่ · ค่าที่ผู้ใช้เลือกเองแล้วไม่ถูกทับ
+        function useMeasuredLevel(langId) {
+            const [levels, setLevels] = useState(readLevels);
+            useEffect(() => {
+                if (!window.TanotData || !TanotData.onChange) return undefined;
+                return TanotData.onChange(keys => { if (!keys.length || keys.indexOf(LEVEL_KEY) >= 0) setLevels(readLevels()); });
+            }, []);
+            return LangCalc.level.levelFor(levels, langId);
         }
 
         // ── ระบบทวนคำศัพท์แบบเว้นช่วงเวลา (FSRS) — ตัวคำนวณอยู่ใน fsrs.js (ไฟล์กลาง ใช้ร่วมกับห้องเรียนกฎหมาย
@@ -17643,7 +17690,11 @@
             const lname = LANGS[langId].title, langCode = LANGS[langId].code;
             const en = OME_I18N.lang() === 'en';
             const [sceneId, setSceneId] = useState(null);
-            const [level, setLevel] = useState('A1');
+            const measured = useMeasuredLevel(langId);
+            const [level, setLevelRaw] = useState(() => LC.level.roleplayLevel(measured || 1));
+            const levelTouched = useRef(false);
+            const setLevel = (v) => { levelTouched.current = true; setLevelRaw(v); };
+            useEffect(() => { if (!levelTouched.current && measured) setLevelRaw(LC.level.roleplayLevel(measured)); }, [measured, langId]);
             const [phase, setPhase] = useState('pick'); // pick | chat | summary
             const [history, setHistory] = useState([]); // [{role, content, th, fix}]
             const [draft, setDraft] = useState('');
@@ -18305,12 +18356,138 @@
             );
         }
 
+        // ── L7 การ์ดแผนวันนี้ + วัดระดับ (ตรรกะทั้งหมดอยู่ใน LangCalc.level) ───────────────────────────
+        const PLAN_CHOICES = [5, 10, 15, 20, 30, 50];
+        function LevelPlanCard({ langId, prep, srs, thCache, onLevel }) {
+            const LV = LangCalc.level;
+            const [plans, setPlans] = useState(readPlans);
+            const [levels, setLevels] = useState(readLevels);
+            const [test, setTest] = useState(null); // null | {items, checks, i, ans, cans, phase: 'words'|'checks'|'result', res}
+            useEffect(() => {
+                if (!window.TanotData || !TanotData.onChange) return undefined;
+                return TanotData.onChange(keys => {
+                    if (!keys.length || keys.indexOf(PLAN_KEY) >= 0) setPlans(readPlans());
+                    if (!keys.length || keys.indexOf(LEVEL_KEY) >= 0) setLevels(readLevels());
+                });
+            }, []);
+            useEffect(() => { setTest(null); }, [langId]);
+            const plan = LV.planFor(plans, langId);
+            const measured = LV.levelFor(levels, langId);
+            const day = LV.today(langId, srs, plan);
+            const xpSum = (window.LearnCore && LearnCore.summary) ? LearnCore.summary() : null;
+            const choices = PLAN_CHOICES.indexOf(plan.n) >= 0 ? PLAN_CHOICES : PLAN_CHOICES.concat(plan.n).sort((a, b) => a - b);
+            const start = () => {
+                const t = LV.buildTest(prep, thCache, Date.now() % 1000003);
+                if (!t || !t.items.length) { setTest({ phase: 'none' }); return; }
+                setTest({ items: t.items, checks: t.checks, i: 0, ans: [], cans: [], phase: 'words', res: null });
+            };
+            const finish = (t, cans) => {
+                const res = LV.estimate(t.ans, cans.map(ok => ({ ok })));
+                if (res && res.reliable) { writeLevel(langId, res); setLevels(readLevels()); onLevel(res.lv); }
+                setTest({ ...t, cans, phase: 'result', res });
+            };
+            const answerWord = (know) => {
+                const it = test.items[test.i], ans = test.ans.concat({ lv: it.lv, know });
+                if (test.i + 1 < test.items.length) setTest({ ...test, ans, i: test.i + 1 });
+                else if (test.checks.length) setTest({ ...test, ans, i: 0, phase: 'checks' });
+                else finish({ ...test, ans }, []);
+            };
+            const answerCheck = (idx) => {
+                const c = test.checks[test.i], cans = test.cans.concat(idx === c.answer);
+                if (test.i + 1 < test.checks.length) setTest({ ...test, cans, i: test.i + 1 });
+                else finish(test, cans);
+            };
+            const pct = Math.min(100, Math.round(day.done / day.goal * 100));
+            const res = test && test.res;
+            return (
+                <section className="card p-4 sm:p-5 space-y-3" data-k="planCard">
+                    {!test && (
+                        <>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <p className="text-base font-bold text-gray-900 mb-0" data-k="planToday" aria-live="polite">{tx('วันนี้: ใหม่ {d}/{g} · ทวน {r}', { d: day.done, g: day.goal, r: day.due })}</p>
+                                <label className="flex items-center gap-2 text-sm text-gray-600">
+                                    <span>{tx('คำใหม่ต่อวัน')}</span>
+                                    <select data-k="planN" className="select w-auto" value={plan.n} onChange={e => { writePlan(langId, +e.target.value); setPlans(readPlans()); }}>
+                                        {choices.map(n => <option key={n} value={n}>{n}</option>)}
+                                    </select>
+                                </label>
+                            </div>
+                            <div className={'meter' + (day.met ? ' ok' : '')} role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct}><i style={{ width: pct + '%' }}></i></div>
+                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                                    {day.met && <span className="badge ok" data-k="planMet">{tx('ครบเป้าวันนี้')}</span>}
+                                    {xpSum && <span data-k="planXp">{tx('XP วันนี้ {x}/{g}', { x: xpSum.todayXp, g: xpSum.goal })}</span>}
+                                    {measured > 0 && <span className="badge" data-k="levelBadge">{tx('ระดับโดยประมาณ {l} · ~{w} คำ', { l: LangCalc.LEVEL_NAMES[measured], w: (levels[langId] || { words: 0 }).words })}</span>}
+                                </div>
+                                <button type="button" data-k="levelStart" className="btn" onClick={start}>{measured > 0 ? tx('วัดระดับใหม่') : tx('วัดระดับ')}</button>
+                            </div>
+                        </>
+                    )}
+                    {test && test.phase === 'none' && (
+                        <div className="flex items-center justify-between gap-3" data-k="levelNone">
+                            <span>{tx('ไม่มีคำพอสำหรับวัดระดับ')}</span>
+                            <button type="button" className="btn" onClick={() => setTest(null)}>{tx('ปิด')}</button>
+                        </div>
+                    )}
+                    {test && test.phase === 'words' && (
+                        <div className="space-y-4" data-k="levelWords">
+                            <div className="flex items-center justify-between gap-3 text-sm text-gray-500">
+                                <span>{tx('คำนี้คุณรู้ไหม')}</span>
+                                <span aria-live="polite">{tx('ข้อ {i}/{n}', { i: test.i + 1, n: test.items.length })}</span>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 break-words text-center my-4" data-k="levelWord" data-i18n-skip lang={LANGS[langId].code}>{test.items[test.i].t}</p>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button type="button" data-k="levelKnow" className="btn primary lg" onClick={() => answerWord(true)}>{tx('รู้')}</button>
+                                <button type="button" data-k="levelUnknown" className="btn lg" onClick={() => answerWord(false)}>{tx('ไม่รู้')}</button>
+                            </div>
+                            <button type="button" data-k="levelCancel" className="btn ghost sm" onClick={() => setTest(null)}>{tx('ยกเลิก')}</button>
+                        </div>
+                    )}
+                    {test && test.phase === 'checks' && (
+                        <div className="space-y-4" data-k="levelChecks">
+                            <div className="flex items-center justify-between gap-3 text-sm text-gray-500">
+                                <span>{tx('เลือกคำแปลที่ถูก')}</span>
+                                <span aria-live="polite">{tx('ข้อ {i}/{n}', { i: test.i + 1, n: test.checks.length })}</span>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 break-words text-center my-4" data-k="levelCheckWord" data-i18n-skip lang={LANGS[langId].code}>{test.checks[test.i].t}</p>
+                            <div className="grid gap-2">
+                                {test.checks[test.i].options.map((o, k) => (
+                                    <button key={k} type="button" data-k="levelOpt" className="btn lg" onClick={() => answerCheck(k)}><span data-i18n-skip>{o}</span></button>
+                                ))}
+                            </div>
+                            <button type="button" data-k="levelCancel" className="btn ghost sm" onClick={() => setTest(null)}>{tx('ยกเลิก')}</button>
+                        </div>
+                    )}
+                    {test && test.phase === 'result' && (
+                        <div className="space-y-3" data-k="levelResult">
+                            {res && res.reliable ? (
+                                <>
+                                    <p className="text-lg font-bold text-gray-900 mb-0" data-k="levelResultText">{tx('ระดับโดยประมาณ {l} · ~{w} คำ', { l: res.name, w: res.words })}</p>
+                                    {res.capped && <p className="text-sm text-gray-500 mb-0">{tx('ชุดคำนี้วัดได้สูงสุดเท่านี้')}</p>}
+                                </>
+                            ) : (
+                                <p className="callout warn mb-0" role="alert" data-k="levelUnreliable">{tx('ตอบข้อตรวจไม่ผ่าน — ลองวัดใหม่')}</p>
+                            )}
+                            <div className="flex flex-wrap gap-2">
+                                <button type="button" data-k="levelAgain" className="btn" onClick={start}>{tx('วัดระดับใหม่')}</button>
+                                <button type="button" data-k="levelClose" className="btn primary" onClick={() => setTest(null)}>{tx('ปิด')}</button>
+                            </div>
+                        </div>
+                    )}
+                </section>
+            );
+        }
+
         function PackView({ langId, srs, setSrs, setXp, source, setSource }) {
             const lang = LANGS[langId];
             const [state, setState] = useState({ status: 'loading' }); // loading | ok | none | error
             const [retry, setRetry] = useState(0);
             const [kind, setKind] = useState('w');
-            const [level, setLevel] = useState(1);
+            const measured = useMeasuredLevel(langId);
+            const [level, setLevelRaw] = useState(() => measured || 1);
+            const levelTouched = useRef(false); // เลือกระดับเองแล้ว = ไม่ทับด้วยระดับที่วัดไว้
+            const setLevel = (v) => { levelTouched.current = true; setLevelRaw(v); };
+            useEffect(() => { if (!levelTouched.current && measured) setLevelRaw(measured); }, [measured, langId]);
             const [pmode, setPmode] = useState('flashcard'); // flashcard | translate | dictation
             const [cur, setCur] = useState(null);     // การ์ดที่กำลังทำ (ล็อกไว้จนให้คะแนน)
             const [flipped, setFlipped] = useState(false);
@@ -18427,6 +18604,7 @@
 
                         {prep && (
                             <>
+                                <LevelPlanCard langId={langId} prep={prep} srs={srs} thCache={thCache} onLevel={(lv) => { levelTouched.current = false; setLevelRaw(lv); }} />
                                 <div className="flex flex-wrap items-center gap-3">
                                     {!isGame && <div className="segmented" role="group" aria-label={tx('ชนิด')}>
                                         <button type="button" data-k="kind-w" onClick={() => setKind('w')} aria-pressed={kind === 'w'}>{tx('คำ')}</button>
