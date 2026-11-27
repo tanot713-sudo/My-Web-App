@@ -708,6 +708,18 @@
             'ขายและพรีเซลส์': 'Sales and presales',
             'สัมภาษณ์งานตำแหน่งวิศวกร': 'Engineering job interviews'
         });
+        // ── E3 ฉากงานในโหมดสวมบทบาท + ประโยคฉบับแก้เก็บเป็นการ์ด (แยกบล็อกกันชนกับงานอื่น)
+        Object.assign(LP_EN, {
+            'ที่พิมพ์/พูด': 'You wrote or said',
+            'ฉบับแก้': 'Corrected',
+            'ถูกต้องแล้ว': 'Correct as is',
+            'เก็บเป็นการ์ด': 'Save as card',
+            'เก็บแล้ว': 'Saved',
+            'พูดตอบ': 'Speak',
+            'หยุดอัด': 'Stop',
+            'กำลังถอดเสียง…': 'Transcribing…',
+            'ไม่ได้ยินเสียงพูด ลองอีกครั้ง': 'No speech heard — try again'
+        });
         const WORK_CAT_PREFIX = 'งาน: ';
         function isWorkCat(c) { return String(c).indexOf(WORK_CAT_PREFIX) === 0; }
         // ชื่อหมวดที่แสดง: หมวดงานแปลตามภาษา UI (short = ไม่มี "งาน: " ใช้ในกลุ่ม "งาน") · หมวดเดิมแสดงตามข้อมูล
@@ -17641,16 +17653,59 @@
             const [words, setWords] = useState(null); // null = กำลังสรุป · [] = ไม่มีคำ
             const [picked, setPicked] = useState({});
             const [added, setAdded] = useState(0);
+            const [saved, setSaved] = useState({}); // คีย์การ์ดประโยคที่เก็บแล้วในฉากนี้
+            const [mic, setMic] = useState({ status: '', err: '' }); // status: '' | recording | transcribing
             const endRef = useRef(null);
             const jobRef = useRef(null);
+            const micRef = useRef(null);
+            // พูดตอบได้เมื่อมีไมค์ และ (ไม่ใช่ iPhone หรือมีคลาวด์ถอดเสียง) — ไม่งั้นซ่อนปุ่ม
+            const micOk = typeof MediaRecorder !== 'undefined' && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !(isIOS() && !cloudChatOn());
 
             useEffect(() => { reset(); }, [langId]);
-            useEffect(() => () => stopJob(), []);
+            useEffect(() => () => { stopJob(); stopMic(true); }, []);
             useEffect(() => { if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({ block: 'nearest' }); }, [history, busy]);
             useEffect(() => { lucide.createIcons(); });
 
             function stopJob() { if (jobRef.current) { jobRef.current(); jobRef.current = null; } }
-            function reset() { stopJob(); setSceneId(null); setPhase('pick'); setHistory([]); setDraft(''); setBusy(false); setErr(''); setShown({}); setWords(null); setPicked({}); setAdded(0); }
+            function reset() { stopJob(); stopMic(true); setSceneId(null); setPhase('pick'); setHistory([]); setDraft(''); setBusy(false); setErr(''); setShown({}); setWords(null); setPicked({}); setAdded(0); setSaved({}); setMic({ status: '', err: '' }); }
+
+            // อัดเสียง (≤ 120 วิ) → ถอดเสียงทางเดียวกับ L4 (subsTranscribeClip: คลาวด์ก่อน → ในเครื่องเมื่อไม่ใช่ iOS) → ใส่ในช่องพิมพ์ให้ตรวจก่อนส่ง
+            // เสียงและข้อความไม่ถูกเก็บ ไม่ลง problem log
+            function stopMic(discard) {
+                const m = micRef.current;
+                micRef.current = null;
+                if (!m) return;
+                if (discard) m.discard = true;
+                try { if (m.rec.state === 'recording') m.rec.stop(); else m.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+                if (m.timer) clearTimeout(m.timer);
+            }
+            async function startMic() {
+                if (busy || micRef.current) return;
+                setErr('');
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const chunks = [], rec = new MediaRecorder(stream), m = { rec, stream, discard: false, timer: 0 };
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) chunks.push(ev.data); });
+                    rec.addEventListener('stop', async () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        if (m.timer) clearTimeout(m.timer);
+                        if (m.discard) return;
+                        setMic({ status: 'transcribing', err: '' });
+                        try {
+                            const text = await subsTranscribeClip(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }), langId);
+                            if (!text) { setMic({ status: '', err: 'ไม่ได้ยินเสียงพูด ลองอีกครั้ง' }); return; }
+                            setDraft(d => (d.trim() ? d.trim() + ' ' : '') + text);
+                            setMic({ status: '', err: '' });
+                        } catch (e) { setMic({ status: '', err: ['ถอดเสียงไม่สำเร็จ: {m}', { m: subsErrText(e) }] }); }
+                    });
+                    m.timer = setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, 120000);
+                    micRef.current = m;
+                    rec.start();
+                    setMic({ status: 'recording', err: '' });
+                } catch (e) {
+                    setMic({ status: '', err: 'เปิดไมค์ไม่สำเร็จ — ตรวจสอบว่าอนุญาตให้เว็บนี้ใช้ไมโครโฟนแล้ว' });
+                }
+            }
 
             // ส่งข้อความเข้าแชท แล้วคืน Promise ของข้อความเต็ม · onText ถูกเรียกทุก token
             function ask(messages, maxNewTokens, onText) {
@@ -17681,13 +17736,13 @@
                 setBusy(true); setErr('');
                 const base = hist.map(h => ({ role: h.role, content: h.content }));
                 const msgs = LC.roleplayMessages(sceneId, level, lname, base);
-                setHistory(hist.concat([{ role: 'assistant', content: '', th: '', fix: '' }]));
-                ask(msgs, 320, (acc) => {
+                setHistory(hist.concat([{ role: 'assistant', content: '', th: '', fix: '', fixTh: '', done: false }]));
+                ask(msgs, 360, (acc) => {
                     const p = LC.parseRoleplay(acc);
-                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix }]));
+                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix, fixTh: p.fixTh || '', done: false }]));
                 }).then((acc) => {
                     const p = LC.parseRoleplay(acc);
-                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix }]));
+                    setHistory(hist.concat([{ role: 'assistant', content: p.text, th: p.th, fix: p.fix, fixTh: p.fixTh || '', done: true }]));
                     setBusy(false);
                 }, (e) => { setHistory(hist); setBusy(false); setErr(failText(e)); });
             }
@@ -17721,22 +17776,44 @@
                 setSrs(s => { const n = { ...s }; keyed.forEach(o => { if (!n[o.k]) n[o.k] = { dueAt: now }; }); return n; });
                 setAdded(keyed.length);
             };
+            // เก็บประโยคฉบับแก้เป็นการ์ด lang-xx::u::<hash> (กดซ้ำ/2 เครื่อง = การ์ดเดียว) · หน้าการ์ดใน lang-practice:faces
+            const saveTurn = (rv) => {
+                const c = LC.turnCard(langId, rv);
+                if (!c) return;
+                const now = Date.now();
+                if (window.TanotData) window.TanotData.update('lang-practice:faces', (cur) => {
+                    const m = (cur && typeof cur === 'object' && !Array.isArray(cur)) ? cur : {};
+                    m[c.key] = c.face;
+                    return m;
+                });
+                setSrs(s => (s[c.key] ? s : { ...s, [c.key]: { dueAt: now } }));
+                setSaved(sv => ({ ...sv, [c.key]: true }));
+            };
             const sc = sceneId ? LC.sceneOf(sceneId) : null;
             const scName = (s) => en ? s.en : s.th;
+            const sceneBtn = (s) => (
+                <button key={s.id} data-k={'rp-scene-' + s.id} aria-pressed={sceneId === s.id} onClick={() => setSceneId(s.id)}
+                    className={`stat-card${sceneId === s.id ? ' on' : ''}`}>
+                    <div className="font-semibold text-gray-800">{scName(s)}</div>
+                    <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                </button>
+            );
 
             if (phase === 'pick') {
                 return (
                     <div>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('สนทนาสวมบทบาท')}</h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            {LC.SCENES.map(s => (
-                                <button key={s.id} data-k={'rp-scene-' + s.id} aria-pressed={sceneId === s.id} onClick={() => setSceneId(s.id)}
-                                    className={`stat-card${sceneId === s.id ? ' on' : ''}`}>
-                                    <div className="font-semibold text-gray-800">{scName(s)}</div>
-                                    <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
-                                </button>
-                            ))}
+                            {LC.scenesFor(langId).filter(s => s.group !== 'work').map(sceneBtn)}
                         </div>
+                        {LC.scenesFor(langId).some(s => s.group === 'work') && (
+                            <>
+                                <h4 className="text-base font-semibold text-gray-800 mt-5 mb-3" data-k="rp-work-head">{tx('งาน')}</h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {LC.scenesFor(langId).filter(s => s.group === 'work').map(sceneBtn)}
+                                </div>
+                            </>
+                        )}
                         <div className="flex items-center gap-3 flex-wrap mt-4">
                             <div className="segmented">
                                 {LC.LEVELS.map(l => <button key={l} data-k={'rp-level-' + l} aria-pressed={level === l} onClick={() => setLevel(l)}>{l}</button>)}
@@ -17781,7 +17858,24 @@
                     </div>
                     <div className="space-y-3" aria-live="polite">
                         {history.map((h, i) => h.role === 'user' ? (
-                            <div key={i} className="flex justify-end"><div className="callout info" data-k="rp-msg-user" data-i18n-skip>{h.content}</div></div>
+                            <div key={i} className="flex flex-col items-end gap-1">
+                                <div className="text-xs text-gray-500">{tx('ที่พิมพ์/พูด')}</div>
+                                <div className="callout info" data-k="rp-msg-user" data-i18n-skip>{h.content}</div>
+                                {(() => {
+                                    const rv = LC.turnReview(history, i);
+                                    if (!rv) return null;
+                                    const c = LC.turnCard(langId, rv);
+                                    const done = !!(c && saved[c.key]);
+                                    return (
+                                        <>
+                                            {rv.changed
+                                                ? <><div className="text-xs text-gray-500">{tx('ฉบับแก้')}</div><div className="callout ok" data-k="rp-fix-text" data-i18n-skip>{rv.fixed}</div></>
+                                                : <span className="badge ok" data-k="rp-correct">{tx('ถูกต้องแล้ว')}</span>}
+                                            {c && <button className="btn ghost sm" data-k="rp-card" aria-pressed={done} disabled={done} onClick={() => saveTurn(rv)}>{done ? tx('เก็บแล้ว') : tx('เก็บเป็นการ์ด')}</button>}
+                                        </>
+                                    );
+                                })()}
+                            </div>
                         ) : (
                             <div key={i} className="flex flex-col items-start gap-1">
                                 <div className="callout" data-k="rp-msg-ai" data-i18n-skip>{h.content || '…'}</div>
@@ -17789,20 +17883,23 @@
                                     <div className="flex gap-2 flex-wrap">
                                         <button className="btn ghost sm" data-k="rp-speak" onClick={() => speak(h.content, langCode)}><Volume2 /> {tx('ฟัง')}</button>
                                         {h.th && <button className="btn ghost sm" data-k="rp-th" aria-pressed={!!shown['t' + i]} onClick={() => setShown(s => ({ ...s, ['t' + i]: !s['t' + i] }))}>{tx('ดูคำแปลไทย')}</button>}
-                                        {h.fix && <button className="btn ghost sm" data-k="rp-fix" aria-pressed={!!shown['f' + i]} onClick={() => setShown(s => ({ ...s, ['f' + i]: !s['f' + i] }))}>{tx('คำแก้ประโยคของคุณ')}</button>}
                                     </div>
                                 )}
                                 {shown['t' + i] && h.th && <p className="text-sm text-gray-600" data-k="rp-th-text" data-i18n-skip>{h.th}</p>}
-                                {shown['f' + i] && h.fix && <p className="text-sm text-gray-600" data-k="rp-fix-text" data-i18n-skip>{h.fix}</p>}
                             </div>
                         ))}
                         <div ref={endRef} />
                     </div>
                     {err && <p className="text-sm text-err-ink mt-3" data-k="rp-error" role="alert">{txs(err)}</p>}
+                    {mic.err && <p className="text-sm text-err-ink mt-3" data-k="rp-mic-error" role="alert">{txs(mic.err)}</p>}
+                    {mic.status === 'transcribing' && <p className="text-sm text-gray-500 mt-3 flex items-center gap-2" role="status"><span className="spinner" />{tx('กำลังถอดเสียง…')}</p>}
                     <div className="flex gap-2 mt-4 items-end">
                         <textarea data-k="rp-input" rows={2} className="textarea w-full resize-y" value={draft} onChange={e => setDraft(e.target.value)}
                             placeholder={tx('ตอบเป็นภาษา{l}…', { l: langTitle(langId) })} aria-label={tx('ตอบเป็นภาษา{l}…', { l: langTitle(langId) })}
                             onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); send(); } }} />
+                        {micOk && (mic.status === 'recording'
+                            ? <button data-k="rp-mic-stop" className="btn primary" onClick={() => stopMic(false)}>{tx('หยุดอัด')}</button>
+                            : <button data-k="rp-mic" className="btn" onClick={startMic} disabled={busy || mic.status === 'transcribing'} aria-label={tx('พูดตอบ')}><MicIcon /> {tx('พูดตอบ')}</button>)}
                         <button data-k="rp-send" className="btn primary" onClick={send} disabled={busy || !draft.trim()}>{tx('ส่ง')}</button>
                     </div>
                 </div>

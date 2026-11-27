@@ -597,6 +597,17 @@
     "\u0E02\u0E32\u0E22\u0E41\u0E25\u0E30\u0E1E\u0E23\u0E35\u0E40\u0E0B\u0E25\u0E2A\u0E4C": "Sales and presales",
     "\u0E2A\u0E31\u0E21\u0E20\u0E32\u0E29\u0E13\u0E4C\u0E07\u0E32\u0E19\u0E15\u0E33\u0E41\u0E2B\u0E19\u0E48\u0E07\u0E27\u0E34\u0E28\u0E27\u0E01\u0E23": "Engineering job interviews"
   });
+  Object.assign(LP_EN, {
+    "\u0E17\u0E35\u0E48\u0E1E\u0E34\u0E21\u0E1E\u0E4C/\u0E1E\u0E39\u0E14": "You wrote or said",
+    "\u0E09\u0E1A\u0E31\u0E1A\u0E41\u0E01\u0E49": "Corrected",
+    "\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E49\u0E27": "Correct as is",
+    "\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14": "Save as card",
+    "\u0E40\u0E01\u0E47\u0E1A\u0E41\u0E25\u0E49\u0E27": "Saved",
+    "\u0E1E\u0E39\u0E14\u0E15\u0E2D\u0E1A": "Speak",
+    "\u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14": "Stop",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u2026": "Transcribing\u2026",
+    "\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "No speech heard \u2014 try again"
+  });
   const WORK_CAT_PREFIX = "\u0E07\u0E32\u0E19: ";
   function isWorkCat(c) {
     return String(c).indexOf(WORK_CAT_PREFIX) === 0;
@@ -14240,12 +14251,19 @@
     const [words, setWords] = useState(null);
     const [picked, setPicked] = useState({});
     const [added, setAdded] = useState(0);
+    const [saved, setSaved] = useState({});
+    const [mic, setMic] = useState({ status: "", err: "" });
     const endRef = useRef(null);
     const jobRef = useRef(null);
+    const micRef = useRef(null);
+    const micOk = typeof MediaRecorder !== "undefined" && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !(isIOS() && !cloudChatOn());
     useEffect(() => {
       reset();
     }, [langId]);
-    useEffect(() => () => stopJob(), []);
+    useEffect(() => () => {
+      stopJob();
+      stopMic(true);
+    }, []);
     useEffect(() => {
       if (endRef.current && endRef.current.scrollIntoView) endRef.current.scrollIntoView({ block: "nearest" });
     }, [history, busy]);
@@ -14260,6 +14278,7 @@
     }
     function reset() {
       stopJob();
+      stopMic(true);
       setSceneId(null);
       setPhase("pick");
       setHistory([]);
@@ -14270,6 +14289,56 @@
       setWords(null);
       setPicked({});
       setAdded(0);
+      setSaved({});
+      setMic({ status: "", err: "" });
+    }
+    function stopMic(discard) {
+      const m = micRef.current;
+      micRef.current = null;
+      if (!m) return;
+      if (discard) m.discard = true;
+      try {
+        if (m.rec.state === "recording") m.rec.stop();
+        else m.stream.getTracks().forEach((t) => t.stop());
+      } catch (e) {
+      }
+      if (m.timer) clearTimeout(m.timer);
+    }
+    async function startMic() {
+      if (busy || micRef.current) return;
+      setErr("");
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const chunks = [], rec = new MediaRecorder(stream), m = { rec, stream, discard: false, timer: 0 };
+        rec.addEventListener("dataavailable", (ev) => {
+          if (ev.data && ev.data.size) chunks.push(ev.data);
+        });
+        rec.addEventListener("stop", async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          if (m.timer) clearTimeout(m.timer);
+          if (m.discard) return;
+          setMic({ status: "transcribing", err: "" });
+          try {
+            const text = await subsTranscribeClip(new Blob(chunks, { type: rec.mimeType || "audio/webm" }), langId);
+            if (!text) {
+              setMic({ status: "", err: "\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07" });
+              return;
+            }
+            setDraft((d) => (d.trim() ? d.trim() + " " : "") + text);
+            setMic({ status: "", err: "" });
+          } catch (e) {
+            setMic({ status: "", err: ["\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08: {m}", { m: subsErrText(e) }] });
+          }
+        });
+        m.timer = setTimeout(() => {
+          if (rec.state === "recording") rec.stop();
+        }, 12e4);
+        micRef.current = m;
+        rec.start();
+        setMic({ status: "recording", err: "" });
+      } catch (e) {
+        setMic({ status: "", err: "\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E21\u0E04\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A\u0E27\u0E48\u0E32\u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15\u0E43\u0E2B\u0E49\u0E40\u0E27\u0E47\u0E1A\u0E19\u0E35\u0E49\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E42\u0E04\u0E23\u0E42\u0E1F\u0E19\u0E41\u0E25\u0E49\u0E27" });
+      }
     }
     function ask(messages, maxNewTokens, onText) {
       return new Promise((resolve, reject) => {
@@ -14318,13 +14387,13 @@
       setErr("");
       const base = hist.map((h) => ({ role: h.role, content: h.content }));
       const msgs = LC.roleplayMessages(sceneId, level, lname, base);
-      setHistory(hist.concat([{ role: "assistant", content: "", th: "", fix: "" }]));
-      ask(msgs, 320, (acc) => {
+      setHistory(hist.concat([{ role: "assistant", content: "", th: "", fix: "", fixTh: "", done: false }]));
+      ask(msgs, 360, (acc) => {
         const p = LC.parseRoleplay(acc);
-        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix }]));
+        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix, fixTh: p.fixTh || "", done: false }]));
       }).then((acc) => {
         const p = LC.parseRoleplay(acc);
-        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix }]));
+        setHistory(hist.concat([{ role: "assistant", content: p.text, th: p.th, fix: p.fix, fixTh: p.fixTh || "", done: true }]));
         setBusy(false);
       }, (e) => {
         setHistory(hist);
@@ -14388,26 +14457,45 @@
       });
       setAdded(keyed.length);
     };
+    const saveTurn = (rv) => {
+      const c = LC.turnCard(langId, rv);
+      if (!c) return;
+      const now = Date.now();
+      if (window.TanotData) window.TanotData.update("lang-practice:faces", (cur) => {
+        const m = cur && typeof cur === "object" && !Array.isArray(cur) ? cur : {};
+        m[c.key] = c.face;
+        return m;
+      });
+      setSrs((s) => s[c.key] ? s : { ...s, [c.key]: { dueAt: now } });
+      setSaved((sv) => ({ ...sv, [c.key]: true }));
+    };
     const sc = sceneId ? LC.sceneOf(sceneId) : null;
     const scName = (s) => en ? s.en : s.th;
+    const sceneBtn = (s) => /* @__PURE__ */ React.createElement(
+      "button",
+      {
+        key: s.id,
+        "data-k": "rp-scene-" + s.id,
+        "aria-pressed": sceneId === s.id,
+        onClick: () => setSceneId(s.id),
+        className: `stat-card${sceneId === s.id ? " on" : ""}`
+      },
+      /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800" }, scName(s)),
+      /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500" }, en ? s.goalEn : s.goal)
+    );
     if (phase === "pick") {
-      return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.SCENES.map((s) => /* @__PURE__ */ React.createElement(
-        "button",
-        {
-          key: s.id,
-          "data-k": "rp-scene-" + s.id,
-          "aria-pressed": sceneId === s.id,
-          onClick: () => setSceneId(s.id),
-          className: `stat-card${sceneId === s.id ? " on" : ""}`
-        },
-        /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800" }, scName(s)),
-        /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500" }, en ? s.goalEn : s.goal)
-      ))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "segmented" }, LC.LEVELS.map((l) => /* @__PURE__ */ React.createElement("button", { key: l, "data-k": "rp-level-" + l, "aria-pressed": level === l, onClick: () => setLevel(l) }, l))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-start", className: "btn primary", disabled: !sceneId, onClick: start }, tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E09\u0E32\u0E01"))));
+      return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.scenesFor(langId).filter((s) => s.group !== "work").map(sceneBtn)), LC.scenesFor(langId).some((s) => s.group === "work") && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h4", { className: "text-base font-semibold text-gray-800 mt-5 mb-3", "data-k": "rp-work-head" }, tx("\u0E07\u0E32\u0E19")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.scenesFor(langId).filter((s) => s.group === "work").map(sceneBtn))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "segmented" }, LC.LEVELS.map((l) => /* @__PURE__ */ React.createElement("button", { key: l, "data-k": "rp-level-" + l, "aria-pressed": level === l, onClick: () => setLevel(l) }, l))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-start", className: "btn primary", disabled: !sceneId, onClick: start }, tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E09\u0E32\u0E01"))));
     }
     if (phase === "summary") {
       return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-3" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E04\u0E27\u0E23\u0E08\u0E33")), words === null && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-sm text-gray-500" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2A\u0E23\u0E38\u0E1B\u0E04\u0E33\u2026")), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink", "data-k": "rp-error", role: "alert" }, txs(err)), words && words.length === 0 && !err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E43\u0E2B\u0E49\u0E40\u0E1E\u0E34\u0E48\u0E21")), words && words.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain", "data-i18n-skip": true }, words.map((x, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "list-row", "data-k": "rp-word" }, /* @__PURE__ */ React.createElement("label", { className: "check grow" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", checked: !!picked[i], onChange: (e) => setPicked((p) => ({ ...p, [i]: e.target.checked })) }), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("b", null, x.word), " \u2014 ", x.thai))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, words && words.length > 0 && !added && /* @__PURE__ */ React.createElement("button", { "data-k": "rp-addcards", className: "btn primary", onClick: addCards, disabled: !Object.values(picked).some(Boolean) }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14")), added > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "rp-added" }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E41\u0E25\u0E49\u0E27 {n} \u0E01\u0E32\u0E23\u0E4C\u0E14", { n: added })), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-new", className: "btn ghost", onClick: reset }, tx("\u0E09\u0E32\u0E01\u0E43\u0E2B\u0E21\u0E48"))));
     }
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800" }, scName(sc), " ", /* @__PURE__ */ React.createElement("span", { className: "badge" }, level)), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-finish", className: "btn", onClick: finish, disabled: busy || !history.some((h) => h.role === "user") }, tx("\u0E08\u0E1A\u0E09\u0E32\u0E01"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "aria-live": "polite" }, history.map((h, i) => h.role === "user" ? /* @__PURE__ */ React.createElement("div", { key: i, className: "flex justify-end" }, /* @__PURE__ */ React.createElement("div", { className: "callout info", "data-k": "rp-msg-user", "data-i18n-skip": true }, h.content)) : /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-start gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "callout", "data-k": "rp-msg-ai", "data-i18n-skip": true }, h.content || "\u2026"), h.content && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-speak", onClick: () => speak(h.content, langCode) }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07")), h.th && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-th", "aria-pressed": !!shown["t" + i], onClick: () => setShown((s) => ({ ...s, ["t" + i]: !s["t" + i] })) }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22")), h.fix && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-fix", "aria-pressed": !!shown["f" + i], onClick: () => setShown((s) => ({ ...s, ["f" + i]: !s["f" + i] })) }, tx("\u0E04\u0E33\u0E41\u0E01\u0E49\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E02\u0E2D\u0E07\u0E04\u0E38\u0E13"))), shown["t" + i] && h.th && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rp-th-text", "data-i18n-skip": true }, h.th), shown["f" + i] && h.fix && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rp-fix-text", "data-i18n-skip": true }, h.fix))), /* @__PURE__ */ React.createElement("div", { ref: endRef })), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mt-3", "data-k": "rp-error", role: "alert" }, txs(err)), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 mt-4 items-end" }, /* @__PURE__ */ React.createElement(
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800" }, scName(sc), " ", /* @__PURE__ */ React.createElement("span", { className: "badge" }, level)), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-finish", className: "btn", onClick: finish, disabled: busy || !history.some((h) => h.role === "user") }, tx("\u0E08\u0E1A\u0E09\u0E32\u0E01"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "aria-live": "polite" }, history.map((h, i) => h.role === "user" ? /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-end gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-gray-500" }, tx("\u0E17\u0E35\u0E48\u0E1E\u0E34\u0E21\u0E1E\u0E4C/\u0E1E\u0E39\u0E14")), /* @__PURE__ */ React.createElement("div", { className: "callout info", "data-k": "rp-msg-user", "data-i18n-skip": true }, h.content), (() => {
+      const rv = LC.turnReview(history, i);
+      if (!rv) return null;
+      const c = LC.turnCard(langId, rv);
+      const done = !!(c && saved[c.key]);
+      return /* @__PURE__ */ React.createElement(React.Fragment, null, rv.changed ? /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-gray-500" }, tx("\u0E09\u0E1A\u0E31\u0E1A\u0E41\u0E01\u0E49")), /* @__PURE__ */ React.createElement("div", { className: "callout ok", "data-k": "rp-fix-text", "data-i18n-skip": true }, rv.fixed)) : /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "rp-correct" }, tx("\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E49\u0E27")), c && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-card", "aria-pressed": done, disabled: done, onClick: () => saveTurn(rv) }, done ? tx("\u0E40\u0E01\u0E47\u0E1A\u0E41\u0E25\u0E49\u0E27") : tx("\u0E40\u0E01\u0E47\u0E1A\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14")));
+    })()) : /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-start gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "callout", "data-k": "rp-msg-ai", "data-i18n-skip": true }, h.content || "\u2026"), h.content && /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 flex-wrap" }, /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-speak", onClick: () => speak(h.content, langCode) }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07")), h.th && /* @__PURE__ */ React.createElement("button", { className: "btn ghost sm", "data-k": "rp-th", "aria-pressed": !!shown["t" + i], onClick: () => setShown((s) => ({ ...s, ["t" + i]: !s["t" + i] })) }, tx("\u0E14\u0E39\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22"))), shown["t" + i] && h.th && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rp-th-text", "data-i18n-skip": true }, h.th))), /* @__PURE__ */ React.createElement("div", { ref: endRef })), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mt-3", "data-k": "rp-error", role: "alert" }, txs(err)), mic.err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mt-3", "data-k": "rp-mic-error", role: "alert" }, txs(mic.err)), mic.status === "transcribing" && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500 mt-3 flex items-center gap-2", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u2026")), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 mt-4 items-end" }, /* @__PURE__ */ React.createElement(
       "textarea",
       {
         "data-k": "rp-input",
@@ -14424,7 +14512,7 @@
           }
         }
       }
-    ), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-send", className: "btn primary", onClick: send, disabled: busy || !draft.trim() }, tx("\u0E2A\u0E48\u0E07"))));
+    ), micOk && (mic.status === "recording" ? /* @__PURE__ */ React.createElement("button", { "data-k": "rp-mic-stop", className: "btn primary", onClick: () => stopMic(false) }, tx("\u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")) : /* @__PURE__ */ React.createElement("button", { "data-k": "rp-mic", className: "btn", onClick: startMic, disabled: busy || mic.status === "transcribing", "aria-label": tx("\u0E1E\u0E39\u0E14\u0E15\u0E2D\u0E1A") }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E2D\u0E1A"))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-send", className: "btn primary", onClick: send, disabled: busy || !draft.trim() }, tx("\u0E2A\u0E48\u0E07"))));
   }
   const READER_KEY = "lang-practice:reader";
   function readReaderDraft() {

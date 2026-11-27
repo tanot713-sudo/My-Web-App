@@ -400,22 +400,50 @@
     { id: 'housing', cat: 'หาที่พักและเช่าบ้าน', th: 'เช่าที่พัก', en: 'Renting a home', role: 'a landlord showing a rental room', goal: 'ถามค่าเช่า เงินมัดจำ และเงื่อนไขสัญญา', goalEn: 'Ask about rent, deposit and contract terms' },
     { id: 'bank', cat: 'ธนาคารและซิมโทรศัพท์', th: 'ธนาคารและซิมโทรศัพท์', en: 'Bank and SIM card', role: 'a bank or phone shop clerk', goal: 'เปิดบัญชีหรือสมัครซิมโทรศัพท์', goalEn: 'Open an account or get a SIM card' },
     { id: 'shopping', cat: 'ชีวิตประจำวันและซื้อของ', th: 'ซื้อของ', en: 'Shopping', role: 'a shop assistant', goal: 'ถามราคา ต่อรอง และจ่ายเงิน', goalEn: 'Ask prices, bargain and pay' },
-    { id: 'hospital', cat: 'โรงพยาบาลและเหตุฉุกเฉิน', th: 'โรงพยาบาล', en: 'At the hospital', role: 'a doctor or nurse at a hospital', goal: 'บอกอาการและตอบคำถามของแพทย์', goalEn: 'Describe symptoms and answer the doctor' }
+    { id: 'hospital', cat: 'โรงพยาบาลและเหตุฉุกเฉิน', th: 'โรงพยาบาล', en: 'At the hospital', role: 'a doctor or nurse at a hospital', goal: 'บอกอาการและตอบคำถามของแพทย์', goalEn: 'Describe symptoms and answer the doctor' },
+    // ── E3 ฉากงาน (ROADMAP แถว 35): ต่อท้ายเท่านั้น ห้ามแก้/สลับ 8 ฉากข้างบน · cat = ชื่อหมวดของ E1 ใน lang-data ของ lang-en (ตรงตัว)
+    //    only = ภาษาที่ฉากนี้ใช้ได้ · group = กลุ่มในหน้าเลือกฉาก · situation = สถานการณ์สมมุติที่ส่งให้ AI (ไม่มีชื่อหน่วยงาน/คนจริง)
+    { id: 'workmeeting', group: 'work', only: ['lang-en'], cat: 'งาน: ประชุมหน้างาน', th: 'ประชุมหน้างาน', en: 'Site meeting', role: 'the learner\'s site manager chairing a weekly coordination meeting',
+      situation: 'It is the weekly site meeting. Ask the learner about progress, delays and what they need from other teams.', goal: 'รายงานความคืบหน้า แจ้งปัญหา และขอความช่วยเหลือจากทีมอื่น', goalEn: 'Report progress, raise problems and ask other teams for help' },
+    { id: 'workrepair', group: 'work', only: ['lang-en'], cat: 'งาน: แจ้งเหตุขัดข้องและสถานะงานซ่อม', th: 'แจ้งเหตุขัดข้อง', en: 'Breakdown report', role: 'the learner\'s supervisor, who has just heard that a chiller stopped',
+      situation: 'The supervisor wants to know what failed, how it affects the building, what has been done so far and when it will be running again.', goal: 'อธิบายอาการ ผลกระทบ และสถานะงานซ่อม', goalEn: 'Explain the fault, its impact and the repair status' },
+    { id: 'workhandover', group: 'work', only: ['lang-en'], cat: 'งาน: ผู้รับเหมาและการตรวจรับงาน', th: 'ตรวจรับงานกับผู้รับเหมา', en: 'Contractor handover', role: 'the project manager of a foreign contractor, handing over finished work',
+      situation: 'The contractor says the work is complete. The learner inspects it, points out defects and agrees a date for fixing them.', goal: 'ตรวจรับงาน ระบุข้อบกพร่อง และตกลงวันแก้ไข', goalEn: 'Inspect the work, list defects and agree a fix date' },
+    { id: 'workpermit', group: 'work', only: ['lang-en'], cat: 'งาน: ความปลอดภัย (PTW, LOTO)', th: 'ใบอนุญาตทำงานและการล็อกเอาต์', en: 'Permit to work and lockout', role: 'the site foreman of a foreign contractor, asking for a permit to work',
+      situation: 'The foreman wants to start work on an electrical panel. The learner checks the permit, isolation and lockout before agreeing.', goal: 'ตรวจเงื่อนไขใบอนุญาต การแยกพลังงาน และมาตรการความปลอดภัย', goalEn: 'Check the permit, isolation and safety measures' },
+    { id: 'workreport', group: 'work', only: ['lang-en'], cat: 'งาน: อีเมลและรายงาน', th: 'ชี้แจงรายงานกับที่ปรึกษา', en: 'Report review', role: 'a project consultant reviewing the learner\'s monthly maintenance report',
+      situation: 'The consultant has questions about a few figures and a missing section, and asks what will change in the next report.', goal: 'อธิบายตัวเลข สาเหตุ และสิ่งที่จะแก้ในรายงาน', goalEn: 'Explain figures and causes, and what you will fix in the report' },
+    { id: 'workquote', group: 'work', only: ['lang-en'], cat: 'งาน: ประเมินราคาและใบเสนอราคา', th: 'ใบเสนอราคา', en: 'Quotation', role: 'a client asking for a price for a maintenance job',
+      situation: 'The client wants a quotation for servicing air-conditioning units and asks about scope, price, timing and payment terms.', goal: 'ถามขอบเขตงาน อธิบายราคา และเงื่อนไขการชำระเงิน', goalEn: 'Clarify scope, explain the price and agree payment terms' },
+    { id: 'workcontract', group: 'work', only: ['lang-en'], cat: 'งาน: เงื่อนไขสัญญา', th: 'เงื่อนไขสัญญาและงานเพิ่ม', en: 'Contract terms and variations', role: 'a contract consultant discussing a variation and an extension of time',
+      situation: 'The contractor asks for more time because of extra work. The consultant questions the reasons and mentions possible delay damages.', goal: 'ขอเลื่อนเวลา อธิบายงานเพิ่ม และตอบเรื่องค่าปรับ', goalEn: 'Request more time, explain extra work and respond on delay damages' },
+    { id: 'workpresent', group: 'work', only: ['lang-en'], cat: 'งาน: นำเสนอลูกค้าและผู้บริหาร', th: 'ถาม-ตอบหลังนำเสนอ', en: 'Q&A after a presentation', role: 'a senior client executive asking questions after the learner\'s presentation',
+      situation: 'The learner has just presented a maintenance improvement plan. The executive asks about results, risks and budget.', goal: 'ตอบคำถามเรื่องผลลัพธ์ ความเสี่ยง และงบประมาณ', goalEn: 'Answer questions on results, risks and budget' },
+    { id: 'workpresales', group: 'work', only: ['lang-en'], cat: 'งาน: ขายและพรีเซลส์', th: 'คุยกับลูกค้าก่อนขาย', en: 'Presales call', role: 'a prospective client in a first call about a maintenance service',
+      situation: 'The client explains a few problems with their equipment. The learner asks about needs, suggests a service and proposes a next step.', goal: 'ถามความต้องการ แนะนำบริการ และนัดขั้นต่อไป', goalEn: 'Ask about needs, suggest a service and propose a next step' },
+    { id: 'workinterview', group: 'work', only: ['lang-en'], cat: 'งาน: สัมภาษณ์งานตำแหน่งวิศวกร', th: 'สัมภาษณ์ตำแหน่งวิศวกร', en: 'Engineer job interview', role: 'a hiring manager interviewing the learner for a maintenance engineer position',
+      situation: 'Start with an introduction, then ask for an example using the STAR method and one or two technical questions.', goal: 'แนะนำตัว เล่าประสบการณ์แบบ STAR และตอบคำถามเทคนิค', goalEn: 'Introduce yourself, tell a STAR example and answer technical questions' }
   ];
 
   function sceneOf(id) {
     for (var i = 0; i < SCENES.length; i++) if (SCENES[i].id === id) return SCENES[i];
     throw new Error('unknown scene: ' + id);
   }
+  // ฉากที่ใช้ได้กับภาษานี้ (ไม่มี only = ทุกภาษา) · ลำดับเดิมของ SCENES
+  function scenesFor(langId) {
+    return SCENES.filter(function (s) { return !s.only || s.only.indexOf(langId) >= 0; });
+  }
   function levelOf(level) { return LEVELS.indexOf(level) >= 0 ? level : 'A1'; }
 
-  var FORMAT = 'ท้ายคำตอบทุกครั้งให้ต่อด้วยบรรทัดใหม่ที่เป็น JSON บรรทัดเดียวเท่านั้น: {"fix": "...", "th": "..."} ' +
-    '— "fix" = ประโยคล่าสุดของผู้เรียนที่แก้ให้ถูก (ถ้าถูกแล้วหรือยังไม่มีประโยคของผู้เรียนให้เป็น "") · "th" = คำแปลไทยของคำตอบที่คุณเพิ่งพูด · ห้ามใส่ข้อความอื่นหลัง JSON';
+  var FORMAT = 'ท้ายคำตอบทุกครั้งให้ต่อด้วยบรรทัดใหม่ที่เป็น JSON บรรทัดเดียวเท่านั้น: {"fix": "...", "fixTh": "...", "th": "..."} ' +
+    '— "fix" = ประโยคล่าสุดของผู้เรียนที่แก้ให้ถูก (ถ้าถูกแล้วหรือยังไม่มีประโยคของผู้เรียนให้เป็น "") · "fixTh" = คำแปลไทยของประโยคล่าสุดของผู้เรียนฉบับที่ถูกต้อง (ยังไม่มีประโยคของผู้เรียนให้เป็น "") · ' +
+    '"th" = คำแปลไทยของคำตอบที่คุณเพิ่งพูด · ห้ามใส่ข้อความอื่นหลัง JSON';
 
   function roleplayMessages(sceneId, level, langName, history) {
     var s = sceneOf(sceneId), lv = levelOf(level);
     var sys = 'You are role-playing ' + s.role + '. Scene: ' + s.en + '. The learner (a Thai speaker) practises ' + langName + ' at CEFR level ' + lv + '.\n' +
       'พูดเป็นภาษา' + langName + ' ระดับ ' + lv + ' เท่านั้น ใช้คำและไวยากรณ์ที่ระดับนี้เข้าใจได้ ตอบสั้นไม่เกิน 2 ประโยค แล้วถามหรือชวนให้ผู้เรียนพูดต่อ อยู่ในบทบาทตลอด\n' +
+      (s.situation ? 'Situation (invented, for practice): ' + s.situation + ' Use only invented names; never mention real companies or people.\n' : '') +
       'เป้าของผู้เรียนในฉากนี้: ' + s.goal + '\n' + FORMAT;
     var msgs = [{ role: 'system', content: sys }];
     var h = Array.isArray(history) ? history : [];
@@ -433,7 +461,9 @@
       try {
         var o = JSON.parse(tail);
         if (o && typeof o === 'object' && ('fix' in o || 'th' in o)) {
-          return { text: s.slice(0, i).trim(), fix: String(o.fix || ''), th: String(o.th || '') };
+          var r = { text: s.slice(0, i).trim(), fix: String(o.fix || ''), th: String(o.th || '') };
+          if (o.fixTh) r.fixTh = String(o.fixTh);
+          return r;
         }
       } catch (e) {
         if (/^\{\s*"(?:fix|th)"/.test(tail)) return { text: s.slice(0, i).trim(), fix: '', th: '' };
@@ -456,6 +486,50 @@
     return lemma ? langId + '::u::' + lemma : '';
   }
 
+  // ── E3 ประโยคฉบับแก้ → การ์ด ──
+  // เทียบประโยคแบบไม่สนตัวพิมพ์/วรรคตอน/ช่องว่างซ้ำ (ใช้ทั้งเทียบ "ที่พิมพ์ vs ฉบับแก้" และทำคีย์การ์ด)
+  function sentenceNorm(t) {
+    var x = String(t == null ? '' : t);
+    try { x = x.normalize('NFKC'); } catch (e) {}
+    return x.toLowerCase().replace(/[\u2018\u2019]/g, "'").replace(/[\s.,!?;:"“”()\[\]{}¿¡…。、！？「」\-–—]+/g, ' ').trim();
+  }
+  // แฮช 53 บิต (cyrb53) → base36 · ตายตัวต่อข้อความ ไม่อิงลำดับ/เครื่อง
+  function hash53(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (var i = 0; i < str.length; i++) {
+      var ch = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ ch, 2654435761);
+      h2 = Math.imul(h2 ^ ch, 1597334677);
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+  }
+  // lang-xx::u::<hash ของประโยคที่แก้แล้ว> · ข้อความว่าง = ''
+  function sentenceCardKey(langId, text) {
+    var n = sentenceNorm(text);
+    return n ? langId + '::u::' + hash53(n) : '';
+  }
+  // ผลตรวจของข้อความผู้เรียนลำดับที่ i = คำแก้ที่มากับคำตอบ AI ถัดไป (ต้องตอบจบแล้วและมี JSON) · ยังไม่รู้ = null
+  function turnReview(history, i) {
+    var u = history && history[i], a = history && history[i + 1];
+    if (!u || u.role !== 'user' || !a || a.role !== 'assistant' || !a.done) return null;
+    if (!(a.fix || a.th || a.fixTh)) return null;
+    var typed = String(u.content || '').trim();
+    if (!typed) return null;
+    var fix = String(a.fix || '').trim();
+    var changed = !!fix && sentenceNorm(fix) !== sentenceNorm(typed);
+    return { typed: typed, fixed: changed ? fix : typed, changed: changed, thai: String(a.fixTh || '').trim() };
+  }
+  // การ์ดของประโยคฉบับแก้: หน้า = ฉบับแก้ · หลัง = คำแปลไทย (ไม่มี = ที่พิมพ์เดิมถ้าต่างกัน ไม่งั้นฉบับแก้)
+  function turnCard(langId, rv) {
+    if (!rv) return null;
+    var key = sentenceCardKey(langId, rv.fixed);
+    if (!key) return null;
+    var back = rv.thai || (rv.changed ? rv.typed : rv.fixed);
+    return { key: key, face: [rv.fixed.slice(0, 300), back.slice(0, 300)] };
+  }
+
   function parseSummary(raw) {
     var s = String(raw == null ? '' : raw).replace(/```(?:json)?/gi, '');
     var a = s.indexOf('{'), b = s.lastIndexOf('}');
@@ -472,7 +546,7 @@
     return out;
   }
 
-  return { LEVELS: LEVELS, SCENES: SCENES, sceneOf: sceneOf, roleplayMessages: roleplayMessages, parseRoleplay: parseRoleplay, summaryMessages: summaryMessages, parseSummary: parseSummary, userCardKey: userCardKey };
+  return { LEVELS: LEVELS, SCENES: SCENES, sceneOf: sceneOf, scenesFor: scenesFor, sentenceNorm: sentenceNorm, sentenceCardKey: sentenceCardKey, turnReview: turnReview, turnCard: turnCard, roleplayMessages: roleplayMessages, parseRoleplay: parseRoleplay, summaryMessages: summaryMessages, parseSummary: parseSummary, userCardKey: userCardKey };
   })();
 
   // ── E2 สะกดผิด (ROADMAP แถว 34 · docs/languages-design.md §7) ───────────────────────
@@ -1021,7 +1095,8 @@
     subs: subs, spell: spell, reader: reader,
     rng: rng, shuffle: shuffle, spans: spans, cloze: cloze, scramble: scramble, checkOrder: checkOrder, pairs: pairs,
     clozeFor: clozeFor, scrambleFor: scrambleFor, gameItems: gameItems,
-    LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, roleplayMessages: roleplay.roleplayMessages,
+    LEVELS: roleplay.LEVELS, SCENES: roleplay.SCENES, sceneOf: roleplay.sceneOf, scenesFor: roleplay.scenesFor,
+    sentenceNorm: roleplay.sentenceNorm, sentenceCardKey: roleplay.sentenceCardKey, turnReview: roleplay.turnReview, turnCard: roleplay.turnCard, roleplayMessages: roleplay.roleplayMessages,
     parseRoleplay: roleplay.parseRoleplay, summaryMessages: roleplay.summaryMessages, parseSummary: roleplay.parseSummary, userCardKey: roleplay.userCardKey
   };
 });
