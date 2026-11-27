@@ -155,6 +155,7 @@
         const RepeatIcon = icon('repeat', 'w-4 h-4');
         const HashIcon = icon('hash', 'w-4 h-4');
         const MessageIcon = icon('message-circle', 'w-5 h-5');
+        const FileTextIcon = icon('file-text', 'w-5 h-5');
         const FlameIcon = icon('flame', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
@@ -666,6 +667,30 @@
             'จับคู่ครบแล้ว': 'All matched',
             'ยังไม่ใช่คู่กัน — ลองใหม่': 'Not a pair — try again',
             'ไม่มีคำที่เล่นเกมนี้ได้ในระดับนี้': 'No words available for this game at this level'
+        });
+        // ── L3 อ่านจากข้อความ — แยกบล็อกกันชนกับงานอื่นที่แก้ LP_EN
+        Object.assign(LP_EN, {
+            'อ่านจากข้อความ': 'Read your text',
+            'ระดับของฉัน': 'My level',
+            'ไม่ระบุ': 'Any',
+            'แก้ข้อความ': 'Edit text',
+            'วางข้อความภาษา{l}ที่อยากอ่าน…': 'Paste {l} text to read…',
+            'อ่าน': 'Read',
+            'นำเข้าไฟล์': 'Import file',
+            'มีการ์ดแล้ว': 'Has a card',
+            'ยากกว่าระดับของฉัน': 'Above my level',
+            'ไม่รู้จัก': 'Not in word list',
+            'คำที่เลือก': 'Selected word',
+            'ยังไม่มีคำแปลในชุดคำ': 'No meaning in the word list yet',
+            'ไม่มีคำแปลในชุดคำ': 'No meaning in the word list',
+            'ถาม AI': 'Ask AI',
+            'แปลประโยคนี้': 'Translate sentence',
+            'ปิด': 'Close',
+            'ตอบกลับอ่านไม่ได้ — ลองใหม่': 'Could not read the reply — try again',
+            'กำลังอ่านไฟล์…': 'Reading file…',
+            'ไม่พบข้อความในไฟล์': 'No text found in the file',
+            'ตัดเหลือ 20,000 ตัวอักษรแรก': 'Trimmed to the first 20,000 characters',
+            'โหลดตัวอ่านไฟล์ไม่ได้ — ตรวจอินเทอร์เน็ตแล้วลองใหม่': 'Could not load the file reader — check your connection and try again'
         });
         // ── E1 หมวดวลีงาน (ชื่อหมวดใน lang-data ขึ้นต้น "งาน: " — ชื่อเป็นส่วนหนึ่งของคีย์ SRS ห้ามเปลี่ยน)
         Object.assign(LP_EN, {
@@ -17881,7 +17906,247 @@
             );
         }
 
-        function ListenSpeakView({ langId, setLangId, setXp, setSrs }) {
+        // ── L3 อ่านจากข้อความของตัวเอง (ROADMAP แถว 24): ตรรกะล้วนอยู่ใน lang-calc.js (LangCalc.reader)
+        //    ข้อความอยู่ในหน่วยความจำ + ร่างล่าสุดใน lang-practice:reader (local ≤ 20,000 ตัวอักษร ไม่ซิงก์ ไม่ลง problem log)
+        //    แตะคำ → คำแปลจากชุดคำ (pack) ก่อน → ไม่มี = ถาม AI (cloud `main`, ไม่ถอยโมเดลในเครื่อง) → เพิ่มเป็นการ์ด lang-xx::u::<lemma>
+        //    หน้าการ์ด [คำ, คำแปล, ประโยคที่เจอ ≤ 200] เก็บใน lang-practice:faces (เหมือน L5) · ห้ามเก็บทั้งข้อความ · ห้ามเรียก /api/ocr ──
+        const READER_KEY = 'lang-practice:reader';
+        function readReaderDraft() {
+            try { const o = JSON.parse(localStorage.getItem(READER_KEY) || 'null'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; }
+        }
+        function writeReaderDraft(o) { try { localStorage.setItem(READER_KEY, JSON.stringify(o)); } catch (e) {} }
+        // ตัวอ่าน .docx (mammoth) / .pdf (pdf.js) โหลดตอนเลือกไฟล์ชนิดนั้นครั้งแรกเท่านั้น (เหมือน extract-text แต่ไม่ถ่วงการเปิดหน้านี้) · .txt ไม่ต้องใช้
+        function loadReaderLib(name) {
+            const n = String(name).toLowerCase();
+            const fail = () => Object.assign(new Error('lib'), { readerLib: true });
+            if (n.endsWith('.docx') && !window.mammoth) {
+                return new Promise((res, rej) => {
+                    const sc = document.createElement('script');
+                    sc.src = 'https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js';
+                    sc.onload = () => res(); sc.onerror = () => rej(fail());
+                    document.head.appendChild(sc);
+                });
+            }
+            if (n.endsWith('.pdf') && !window.pdfjsLib) {
+                return new Promise((res, rej) => {
+                    const done = '__tanotRdPdf' + Date.now();
+                    const timer = setTimeout(() => { delete window[done]; rej(fail()); }, 20000);
+                    window[done] = () => { clearTimeout(timer); delete window[done]; window.pdfjsLib ? res() : rej(fail()); };
+                    const sc = document.createElement('script');
+                    sc.type = 'module';
+                    sc.textContent = "import * as p from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs';" +
+                        "p.GlobalWorkerOptions.workerSrc='https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';window.pdfjsLib=p;window['" + done + "']();";
+                    document.head.appendChild(sc);
+                });
+            }
+            return Promise.resolve();
+        }
+        function ReaderPanel({ langId, srs, setSrs }) {
+            const LC = window.LangCalc, R = LC.reader;
+            const lang = LANGS[langId], code = lang.code;
+            const aiName = LANG_EN[langId] || lang.title;
+            const [text, setText] = useState(() => { const d = readReaderDraft(); return d.lang === langId ? R.clip(d.text) : ''; });
+            const [level, setLevel] = useState(() => { const d = readReaderDraft(); return d.level >= 0 && d.level <= 6 ? Math.floor(d.level) : 2; });
+            const [editing, setEditing] = useState(() => !text);
+            const [packState, setPackState] = useState({ status: 'loading' });
+            const [thCache, setThCache] = useState(readThCache);
+            const [note, setNote] = useState(null);       // ข้อความสถานะของการนำเข้าไฟล์ (ข้อความ/คีย์แปล)
+            const [sel, setSel] = useState(null);         // { tok, start, end }
+            const [ai, setAi] = useState({ busy: false, res: null, err: '', tr: '', trBusy: false, trErr: '' });
+            const dlgRef = useRef(null);
+            const jobRef = useRef(0);
+            const fileRef = useRef(null);
+            const aiOn = !!(window.AiClient && AiClient.available());
+
+            useEffect(() => { lucide.createIcons(); });
+            // ภาษาเปลี่ยน: ข้อความของภาษาเดิมไม่ติดข้ามภาษา (ร่างล่าสุดคืนมาเมื่อกลับมาภาษานั้น)
+            useEffect(() => {
+                const d = readReaderDraft();
+                const t = d.lang === langId ? R.clip(d.text) : '';
+                setText(t); setEditing(!t); setSel(null); setNote(null);
+            }, [langId]);
+            useEffect(() => {
+                let alive = true;
+                setPackState({ status: 'loading' });
+                loadPack(langId).then(r => { if (alive) setPackState(r); }, () => { if (alive) setPackState({ status: 'error' }); });
+                return () => { alive = false; };
+            }, [langId]);
+            useEffect(() => {
+                if (!window.TanotData || !TanotData.onChange) return undefined;
+                return TanotData.onChange(keys => { if (!keys.length || keys.indexOf(LANG_TH_KEY) >= 0) setThCache(readThCache()); });
+            }, []);
+            // ร่างล่าสุด (local): เขียนช้าลงเล็กน้อยตอนพิมพ์ ไม่เขียนทุกตัวอักษร
+            useEffect(() => {
+                const id = setTimeout(() => writeReaderDraft({ v: 1, lang: langId, text, level }), 400);
+                return () => clearTimeout(id);
+            }, [text, level, langId]);
+            useEffect(() => {
+                const d = dlgRef.current;
+                if (!d) return;
+                if (sel && !d.open) { try { d.showModal(); } catch (e) {} }
+                if (!sel && d.open) d.close();
+            }, [sel]);
+
+            const prep = packState.status === 'ok' ? packState.prep : null;
+            const pieces = useMemo(() => R.pieces(text, code), [text, code]);
+            const ctx = { prep, srs, langId, level };
+            const entry = sel ? R.entry(prep, sel.tok, thCache) : null;
+            const sentence = sel ? R.sentenceAt(text, sel.start, sel.end).text : '';
+            const hasCard = sel ? R.classify(sel.tok, { prep: null, srs, langId, level }) === 'card' : false;
+            const packTh = entry ? entry.th : '';
+            const meaning = packTh || (ai.res && ai.res.th) || (entry && entry.en) || '';
+
+            const openWord = (i) => {
+                const p = pieces[i];
+                if (!p || !p.tok) return;
+                jobRef.current++;
+                setAi({ busy: false, res: null, err: '', tr: '', trBusy: false, trErr: '' });
+                setSel({ tok: p.tok, start: p.start, end: p.end });
+            };
+            const onTextClick = (e) => { const el = e.target.closest('[data-i]'); if (el) openWord(+el.getAttribute('data-i')); };
+            const onTextKey = (e) => {
+                if (e.key !== 'Enter' && e.key !== ' ') return;
+                const el = e.target.closest && e.target.closest('[data-i]');
+                if (el) { e.preventDefault(); openWord(+el.getAttribute('data-i')); }
+            };
+            const closeWord = () => { jobRef.current++; setSel(null); };
+
+            const askAi = () => {
+                if (!sel || ai.busy || !aiOn) return;
+                const job = ++jobRef.current;
+                setAi(a => ({ ...a, busy: true, err: '' }));
+                AiClient.chat({ messages: R.lookupMessages(sel.tok, sentence, aiName), model: 'main', maxTokens: 300 }).then(res => {
+                    if (job !== jobRef.current) return;
+                    const r = R.parseLookup(res && res.text);
+                    setAi(a => ({ ...a, busy: false, res: r, err: r ? '' : 'ตอบกลับอ่านไม่ได้ — ลองใหม่' }));
+                }, err => {
+                    if (job !== jobRef.current) return;
+                    setAi(a => ({ ...a, busy: false, err: ['{m}', { m: AiClient.friendlyMessage(err) }] }));
+                });
+            };
+            const translateSentence = () => {
+                if (!sel || ai.trBusy || !aiOn || !sentence) return;
+                const job = jobRef.current;
+                setAi(a => ({ ...a, trBusy: true, trErr: '' }));
+                AiClient.chat({ messages: R.translateMessages(sentence, aiName), model: 'fast', maxTokens: 400 }).then(res => {
+                    if (job !== jobRef.current) return;
+                    const t = R.parseTranslation(res && res.text);
+                    setAi(a => ({ ...a, trBusy: false, tr: t, trErr: t ? '' : 'ตอบกลับอ่านไม่ได้ — ลองใหม่' }));
+                }, err => {
+                    if (job !== jobRef.current) return;
+                    setAi(a => ({ ...a, trBusy: false, trErr: ['{m}', { m: AiClient.friendlyMessage(err) }] }));
+                });
+            };
+            const addCard = () => {
+                if (!sel) return;
+                const word = (ai.res && ai.res.lemma) || (entry && entry.lemma) || sel.tok;
+                const c = R.cardFor(langId, { word, thai: meaning, example: R.example(text, sel.start, sel.end) });
+                if (!c) return;
+                writePackFaces({ [c.key]: c.face });
+                setSrs(s => s[c.key] ? s : { ...s, [c.key]: { dueAt: Date.now() } });
+            };
+
+            const importFile = (e) => {
+                const f = e.target.files && e.target.files[0];
+                e.target.value = '';
+                if (!f) return;
+                setNote('กำลังอ่านไฟล์…');
+                loadReaderLib(f.name).then(() => TanotFileReader.readAnyFile(f, { ocr: false })).then(res => {
+                    const raw = String(res || '');
+                    const t = R.clip(raw);
+                    if (!t.trim()) { setNote('ไม่พบข้อความในไฟล์'); return; }
+                    setText(t); setEditing(true);
+                    setNote(raw.length > R.MAX_TEXT ? 'ตัดเหลือ 20,000 ตัวอักษรแรก' : null);
+                }, err => setNote(err && err.readerLib ? 'โหลดตัวอ่านไฟล์ไม่ได้ — ตรวจอินเทอร์เน็ตแล้วลองใหม่' : ['{m}', { m: TanotFileReader.errorText(err) }]));
+            };
+
+            const classOf = (tok) => R.classify(tok, ctx);
+
+            return (
+                <div>
+                    <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
+                        <h3 className="text-lg font-semibold text-gray-800">{tx('อ่านจากข้อความ')}</h3>
+                        {!editing && (
+                            <div className="flex items-center gap-2 flex-wrap">
+                                <div className="segmented" role="group" aria-label={tx('ระดับของฉัน')}>
+                                    <button type="button" data-k="rd-level-0" aria-pressed={level === 0} onClick={() => setLevel(0)}>{tx('ไม่ระบุ')}</button>
+                                    {[1, 2, 3, 4, 5, 6].map(l => <button type="button" key={l} data-k={'rd-level-' + l} aria-pressed={level === l} onClick={() => setLevel(l)}>{LC.LEVEL_NAMES[l]}</button>)}
+                                </div>
+                                <button type="button" data-k="rd-edit" className="btn" onClick={() => setEditing(true)}>{tx('แก้ข้อความ')}</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {editing ? (
+                        <div>
+                            <textarea data-k="rd-input" className="textarea w-full resize-y" rows={10} maxLength={R.MAX_TEXT} value={text}
+                                onChange={e => setText(R.clip(e.target.value))} data-i18n-skip
+                                placeholder={tx('วางข้อความภาษา{l}ที่อยากอ่าน…', { l: langTitle(langId) })} aria-label={tx('วางข้อความภาษา{l}ที่อยากอ่าน…', { l: langTitle(langId) })} />
+                            <div className="flex items-center gap-2 flex-wrap mt-3">
+                                <button type="button" data-k="rd-read" className="btn primary" disabled={!text.trim()} onClick={() => { setText(t => R.clip(t)); setEditing(false); setNote(null); }}>{tx('อ่าน')}</button>
+                                <button type="button" data-k="rd-import" className="btn" onClick={() => fileRef.current && fileRef.current.click()}>{tx('นำเข้าไฟล์')}</button>
+                                <input ref={fileRef} data-k="rd-file" type="file" accept=".txt,.docx,.pdf" className="hidden" onChange={importFile} />
+                                {text && <button type="button" data-k="rd-clear" className="btn ghost" onClick={() => { setText(''); setNote(null); }}>{tx('ล้าง')}</button>}
+                                <span className="text-sm text-gray-500 ml-auto" data-k="rd-count">{text.length.toLocaleString('en-US')} / {R.MAX_TEXT.toLocaleString('en-US')}</span>
+                            </div>
+                            {note && <p className="form-msg mt-2" role="status" data-k="rd-note">{txs(note)}</p>}
+                        </div>
+                    ) : (
+                        <div>
+                            <div className="flex items-center gap-2 flex-wrap mb-3" data-k="rd-legend">
+                                <span className="badge ok">{tx('มีการ์ดแล้ว')}</span>
+                                {prep && level > 0 && <span className="badge warn">{tx('ยากกว่าระดับของฉัน')}</span>}
+                                {prep && <span className="badge info">{tx('ไม่รู้จัก')}</span>}
+                            </div>
+                            <div className="rd-text" data-k="rd-text" data-i18n-skip lang={code} onClick={onTextClick} onKeyDown={onTextKey}>
+                                {pieces.map((p, i) => p.tok
+                                    ? <span key={i} data-i={i} data-k="rd-word" tabIndex={0} className={'rd-w rd-' + (classOf(p.tok) || 'plain')}>{p.s}</span>
+                                    : p.s)}
+                            </div>
+                        </div>
+                    )}
+
+                    <dialog ref={dlgRef} className="dialog dialog-form rd-sheet" data-k="rd-dialog" aria-label={tx('คำที่เลือก')}
+                        onClose={closeWord} onClick={e => { if (e.target === e.currentTarget) closeWord(); }}>
+                        {sel && (
+                            <div>
+                                <div className="dialog-head">
+                                    <h3 data-k="rd-dword" data-i18n-skip>{sel.tok}</h3>
+                                    <button type="button" data-k="rd-speak" className="btn ghost sm" onClick={() => speak(sel.tok, code)} aria-label={tx('ฟัง')}><Volume2 /></button>
+                                    {entry && <span className="badge" data-i18n-skip>{LC.LEVEL_NAMES[entry.lv]}</span>}
+                                    {hasCard && <span className="badge ok" data-k="rd-hascard">{tx('มีการ์ดแล้ว')}</span>}
+                                </div>
+                                <div className="dialog-body">
+                                    <p className="text-sm text-gray-600" data-k="rd-sentence" data-i18n-skip>{sentence}</p>
+                                    {entry && entry.ipa && <p className="text-sm text-gray-500" data-i18n-skip>{LC.ipaText(entry.ipa)}</p>}
+                                    {packTh && <p data-k="rd-meaning" data-i18n-skip>{packTh}</p>}
+                                    {ai.res && (
+                                        <div data-k="rd-ai">
+                                            <p data-i18n-skip><b>{ai.res.lemma}</b>{ai.res.pos ? ' · ' + ai.res.pos : ''}</p>
+                                            {ai.res.th && <p data-k="rd-ai-th" data-i18n-skip>{ai.res.th} <span className="badge ml-2" data-k="aiBadge">{tx('แปลโดย AI')}</span></p>}
+                                            {ai.res.note && <p className="text-sm text-gray-600" data-i18n-skip>{ai.res.note}</p>}
+                                        </div>
+                                    )}
+                                    {!meaning && !ai.busy && !ai.err && <p className="text-sm text-gray-500" data-k="rd-nomean">{tx(aiOn ? 'ยังไม่มีคำแปลในชุดคำ' : 'ไม่มีคำแปลในชุดคำ')}</p>}
+                                    {!packTh && !ai.res && entry && entry.en && <p className="text-sm text-gray-500" data-k="rd-gloss" data-i18n-skip>{entry.en}</p>}
+                                    {ai.err && <p className="form-msg" role="alert" data-k="rd-ai-err">{txs(ai.err)}</p>}
+                                    {ai.tr && <p data-k="rd-tr" data-i18n-skip>{ai.tr}</p>}
+                                    {ai.trErr && <p className="form-msg" role="alert" data-k="rd-tr-err">{txs(ai.trErr)}</p>}
+                                </div>
+                                <div className="dialog-foot flex-wrap">
+                                    {aiOn && !packTh && !ai.res && <button type="button" data-k="rd-ask" className="btn" onClick={askAi} disabled={ai.busy}>{ai.busy && <span className="spinner" aria-hidden="true"></span>}{tx('ถาม AI')}</button>}
+                                    {aiOn && <button type="button" data-k="rd-translate" className="btn" onClick={translateSentence} disabled={ai.trBusy}>{ai.trBusy && <span className="spinner" aria-hidden="true"></span>}{tx('แปลประโยคนี้')}</button>}
+                                    {!hasCard && <button type="button" data-k="rd-add" className="btn primary" onClick={addCard} disabled={!meaning}>{tx('เพิ่มเป็นการ์ด')}</button>}
+                                    <button type="button" data-k="rd-close" className="btn ghost" onClick={closeWord}>{tx('ปิด')}</button>
+                                </div>
+                            </div>
+                        )}
+                    </dialog>
+                </div>
+            );
+        }
+
+        function ListenSpeakView({ langId, setLangId, setXp, srs, setSrs }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
 
@@ -17930,6 +18195,9 @@
                                 <button data-k="lsub-roleplay" onClick={() => setSubMode('roleplay')} aria-pressed={subMode === 'roleplay'}>
                                     <MessageIcon /> {tx('สนทนาสวมบทบาท')}
                                 </button>
+                                <button data-k="lsub-reader" onClick={() => setSubMode('reader')} aria-pressed={subMode === 'reader'}>
+                                    <FileTextIcon /> {tx('อ่านจากข้อความ')}
+                                </button>
                                 <button data-k="lsub-reading" onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
                                     <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
@@ -17945,6 +18213,7 @@
                             {subMode === 'shadowing' && <ShadowingPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'subs' && <SubtitlePanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
+                            {subMode === 'reader' && <ReaderPanel langId={langId} srs={srs} setSrs={setSrs} />}
                             {subMode === 'roleplay' && <RoleplayPanel awardXp={awardXp} langId={langId} setSrs={setSrs} />}
                             {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} langId={langId} />}
                         </div>
@@ -19221,7 +19490,7 @@
                         ) : view === 'laexam' ? (
                         <LaExamView langId={langId} setLangId={setLangId} setXp={setXp} />
                         ) : (
-                        <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} setSrs={setSrs} />
+                        <ListenSpeakView langId={langId} setLangId={setLangId} setXp={setXp} srs={srs} setSrs={setSrs} />
                         )}
                     </main>
                 </div>

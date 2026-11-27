@@ -31,6 +31,18 @@
     <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
 
     <style>
+        /* L3 อ่านจากข้อความ: คำที่แตะได้ + แผ่นล่างบนมือถือ (สีจาก token ล้วน) */
+        .rd-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 2; font-size: var(--ome-fs-md, 1rem); color: var(--ome-text-1); }
+        .rd-w { cursor: pointer; border-radius: 4px; padding: 1px 0; }
+        .rd-w:hover { background: var(--ome-surface-2); }
+        .rd-w:focus-visible { outline: 2px solid var(--ome-accent); outline-offset: 1px; }
+        .rd-w.rd-card { background: var(--ome-ok-soft); }
+        .rd-w.rd-hard { background: var(--ome-warn-soft); }
+        .rd-w.rd-unknown { background: var(--ome-info-soft); }
+        .rd-sheet .dialog-body > * + * { margin-top: var(--ome-sp-2); }
+        @media (max-width: 700px) {
+            .rd-sheet { width: 100%; max-width: 100%; margin: auto 0 0; max-height: 82dvh; border-radius: var(--ome-radius-lg) var(--ome-radius-lg) 0 0; overflow: auto; }
+        }
         .hangul-stroke-svg svg { width: 100%; height: 100%; display: block; }
         .hangul-stroke-svg .jamo path { fill: var(--ome-accent-strong); }
         .hangul-stroke-svg .stroke-number path { fill: var(--ome-warn-ink); }
