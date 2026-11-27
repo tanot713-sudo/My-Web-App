@@ -67,6 +67,7 @@
   const ShuffleIcon = icon("shuffle", "w-3.5 h-3.5");
   const LanguagesSmallIcon = icon("languages", "w-3.5 h-3.5");
   const EarIcon = icon("ear", "w-3.5 h-3.5");
+  const SpellIcon = icon("spell-check", "w-3.5 h-3.5");
   window.OME_PAGE_LIVE_LANG = true;
   const LP_EN = {
     "\u0E17\u0E35\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19:": "Heard:",
@@ -523,6 +524,22 @@
     "\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E44\u0E21\u0E48\u0E1E\u0E2D\u0E2A\u0E33\u0E2B\u0E23\u0E31\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Not enough memory for the model voice \u2014 using the device voice",
     "\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E42\u0E21\u0E40\u0E14\u0E25\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u2014 \u0E43\u0E0A\u0E49\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E41\u0E17\u0E19": "Model voice failed \u2014 using the device voice"
   });
+  Object.assign(LP_EN, {
+    "\u0E04\u0E33\u0E17\u0E35\u0E48\u0E2A\u0E30\u0E01\u0E14\u0E1C\u0E34\u0E14": "Misspelled words",
+    "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E17\u0E35\u0E48\u0E2A\u0E30\u0E01\u0E14\u0E1C\u0E34\u0E14": "No misspelled words yet",
+    "\u0E17\u0E49\u0E32\u0E22\u0E04\u0E33 (tion/sion, able/ible\u2026)": "Word endings (tion/sion, able/ible\u2026)",
+    "e \u0E17\u0E49\u0E32\u0E22\u0E04\u0E33": "Final e",
+    "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23\u0E0B\u0E49\u0E33": "Double letters",
+    "\u0E2A\u0E23\u0E30\u0E04\u0E39\u0E48 (ea/ee, ie/ei\u2026)": "Vowel pairs (ea/ee, ie/ei\u2026)",
+    "\u0E2A\u0E23\u0E30\u0E40\u0E14\u0E35\u0E48\u0E22\u0E27 (a/e, i/y\u2026)": "Single vowels (a/e, i/y\u2026)",
+    "\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07": "Accents",
+    "\u0E2D\u0E37\u0E48\u0E19\u0E46": "Other",
+    "\u0E25\u0E1A": "Delete",
+    "{w} \u0E04\u0E33 \xB7 {n} \u0E04\u0E23\u0E31\u0E49\u0E07": "{w} words \xB7 {n} times",
+    "\u0E1D\u0E36\u0E01\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49": "Practise this group",
+    "\u0E1D\u0E36\u0E01\u0E04\u0E23\u0E1A {n} \u0E04\u0E33\u0E41\u0E25\u0E49\u0E27": "Finished all {n} words",
+    "\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E2A\u0E21\u0E38\u0E14\u0E04\u0E33": "Back to the word list"
+  });
   const LANG_EN = {
     "lang-en": "English",
     "lang-jp": "Japanese",
@@ -776,6 +793,37 @@
   }
   function saveWrong(v) {
     localStorage.setItem("lang-practice:wrong", JSON.stringify(v));
+  }
+  const SPELL_KEY = "lang-practice:spell";
+  function readSpell() {
+    try {
+      return LangCalc.spell.clean(window.TanotData ? TanotData.read(SPELL_KEY, {}) : JSON.parse(localStorage.getItem(SPELL_KEY) || "{}"));
+    } catch (e) {
+      return {};
+    }
+  }
+  function writeSpell(fn) {
+    const f = (cur) => {
+      const base = LangCalc.spell.clean(cur);
+      const next = fn(base);
+      return next === base ? void 0 : next;
+    };
+    try {
+      if (window.TanotData && TanotData.update) TanotData.update(SPELL_KEY, f);
+      else {
+        const next = f(JSON.parse(localStorage.getItem(SPELL_KEY) || "{}"));
+        if (next) localStorage.setItem(SPELL_KEY, JSON.stringify(next));
+      }
+    } catch (e) {
+    }
+  }
+  function recordSpellPairs(langId, pairs) {
+    if (!pairs || !pairs.length || !LangCalc.spell.eligible(langId)) return;
+    writeSpell((m) => LangCalc.spell.recordAll(m, langId, pairs, Date.now()));
+  }
+  function recordSpellFrom(langId, target, typed) {
+    if (!LangCalc.spell.eligible(langId)) return;
+    recordSpellPairs(langId, LangCalc.spell.wordsOf(target, typed));
   }
   function fsrsSchedule(n, rating) {
     return window.TanotFSRS.schedule(n, rating);
@@ -2809,6 +2857,7 @@
       const norm = normalizeAnswer(text);
       const results = words.map((w) => ({ ...w, used: norm.includes(normalizeAnswer(w.word)) }));
       setChecked(results);
+      recordSpellPairs(langId, LangCalc.spell.nearIn(words.map((w) => w.word), text));
       results.forEach((r) => {
         if (r.used) recordSrs(r.key, 3);
       });
@@ -2953,6 +3002,7 @@
     const check = () => {
       const grade = gradeAnswer(typed, item.word);
       setResult(grade);
+      recordSpellFrom(langId, item.word, typed);
       recordSrs(item.key, { correct: 3, almost: 2, wrong: 1 }[grade]);
       if (grade === "correct") awardXp(15);
       else if (grade === "almost") awardXp(8);
@@ -3048,6 +3098,7 @@
     const checkHeuristic = () => {
       const grade = gradeAnswer(typed, item.target);
       setHeuristicResult(grade);
+      recordSpellFrom(langId, item.target, typed);
       if (grade === "correct") awardXp(10);
     };
     const checkWithAi = () => {
@@ -3170,6 +3221,86 @@
       aiStatus === "loading" ? tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E15\u0E23\u0E27\u0E08...") : tx("\u0E15\u0E23\u0E27\u0E08\u0E14\u0E49\u0E27\u0E22 AI (\u0E41\u0E21\u0E48\u0E19\u0E01\u0E27\u0E48\u0E32)")
     ), /* @__PURE__ */ React.createElement("button", { "data-k": "skip", onClick: next, className: "btn ghost" }, tx("\u0E02\u0E49\u0E32\u0E21/\u0E02\u0E49\u0E2D\u0E43\u0E2B\u0E21\u0E48"))), heuristicResult && /* @__PURE__ */ React.createElement("p", { className: `text-sm mt-3 font-semibold ${heuristicResult === "correct" ? "text-ok-ink" : heuristicResult === "almost" ? "text-warn-ink" : "text-err-ink"}` }, heuristicResult === "correct" ? tx("\u2705 \u0E15\u0E23\u0E07\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2D\u0E49\u0E32\u0E07\u0E2D\u0E34\u0E07 (+10 XP)") : heuristicResult === "almost" ? tx("\u{1F7E1} \u0E43\u0E01\u0E25\u0E49\u0E40\u0E04\u0E35\u0E22\u0E07") : tx("\u274C \u0E44\u0E21\u0E48\u0E15\u0E23\u0E07\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E2D\u0E49\u0E32\u0E07\u0E2D\u0E34\u0E07"), /* @__PURE__ */ React.createElement("span", { className: "block text-gray-500 font-normal mt-1" }, tx("\u0E15\u0E31\u0E27\u0E2D\u0E22\u0E48\u0E32\u0E07\u0E04\u0E33\u0E41\u0E1B\u0E25:"), " ", /* @__PURE__ */ React.createElement("span", { "data-i18n-skip": true }, item.target))), aiFeedback && /* @__PURE__ */ React.createElement("div", { className: `mt-3 p-4 rounded-xl border text-sm whitespace-pre-wrap leading-relaxed ${aiVerdict === "correct" ? "bg-green-50 border-green-100 text-ok-ink" : aiVerdict === "wrong" ? "bg-red-50 border-red-100 text-err-ink" : "bg-gray-50 border-gray-100 text-gray-700"}`, "data-i18n-skip": true }, txs(aiFeedback)));
   }
+  const SPELL_KIND_LABEL = {
+    "suffix": "\u0E17\u0E49\u0E32\u0E22\u0E04\u0E33 (tion/sion, able/ible\u2026)",
+    "silent-e": "e \u0E17\u0E49\u0E32\u0E22\u0E04\u0E33",
+    "double": "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23\u0E0B\u0E49\u0E33",
+    "vowel-pair": "\u0E2A\u0E23\u0E30\u0E04\u0E39\u0E48 (ea/ee, ie/ei\u2026)",
+    "vowel-swap": "\u0E2A\u0E23\u0E30\u0E40\u0E14\u0E35\u0E48\u0E22\u0E27 (a/e, i/y\u2026)",
+    "accent": "\u0E40\u0E04\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2B\u0E21\u0E32\u0E22\u0E01\u0E33\u0E01\u0E31\u0E1A\u0E40\u0E2A\u0E35\u0E22\u0E07",
+    "other": "\u0E2D\u0E37\u0E48\u0E19\u0E46"
+  };
+  function SpellDrill({ langId, lang, group, awardXp, onClose }) {
+    const words = group.words;
+    const [i, setI] = useState(0);
+    const [typed, setTyped] = useState("");
+    const [result, setResult] = useState(null);
+    const item = words[i];
+    const done = i >= words.length;
+    useEffect(() => {
+      lucide.createIcons();
+    });
+    const check = () => {
+      if (!typed.trim() || !item) return;
+      if (normalizeAnswer(typed) === normalizeAnswer(item.word)) {
+        setResult("correct");
+        awardXp(10);
+      } else {
+        setResult("wrong");
+        recordSpellFrom(langId, item.word, typed);
+      }
+    };
+    const next = () => {
+      setI((n) => n + 1);
+      setTyped("");
+      setResult(null);
+    };
+    if (done) {
+      return /* @__PURE__ */ React.createElement("div", { className: "text-center py-4", "data-k": "spell-done" }, /* @__PURE__ */ React.createElement("p", { className: "text-gray-700 mb-3" }, tx("\u0E1D\u0E36\u0E01\u0E04\u0E23\u0E1A {n} \u0E04\u0E33\u0E41\u0E25\u0E49\u0E27", { n: words.length })), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-back", onClick: onClose, className: "btn primary" }, tx("\u0E01\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E2A\u0E21\u0E38\u0E14\u0E04\u0E33")));
+    }
+    return /* @__PURE__ */ React.createElement("div", { "data-k": "spell-drill" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 mb-3 flex-wrap" }, /* @__PURE__ */ React.createElement("span", { className: "badge accent" }, tx(SPELL_KIND_LABEL[group.kind])), /* @__PURE__ */ React.createElement("span", { className: "text-sm text-gray-500" }, i + 1, " / ", words.length)), /* @__PURE__ */ React.createElement("div", { className: "mb-3" }, /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-hear", onClick: () => speak(item.word, lang.code), className: "btn" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E01\u0E14\u0E1F\u0E31\u0E07\u0E40\u0E2A\u0E35\u0E22\u0E07 (\u0E1F\u0E31\u0E07\u0E0B\u0E49\u0E33\u0E44\u0E14\u0E49)"))), /* @__PURE__ */ React.createElement(
+      "input",
+      {
+        "data-k": "spell-input",
+        value: typed,
+        onChange: (e) => setTyped(e.target.value),
+        onKeyDown: (e) => e.key === "Enter" && !result && check(),
+        disabled: !!result,
+        placeholder: tx("\u0E1E\u0E34\u0E21\u0E1E\u0E4C\u0E04\u0E33\u0E17\u0E35\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19..."),
+        autoCapitalize: "off",
+        autoCorrect: "off",
+        spellCheck: false,
+        className: "input w-full"
+      }
+    ), result && /* @__PURE__ */ React.createElement("div", { className: `mt-3 p-4 rounded-xl border ${result === "correct" ? "bg-green-50 border-green-100" : "bg-red-50 border-red-100"}`, "data-k": "spell-" + result }, /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-700" }, tx("\u0E04\u0E33\u0E15\u0E2D\u0E1A\u0E17\u0E35\u0E48\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E04\u0E37\u0E2D"), " ", /* @__PURE__ */ React.createElement("strong", { "data-i18n-skip": true }, item.word)), result !== "correct" && /* @__PURE__ */ React.createElement(SpellDiff, { typed, correct: item.word })), !result ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-check", onClick: check, disabled: !typed.trim(), className: "btn primary lg w-full mt-4" }, tx("\u0E15\u0E23\u0E27\u0E08\u0E04\u0E33\u0E15\u0E2D\u0E1A")) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-next", onClick: next, className: "btn primary lg w-full mt-4" }, tx("\u0E02\u0E49\u0E2D\u0E15\u0E48\u0E2D\u0E44\u0E1B")));
+  }
+  function SpellBookPanel({ langId, lang, awardXp }) {
+    const [map, setMap] = useState(readSpell);
+    const [drill, setDrill] = useState(null);
+    useEffect(() => {
+      setMap(readSpell());
+      setDrill(null);
+    }, [langId]);
+    useEffect(() => {
+      if (!window.TanotData || !TanotData.onChange) return void 0;
+      return TanotData.onChange((keys) => {
+        if (!keys.length || keys.indexOf(SPELL_KEY) >= 0) setMap(readSpell());
+      });
+    }, []);
+    const groups = useMemo(() => LangCalc.spell.groups(map, langId), [map, langId]);
+    const group = drill ? groups.find((g) => g.kind === drill) : null;
+    const closeDrill = () => {
+      setDrill(null);
+      setMap(readSpell());
+    };
+    const remove = (key) => {
+      writeSpell((m) => LangCalc.spell.remove(m, key));
+      setMap(readSpell());
+    };
+    if (drill && group) return /* @__PURE__ */ React.createElement(SpellDrill, { key: drill, langId, lang, group, awardXp, onClose: closeDrill });
+    if (!groups.length) return /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-400", "data-k": "spell-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E17\u0E35\u0E48\u0E2A\u0E30\u0E01\u0E14\u0E1C\u0E34\u0E14"));
+    return /* @__PURE__ */ React.createElement("div", { className: "space-y-5", "data-k": "spell-book" }, groups.map((g) => /* @__PURE__ */ React.createElement("section", { key: g.kind, "data-k": "spell-group", "data-kind": g.kind }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-2" }, /* @__PURE__ */ React.createElement("h3", { className: "text-base font-semibold text-gray-800" }, tx(SPELL_KIND_LABEL[g.kind]), " ", /* @__PURE__ */ React.createElement("span", { className: "badge", "data-k": "spell-count" }, tx("{w} \u0E04\u0E33 \xB7 {n} \u0E04\u0E23\u0E31\u0E49\u0E07", { w: g.n, n: g.total }))), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-drill-btn", onClick: () => setDrill(g.kind), className: "btn primary sm" }, tx("\u0E1D\u0E36\u0E01\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49"))), /* @__PURE__ */ React.createElement("ul", { className: "list plain", "data-i18n-skip": true }, g.words.map((e) => /* @__PURE__ */ React.createElement("li", { key: e.lang + e.word, className: "list-row", "data-k": "spell-word" }, /* @__PURE__ */ React.createElement("span", { className: "flex-1 min-w-0 truncate font-mono" }, e.word), /* @__PURE__ */ React.createElement("span", { className: "badge" }, e.count, "\xD7"), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "spell-del", onClick: () => remove(LangCalc.spell.keyOf(e.lang, e.word)), className: "btn ghost icon sm", "aria-label": tx("\u0E25\u0E1A") }, "\u2715")))))));
+  }
   function WritingView({ langId, setLangId, xp, setXp, srs, setSrs, writing, setWriting, dueCounts }) {
     const lang = LANGS[langId];
     const hasScript = langId === "lang-cn" || langId === "lang-jp" || langId === "lang-kr" || langId === "lang-en" || langId === "lang-yue" || langId === "lang-de" || langId === "lang-fr" || langId === "lang-it" || langId === "lang-es" || langId === "lang-pt" || langId === "lang-ru" || langId === "lang-in" || langId === "lang-ar" || langId === "lang-vn" || langId === "lang-my" || langId === "lang-mm" || langId === "lang-kh" || langId === "lang-la";
@@ -3178,7 +3309,8 @@
       { key: "compose", label: "\u0E41\u0E15\u0E48\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E2D\u0E34\u0E2A\u0E23\u0E30", Icon: PenToolIcon },
       { key: "srsCompose", label: "\u0E41\u0E15\u0E48\u0E07\u0E08\u0E32\u0E01\u0E04\u0E33\u0E17\u0E35\u0E48\u0E17\u0E27\u0E19", Icon: ShuffleIcon, srsBased: true },
       { key: "dictation", label: "\u0E1F\u0E31\u0E07\u0E41\u0E25\u0E49\u0E27\u0E40\u0E02\u0E35\u0E22\u0E19", Icon: EarIcon, srsBased: true },
-      { key: "translate", label: "\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22\u2192\u0E20\u0E32\u0E29\u0E32", Icon: LanguagesSmallIcon }
+      { key: "translate", label: "\u0E41\u0E1B\u0E25\u0E44\u0E17\u0E22\u2192\u0E20\u0E32\u0E29\u0E32", Icon: LanguagesSmallIcon },
+      ...LangCalc.spell.eligible(langId) ? [{ key: "spell", label: "\u0E04\u0E33\u0E17\u0E35\u0E48\u0E2A\u0E30\u0E01\u0E14\u0E1C\u0E34\u0E14", Icon: SpellIcon }] : []
     ];
     const langDue = dueCounts && dueCounts[langId] || 0;
     const [subMode, setSubMode] = useState(hasScript ? "script" : "compose");
@@ -3189,6 +3321,9 @@
         setSubMode("compose");
         setModeNotice(['\u0E20\u0E32\u0E29\u0E32{l}\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E42\u0E2B\u0E21\u0E14 "\u0E1D\u0E36\u0E01\u0E40\u0E02\u0E35\u0E22\u0E19\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23" (\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49\u0E21\u0E35\u0E41\u0E04\u0E48\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19 \u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19 \u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35 \u0E41\u0E25\u0E30\u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29) \u2014 \u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E42\u0E2B\u0E21\u0E14 "\u0E41\u0E15\u0E48\u0E07\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E2D\u0E34\u0E2A\u0E23\u0E30" \u0E43\u0E2B\u0E49\u0E41\u0E25\u0E49\u0E27', { id: langId }]);
       }
+    }, [langId]);
+    useEffect(() => {
+      if (subMode === "spell" && !LangCalc.spell.eligible(langId)) setSubMode("compose");
     }, [langId]);
     useEffect(() => {
       if (!modeNotice) return;
@@ -3238,7 +3373,7 @@
       " ",
       tx(m.label),
       m.srsBased && langDue > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge err" }, langDue > 99 ? "99+" : langDue)
-    ))), /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6" }, subMode === "script" && hasScript && (langId === "lang-kr" || langId === "lang-en" || langId === "lang-de" || langId === "lang-fr" || langId === "lang-it" || langId === "lang-es" || langId === "lang-pt" || langId === "lang-ru" || langId === "lang-in" || langId === "lang-ar" || langId === "lang-vn" || langId === "lang-my" || langId === "lang-mm" || langId === "lang-kh" || langId === "lang-la" ? /* @__PURE__ */ React.createElement(LetterPanel, { srs, recordSrs, awardXp, langId }) : /* @__PURE__ */ React.createElement(ScriptPanel, { srs, recordSrs, awardXp, langId })), subMode === "compose" && /* @__PURE__ */ React.createElement(ComposePanel, { langId, lang, awardXp, addWritingRecord }), subMode === "srsCompose" && /* @__PURE__ */ React.createElement(SrsComposePanel, { langId, lang, srs, recordSrs, awardXp, addWritingRecord }), subMode === "dictation" && /* @__PURE__ */ React.createElement(SrsDictationPanel, { langId, lang, srs, recordSrs, awardXp }), subMode === "translate" && /* @__PURE__ */ React.createElement(TranslatePanel, { langId, lang, awardXp, addWritingRecord }))));
+    ))), /* @__PURE__ */ React.createElement("div", { className: "card p-5 sm:p-6" }, subMode === "script" && hasScript && (langId === "lang-kr" || langId === "lang-en" || langId === "lang-de" || langId === "lang-fr" || langId === "lang-it" || langId === "lang-es" || langId === "lang-pt" || langId === "lang-ru" || langId === "lang-in" || langId === "lang-ar" || langId === "lang-vn" || langId === "lang-my" || langId === "lang-mm" || langId === "lang-kh" || langId === "lang-la" ? /* @__PURE__ */ React.createElement(LetterPanel, { srs, recordSrs, awardXp, langId }) : /* @__PURE__ */ React.createElement(ScriptPanel, { srs, recordSrs, awardXp, langId })), subMode === "compose" && /* @__PURE__ */ React.createElement(ComposePanel, { langId, lang, awardXp, addWritingRecord }), subMode === "srsCompose" && /* @__PURE__ */ React.createElement(SrsComposePanel, { langId, lang, srs, recordSrs, awardXp, addWritingRecord }), subMode === "dictation" && /* @__PURE__ */ React.createElement(SrsDictationPanel, { langId, lang, srs, recordSrs, awardXp }), subMode === "translate" && /* @__PURE__ */ React.createElement(TranslatePanel, { langId, lang, awardXp, addWritingRecord }), subMode === "spell" && /* @__PURE__ */ React.createElement(SpellBookPanel, { langId, lang, awardXp }))));
   }
   const BCT_VOCAB = [
     { word: "\u4F1A\u8BAE", pinyin: "hu\xECy\xEC", thai: "\u0E01\u0E32\u0E23\u0E1B\u0E23\u0E30\u0E0A\u0E38\u0E21" },
@@ -14397,6 +14532,7 @@
       setCur(item);
       const g = gradeAnswer(typed, item.t);
       setResult(g);
+      recordSpellFrom(langId, item.t, typed);
       if (g === "correct") setXp((x) => x + 20);
       else if (g === "almost") setXp((x) => x + 10);
     };
@@ -14713,6 +14849,7 @@
       if (!typed.trim()) return;
       const grade = gradeAnswer(typed, current.target);
       setResult(grade);
+      recordSpellFrom(langId, current.target, typed);
       if (grade === "correct") {
         setXp((x) => x + 20);
         markProgress(true);
