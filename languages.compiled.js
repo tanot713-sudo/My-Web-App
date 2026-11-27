@@ -60,6 +60,7 @@
   const HashIcon = icon("hash", "w-4 h-4");
   const MessageIcon = icon("message-circle", "w-5 h-5");
   const FileTextIcon = icon("file-text", "w-5 h-5");
+  const ClipboardIcon = icon("clipboard-list", "w-5 h-5");
   const FlameIcon = icon("flame", "w-4 h-4");
   const BrushIcon = icon("brush", "w-3.5 h-3.5");
   const TypeIcon = icon("case-sensitive", "w-3.5 h-3.5");
@@ -607,6 +608,15 @@
     "\u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14": "Stop",
     "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u2026": "Transcribing\u2026",
     "\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "No speech heard \u2014 try again"
+  });
+  Object.assign(LP_EN, {
+    "\u0E2A\u0E23\u0E38\u0E1B\u0E07\u0E32\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49": "Daily work summary",
+    "\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2D\u0E31\u0E14": "Record",
+    "\u0E01\u0E33\u0E25\u0E31\u0E07\u0E15\u0E23\u0E27\u0E08\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u2026": "Checking your sentences\u2026",
+    "\u0E15\u0E23\u0E27\u0E08\u0E43\u0E2B\u0E21\u0E48": "Check again",
+    "\u0E2A\u0E23\u0E38\u0E1B\u0E43\u0E2B\u0E21\u0E48": "New summary",
+    "\u0E40\u0E01\u0E47\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14 ({n})": "Save selected as cards ({n})",
+    "AI \u0E15\u0E2D\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E43\u0E19\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E17\u0E35\u0E48\u0E2D\u0E48\u0E32\u0E19\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07": "The AI reply could not be read \u2014 try again"
   });
   const WORK_CAT_PREFIX = "\u0E07\u0E32\u0E19: ";
   function isWorkCat(c) {
@@ -14802,13 +14812,207 @@
       sel && /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "dialog-head" }, /* @__PURE__ */ React.createElement("h3", { "data-k": "rd-dword", "data-i18n-skip": true }, sel.tok), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "rd-speak", className: "btn ghost sm", onClick: () => speak(sel.tok, code), "aria-label": tx("\u0E1F\u0E31\u0E07") }, /* @__PURE__ */ React.createElement(Volume2, null)), entry && /* @__PURE__ */ React.createElement("span", { className: "badge", "data-i18n-skip": true }, LC.LEVEL_NAMES[entry.lv]), hasCard && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "rd-hascard" }, tx("\u0E21\u0E35\u0E01\u0E32\u0E23\u0E4C\u0E14\u0E41\u0E25\u0E49\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "dialog-body" }, /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-k": "rd-sentence", "data-i18n-skip": true }, sentence), entry && entry.ipa && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-i18n-skip": true }, LC.ipaText(entry.ipa)), packTh && /* @__PURE__ */ React.createElement("p", { "data-k": "rd-meaning", "data-i18n-skip": true }, packTh), ai.res && /* @__PURE__ */ React.createElement("div", { "data-k": "rd-ai" }, /* @__PURE__ */ React.createElement("p", { "data-i18n-skip": true }, /* @__PURE__ */ React.createElement("b", null, ai.res.lemma), ai.res.pos ? " \xB7 " + ai.res.pos : ""), ai.res.th && /* @__PURE__ */ React.createElement("p", { "data-k": "rd-ai-th", "data-i18n-skip": true }, ai.res.th, " ", /* @__PURE__ */ React.createElement("span", { className: "badge ml-2", "data-k": "aiBadge" }, tx("\u0E41\u0E1B\u0E25\u0E42\u0E14\u0E22 AI"))), ai.res.note && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-600", "data-i18n-skip": true }, ai.res.note)), !meaning && !ai.busy && !ai.err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "rd-nomean" }, tx(aiOn ? "\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E43\u0E19\u0E0A\u0E38\u0E14\u0E04\u0E33" : "\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E41\u0E1B\u0E25\u0E43\u0E19\u0E0A\u0E38\u0E14\u0E04\u0E33")), !packTh && !ai.res && entry && entry.en && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500", "data-k": "rd-gloss", "data-i18n-skip": true }, entry.en), ai.err && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert", "data-k": "rd-ai-err" }, txs(ai.err)), ai.tr && /* @__PURE__ */ React.createElement("p", { "data-k": "rd-tr", "data-i18n-skip": true }, ai.tr), ai.trErr && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "alert", "data-k": "rd-tr-err" }, txs(ai.trErr))), /* @__PURE__ */ React.createElement("div", { className: "dialog-foot flex-wrap" }, aiOn && !packTh && !ai.res && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "rd-ask", className: "btn", onClick: askAi, disabled: ai.busy }, ai.busy && /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E16\u0E32\u0E21 AI")), aiOn && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "rd-translate", className: "btn", onClick: translateSentence, disabled: ai.trBusy }, ai.trBusy && /* @__PURE__ */ React.createElement("span", { className: "spinner", "aria-hidden": "true" }), tx("\u0E41\u0E1B\u0E25\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u0E19\u0E35\u0E49")), !hasCard && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "rd-add", className: "btn primary", onClick: addCard, disabled: !meaning }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14")), /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "rd-close", className: "btn ghost", onClick: closeWord }, tx("\u0E1B\u0E34\u0E14"))))
     ));
   }
+  const dailyMicOk = () => typeof MediaRecorder !== "undefined" && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !(isIOS() && !cloudChatOn());
+  const chatFailText = (e) => e && e.message === "ios" ? "\u0E1F\u0E35\u0E40\u0E08\u0E2D\u0E23\u0E4C\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E01\u0E31\u0E1A AI \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A iPhone/iPad \u0E43\u0E19\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49 (\u0E1B\u0E31\u0E0D\u0E2B\u0E32\u0E2B\u0E19\u0E48\u0E27\u0E22\u0E04\u0E27\u0E32\u0E21\u0E08\u0E33\u0E02\u0E2D\u0E07\u0E40\u0E1A\u0E23\u0E32\u0E27\u0E4C\u0E40\u0E0B\u0E2D\u0E23\u0E4C iOS)" : friendlyChatError(e && e.message ? e.message : "\u0E44\u0E21\u0E48\u0E17\u0E23\u0E32\u0E1A\u0E2A\u0E32\u0E40\u0E2B\u0E15\u0E38");
+  function askWriting(messages, maxNewTokens, jobRef) {
+    return new Promise((resolve, reject) => {
+      if (isIOS() && !cloudChatOn()) {
+        reject(new Error("ios"));
+        return;
+      }
+      const w = getWritingWorker();
+      const jobId = "daily-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6);
+      let acc = "";
+      const off = () => {
+        w.removeEventListener("message", onMsg);
+        w.removeEventListener("error", onErr);
+        jobRef.current = null;
+      };
+      function onMsg(e) {
+        const m = e.data;
+        if (!m || m.jobId !== jobId) return;
+        if (m.type === "token") acc += m.token;
+        else if (m.type === "done") {
+          off();
+          resolve(acc);
+        } else if (m.type === "error") {
+          off();
+          reject(new Error(m.message || "error"));
+        }
+      }
+      function onErr(e) {
+        off();
+        reject(new Error(e && e.message || "error"));
+      }
+      w.addEventListener("message", onMsg);
+      w.addEventListener("error", onErr);
+      jobRef.current = off;
+      w.postMessage({ type: "chat", jobId, maxNewTokens, messages });
+    });
+  }
+  function DailySummaryPanel({ awardXp, langId, setSrs }) {
+    const LC = window.LangCalc;
+    const lname = LANGS[langId].title;
+    const maxSec = window.TANOT_LANG_DAILY && window.TANOT_LANG_DAILY.maxSec || LC.DAILY_MAX_SEC;
+    const [phase, setPhase] = useState("idle");
+    const [elapsed, setElapsed] = useState(0);
+    const [err, setErr] = useState("");
+    const [items, setItems] = useState([]);
+    const [picked, setPicked] = useState({});
+    const [added, setAdded] = useState(0);
+    const micRef = useRef(null), jobRef = useRef(null), textRef = useRef("");
+    useEffect(() => {
+      reset();
+    }, [langId]);
+    useEffect(() => () => {
+      stopRec(true);
+      stopJob();
+      textRef.current = "";
+    }, []);
+    useEffect(() => {
+      lucide.createIcons();
+    });
+    function stopJob() {
+      if (jobRef.current) {
+        jobRef.current();
+        jobRef.current = null;
+      }
+    }
+    function stopRec(discard) {
+      const m = micRef.current;
+      micRef.current = null;
+      if (!m) return;
+      if (discard) m.discard = true;
+      try {
+        if (m.rec.state === "recording") m.rec.stop();
+        else m.stream.getTracks().forEach((t) => t.stop());
+      } catch (e) {
+      }
+      clearTimeout(m.timer);
+      clearInterval(m.tick);
+    }
+    function reset() {
+      stopRec(true);
+      stopJob();
+      textRef.current = "";
+      setPhase("idle");
+      setElapsed(0);
+      setErr("");
+      setItems([]);
+      setPicked({});
+      setAdded(0);
+    }
+    function review() {
+      const msgs = LC.reviewMessages(lname, "B1", textRef.current);
+      if (!msgs) {
+        setPhase("idle");
+        setErr("\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07");
+        return;
+      }
+      setPhase("reviewing");
+      setErr("");
+      askWriting(msgs, 1800, jobRef).then((acc) => {
+        const list = LC.parseReview(acc);
+        if (!list.length) {
+          setPhase("idle");
+          setErr("AI \u0E15\u0E2D\u0E1A\u0E01\u0E25\u0E31\u0E1A\u0E43\u0E19\u0E23\u0E39\u0E1B\u0E41\u0E1A\u0E1A\u0E17\u0E35\u0E48\u0E2D\u0E48\u0E32\u0E19\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07");
+          return;
+        }
+        const pk = {};
+        list.forEach((x, i) => {
+          if (x.changed) pk[i] = true;
+        });
+        textRef.current = "";
+        setItems(list);
+        setPicked(pk);
+        setPhase("done");
+        awardXp(10);
+      }, (e) => {
+        setPhase("idle");
+        setErr(chatFailText(e));
+      });
+    }
+    async function startRec() {
+      if (phase !== "idle" || micRef.current) return;
+      setErr("");
+      textRef.current = "";
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const chunks = [], rec = new MediaRecorder(stream), t0 = Date.now(), m = { rec, stream, discard: false, timer: 0, tick: 0 };
+        rec.addEventListener("dataavailable", (ev) => {
+          if (ev.data && ev.data.size) chunks.push(ev.data);
+        });
+        rec.addEventListener("stop", async () => {
+          stream.getTracks().forEach((t) => t.stop());
+          clearTimeout(m.timer);
+          clearInterval(m.tick);
+          if (micRef.current === m) micRef.current = null;
+          if (m.discard) return;
+          setPhase("transcribing");
+          try {
+            const text = await subsTranscribeClip(new Blob(chunks, { type: rec.mimeType || "audio/webm" }), langId);
+            if (!text) {
+              setPhase("idle");
+              setErr("\u0E44\u0E21\u0E48\u0E44\u0E14\u0E49\u0E22\u0E34\u0E19\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E1E\u0E39\u0E14 \u0E25\u0E2D\u0E07\u0E2D\u0E35\u0E01\u0E04\u0E23\u0E31\u0E49\u0E07");
+              return;
+            }
+            textRef.current = text;
+            review();
+          } catch (e) {
+            setPhase("idle");
+            setErr(["\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08: {m}", { m: subsErrText(e) }]);
+          }
+        });
+        m.timer = setTimeout(() => {
+          if (rec.state === "recording") rec.stop();
+        }, maxSec * 1e3);
+        m.tick = setInterval(() => setElapsed(Math.min(maxSec, (Date.now() - t0) / 1e3)), 250);
+        micRef.current = m;
+        rec.start();
+        setElapsed(0);
+        setPhase("recording");
+      } catch (e) {
+        setErr("\u0E40\u0E1B\u0E34\u0E14\u0E44\u0E21\u0E04\u0E4C\u0E44\u0E21\u0E48\u0E2A\u0E33\u0E40\u0E23\u0E47\u0E08 \u2014 \u0E15\u0E23\u0E27\u0E08\u0E2A\u0E2D\u0E1A\u0E27\u0E48\u0E32\u0E2D\u0E19\u0E38\u0E0D\u0E32\u0E15\u0E43\u0E2B\u0E49\u0E40\u0E27\u0E47\u0E1A\u0E19\u0E35\u0E49\u0E43\u0E0A\u0E49\u0E44\u0E21\u0E42\u0E04\u0E23\u0E42\u0E1F\u0E19\u0E41\u0E25\u0E49\u0E27");
+      }
+    }
+    const save = () => {
+      const cards = {};
+      items.forEach((x, i) => {
+        if (picked[i]) {
+          const c = LC.reviewCard(langId, x);
+          if (c) cards[c.key] = c;
+        }
+      });
+      const list = Object.keys(cards).map((k) => cards[k]);
+      if (!list.length) return;
+      const now = Date.now();
+      if (window.TanotData) window.TanotData.update("lang-practice:faces", (cur) => {
+        const m = cur && typeof cur === "object" && !Array.isArray(cur) ? cur : {};
+        list.forEach((c) => {
+          m[c.key] = c.face;
+        });
+        return m;
+      });
+      setSrs((s) => {
+        const n = { ...s };
+        list.forEach((c) => {
+          if (!n[c.key]) n[c.key] = { dueAt: now };
+        });
+        return n;
+      });
+      setAdded(list.length);
+    };
+    const busy = phase === "transcribing" || phase === "reviewing";
+    const nPicked = items.filter((x, i) => picked[i]).length;
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E2A\u0E23\u0E38\u0E1B\u0E07\u0E32\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49")), phase !== "done" && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, phase === "recording" ? /* @__PURE__ */ React.createElement("button", { "data-k": "ds-stop", className: "btn primary", onClick: () => stopRec(false) }, tx("\u0E2B\u0E22\u0E38\u0E14\u0E2D\u0E31\u0E14")) : /* @__PURE__ */ React.createElement("button", { "data-k": "ds-rec", className: "btn primary", onClick: startRec, disabled: busy }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E2D\u0E31\u0E14")), phase === "recording" && /* @__PURE__ */ React.createElement("span", { role: "timer", "data-k": "ds-timer", className: "text-sm tabular-nums text-gray-600" }, LC.clock(elapsed), " / ", LC.clock(maxSec)), phase === "transcribing" && /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 text-sm text-gray-500", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E16\u0E2D\u0E14\u0E40\u0E2A\u0E35\u0E22\u0E07\u2026")), phase === "reviewing" && /* @__PURE__ */ React.createElement("span", { className: "flex items-center gap-2 text-sm text-gray-500", role: "status" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E15\u0E23\u0E27\u0E08\u0E1B\u0E23\u0E30\u0E42\u0E22\u0E04\u2026")), phase === "idle" && err && textRef.current && /* @__PURE__ */ React.createElement("button", { "data-k": "ds-retry", className: "btn", onClick: review }, tx("\u0E15\u0E23\u0E27\u0E08\u0E43\u0E2B\u0E21\u0E48"))), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink mt-3", "data-k": "ds-error", role: "alert" }, txs(err)), phase === "done" && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("ul", { className: "list plain" }, items.map((x, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "list-row", "data-k": "ds-row" }, /* @__PURE__ */ React.createElement("label", { className: "check grow" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", "data-k": "ds-pick", checked: !!picked[i], disabled: added > 0, onChange: (e) => setPicked((p) => ({ ...p, [i]: e.target.checked })) }), /* @__PURE__ */ React.createElement("span", { className: "grid gap-x-4 gap-y-1 sm:grid-cols-2 grow" }, /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "block text-xs text-gray-500" }, tx("\u0E17\u0E35\u0E48\u0E1E\u0E34\u0E21\u0E1E\u0E4C/\u0E1E\u0E39\u0E14")), /* @__PURE__ */ React.createElement("span", { "data-k": "ds-orig", "data-i18n-skip": true }, x.orig)), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("span", { className: "block text-xs text-gray-500" }, x.changed ? tx("\u0E09\u0E1A\u0E31\u0E1A\u0E41\u0E01\u0E49") : tx("\u0E16\u0E39\u0E01\u0E15\u0E49\u0E2D\u0E07\u0E41\u0E25\u0E49\u0E27")), /* @__PURE__ */ React.createElement("span", { "data-k": "ds-fixed", "data-i18n-skip": true }, x.fixed)), x.note && /* @__PURE__ */ React.createElement("span", { className: "sm:col-span-2 text-sm text-gray-600", "data-k": "ds-note", "data-i18n-skip": true }, x.note)))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, !added && /* @__PURE__ */ React.createElement("button", { "data-k": "ds-save", className: "btn primary", onClick: save, disabled: !nPicked }, tx("\u0E40\u0E01\u0E47\u0E1A\u0E17\u0E35\u0E48\u0E40\u0E25\u0E37\u0E2D\u0E01\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14 ({n})", { n: nPicked })), added > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "ds-added" }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E41\u0E25\u0E49\u0E27 {n} \u0E01\u0E32\u0E23\u0E4C\u0E14", { n: added })), /* @__PURE__ */ React.createElement("button", { "data-k": "ds-new", className: "btn ghost", onClick: reset }, tx("\u0E2A\u0E23\u0E38\u0E1B\u0E43\u0E2B\u0E21\u0E48")))));
+  }
   function ListenSpeakView({ langId, setLangId, setXp, srs, setSrs }) {
     const [subMode, setSubMode] = useState("listening");
     const awardXp = (amt) => setXp((x) => x + amt);
     if (!LISTEN_SPEAK_LANGS.includes(langId)) {
       return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-xl mx-auto p-6 text-center" }, /* @__PURE__ */ React.createElement("p", { className: "text-gray-500 mb-4" }, tx("\u0E42\u0E2B\u0E21\u0E14\u0E1F\u0E31\u0E07-\u0E1E\u0E39\u0E14 \u0E23\u0E2D\u0E07\u0E23\u0E31\u0E1A\u0E40\u0E09\u0E1E\u0E32\u0E30\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07 \u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29 \u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19 \u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35 \u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07 \u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19 \u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A \u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35 \u0E2A\u0E40\u0E1B\u0E19 \u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A \u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22 \u0E2E\u0E34\u0E19\u0E14\u0E35 \u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A \u0E41\u0E25\u0E30\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21\u0E15\u0E2D\u0E19\u0E19\u0E35\u0E49")), /* @__PURE__ */ React.createElement("div", { className: "flex gap-2 justify-center flex-wrap" }, /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-cn"), className: "btn primary" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E25\u0E32\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-en"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E31\u0E07\u0E01\u0E24\u0E29")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-jp"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E0D\u0E35\u0E48\u0E1B\u0E38\u0E48\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-kr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E01\u0E32\u0E2B\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-yue"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E08\u0E35\u0E19\u0E01\u0E27\u0E32\u0E07\u0E15\u0E38\u0E49\u0E07")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-de"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E22\u0E2D\u0E23\u0E21\u0E31\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-fr"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E1D\u0E23\u0E31\u0E48\u0E07\u0E40\u0E28\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-it"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E34\u0E15\u0E32\u0E25\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-es"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2A\u0E40\u0E1B\u0E19")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-pt"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E42\u0E1B\u0E23\u0E15\u0E38\u0E40\u0E01\u0E2A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ru"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E23\u0E31\u0E2A\u0E40\u0E0B\u0E35\u0E22")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-in"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2E\u0E34\u0E19\u0E14\u0E35")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-ar"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E2D\u0E32\u0E2B\u0E23\u0E31\u0E1A")), /* @__PURE__ */ React.createElement("button", { onClick: () => setLangId("lang-vn"), className: "btn" }, tx("\u0E2A\u0E25\u0E31\u0E1A\u0E44\u0E1B\u0E20\u0E32\u0E29\u0E32\u0E40\u0E27\u0E35\u0E22\u0E14\u0E19\u0E32\u0E21")))));
     }
-    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-subs", onClick: () => setSubMode("subs"), "aria-pressed": subMode === "subs" }, /* @__PURE__ */ React.createElement(CaptionsIcon, null), " ", tx("\u0E0B\u0E31\u0E1A\u0E44\u0E15\u0E40\u0E15\u0E34\u0E25")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-roleplay", onClick: () => setSubMode("roleplay"), "aria-pressed": subMode === "roleplay" }, /* @__PURE__ */ React.createElement(MessageIcon, null), " ", tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reader", onClick: () => setSubMode("reader"), "aria-pressed": subMode === "reader" }, /* @__PURE__ */ React.createElement(FileTextIcon, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "subs" && /* @__PURE__ */ React.createElement(SubtitlePanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "reader" && /* @__PURE__ */ React.createElement(ReaderPanel, { langId, srs, setSrs }), subMode === "roleplay" && /* @__PURE__ */ React.createElement(RoleplayPanel, { awardXp, langId, setSrs }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
+    return /* @__PURE__ */ React.createElement("div", { className: "flex-1 overflow-y-auto bg-gray-50" }, /* @__PURE__ */ React.createElement("div", { className: "max-w-3xl mx-auto p-4 sm:p-6 space-y-5" }, /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap" }, /* @__PURE__ */ React.createElement("div", { className: "segmented flex-wrap" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-listening", onClick: () => setSubMode("listening"), "aria-pressed": subMode === "listening" }, /* @__PURE__ */ React.createElement(Volume2, null), " ", tx("\u0E1F\u0E31\u0E07\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E2A\u0E31\u0E49\u0E19")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-shadowing", onClick: () => setSubMode("shadowing"), "aria-pressed": subMode === "shadowing" }, /* @__PURE__ */ React.createElement(MicIcon, null), " ", tx("\u0E1E\u0E39\u0E14\u0E15\u0E32\u0E21")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-subs", onClick: () => setSubMode("subs"), "aria-pressed": subMode === "subs" }, /* @__PURE__ */ React.createElement(CaptionsIcon, null), " ", tx("\u0E0B\u0E31\u0E1A\u0E44\u0E15\u0E40\u0E15\u0E34\u0E25")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-roleplay", onClick: () => setSubMode("roleplay"), "aria-pressed": subMode === "roleplay" }, /* @__PURE__ */ React.createElement(MessageIcon, null), " ", tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reader", onClick: () => setSubMode("reader"), "aria-pressed": subMode === "reader" }, /* @__PURE__ */ React.createElement(FileTextIcon, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E08\u0E32\u0E01\u0E02\u0E49\u0E2D\u0E04\u0E27\u0E32\u0E21")), dailyMicOk() && /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-daily", onClick: () => setSubMode("daily"), "aria-pressed": subMode === "daily" }, /* @__PURE__ */ React.createElement(ClipboardIcon, null), " ", tx("\u0E2A\u0E23\u0E38\u0E1B\u0E07\u0E32\u0E19\u0E27\u0E31\u0E19\u0E19\u0E35\u0E49")), /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-reading", onClick: () => setSubMode("reading"), "aria-pressed": subMode === "reading" }, /* @__PURE__ */ React.createElement(BookOpen, null), " ", tx("\u0E2D\u0E48\u0E32\u0E19\u0E40\u0E23\u0E37\u0E48\u0E2D\u0E07\u0E22\u0E32\u0E27"))), /* @__PURE__ */ React.createElement("div", { className: "segmented" }, /* @__PURE__ */ React.createElement("button", { "data-k": "lsub-numbers", onClick: () => setSubMode("numbers"), "aria-pressed": subMode === "numbers" }, /* @__PURE__ */ React.createElement(HashIcon, null), " ", tx("\u0E15\u0E31\u0E27\u0E40\u0E25\u0E02-\u0E27\u0E31\u0E19\u0E17\u0E35\u0E48"), " ", /* @__PURE__ */ React.createElement("span", { className: "font-normal" }, tx("(\u0E41\u0E1A\u0E1A\u0E1D\u0E36\u0E01\u0E2B\u0E31\u0E14\u0E40\u0E2A\u0E23\u0E34\u0E21)"))))), /* @__PURE__ */ React.createElement("div", { className: "bg-white rounded-xl border border-gray-200 p-5 sm:p-6" }, subMode === "listening" && /* @__PURE__ */ React.createElement(ListeningPanel, { awardXp, langId }), subMode === "shadowing" && /* @__PURE__ */ React.createElement(ShadowingPanel, { awardXp, langId }), subMode === "subs" && /* @__PURE__ */ React.createElement(SubtitlePanel, { awardXp, langId }), subMode === "reading" && /* @__PURE__ */ React.createElement(ReadingPanel, { awardXp, langId }), subMode === "reader" && /* @__PURE__ */ React.createElement(ReaderPanel, { langId, srs, setSrs }), subMode === "roleplay" && /* @__PURE__ */ React.createElement(RoleplayPanel, { awardXp, langId, setSrs }), subMode === "daily" && /* @__PURE__ */ React.createElement(DailySummaryPanel, { awardXp, langId, setSrs }), subMode === "numbers" && /* @__PURE__ */ React.createElement(NumbersDatesPanel, { awardXp, langId }))));
   }
   const PACK_FACES_KEY = "lang-practice:faces";
   const LANG_TH_KEY = "tanot:lang:th";
