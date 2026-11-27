@@ -154,6 +154,11 @@
     // ภาษา L1 (docs/languages-design.md): หน้าการ์ดของการ์ด ::w::/::s:: (1 การ์ด = 1 doc) · คำแปลไทยจาก AI สร้างใหม่ได้ = cache
     { key: 'lang-practice:faces', kind: 'sync', mode: 'map' },
     { key: 'tanot:lang:th', kind: 'cache' },
+    // ภาษา L3: ร่างข้อความที่วางในแผง "อ่านจากข้อความ" (≤ 20,000 ตัวอักษร) — ข้อความส่วนตัว อยู่ในเครื่องเท่านั้น ไม่ซิงก์/ไม่สำรอง
+    { key: 'lang-practice:reader', kind: 'local' },
+    // ภาษา L7: ระดับโดยประมาณ + แผนรายวัน — 1 ภาษา = 1 doc · LangCalc.level เป็นเจ้าของรูปแบบ/ตัวล้าง
+    { key: 'lang-practice:level', kind: 'sync', mode: 'map' },
+    { key: 'lang-practice:plan', kind: 'sync', mode: 'map' },
     { key: 'lang-practice:ttsvoice', kind: 'local' }, // L6 lang-tts.js: เสียงโมเดลที่เลือกต่อภาษา — เสียงที่เครื่องมีต่างกันทุกเครื่อง จึงไม่ซิงก์
     { prefix: 'lbe:', suffixes: [':srs', ':notes', ':written', ':completed'], kind: 'sync', mode: 'map' },
     { prefix: 'lbe:', suffix: ':exams', kind: 'sync', mode: 'list', idField: 'date' },

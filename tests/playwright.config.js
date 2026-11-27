@@ -195,5 +195,12 @@ module.exports = defineConfig({
       url: 'http://localhost:8145/index.html',
       reuseExistingServer: !process.env.CI,
     },
+    {
+      // languages-level.spec.js: วัดระดับ + แผนรายวัน (lang-practice:level|plan) ซิงก์ 2 เครื่อง — แยกพอร์ตเพราะ /__reset
+      command: 'node --no-warnings sync-server.mjs 8149',
+      cwd: __dirname,
+      url: 'http://localhost:8149/index.html',
+      reuseExistingServer: !process.env.CI,
+    },
   ],
 });

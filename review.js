@@ -117,9 +117,9 @@
       var faces = LC.read('tanot:learn:faces:lang', {}) || {}, fc = faces.cards || {}, langs = faces.langs || {};
       var pf = LC.read('lang-practice:faces', {}) || {}; // การ์ดชุดคำที่ใช้บ่อย (::w:: / ::s::) — ซิงก์ข้ามเครื่อง
       langDue.forEach(function (e) {
-        var f = fc[e[0]] || (Array.isArray(pf[e[0]]) ? [String(pf[e[0]][0] || ''), String(pf[e[0]][1] || '')] : null);
+        var f = fc[e[0]] || (Array.isArray(pf[e[0]]) ? [String(pf[e[0]][0] || ''), String(pf[e[0]][1] || ''), String(pf[e[0]][2] || '')] : null);
         if (!f) { missing.lang++; return; }
-        cards.push({ src: 'lang', id: e[0], front: f[0], back: f[1], sub: langs[e[0].split('::')[0]] || '', due: Number(e[1].dueAt), rec: e[1] });
+        cards.push({ src: 'lang', id: e[0], front: f[0], back: f[2] ? f[1] + '\n' + f[2] : f[1], sub: langs[e[0].split('::')[0]] || '', due: Number(e[1].dueAt), rec: e[1] });
       });
       ['biz', 'eng'].forEach(function (src, i) {
         var qb = res[1 + i];
