@@ -155,6 +155,7 @@
         const RepeatIcon = icon('repeat', 'w-4 h-4');
         const HashIcon = icon('hash', 'w-4 h-4');
         const MessageIcon = icon('message-circle', 'w-5 h-5');
+        const ClipboardIcon = icon('clipboard-list', 'w-5 h-5');
         const FlameIcon = icon('flame', 'w-4 h-4');
         // ไอคอนเล็กประกอบปุ่มโหมดย่อยในหน้า "ฝึกเขียน" — ไม่ใส่ text-* ในคลาสตั้งใจ ให้สืบสี
         // currentColor จากปุ่มแม่เอง (ขาวตอน active / เทาตอนไม่ active) โดยไม่ต้องทำ 2 เวอร์ชันสี
@@ -694,6 +695,16 @@
             'หยุดอัด': 'Stop',
             'กำลังถอดเสียง…': 'Transcribing…',
             'ไม่ได้ยินเสียงพูด ลองอีกครั้ง': 'No speech heard — try again'
+        });
+        // ── E4 พูดสรุปงานวันนี้ (แยกบล็อกกันชนกับงานอื่น)
+        Object.assign(LP_EN, {
+            'สรุปงานวันนี้': 'Daily work summary',
+            'เริ่มอัด': 'Record',
+            'กำลังตรวจประโยค…': 'Checking your sentences…',
+            'ตรวจใหม่': 'Check again',
+            'สรุปใหม่': 'New summary',
+            'เก็บที่เลือกเป็นการ์ด ({n})': 'Save selected as cards ({n})',
+            'AI ตอบกลับในรูปแบบที่อ่านไม่ได้ ลองอีกครั้ง': 'The AI reply could not be read — try again'
         });
         const WORK_CAT_PREFIX = 'งาน: ';
         function isWorkCat(c) { return String(c).indexOf(WORK_CAT_PREFIX) === 0; }
@@ -17881,6 +17892,167 @@
             );
         }
 
+        // ── E4 พูดสรุปงานวันนี้ (ROADMAP แถว 36): อัด ≤ 2 นาที → ถอดเสียง (subsTranscribeClip ตัวเดียวกับ L4/E3) → AI `main` แก้ทีละประโยค
+        // → ติ๊กเก็บเป็นการ์ดแบบ E3 · เสียงและข้อความถอดอยู่ในหน่วยความจำของหน้าเท่านั้น (ไม่ลง storage/problem log/ซิงก์)
+        const dailyMicOk = () => typeof MediaRecorder !== 'undefined' && !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !(isIOS() && !cloudChatOn());
+        const chatFailText = (e) => (e && e.message === 'ios') ? 'ฟีเจอร์สนทนากับ AI ยังไม่รองรับ iPhone/iPad ในตอนนี้ (ปัญหาหน่วยความจำของเบราว์เซอร์ iOS)' : friendlyChatError(e && e.message ? e.message : 'ไม่ทราบสาเหตุ');
+        // ส่งข้อความเข้าแชท (คลาวด์ `main` → โมเดลในเครื่องเมื่อไม่ใช่ iOS) แล้วคืนข้อความเต็ม · jobRef.current = ฟังก์ชันยกเลิก
+        function askWriting(messages, maxNewTokens, jobRef) {
+            return new Promise((resolve, reject) => {
+                if (isIOS() && !cloudChatOn()) { reject(new Error('ios')); return; }
+                const w = getWritingWorker();
+                const jobId = 'daily-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6);
+                let acc = '';
+                const off = () => { w.removeEventListener('message', onMsg); w.removeEventListener('error', onErr); jobRef.current = null; };
+                function onMsg(e) {
+                    const m = e.data;
+                    if (!m || m.jobId !== jobId) return;
+                    if (m.type === 'token') acc += m.token;
+                    else if (m.type === 'done') { off(); resolve(acc); }
+                    else if (m.type === 'error') { off(); reject(new Error(m.message || 'error')); }
+                }
+                function onErr(e) { off(); reject(new Error((e && e.message) || 'error')); }
+                w.addEventListener('message', onMsg);
+                w.addEventListener('error', onErr);
+                jobRef.current = off;
+                w.postMessage({ type: 'chat', jobId, maxNewTokens, messages });
+            });
+        }
+
+        function DailySummaryPanel({ awardXp, langId, setSrs }) {
+            const LC = window.LangCalc;
+            const lname = LANGS[langId].title;
+            const maxSec = (window.TANOT_LANG_DAILY && window.TANOT_LANG_DAILY.maxSec) || LC.DAILY_MAX_SEC; // ตัวปรับสำหรับเทสต์เท่านั้น
+            const [phase, setPhase] = useState('idle'); // idle | recording | transcribing | reviewing | done
+            const [elapsed, setElapsed] = useState(0);
+            const [err, setErr] = useState('');
+            const [items, setItems] = useState([]);
+            const [picked, setPicked] = useState({});
+            const [added, setAdded] = useState(0);
+            const micRef = useRef(null), jobRef = useRef(null), textRef = useRef('');
+            useEffect(() => { reset(); }, [langId]);
+            useEffect(() => () => { stopRec(true); stopJob(); textRef.current = ''; }, []);
+            useEffect(() => { lucide.createIcons(); });
+
+            function stopJob() { if (jobRef.current) { jobRef.current(); jobRef.current = null; } }
+            function stopRec(discard) {
+                const m = micRef.current;
+                micRef.current = null;
+                if (!m) return;
+                if (discard) m.discard = true;
+                try { if (m.rec.state === 'recording') m.rec.stop(); else m.stream.getTracks().forEach(t => t.stop()); } catch (e) {}
+                clearTimeout(m.timer); clearInterval(m.tick);
+            }
+            function reset() { stopRec(true); stopJob(); textRef.current = ''; setPhase('idle'); setElapsed(0); setErr(''); setItems([]); setPicked({}); setAdded(0); }
+
+            function review() {
+                const msgs = LC.reviewMessages(lname, 'B1', textRef.current);
+                if (!msgs) { setPhase('idle'); setErr('ไม่ได้ยินเสียงพูด ลองอีกครั้ง'); return; }
+                setPhase('reviewing'); setErr('');
+                askWriting(msgs, 1800, jobRef).then((acc) => {
+                    const list = LC.parseReview(acc);
+                    if (!list.length) { setPhase('idle'); setErr('AI ตอบกลับในรูปแบบที่อ่านไม่ได้ ลองอีกครั้ง'); return; }
+                    const pk = {}; list.forEach((x, i) => { if (x.changed) pk[i] = true; });
+                    textRef.current = '';
+                    setItems(list); setPicked(pk); setPhase('done');
+                    awardXp(10);
+                }, (e) => { setPhase('idle'); setErr(chatFailText(e)); });
+            }
+            async function startRec() {
+                if (phase !== 'idle' || micRef.current) return;
+                setErr(''); textRef.current = '';
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const chunks = [], rec = new MediaRecorder(stream), t0 = Date.now(), m = { rec, stream, discard: false, timer: 0, tick: 0 };
+                    rec.addEventListener('dataavailable', ev => { if (ev.data && ev.data.size) chunks.push(ev.data); });
+                    rec.addEventListener('stop', async () => {
+                        stream.getTracks().forEach(t => t.stop());
+                        clearTimeout(m.timer); clearInterval(m.tick);
+                        if (micRef.current === m) micRef.current = null;
+                        if (m.discard) return;
+                        setPhase('transcribing');
+                        try {
+                            const text = await subsTranscribeClip(new Blob(chunks, { type: rec.mimeType || 'audio/webm' }), langId);
+                            if (!text) { setPhase('idle'); setErr('ไม่ได้ยินเสียงพูด ลองอีกครั้ง'); return; }
+                            textRef.current = text;
+                            review();
+                        } catch (e) { setPhase('idle'); setErr(['ถอดเสียงไม่สำเร็จ: {m}', { m: subsErrText(e) }]); }
+                    });
+                    m.timer = setTimeout(() => { if (rec.state === 'recording') rec.stop(); }, maxSec * 1000);
+                    m.tick = setInterval(() => setElapsed(Math.min(maxSec, (Date.now() - t0) / 1000)), 250);
+                    micRef.current = m;
+                    rec.start();
+                    setElapsed(0); setPhase('recording');
+                } catch (e) {
+                    setErr('เปิดไมค์ไม่สำเร็จ — ตรวจสอบว่าอนุญาตให้เว็บนี้ใช้ไมโครโฟนแล้ว');
+                }
+            }
+            // เก็บที่ติ๊กเป็นการ์ดแบบ E3: lang-xx::u::<hash ฉบับแก้> (กดซ้ำ/2 เครื่อง/ฉบับเดียวกับที่เก็บจากสวมบทบาท = ใบเดียว)
+            const save = () => {
+                const cards = {};
+                items.forEach((x, i) => { if (picked[i]) { const c = LC.reviewCard(langId, x); if (c) cards[c.key] = c; } });
+                const list = Object.keys(cards).map(k => cards[k]);
+                if (!list.length) return;
+                const now = Date.now();
+                if (window.TanotData) window.TanotData.update('lang-practice:faces', (cur) => {
+                    const m = (cur && typeof cur === 'object' && !Array.isArray(cur)) ? cur : {};
+                    list.forEach(c => { m[c.key] = c.face; });
+                    return m;
+                });
+                setSrs(s => { const n = { ...s }; list.forEach(c => { if (!n[c.key]) n[c.key] = { dueAt: now }; }); return n; });
+                setAdded(list.length);
+            };
+
+            const busy = phase === 'transcribing' || phase === 'reviewing';
+            const nPicked = items.filter((x, i) => picked[i]).length;
+            return (
+                <div>
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4">{tx('สรุปงานวันนี้')}</h3>
+                    {phase !== 'done' && (
+                        <div className="flex items-center gap-3 flex-wrap">
+                            {phase === 'recording'
+                                ? <button data-k="ds-stop" className="btn primary" onClick={() => stopRec(false)}>{tx('หยุดอัด')}</button>
+                                : <button data-k="ds-rec" className="btn primary" onClick={startRec} disabled={busy}><MicIcon /> {tx('เริ่มอัด')}</button>}
+                            {phase === 'recording' && <span role="timer" data-k="ds-timer" className="text-sm tabular-nums text-gray-600">{LC.clock(elapsed)} / {LC.clock(maxSec)}</span>}
+                            {phase === 'transcribing' && <span className="flex items-center gap-2 text-sm text-gray-500" role="status"><span className="spinner" />{tx('กำลังถอดเสียง…')}</span>}
+                            {phase === 'reviewing' && <span className="flex items-center gap-2 text-sm text-gray-500" role="status"><span className="spinner" />{tx('กำลังตรวจประโยค…')}</span>}
+                            {phase === 'idle' && err && textRef.current && <button data-k="ds-retry" className="btn" onClick={review}>{tx('ตรวจใหม่')}</button>}
+                        </div>
+                    )}
+                    {err && <p className="text-sm text-err-ink mt-3" data-k="ds-error" role="alert">{txs(err)}</p>}
+                    {phase === 'done' && (
+                        <>
+                            <ul className="list plain">
+                                {items.map((x, i) => (
+                                    <li key={i} className="list-row" data-k="ds-row">
+                                        <label className="check grow">
+                                            <input type="checkbox" data-k="ds-pick" checked={!!picked[i]} disabled={added > 0} onChange={e => setPicked(p => ({ ...p, [i]: e.target.checked }))} />
+                                            <span className="grid gap-x-4 gap-y-1 sm:grid-cols-2 grow">
+                                                <span>
+                                                    <span className="block text-xs text-gray-500">{tx('ที่พิมพ์/พูด')}</span>
+                                                    <span data-k="ds-orig" data-i18n-skip>{x.orig}</span>
+                                                </span>
+                                                <span>
+                                                    <span className="block text-xs text-gray-500">{x.changed ? tx('ฉบับแก้') : tx('ถูกต้องแล้ว')}</span>
+                                                    <span data-k="ds-fixed" data-i18n-skip>{x.fixed}</span>
+                                                </span>
+                                                {x.note && <span className="sm:col-span-2 text-sm text-gray-600" data-k="ds-note" data-i18n-skip>{x.note}</span>}
+                                            </span>
+                                        </label>
+                                    </li>
+                                ))}
+                            </ul>
+                            <div className="flex items-center gap-3 flex-wrap mt-4">
+                                {!added && <button data-k="ds-save" className="btn primary" onClick={save} disabled={!nPicked}>{tx('เก็บที่เลือกเป็นการ์ด ({n})', { n: nPicked })}</button>}
+                                {added > 0 && <span className="badge ok" data-k="ds-added">{tx('เพิ่มแล้ว {n} การ์ด', { n: added })}</span>}
+                                <button data-k="ds-new" className="btn ghost" onClick={reset}>{tx('สรุปใหม่')}</button>
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
         function ListenSpeakView({ langId, setLangId, setXp, setSrs }) {
             const [subMode, setSubMode] = useState('listening');
             const awardXp = (amt) => setXp(x => x + amt);
@@ -17930,6 +18102,11 @@
                                 <button data-k="lsub-roleplay" onClick={() => setSubMode('roleplay')} aria-pressed={subMode === 'roleplay'}>
                                     <MessageIcon /> {tx('สนทนาสวมบทบาท')}
                                 </button>
+                                {dailyMicOk() && (
+                                    <button data-k="lsub-daily" onClick={() => setSubMode('daily')} aria-pressed={subMode === 'daily'}>
+                                        <ClipboardIcon /> {tx('สรุปงานวันนี้')}
+                                    </button>
+                                )}
                                 <button data-k="lsub-reading" onClick={() => setSubMode('reading')} aria-pressed={subMode === 'reading'}>
                                     <BookOpen /> {tx('อ่านเรื่องยาว')}
                                 </button>
@@ -17946,6 +18123,7 @@
                             {subMode === 'subs' && <SubtitlePanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'reading' && <ReadingPanel awardXp={awardXp} langId={langId} />}
                             {subMode === 'roleplay' && <RoleplayPanel awardXp={awardXp} langId={langId} setSrs={setSrs} />}
+                            {subMode === 'daily' && <DailySummaryPanel awardXp={awardXp} langId={langId} setSrs={setSrs} />}
                             {subMode === 'numbers' && <NumbersDatesPanel awardXp={awardXp} langId={langId} />}
                         </div>
                     </div>
