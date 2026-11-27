@@ -5,7 +5,7 @@
    ══════════════════════════════════════════════════════════════════ */
 'use strict';
 
-const CACHE = 'ome-v687';
+const CACHE = 'ome-v688';
 /* ภาพพื้นหลังรายหน้า (assets/backgrounds/) — แคชแยกที่ไม่ถูกล้างตอน bump CACHE (ภาพไม่ต้องโหลดใหม่ทุกรอบ deploy)
    ไม่ precache ทั้ง 30 ไฟล์: โหลดตอนเปิดหน้าที่ใช้ภาพนั้นครั้งแรก แล้วเสิร์ฟจากแคชก่อน + เช็คของใหม่เบื้องหลัง
    (stale-while-revalidate) — แทนไฟล์ภาพบนเว็บแล้วเครื่องเดิมได้ภาพใหม่ในการเปิดครั้งถัดไป */
@@ -50,6 +50,7 @@ const PRECACHE = [
   './classroom-law.js',
   './fsrs.js',
   './learn-core.js',
+  './lang-calc.js',
   './review.html',
   './review.js',
   './bar-prep.html',
@@ -505,7 +506,8 @@ self.addEventListener('fetch', (e) => {
     return;
   }
 
-  const isHTML = req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/');
+  // lang-packs/index.json ชี้ไปไฟล์ชุดคำรุ่นล่าสุด (ชื่อไฟล์มี hash → ไฟล์ชุด cache-first ได้) — ต้องได้ของสดเมื่อออนไลน์ จึงใช้ทางเดียวกับ HTML
+  const isHTML = req.mode === 'navigate' || /\.html$/.test(url.pathname) || url.pathname.endsWith('/') || url.pathname.endsWith('/lang-packs/index.json');
   if (isHTML) {
     // network-first: ออนไลน์ได้ของสด ออฟไลน์ fallback แคช
     e.respondWith(
