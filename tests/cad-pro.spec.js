@@ -262,3 +262,209 @@ test.describe('โปรแกรมเขียนแบบ 2 มิติ (CAD
     await expect(page.locator('#craErrText')).toContainText('เสียหายหรือไม่ครบ');
   });
 });
+
+/* ── ส่งแบบข้ามหน้า cad.html ↔ cad-pro.html (craft-xfer.js: IndexedDB ชั่วคราวในเครื่อง ไม่ออกเน็ต) ── */
+test.describe('ส่งแบบข้ามหน้า cad ↔ โปรแกรมเต็ม', () => {
+  test.setTimeout(150000);
+
+  /* cad.html ต้องการ jsPDF จาก jsDelivr → คืน JS ว่างแทนการบล็อก (เหมือน cad-dxf.spec.js) */
+  async function setupBoth(context, page, opts) {
+    const r = await setup(context, page, opts);
+    await context.route('https://cdn.jsdelivr.net/**', (route) => route.fulfill({ contentType: 'application/javascript', body: '' }));
+    return r;
+  }
+  const SEED = {
+    entities: [
+      { id: 'a1', type: 'line', layer: '0', p1: { x: 0, y: 0 }, p2: { x: 100, y: 0 } },
+      { id: 'a2', type: 'circle', layer: '0', center: { x: 50, y: 30 }, radius: 15 },
+      { id: 'a3', type: 'text', layer: '0', p: { x: 5, y: 70 }, text: 'ห้องนอน กว้าง 3.5 ม.', height: 6 }
+    ]
+  };
+  const seedDraft = (page) => page.addInitScript((d) => { if (!localStorage.getItem('tanot:cad:autosave')) localStorage.setItem('tanot:cad:autosave', JSON.stringify(d)); }, SEED);
+  /* แถว xfer ใน IndexedDB (ไม่มี = null) — อ่านตรงๆ ไม่ผ่าน take() เพราะ take() ลบทิ้ง */
+  const peekXfer = (page) => page.evaluate(() => new Promise((resolve) => {
+    const rq = indexedDB.open('tanot-craft-recent', 1);
+    rq.onupgradeneeded = () => { if (!rq.result.objectStoreNames.contains('files')) rq.result.createObjectStore('files', { keyPath: 'id' }); };
+    rq.onsuccess = () => {
+      const g = rq.result.transaction('files').objectStore('files').get('xfer|handoff');
+      g.onsuccess = () => { rq.result.close(); resolve(g.result ? { name: g.result.name, size: g.result.size } : null); };
+    };
+  }));
+  const texts = (d) => d.entities.map((e) => e.geometry.value || e.geometry.contents).filter(Boolean);
+
+  test('cad.html → โปรแกรมเต็ม: ปุ่มส่งแบบ (เส้น/วงกลม/ข้อความไทย) · อ่านแล้วลบ · พารามิเตอร์หาย · เข้าไฟล์ล่าสุด · ไม่ออกเน็ต', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const { errors, wasmHits } = await setupBoth(context, page);
+    await seedDraft(page);
+    await page.goto('/cad.html');
+    await expect(page.locator('#statCount')).toHaveText('3');
+    expect(wasmHits).toEqual([]); // cad.html เองไม่โหลดโปรแกรมเต็ม
+    await page.locator('#fileMenuBtn').click();
+    await page.locator('#openProBtn').click();
+    await page.waitForURL(/cad-pro\.html\?from=cad/);
+    const app = await ready(page);
+    await expect.poll(async () => { const d = await app.evaluate(() => window.cadcraft.docInspect().catch(() => null)); return d && d.entityCount; }, { timeout: 30000 }).toBe(3);
+    const d = await app.evaluate(() => window.cadcraft.docInspect());
+    expect(d.counts).toEqual({ Circle: 1, Line: 1, Text: 1 });
+    expect(texts(d)).toEqual(['ห้องนอน กว้าง 3.5 ม.']);
+    await expect.poll(() => page.url()).not.toContain('from=');
+    expect(await peekXfer(page)).toBeNull(); // อ่านแล้วลบ
+    await expect.poll(() => page.evaluate(() => window.__craftApp.recent().then((l) => l.map((r) => r.name)))).toContainEqual(expect.stringMatching(/^tanot-cad-.*\.dxf$/));
+    // แถว xfer ไม่ปนในรายการไฟล์ล่าสุดของแอป
+    expect(await page.evaluate(() => window.__craftApp.recent().then((l) => l.some((r) => r.id === 'xfer|handoff')))).toBe(false);
+    expect(errors).toEqual([]);
+  });
+
+  test('โปรแกรมเต็ม → cad.html: ปุ่มส่งแบบที่เปิดอยู่ → importDXF เดิม (ต่อท้าย · ข้อความไทยครบ) · พารามิเตอร์หาย · ไม่ทิ้งแถว', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    const { errors } = await setupBoth(context, page);
+    await page.goto('/cad-pro.html');
+    const app = await ready(page);
+    await expect(page.locator('#craSend')).toBeVisible();
+    await expect(page.locator('#craSend')).toContainText('ส่งไปแก้ในหน้า CAD');
+    await page.locator('#craFile').setInputFiles({ name: 'plan.dxf', mimeType: 'image/vnd.dxf', buffer: sampleDxf() });
+    await expect.poll(async () => { const d = await app.evaluate(() => window.cadcraft.docInspect().catch(() => null)); return d && d.entityCount; }, { timeout: 30000 }).toBe(5);
+    const before = await app.evaluate(() => window.cadcraft.docInspect().then((d) => ({ dirty: d.dirty, title: d.title })));
+    await page.locator('#craSend').click();
+    await page.waitForURL(/cad\.html\?import=pro/);
+    const dlg = page.locator('dialog.dialog[open]');
+    await expect(dlg).toBeVisible({ timeout: 30000 });
+    expect(await dlg.locator('.dialog-msg').textContent()).toContain('นำเข้า 5 เอนทิตี้');
+    await dlg.locator('.btn.primary').click();
+    await expect(page.locator('#statCount')).toHaveText('5');
+    const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('tanot:cad:autosave') || '{"entities":[]}'));
+    await expect.poll(async () => (await saved()).entities.length).toBe(5);
+    expect((await saved()).entities.filter((e) => e.type === 'text').map((e) => e.text).sort()).toEqual(['ห้องนอน กว้าง 3.5 ม.', 'แบบทดสอบ: น้ำ ผู้ใหญ่ กำแพง'].sort());
+    expect(page.url()).not.toContain('import=');
+    expect(await peekXfer(page)).toBeNull();
+    // แอปไม่ถูกแตะ: ส่งออกไม่เปลี่ยนชื่อ/สถานะเอกสาร → กลับไปหน้าโปรแกรมเต็มแล้วแบบอยู่ในไฟล์ล่าสุด
+    expect(before.title).toBe('plan.dxf');
+    await page.goto('/cad-pro.html');
+    await ready(page);
+    await expect(page.locator('#craRecent')).toHaveAttribute('open', '');
+    await expect(page.locator('#craRecentList')).toContainText('plan.dxf');
+    expect(errors).toEqual([]);
+  });
+
+  test('ไม่มีแบบให้ส่ง: cad.html = ข้อความ (อยู่หน้าเดิม) · โปรแกรมเต็ม = toast (ปุ่มกดใหม่ได้)', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupBoth(context, page);
+    await page.goto('/cad.html');
+    await page.locator('#fileMenuBtn').click();
+    await page.locator('#openProBtn').click();
+    const dlg = page.locator('dialog.dialog[open]');
+    await expect(dlg.locator('.dialog-msg')).toContainText('ยังไม่มีเอนทิตี้ให้ส่งออก');
+    await dlg.locator('.btn.primary').click();
+    expect(page.url()).toMatch(/\/cad\.html(#.*)?$/);
+    expect(await peekXfer(page)).toBeNull();
+
+    await page.goto('/cad-pro.html');
+    await ready(page);
+    await page.locator('#craSend').click();
+    await expect(page.locator('.toast-region .toast, [role=status].toast').filter({ hasText: 'ยังไม่มีแบบให้ส่ง' })).toBeVisible();
+    await expect(page.locator('#craSend')).toBeEnabled();
+    expect(page.url()).toMatch(/\/cad-pro\.html$/);
+    expect(await peekXfer(page)).toBeNull();
+  });
+
+  test('ไฟล์ใหญ่เกินเพดาน = ข้อความ ไม่พังเงียบ · put/take: เกินเพดาน = size, อ่านแล้วลบ, เก่า > 10 นาที = ทิ้งไม่ส่งต่อ', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupBoth(context, page);
+    await seedDraft(page);
+    await page.goto('/cad.html');
+    const r = await page.evaluate(async () => {
+      const X = window.TanotCraftXfer, out = {};
+      out.max = X.MAX_BYTES;
+      out.big = await X.put('big.dxf', new ArrayBuffer(X.MAX_BYTES + 1)).then(() => 'ok', (e) => e.code);
+      await X.put('a.dxf', new Uint8Array([1, 2, 3]));
+      const f = await X.take();
+      out.take = f && [f.name, Array.from(new Uint8Array(f.bytes))];
+      out.again = await X.take();
+      // แถวที่เก่ากว่า 10 นาที: take() ลบแล้วคืน null
+      await X.put('old.dxf', new Uint8Array([9]));
+      await new Promise((res) => {
+        const rq = indexedDB.open('tanot-craft-recent', 1);
+        rq.onsuccess = () => { const st = rq.result.transaction('files', 'readwrite').objectStore('files'); const g = st.get('xfer|handoff'); g.onsuccess = () => { g.result.at = Date.now() - 11 * 60 * 1000; st.put(g.result); }; rq.result.transaction('files').oncomplete = res; setTimeout(() => { rq.result.close(); res(); }, 200); };
+      });
+      out.stale = await X.take();
+      out.afterStale = await X.take();
+      return out;
+    });
+    expect(r.max).toBe(15 * 1048576);
+    expect(r.big).toBe('size');
+    expect(r.take).toEqual(['a.dxf', [1, 2, 3]]);
+    expect(r.again).toBeNull();
+    expect(r.stale).toBeNull();
+    expect(r.afterStale).toBeNull();
+    // UI: put ล้มเพราะขนาด → ข้อความบอกเพดาน
+    await page.evaluate(() => { window.TanotCraftXfer.put = () => Promise.reject(Object.assign(new Error('x'), { code: 'size' })); });
+    await page.locator('#fileMenuBtn').click();
+    await page.locator('#openProBtn').click();
+    const dlg = page.locator('dialog.dialog[open]');
+    await expect(dlg.locator('.dialog-msg')).toContainText('ใหญ่เกิน 15 MB');
+    await dlg.locator('.btn.primary').click();
+    expect(page.url()).toMatch(/\/cad\.html(#.*)?$/);
+
+    await page.goto('/cad-pro.html');
+    await ready(page);
+    await page.evaluate(() => { window.TanotCraftXfer.put = () => Promise.reject(Object.assign(new Error('x'), { code: 'size' })); });
+    await page.locator('#craFile').setInputFiles({ name: 'plan.dxf', mimeType: 'image/vnd.dxf', buffer: sampleDxf() });
+    const app = page.frame({ url: /craft-frame/ });
+    await expect.poll(async () => { const d = await app.evaluate(() => window.cadcraft.docInspect().catch(() => null)); return d && d.entityCount; }, { timeout: 30000 }).toBe(5);
+    await page.locator('#craSend').click();
+    await expect(page.locator('.toast').filter({ hasText: 'ใหญ่เกิน 15 MB' })).toBeVisible();
+    expect(page.url()).toMatch(/\/cad-pro\.html$/);
+  });
+
+  test('มือถือ 390: ส่งต่อไม่ทำให้โหลดโปรแกรมเอง · ปุ่มส่งซ่อน · แถวรอจนกดเปิดต่อ แล้วเปิดแบบที่ส่งมา', async ({ context, page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const { wasmHits } = await setupBoth(context, page);
+    await seedDraft(page);
+    await page.goto('/cad.html');
+    await page.locator('#fileMenuBtn').click();
+    await page.locator('#openProBtn').click();
+    await page.waitForURL(/cad-pro\.html\?from=cad/);
+    await expect(page.locator('#craGate')).toBeVisible();
+    await expect(page.locator('#craSend')).toBeHidden();
+    await page.waitForTimeout(800);
+    expect(wasmHits).toEqual([]);
+    expect(await page.locator('#craFrame').getAttribute('src')).toBeNull();
+    expect(await peekXfer(page)).not.toBeNull(); // ยังไม่ถูกอ่าน — อยู่รอจนแอปพร้อม
+    await page.locator('#craGo').click();
+    const app = await ready(page);
+    await expect.poll(async () => { const d = await app.evaluate(() => window.cadcraft.docInspect().catch(() => null)); return d && d.entityCount; }, { timeout: 30000 }).toBe(3);
+    expect(await peekXfer(page)).toBeNull();
+    expect(wasmHits.length).toBe(PARTS.length);
+  });
+
+  test('ภาษาอังกฤษ: ปุ่ม/ข้อความทั้งสองหน้าเป็นอังกฤษ', async ({ context, page }) => {
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await setupBoth(context, page);
+    await page.addInitScript(() => localStorage.setItem('ome:lang', 'en'));
+    await page.goto('/cad.html');
+    await page.locator('#fileMenuBtn').click();
+    await expect(page.locator('#openProBtn')).toHaveText('Open in full app');
+    await page.locator('#openProBtn').click();
+    const dlg = page.locator('dialog.dialog[open]');
+    await expect(dlg.locator('.dialog-msg')).toContainText('Nothing to export yet');
+    await dlg.locator('.btn.primary').click();
+    await page.goto('/cad-pro.html');
+    await ready(page);
+    await expect(page.locator('#craSend')).toContainText('Send to the CAD page');
+    await page.locator('#craSend').click();
+    await expect(page.locator('.toast').filter({ hasText: 'Nothing to send yet' })).toBeVisible();
+  });
+
+  test('cad.html?import=pro ที่ไม่มีของค้าง: ไม่ทำอะไร · พารามิเตอร์หาย · cad.html ปกติไม่แตะแถว', async ({ context, page }) => {
+    await setupBoth(context, page);
+    await seedDraft(page);
+    await page.goto('/cad.html?import=pro');
+    await expect(page.locator('#statCount')).toHaveText('3');
+    await expect.poll(() => page.url()).not.toContain('import=');
+    await expect(page.locator('dialog.dialog[open]')).toHaveCount(0);
+    await page.evaluate(() => window.TanotCraftXfer.put('keep.dxf', new Uint8Array([1])));
+    await page.goto('/cad.html'); // ไม่มี ?import=pro = ไม่อ่าน ไม่ลบ
+    await page.waitForTimeout(500);
+    expect(await peekXfer(page)).toMatchObject({ name: 'keep.dxf' });
+  });
+});

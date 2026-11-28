@@ -191,6 +191,7 @@
     { db: 'tanot-sim3d', version: 1, stores: { models: { keyPath: 'id', autoIncrement: true } }, sync: [] }, // ไฟล์ 3D ไบนารี — ย้าย/สำรองเท่านั้น
     // บันทึกงานบำรุงรักษา: ใบสั่งงาน = header ที่ไม่แก้ (wo) + event ต่อท้าย (woev) — ดู docs/maintenance-design.md หัวข้อ 3.2
     // ไฟล์ล่าสุดของโปรแกรมเต็มตระกูล *Craft (craft-app.js, cad-pro.html) — ไบต์ของไฟล์ + ภาพย่อ ย้าย/สำรองเท่านั้น ไม่ซิงก์
+    // (+ แถวเดียว id 'xfer|handoff' ของ craft-xfer.js = แบบที่กำลังส่งข้ามหน้า cad ↔ cad-pro อ่านแล้วลบ ≤ 10 นาที)
     { db: 'tanot-craft-recent', version: 1, stores: { files: { keyPath: 'id' } }, sync: [] },
     { db: 'tanot-mnt', version: 1, stores: { wo: { keyPath: 'id' }, woev: { keyPath: 'id' } }, sync: ['wo', 'woev'] }
   ];

@@ -84,13 +84,15 @@
       layerFolderDeleteConfirm: 'ลบโฟลเดอร์ "{name}"? เลเยอร์ข้างในจะย้ายออกมาระดับบนสุด (ไม่ลบเลเยอร์หรือเอนทิตี้ใดๆ)',
       layerShowLbl: 'แสดงเลเยอร์', layerHideLbl: 'ซ่อนเลเยอร์', layerLockLbl: 'ล็อกเลเยอร์', layerUnlockLbl: 'ปลดล็อกเลเยอร์', layerDeleteLbl: 'ลบเลเยอร์', layerDragLbl: 'ลากเพื่อจัดลำดับ', layerToggleLbl: 'ย่อ/ขยายโฟลเดอร์',
       layerCantDeleteLast: 'ต้องมีอย่างน้อย 1 เลเยอร์',
-      exportMenuBtn: 'ส่งออก ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'นำเข้า DXF',
+      exportMenuBtn: 'ส่งออก ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'นำเข้า DXF', openProBtn: 'เปิดในโปรแกรมเต็ม',
       printBtn: 'พิมพ์/PDF',
       exportEmptyWarn: 'ยังไม่มีเอนทิตี้ให้ส่งออก (หรือทุกเลเยอร์ถูกซ่อนอยู่)',
       popupBlocked: 'เบราว์เซอร์บล็อกหน้าต่างพิมพ์ — กรุณาอนุญาตป๊อปอัปสำหรับเว็บนี้แล้วลองใหม่',
       importDxfSuccess: 'นำเข้า {n} เอนทิตี้จากไฟล์ DXF เรียบร้อย (ถูกเลือกไว้ให้แล้ว)',
       importDxfError: 'อ่านไฟล์นี้ไม่ได้ — ไม่ใช่ไฟล์ DXF หรือไฟล์เสียหาย',
       importDxfEmpty: 'ไม่พบสิ่งที่นำเข้าได้ในไฟล์ DXF นี้',
+      openProFail: 'ส่งแบบไปโปรแกรมเต็มไม่สำเร็จ — ลองใหม่อีกครั้ง',
+      openProBig: 'แบบใหญ่เกิน {mb} MB ส่งข้ามหน้าไม่ได้ — ส่งออกเป็นไฟล์ DXF แล้วเปิดเอง',
       importDxfSkipped: 'ข้ามชนิดที่ยังไม่รองรับ: {types}',
       importDxfTruncated: 'ไฟล์ใหญ่มาก — นำเข้าเฉพาะ {n} ชิ้นแรก',
       toolDiadim: 'มิติเส้นผ่าศูนย์กลาง', toolAngdim: 'มิติมุม', toolLeader: 'ลูกศรชี้', toolTextLeader: 'ข้อความ+เส้นชี้', toolHatch: 'แรเงา', toolCentermark: 'เครื่องหมายกึ่งกลาง', toolOrdinate: 'มิติพิกัด (Ordinate)',
@@ -172,13 +174,15 @@
       layerFolderDeleteConfirm: 'Delete folder "{name}"? Layers inside will move to the top level (no layers or entities are deleted)',
       layerShowLbl: 'Show layer', layerHideLbl: 'Hide layer', layerLockLbl: 'Lock layer', layerUnlockLbl: 'Unlock layer', layerDeleteLbl: 'Delete layer', layerDragLbl: 'Drag to reorder', layerToggleLbl: 'Collapse/expand folder',
       layerCantDeleteLast: 'At least 1 layer is required',
-      exportMenuBtn: 'Export ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'Import DXF',
+      exportMenuBtn: 'Export ▾', exportPngBtn: 'PNG', exportSvgBtn: 'SVG', exportDxfBtn: 'DXF', importDxfBtn: 'Import DXF', openProBtn: 'Open in full app',
       printBtn: 'Print/PDF',
       exportEmptyWarn: 'Nothing to export yet (or every layer is hidden)',
       popupBlocked: 'Your browser blocked the print window — please allow pop-ups for this site and try again',
       importDxfSuccess: 'Imported {n} entities from the DXF file (now selected)',
       importDxfError: "Couldn't read this file — not a DXF file, or it's corrupted",
       importDxfEmpty: 'Nothing to import in this DXF file',
+      openProFail: "Couldn't send the drawing to the full app. Try again",
+      openProBig: 'The drawing is over {mb} MB, too big to hand over. Export a DXF file and open it there',
       importDxfSkipped: 'Skipped unsupported types: {types}',
       importDxfTruncated: 'Very large file — imported only the first {n} items',
       toolDiadim: 'Diameter dim', toolAngdim: 'Angle dim', toolLeader: 'Leader', toolTextLeader: 'Text-Leader', toolHatch: 'Hatch', toolCentermark: 'Center mark', toolOrdinate: 'Ordinate dim',
@@ -3377,9 +3381,11 @@
     if (e.type === 'multileader') return [].concat(dxfLine(e.p1a, e.p2), dxfLine(e.p1b, e.p2), dxfText(e.p2, e.height, e.text));
     return [];
   }
-  function exportDXF() {
+  /* ข้อความ DXF ของแบบปัจจุบัน (null = ไม่มีอะไรให้ส่งออก) · asciiOnly: อักษรนอก ASCII เขียนเป็น \U+XXXX (รูปแบบที่ตัวอ่านของ CADCraft ถอดเป็นไทยได้
+     โดยไม่ต้องรู้ code page ของไฟล์ R12) — ใช้ตอนส่งไปโปรแกรมเต็ม; shortcut: อักษรนอก BMP (อีโมจิ) กลายเป็น "?" */
+  function buildDxf(asciiOnly) {
     var bbox = computeSceneBBox();
-    if (!bbox) { alert(t('exportEmptyWarn')); return; }
+    if (!bbox) return null;
     var lines = ['0', 'SECTION', '2', 'HEADER', '9', '$ACADVER', '1', 'AC1009', '0', 'ENDSEC', '0', 'SECTION', '2', 'ENTITIES'];
     state.entities.forEach(function (e) {
       var layer = state.layers[e.layer] || state.layers['0'];
@@ -3387,7 +3393,27 @@
       lines = lines.concat(entityToDxfChunks(e));
     });
     lines = lines.concat(['0', 'ENDSEC', '0', 'EOF']);
-    downloadBlob(lines.join('\r\n') + '\r\n', exportFilenameBase() + '.dxf', 'application/dxf');
+    var text = lines.join('\r\n') + '\r\n';
+    if (asciiOnly) text = text.replace(/[\ud800-\udbff][\udc00-\udfff]|[^\x00-\x7f]/g, function (c) {
+      return c.length > 1 ? '?' : '\\U+' + ('0000' + c.charCodeAt(0).toString(16).toUpperCase()).slice(-4);
+    });
+    return text;
+  }
+  function exportDXF() {
+    var text = buildDxf(false);
+    if (text === null) { alert(t('exportEmptyWarn')); return; }
+    downloadBlob(text, exportFilenameBase() + '.dxf', 'application/dxf');
+  }
+  /* ส่งแบบปัจจุบันไปโปรแกรมเต็ม (cad-pro.html) ภายในเครื่อง: ไบต์ลง IndexedDB ชั่วคราว (craft-xfer.js) แล้วเปลี่ยนหน้า — หน้านั้นอ่านแล้วลบ */
+  function openInPro() {
+    var X = window.TanotCraftXfer, text = buildDxf(true);
+    if (text === null) { alert(t('exportEmptyWarn')); return; }
+    if (!X) { alert(t('openProFail')); return; }
+    X.put(exportFilenameBase() + '.dxf', new TextEncoder().encode(text)).then(function () {
+      location.href = 'cad-pro.html?from=cad';
+    }, function (e) {
+      alert(e && e.code === 'size' ? t('openProBig', { mb: Math.round(X.MAX_BYTES / 1048576) }) : t('openProFail'));
+    });
   }
 
   /* นำเข้า DXF: อ่านด้วย CADCraft (wasm) ใน cad-dxf-worker.js — ASCII/binary, ข้อความไทยตาม $DWGCODEPAGE (ANSI_874),
@@ -3611,6 +3637,7 @@
   $('exportPngBtn').addEventListener('click', exportPNG);
   $('exportSvgBtn').addEventListener('click', exportSVG);
   $('exportDxfBtn').addEventListener('click', exportDXF);
+  $('openProBtn').addEventListener('click', openInPro);
   $('printBtn').addEventListener('click', exportPrintPDF);
   var importDxfInput = $('importDxfInput');
   $('importDxfBtn').addEventListener('click', function () { importDxfInput.click(); });
@@ -3620,10 +3647,22 @@
     if (file) importDXF(file);
   });
 
+  /* เปิดหน้านี้ด้วย ?import=pro = รับแบบที่ส่งมาจากโปรแกรมเต็ม (craft-xfer.js) แล้วนำเข้าด้วย importDXF เดิม (ต่อท้ายของเดิม เลิกทำได้) */
+  function importFromPro() {
+    var q;
+    try { q = new URLSearchParams(location.search); } catch (e) { return; }
+    if (q.get('import') !== 'pro') return;
+    q.delete('import');
+    try { history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); } catch (e) {}
+    if (!window.TanotCraftXfer) return;
+    TanotCraftXfer.take().then(function (f) { if (f) importDXF(new File([f.bytes], f.name)); }, function () {});
+  }
+
   /* ══════════════════ init ══════════════════ */
   function boot() {
     applyStaticI18n();
     restoreAutosave();
+    importFromPro();
     $('snapToggleBtn').classList.toggle('active', state.snapOn);
     $('osnapToggleBtn').classList.toggle('active', state.osnapOn);
     $('orthoToggleBtn').classList.toggle('active', state.orthoOn);

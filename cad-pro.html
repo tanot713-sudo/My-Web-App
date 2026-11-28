@@ -56,6 +56,7 @@ html.ome-has-fab .cra-foot{min-height:88px}
   <h1 data-i18n="cp.h1">โปรแกรมเขียนแบบ 2 มิติ</h1>
   <button class="btn" id="craOpen" type="button" disabled><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-folder-open"/></svg><span data-i18n="cp.open">เปิดไฟล์</span></button>
   <button class="btn" id="craRecentBtn" type="button" disabled hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-history"/></svg><span data-ome-t="craftapp.recent">ล่าสุด</span></button>
+  <button class="btn" id="craSend" type="button" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-send"/></svg><span data-i18n="cp.send">ส่งไปแก้ในหน้า CAD</span></button>
   <button class="btn" id="craFull" type="button" aria-pressed="false" hidden><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-maximize-2"/></svg><span>เต็มจอ</span></button>
   <input type="file" id="craFile" accept=".dxf,.shx" hidden>
 </div>
@@ -92,6 +93,7 @@ html.ome-has-fab .cra-foot{min-height:88px}
 </main>
 
 <script src="craft-loader.js"></script>
+<script src="craft-xfer.js"></script>
 <script src="craft-app.js"></script>
 <script src="cad-pro.js" defer></script>
 </body>
