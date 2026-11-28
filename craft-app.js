@@ -17,6 +17,8 @@
    - liveLang:true = ตั้งภาษาเมนูผ่าน window.<prefix>.execute('ui.language', {lang:'th'|'en'}) ตอนพร้อมและทุกครั้งที่เว็บสลับภาษา
    - mimes: {'.ext': mime} ของไฟล์ที่แอปบันทึก/ส่งออก (ไม่ตรง = mime)
    - recent:true = "ล่าสุด" 10 ไฟล์ต่อแอปใน IndexedDB tanot-craft-recent (เฉพาะเครื่องนี้, ภาพย่อจาก window.<prefix>.screenshot)
+   - xfer: {href, from} = ส่งไฟล์ข้ามหน้าในเครื่อง (craft-xfer.js): ปุ่ม #craSend ส่งแบบที่เปิดอยู่ (คำสั่ง export ของแอป) ไป href แล้วเปลี่ยนหน้า ·
+     เปิดหน้านี้ด้วย ?from=<from> = รับไฟล์ที่ส่งมาเปิดในแอปตอนแอปพร้อม (มือถือ/จอเล็กไม่โหลดแอปเอง — รอผู้ใช้กดเปิดต่อ)
    - phoneMax (700) / tabletMax (ไม่ใส่ = ไม่มีช่วงแท็บเล็ต) / simple: {href} = ปุ่มไปหน้าแบบง่ายบนมือถือ */
 (function (root, factory) {
   var api = factory(root);
@@ -260,6 +262,25 @@
       try { frame.focus(); } catch (e) {}
     }
 
+    /* ส่งออกแบบที่เปิดอยู่เป็นไบต์ด้วยคำสั่ง export ของแอป (craft-web-api) — ไม่ดาวน์โหลด ไม่เปลี่ยนชื่อ/สถานะ dirty ของเอกสารในแอป
+       → {name, bytes: ArrayBuffer} · reject .code = 'unavailable' (แอปยังไม่พร้อม) | 'empty' (ไม่มีแบบเปิดอยู่) | 'failed' */
+    function exportBytes() {
+      var a = ready && appApi();
+      var fail = function (code) { var e = new Error('export:' + code); e.code = code; return e; };
+      if (!a || !ext) return Promise.reject(fail('unavailable'));
+      return Promise.resolve(a.execute('export', { format: ext.slice(1) })).then(function (r) {
+        if (!r || typeof r.data !== 'string') throw fail('failed');
+        var bin = G.atob(r.data), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return Promise.resolve(typeof a.docInspect === 'function' ? a.docInspect().catch(function () { return null; }) : null).then(function (d) {
+          var title = String((d && d.title) || '').replace(/\.[A-Za-z0-9]{1,8}$/, '');
+          return { name: safeName(title, '') + ext, bytes: bytes.buffer };
+        });
+      }, function (e) {
+        throw fail(/no drawing|not available/i.test(String(e && e.message || e)) ? 'empty' : 'failed');
+      });
+    }
+
     /* iframe ว่าง (craft-frame.html) — ตั้ง src ตอนเริ่มเท่านั้น (มือถือ/หน้าที่ยังไม่กดเปิดต่อไม่โหลดอะไร) */
     function loadFrame() {
       if (!frameReady) {
@@ -304,6 +325,8 @@
       recent: function () { return o.recent ? recentList(prefix) : Promise.resolve([]); },
       forget: function (id) { return recentDelete(id).then(function () { emit('recent', {}); }); },
       hasQueue: function () { return queue.length > 0; },
+      exportBytes: exportBytes,
+      remember: remember,
       state: function () { return state; },
       isDirty: function () { return dirty; },
       isReady: function () { return ready; }
@@ -336,7 +359,9 @@
       reload: 'โหลดหน้าใหม่', retry: 'ลองใหม่', go: 'เปิดต่อ', loading: 'กำลังโหลดโปรแกรม',
       goFull: 'เปิดโปรแกรมเต็มต่อ ({mb} MB)', rotate: 'หมุนจอเป็นแนวนอนจะใช้ง่ายกว่า',
       full: 'เต็มจอ', fullExit: 'ออกจากเต็มจอ',
-      recent: 'ล่าสุด', recentEmpty: 'ยังไม่มีไฟล์', open: 'เปิด', del: 'ลบ {name} ออกจากรายการ', close: 'ปิด'
+      recent: 'ล่าสุด', recentEmpty: 'ยังไม่มีไฟล์', open: 'เปิด', del: 'ลบ {name} ออกจากรายการ', close: 'ปิด',
+      xferEmpty: 'ยังไม่มีแบบให้ส่ง', xferBig: 'แบบใหญ่เกิน {mb} MB ส่งข้ามหน้าไม่ได้ — บันทึกเป็นไฟล์แล้วเปิดเอง',
+      xferFail: 'ส่งแบบไม่สำเร็จ — ลองใหม่อีกครั้ง'
     },
     en: {
       ready: 'Ready', starting: 'Starting…', saved: 'Downloaded {name}', unsaved: 'Unsaved changes',
@@ -344,7 +369,9 @@
       reload: 'Reload page', retry: 'Try again', go: 'Open anyway', loading: 'Loading the app',
       goFull: 'Open the full app ({mb} MB)', rotate: 'Turn the screen sideways for more room',
       full: 'Full screen', fullExit: 'Exit full screen',
-      recent: 'Recent', recentEmpty: 'No files yet', open: 'Open', del: 'Remove {name} from the list', close: 'Close'
+      recent: 'Recent', recentEmpty: 'No files yet', open: 'Open', del: 'Remove {name} from the list', close: 'Close',
+      xferEmpty: 'Nothing to send yet', xferBig: 'The drawing is over {mb} MB, too big to hand over. Save it as a file and open it there',
+      xferFail: "Couldn't send the drawing. Try again"
     }
   };
 
@@ -390,10 +417,13 @@
           show('none');
           openBtn.disabled = false;
           if (recentBtn && recentDlg) { recentBtn.hidden = false; recentBtn.disabled = false; }
+          if (sendBtn) sendBtn.hidden = false;
           if (fullBtn && canFs) fullBtn.hidden = false; // ปุ่มเต็มจอแสดงเมื่อแอปพร้อม (ก่อนนั้นไม่มีอะไรให้ขยาย)
           live(status, function () { return T('ready'); });
+          var incoming = xferIn;
+          if (incoming) takeIn(); // เอาของที่ส่งมาตอนแอปพร้อมเท่านั้น (มือถือ: หลังกดเปิดต่อ) ไม่ให้ openBytes ไปสั่งโหลด wasm เอง
           // หน้าเริ่ม: มีไฟล์ล่าสุดและยังไม่ได้เปิดไฟล์ใด = แสดงรายการครั้งเดียว
-          if (recentDlg && !opened && !app.hasQueue() && !recentShown) {
+          if (recentDlg && !incoming && !opened && !app.hasQueue() && !recentShown) {
             app.recent().then(function (l) { if (l.length && !opened && !recentShown) openRecent(); }, function () {});
           }
         } else if (s === 'dirty') {
@@ -501,6 +531,33 @@
       });
       document.addEventListener('fullscreenchange', drawFull);
       document.addEventListener('webkitfullscreenchange', drawFull);
+    }
+
+    // ส่งไฟล์ข้ามหน้าในเครื่อง (craft-xfer.js): ปุ่ม #craSend ส่งแบบที่เปิดอยู่ไปหน้า cfg.xfer.href · เปิดหน้านี้ด้วย ?from=… = รับของที่ส่งมา
+    var X = cfg.xfer && G.TanotCraftXfer;
+    var sendBtn = X ? $('craSend') : null;
+    var xferIn = false;
+    try { xferIn = !!(X && cfg.xfer.from && new URLSearchParams(G.location.search).get('from') === cfg.xfer.from); } catch (e) {}
+    function takeIn() {
+      xferIn = false;
+      try { var u = new URL(G.location.href); u.searchParams.delete('from'); G.history.replaceState(null, '', u.pathname + u.search + u.hash); } catch (e) {}
+      X.take().then(function (f) { if (f) { opened = true; app.openBytes(f.name, f.bytes); } }, function () {});
+    }
+    if (sendBtn) {
+      sendBtn.addEventListener('click', function () {
+        sendBtn.disabled = true;
+        app.exportBytes().then(function (f) {
+          app.remember(f.name, f.bytes); // เก็บเข้าไฟล์ล่าสุดด้วย — กลับมาหน้านี้แล้วยังได้แบบเดิม
+          return X.put(f.name, f.bytes).then(function () {
+            G.location.href = cfg.xfer.href;
+            setTimeout(function () { sendBtn.disabled = false; }, 1500); // ผู้ใช้กด "อยู่ต่อ" ตอนเตือนก่อนออกจากหน้า = ยังส่งซ้ำได้
+          });
+        }).catch(function (e) {
+          sendBtn.disabled = false;
+          var c = e && e.code;
+          if (G.tanotToast) G.tanotToast(T(c === 'empty' ? 'xferEmpty' : c === 'size' ? 'xferBig' : 'xferFail', { mb: Math.round(X.MAX_BYTES / 1048576) }), 'err');
+        });
+      });
     }
 
     // ขนาดจอ: ≤ phoneMax (700) = ไม่โหลดเอง (+ ลิงก์หน้าแบบง่ายถ้ามี) · ≤ tabletMax = บอก MB + กดเปิดต่อ (+ แนะนำหมุนจอถ้าแนวตั้ง)

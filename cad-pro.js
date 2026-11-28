@@ -4,8 +4,8 @@
 (function () {
   'use strict';
   window.OME_I18N.add('cp', {
-    th: { title: 'โปรแกรมเขียนแบบ 2 มิติ | Tanot', crumb: 'งาน', h1: 'โปรแกรมเขียนแบบ 2 มิติ', open: 'เปิดไฟล์', simple: 'ดู/แก้แบบง่ายในหน้า CAD' },
-    en: { title: '2D drafting | Tanot', crumb: 'Work', h1: '2D drafting', open: 'Open file', simple: 'View/edit simply on the CAD page' }
+    th: { title: 'โปรแกรมเขียนแบบ 2 มิติ | Tanot', crumb: 'งาน', h1: 'โปรแกรมเขียนแบบ 2 มิติ', open: 'เปิดไฟล์', simple: 'ดู/แก้แบบง่ายในหน้า CAD', send: 'ส่งไปแก้ในหน้า CAD' },
+    en: { title: '2D drafting | Tanot', crumb: 'Work', h1: '2D drafting', open: 'Open file', simple: 'View/edit simply on the CAD page', send: 'Send to the CAD page' }
   });
   window.TanotCraftApp.page({
     lib: 'cadcraft-app',
@@ -17,6 +17,7 @@
     liveTheme: true,
     liveLang: true,
     recent: true,
+    xfer: { href: 'cad.html?import=pro', from: 'cad' },
     ext: '.dxf',
     mime: 'image/vnd.dxf',
     mimes: { '.pdf': 'application/pdf', '.svg': 'image/svg+xml', '.png': 'image/png' },
