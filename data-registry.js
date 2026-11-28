@@ -87,6 +87,12 @@
 
     // ── รูปประกอบบทเรียนกฎหมาย (classroom-law) — map '<วิชา>|<key>' → {id,name,mime} (ref ไฟล์ R2 ไม่เก็บ Blob)
     { key: 'tanot:law:figures', kind: 'sync', mode: 'map' },
+    // ── ห้องเรียนกฎหมายแบบใหม่ (law-calc.js, docs/law-classroom-design.md 5.5) — ข้อมูลที่ซิงก์มาผ่าน LawCalc.clean* ทุกครั้ง
+    { key: 'tanot:law:stars', kind: 'sync', mode: 'map' },                     // '<code>:<มาตรา>' → {at}
+    { key: 'tanot:law:cards', kind: 'sync', mode: 'list', idField: 'id' },     // การ์ดมาตรา/ฎีกา + ฟิลด์ FSRS
+    { key: 'tanot:law:deka', kind: 'sync', mode: 'list', idField: 'id' },      // ฎีกาที่เพิ่มเอง (ข้อความเต็ม)
+    { key: 'tanot:law:track', kind: 'sync' },                                  // {v, exam, newPerDay}
+    { key: 'tanot:law:ui', kind: 'local' },
     { key: 'tanot:health:vitals', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:checkups', kind: 'sync', mode: 'list', idField: 'id' },
     { key: 'tanot:health:meds', kind: 'sync', mode: 'list', idField: 'id' },
