@@ -651,6 +651,7 @@
     "\u0E14\u0E39\u0E04\u0E33": "Show word",
     "\u0E20\u0E32\u0E1E": "Pictures",
     "\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48 {n}": "Picture {n}",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E20\u0E32\u0E1E\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A TOEIC {n} \u0E20\u0E32\u0E1E": "Make {n} TOEIC picture(s)",
     "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27 {ok} \xB7 \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 {p} \xB7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07 {t}": "Approved {ok} \xB7 to review {p} \xB7 not made {t}",
     "\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D {r}": "AI quota left today: {r}",
     "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E": "Number of pictures",
@@ -3679,9 +3680,12 @@
     }));
   }
   function ToeicPhotoIllustration({ id }) {
-    return /* @__PURE__ */ React.createElement(
+    const picMap = usePics();
+    const gen = LP_PICS && LP_PICS.enabled() ? LangCalc.pics.photoPic(picMap, id) : "";
+    return gen ? /* @__PURE__ */ React.createElement("img", { "data-k": "toeic-pic", src: gen, alt: "", className: "w-full h-40 sm:h-52 object-contain", draggable: "false" }) : /* @__PURE__ */ React.createElement(
       "img",
       {
+        "data-k": "toeic-pic-fallback",
         src: `./images/toeic/${id}.svg`,
         alt: "",
         className: "w-full h-40 sm:h-52 object-contain",
@@ -14339,6 +14343,8 @@
     const lname = LANGS[langId].title, langCode = LANGS[langId].code;
     const en = OME_I18N.lang() === "en";
     const [sceneId, setSceneId] = useState(null);
+    const picMap = usePics();
+    const scenePic = (s) => LP_PICS && LP_PICS.enabled() ? LC.pics.scenePic(picMap, s.id) : "";
     const measured = useMeasuredLevel(langId);
     const [level, setLevelRaw] = useState(() => LC.level.roleplayLevel(measured || 1));
     const levelTouched = useRef(false);
@@ -14587,8 +14593,7 @@
         onClick: () => setSceneId(s.id),
         className: `stat-card${sceneId === s.id ? " on" : ""}`
       },
-      /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800" }, scName(s)),
-      /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500" }, en ? s.goalEn : s.goal)
+      /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3" }, scenePic(s) && /* @__PURE__ */ React.createElement("img", { "data-k": "rp-scene-pic", src: scenePic(s), alt: "", width: "56", height: "56", className: "h-14 w-14 shrink-0 rounded-lg object-contain", draggable: "false" }), /* @__PURE__ */ React.createElement("div", { className: "min-w-0" }, /* @__PURE__ */ React.createElement("div", { className: "font-semibold text-gray-800" }, scName(s)), /* @__PURE__ */ React.createElement("div", { className: "text-sm text-gray-500" }, en ? s.goalEn : s.goal)))
     );
     if (phase === "pick") {
       return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-4" }, tx("\u0E2A\u0E19\u0E17\u0E19\u0E32\u0E2A\u0E27\u0E21\u0E1A\u0E17\u0E1A\u0E32\u0E17")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.scenesFor(langId).filter((s) => s.group !== "work").map(sceneBtn)), LC.scenesFor(langId).some((s) => s.group === "work") && /* @__PURE__ */ React.createElement(React.Fragment, null, /* @__PURE__ */ React.createElement("h4", { className: "text-base font-semibold text-gray-800 mt-5 mb-3", "data-k": "rp-work-head" }, tx("\u0E07\u0E32\u0E19")), /* @__PURE__ */ React.createElement("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3" }, LC.scenesFor(langId).filter((s) => s.group === "work").map(sceneBtn))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, /* @__PURE__ */ React.createElement("div", { className: "segmented" }, LC.LEVELS.map((l) => /* @__PURE__ */ React.createElement("button", { key: l, "data-k": "rp-level-" + l, "aria-pressed": level === l, onClick: () => setLevel(l) }, l))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-start", className: "btn primary", disabled: !sceneId, onClick: start }, tx("\u0E40\u0E23\u0E34\u0E48\u0E21\u0E09\u0E32\u0E01"))));
@@ -14596,7 +14601,7 @@
     if (phase === "summary") {
       return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 mb-3" }, tx("\u0E04\u0E33\u0E17\u0E35\u0E48\u0E04\u0E27\u0E23\u0E08\u0E33")), words === null && /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-2 text-sm text-gray-500" }, /* @__PURE__ */ React.createElement("span", { className: "spinner" }), tx("\u0E01\u0E33\u0E25\u0E31\u0E07\u0E2A\u0E23\u0E38\u0E1B\u0E04\u0E33\u2026")), err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-err-ink", "data-k": "rp-error", role: "alert" }, txs(err)), words && words.length === 0 && !err && /* @__PURE__ */ React.createElement("p", { className: "text-sm text-gray-500" }, tx("\u0E44\u0E21\u0E48\u0E21\u0E35\u0E04\u0E33\u0E43\u0E2B\u0E49\u0E40\u0E1E\u0E34\u0E48\u0E21")), words && words.length > 0 && /* @__PURE__ */ React.createElement("ul", { className: "list plain", "data-i18n-skip": true }, words.map((x, i) => /* @__PURE__ */ React.createElement("li", { key: i, className: "list-row", "data-k": "rp-word" }, /* @__PURE__ */ React.createElement("label", { className: "check grow" }, /* @__PURE__ */ React.createElement("input", { type: "checkbox", checked: !!picked[i], onChange: (e) => setPicked((p) => ({ ...p, [i]: e.target.checked })) }), /* @__PURE__ */ React.createElement("span", null, /* @__PURE__ */ React.createElement("b", null, x.word), " \u2014 ", x.thai))))), /* @__PURE__ */ React.createElement("div", { className: "flex items-center gap-3 flex-wrap mt-4" }, words && words.length > 0 && !added && /* @__PURE__ */ React.createElement("button", { "data-k": "rp-addcards", className: "btn primary", onClick: addCards, disabled: !Object.values(picked).some(Boolean) }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E40\u0E1B\u0E47\u0E19\u0E01\u0E32\u0E23\u0E4C\u0E14")), added > 0 && /* @__PURE__ */ React.createElement("span", { className: "badge ok", "data-k": "rp-added" }, tx("\u0E40\u0E1E\u0E34\u0E48\u0E21\u0E41\u0E25\u0E49\u0E27 {n} \u0E01\u0E32\u0E23\u0E4C\u0E14", { n: added })), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-new", className: "btn ghost", onClick: reset }, tx("\u0E09\u0E32\u0E01\u0E43\u0E2B\u0E21\u0E48"))));
     }
-    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800" }, scName(sc), " ", /* @__PURE__ */ React.createElement("span", { className: "badge" }, level)), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-finish", className: "btn", onClick: finish, disabled: busy || !history.some((h) => h.role === "user") }, tx("\u0E08\u0E1A\u0E09\u0E32\u0E01"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "aria-live": "polite" }, history.map((h, i) => h.role === "user" ? /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-end gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-gray-500" }, tx("\u0E17\u0E35\u0E48\u0E1E\u0E34\u0E21\u0E1E\u0E4C/\u0E1E\u0E39\u0E14")), /* @__PURE__ */ React.createElement("div", { className: "callout info", "data-k": "rp-msg-user", "data-i18n-skip": true }, h.content), (() => {
+    return /* @__PURE__ */ React.createElement("div", null, /* @__PURE__ */ React.createElement("div", { className: "flex items-center justify-between gap-2 flex-wrap mb-3" }, /* @__PURE__ */ React.createElement("h3", { className: "text-lg font-semibold text-gray-800 flex items-center gap-3" }, scenePic(sc) && /* @__PURE__ */ React.createElement("img", { "data-k": "rp-head-pic", src: scenePic(sc), alt: "", width: "64", height: "64", className: "h-16 w-16 shrink-0 rounded-lg object-contain", draggable: "false" }), /* @__PURE__ */ React.createElement("span", null, scName(sc), " ", /* @__PURE__ */ React.createElement("span", { className: "badge" }, level))), /* @__PURE__ */ React.createElement("button", { "data-k": "rp-finish", className: "btn", onClick: finish, disabled: busy || !history.some((h) => h.role === "user") }, tx("\u0E08\u0E1A\u0E09\u0E32\u0E01"))), /* @__PURE__ */ React.createElement("div", { className: "space-y-3", "aria-live": "polite" }, history.map((h, i) => h.role === "user" ? /* @__PURE__ */ React.createElement("div", { key: i, className: "flex flex-col items-end gap-1" }, /* @__PURE__ */ React.createElement("div", { className: "text-xs text-gray-500" }, tx("\u0E17\u0E35\u0E48\u0E1E\u0E34\u0E21\u0E1E\u0E4C/\u0E1E\u0E39\u0E14")), /* @__PURE__ */ React.createElement("div", { className: "callout info", "data-k": "rp-msg-user", "data-i18n-skip": true }, h.content), (() => {
       const rv = LC.turnReview(history, i);
       if (!rv) return null;
       const c = LC.turnCard(langId, rv);
@@ -15185,14 +15190,15 @@
       if (abortRef.current) abortRef.current.abort();
       onClose();
     };
-    const start = () => {
+    const start = (photos) => {
       if (run) return;
       const ctl = new AbortController();
       abortRef.current = ctl;
       setNote(null);
-      setRun({ i: 0, n: PC.nextBatch(pics, nn).length });
+      setRun({ i: 0, n: photos ? PC.nextPhotos(pics).length : PC.nextBatch(pics, nn).length });
       LP_PICS.run({
         n: nn,
+        photos: !!photos,
         signal: ctl.signal,
         onProgress: (p) => {
           setRun({ i: p.i, n: p.n });
@@ -15246,7 +15252,7 @@
           onChange: (e) => setN(e.target.value),
           "aria-label": tx("\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E")
         }
-      ), !run ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run", className: "btn primary", onClick: start, disabled: !c.todo }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E", { n: nn })) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-stop", className: "btn", onClick: stop }, tx("\u0E2B\u0E22\u0E38\u0E14"))), run && /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", role: "status", "data-k": "pics-progress" }, /* @__PURE__ */ React.createElement("span", { className: "spinner mr-2", "aria-hidden": "true" }), tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E", run)), note && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "status", "data-k": "pics-note" }, txs(note)), /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E20\u0E32\u0E1E") }, tab("pending", "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08", c.pending), tab("ok", "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27", c.ok)), !items.length ? /* @__PURE__ */ React.createElement("div", { className: "empty", "data-k": "pics-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("ul", { className: "space-y-3", "data-k": "pics-list" }, items.map(({ concept, id }) => {
+      ), !run ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run", className: "btn primary", onClick: () => start(false), disabled: !c.todo }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E", { n: nn })) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-stop", className: "btn", onClick: stop }, tx("\u0E2B\u0E22\u0E38\u0E14")), !run && c.photosTodo > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run-photos", className: "btn", onClick: () => start(true) }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E20\u0E32\u0E1E\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A TOEIC {n} \u0E20\u0E32\u0E1E", { n: c.photosTodo }))), run && /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", role: "status", "data-k": "pics-progress" }, /* @__PURE__ */ React.createElement("span", { className: "spinner mr-2", "aria-hidden": "true" }), tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E", run)), note && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "status", "data-k": "pics-note" }, txs(note)), /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E20\u0E32\u0E1E") }, tab("pending", "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08", c.pending), tab("ok", "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27", c.ok)), !items.length ? /* @__PURE__ */ React.createElement("div", { className: "empty", "data-k": "pics-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("ul", { className: "space-y-3", "data-k": "pics-list" }, items.map(({ concept, id }) => {
         const busy = !!acting[concept];
         return /* @__PURE__ */ React.createElement("li", { key: concept, className: "flex gap-3 items-start border border-gray-200 rounded-lg p-3", "data-k": "pic-row", "data-concept": concept }, /* @__PURE__ */ React.createElement(
           "img",

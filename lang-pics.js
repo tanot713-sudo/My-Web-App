@@ -3,6 +3,7 @@
    ตรรกะล้วน (ตาราง concept, ตัวล้าง, คิวสร้าง, เกณฑ์โควตา) อยู่ใน LangCalc.pics (lang-calc.js) — ไฟล์นี้มีแต่ส่วนที่แตะเครือข่าย/storage
    คีย์ tanot:lang:pics (sync map concept → {id, status}) เขียนด้วย TanotData.update เท่านั้น (ไม่ถือคีย์ → ไม่เด้งแถบโหลดใหม่)
    สร้างเมื่อเจ้าของกดเท่านั้น (ไม่มี scheduler): AiClient.image({prompt: ชื่อสิ่งของ, preset:'vocab'}) — prompt จริงอยู่ฝั่งเซิร์ฟเวอร์ ส่งข้อความอิสระไม่ได้
+   ภาพข้อสอบ TOEIC Part 1 (L9b): id 's-…' ใช้ preset 'scene' (P.presetOf) — คิว/ตรวจ ✓/ย่อ/เก็บเหมือนกันทุกอย่าง · run({photos:true}) สร้างเฉพาะ 6 ภาพนั้น
    ทุกภาพเริ่มที่ pending · ผ่าน (✓) = ย่อเป็น WebP ≤ 256px แล้วแทนไฟล์เดิม · ไม่ผ่าน/สร้างใหม่ = DELETE ไฟล์ใน R2 */
 (function () {
   'use strict';
@@ -51,7 +52,7 @@
   function generate(concept, signal) {
     var prompt = P.promptOf(concept);
     if (!prompt) return Promise.reject(new Error('concept'));
-    return window.AiClient.image({ prompt: prompt, preset: 'vocab', signal: signal }).then(function (r) {
+    return window.AiClient.image({ prompt: prompt, preset: P.presetOf(concept), signal: signal }).then(function (r) {
       put(concept, { id: r.id, status: 'pending' });
       return r;
     });
@@ -104,7 +105,7 @@
      opts: { n, signal, onProgress({i, n, remaining}) } → Promise<{ made, planned, reason: 'done'|'low'|'quota'|'error'|'cancel'|'empty', remaining, err }> */
   function run(opts) {
     opts = opts || {};
-    var batch = P.nextBatch(read(), opts.n), made = 0, remaining = null;
+    var batch = opts.photos ? P.nextPhotos(read()) : P.nextBatch(read(), opts.n), made = 0, remaining = null;
     if (!batch.length) return Promise.resolve({ made: 0, planned: 0, reason: 'empty', remaining: null });
     var end = function (reason, err) { return { made: made, planned: batch.length, reason: reason, remaining: remaining, err: err }; };
     function step(i) {

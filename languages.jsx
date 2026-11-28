@@ -765,6 +765,7 @@
             'ดูคำ': 'Show word',
             'ภาพ': 'Pictures',
             'ภาพที่ {n}': 'Picture {n}',
+            'สร้างภาพข้อสอบ TOEIC {n} ภาพ': 'Make {n} TOEIC picture(s)',
             'ผ่านแล้ว {ok} · รอตรวจ {p} · ยังไม่สร้าง {t}': 'Approved {ok} · to review {p} · not made {t}',
             'โควตา AI วันนี้เหลือ {r}': 'AI quota left today: {r}',
             'จำนวนภาพ': 'Number of pictures',
@@ -3987,8 +3988,13 @@
         //    แหล่งที่มาที่ images/toeic/README.md — ผู้เรียนต้องตีความภาพเองเหมือนข้อสอบจริง ไม่มี
         //    label ภาษาไทยบอกใบ้เนื้อหาบนภาพ
         function ToeicPhotoIllustration({ id }) {
-            return (
-                <img src={`./images/toeic/${id}.svg`} alt=""
+            // L9b: ภาพที่เจ้าของตรวจผ่านแล้ว (FLUX, preset scene) แทน unDraw — ไม่มี/ไม่ใช่ pages.dev = unDraw เดิม
+            const picMap = usePics();
+            const gen = LP_PICS && LP_PICS.enabled() ? LangCalc.pics.photoPic(picMap, id) : '';
+            return gen ? (
+                <img data-k="toeic-pic" src={gen} alt="" className="w-full h-40 sm:h-52 object-contain" draggable="false" />
+            ) : (
+                <img data-k="toeic-pic-fallback" src={`./images/toeic/${id}.svg`} alt=""
                     className="w-full h-40 sm:h-52 object-contain" draggable="false" />
             );
         }
@@ -17744,6 +17750,8 @@
             const lname = LANGS[langId].title, langCode = LANGS[langId].code;
             const en = OME_I18N.lang() === 'en';
             const [sceneId, setSceneId] = useState(null);
+            const picMap = usePics();                                     // L9b ภาพหัวฉาก — เฉพาะที่ผ่านแล้ว + pages.dev
+            const scenePic = (s) => (LP_PICS && LP_PICS.enabled() ? LC.pics.scenePic(picMap, s.id) : '');
             const measured = useMeasuredLevel(langId);
             const [level, setLevelRaw] = useState(() => LC.level.roleplayLevel(measured || 1));
             const levelTouched = useRef(false);
@@ -17899,8 +17907,13 @@
             const sceneBtn = (s) => (
                 <button key={s.id} data-k={'rp-scene-' + s.id} aria-pressed={sceneId === s.id} onClick={() => setSceneId(s.id)}
                     className={`stat-card${sceneId === s.id ? ' on' : ''}`}>
-                    <div className="font-semibold text-gray-800">{scName(s)}</div>
-                    <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                    <div className="flex items-center gap-3">
+                        {scenePic(s) && <img data-k="rp-scene-pic" src={scenePic(s)} alt="" width="56" height="56" className="h-14 w-14 shrink-0 rounded-lg object-contain" draggable="false" />}
+                        <div className="min-w-0">
+                            <div className="font-semibold text-gray-800">{scName(s)}</div>
+                            <div className="text-sm text-gray-500">{en ? s.goalEn : s.goal}</div>
+                        </div>
+                    </div>
                 </button>
             );
 
@@ -17958,7 +17971,10 @@
             return (
                 <div>
                     <div className="flex items-center justify-between gap-2 flex-wrap mb-3">
-                        <h3 className="text-lg font-semibold text-gray-800">{scName(sc)} <span className="badge">{level}</span></h3>
+                        <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-3">
+                            {scenePic(sc) && <img data-k="rp-head-pic" src={scenePic(sc)} alt="" width="64" height="64" className="h-16 w-16 shrink-0 rounded-lg object-contain" draggable="false" />}
+                            <span>{scName(sc)} <span className="badge">{level}</span></span>
+                        </h3>
                         <button data-k="rp-finish" className="btn" onClick={finish} disabled={busy || !history.some(h => h.role === 'user')}>{tx('จบฉาก')}</button>
                     </div>
                     <div className="space-y-3" aria-live="polite">
@@ -18601,14 +18617,14 @@
             }, [open]);
             useEffect(() => () => { if (abortRef.current) abortRef.current.abort(); }, []);
             const close = () => { if (abortRef.current) abortRef.current.abort(); onClose(); };
-            const start = () => {
+            const start = (photos) => {
                 if (run) return;
                 const ctl = new AbortController();
                 abortRef.current = ctl;
                 setNote(null);
-                setRun({ i: 0, n: PC.nextBatch(pics, nn).length });
+                setRun({ i: 0, n: photos ? PC.nextPhotos(pics).length : PC.nextBatch(pics, nn).length });
                 LP_PICS.run({
-                    n: nn, signal: ctl.signal,
+                    n: nn, photos: !!photos, signal: ctl.signal,
                     onProgress: (p) => { setRun({ i: p.i, n: p.n }); if (typeof p.remaining === 'number') setQuota(Math.max(0, p.remaining)); },
                 }).then(r => {
                     abortRef.current = null;
@@ -18645,8 +18661,9 @@
                                 <input type="number" inputMode="numeric" min="1" max={PC.MAX_BATCH} value={n} data-k="pics-n" className="input w-24" disabled={!!run}
                                     onChange={e => setN(e.target.value)} aria-label={tx('จำนวนภาพ')} />
                                 {!run
-                                    ? <button type="button" data-k="pics-run" className="btn primary" onClick={start} disabled={!c.todo}>{tx('สร้างอีก {n} ภาพ', { n: nn })}</button>
+                                    ? <button type="button" data-k="pics-run" className="btn primary" onClick={() => start(false)} disabled={!c.todo}>{tx('สร้างอีก {n} ภาพ', { n: nn })}</button>
                                     : <button type="button" data-k="pics-stop" className="btn" onClick={stop}>{tx('หยุด')}</button>}
+                                {!run && c.photosTodo > 0 && <button type="button" data-k="pics-run-photos" className="btn" onClick={() => start(true)}>{tx('สร้างภาพข้อสอบ TOEIC {n} ภาพ', { n: c.photosTodo })}</button>}
                             </div>
                             {run && <p className="text-sm font-semibold" role="status" data-k="pics-progress"><span className="spinner mr-2" aria-hidden="true"></span>{tx('สร้างแล้ว {i}/{n} ภาพ', run)}</p>}
                             {note && <p className="form-msg" role="status" data-k="pics-note">{txs(note)}</p>}
