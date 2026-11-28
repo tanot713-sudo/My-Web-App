@@ -25,6 +25,14 @@
   /* ภาษา UI (ไทย/อังกฤษ) — ชื่อวิชา/ตัวบท/บทเรียน/ข้อสอบ/โน้ตของผู้ใช้เป็นเนื้อหา ไม่แปล (data-i18n-skip) */
   var T = OME_I18N.scope('cl', {
     th: {
+      navStatutes: 'ตัวบท', stMemo: 'ท่องมาตรา', stReview: 'ทบทวน {n} ใบ', stStars: 'ติดดาว', stCards: 'การ์ด', stDue: 'ถึงกำหนด',
+      stTitle: 'ตัวบท', stPack: 'ชุดตัวบท', stSearch: 'ค้นเลขมาตราหรือคำ', stSearchPh: 'เช่น 52', stStarOnly: 'เฉพาะที่ติดดาว',
+      stPlayStars: 'ฟังที่ติดดาว', stMeta: '{n} มาตรา · ฉบับ {d}', stMetaNoDate: '{n} มาตรา', stLoading: 'กำลังโหลดตัวบท…',
+      stLoadFail: 'โหลดชุดตัวบทไม่ได้ — ตรวจอินเทอร์เน็ตแล้วลองใหม่', stNoGzip: 'เบราว์เซอร์นี้เปิดไฟล์ชุดตัวบทไม่ได้ — อัปเดตเบราว์เซอร์แล้วลองใหม่',
+      stRetry: 'ลองใหม่', stNoPack: 'ยังไม่มีชุดตัวบท', stNoHit: 'ไม่พบ “{q}”', stNoStar: 'ยังไม่ได้ติดดาวมาตราในชุดนี้',
+      stMore: 'แสดงต่อ ({n})', stStar: 'ติดดาว {s}', stUnstar: 'เอาดาวออก {s}', stListen: 'ฟัง {s}',
+      stUnstarAsk: 'เอาดาวออกจาก {s}? การ์ดท่องและประวัติทบทวนของมาตรานี้จะถูกลบ', stUnstarOk: 'เอาดาวออก',
+      stStarred: 'ติดดาวแล้ว — เพิ่มการ์ด {n} ใบ', stUnstarred: 'เอาดาวออกแล้ว',
       figPick: 'เลือกรูป', figChange: 'เปลี่ยนรูป', figRemove: 'เอารูปออก', figTitle: 'เลือกรูปจากคลังสร้างภาพ', figNone: 'ยังไม่มีรูปในคลังสร้างภาพ',
       noLesson: 'ยังไม่มีเนื้อหาสรุปสำหรับวิชานี้ครับ — จะทยอยเพิ่มทีละวิชาในเวอร์ชันถัดๆ ไป ระหว่างนี้ใช้สมุดโน้ตด้านล่างจดสรุปเองไปพลางก่อนได้',
       readProg: 'อ่านแล้ว {r}/{n} หัวข้อ ({p}%)',
@@ -243,6 +251,14 @@
       cleanBtn: 'ล้างคำที่ไม่ต้องการออกจากโน้ตที่มีอยู่แล้ว'
     },
     en: {
+      navStatutes: 'Statutes', stMemo: 'Memorise sections', stReview: 'Review {n} cards', stStars: 'Starred', stCards: 'Cards', stDue: 'Due',
+      stTitle: 'Statutes', stPack: 'Statute', stSearch: 'Search a section number or word', stSearchPh: 'e.g. 52', stStarOnly: 'Starred only',
+      stPlayStars: 'Listen to starred', stMeta: '{n} sections · as of {d}', stMetaNoDate: '{n} sections', stLoading: 'Loading statutes…',
+      stLoadFail: "Couldn't load the statutes — check your connection and try again", stNoGzip: "This browser can't open the statute file — update it and try again",
+      stRetry: 'Try again', stNoPack: 'No statutes yet', stNoHit: 'No match for “{q}”', stNoStar: 'No starred sections in this statute',
+      stMore: 'Show more ({n})', stStar: 'Star {s}', stUnstar: 'Unstar {s}', stListen: 'Listen to {s}',
+      stUnstarAsk: 'Unstar section {n}? Its memorisation cards and review history will be deleted.', stUnstarOk: 'Unstar',
+      stStarred: 'Starred — added {n} cards', stUnstarred: 'Unstarred',
       figPick: 'Choose image', figChange: 'Change image', figRemove: 'Remove image', figTitle: 'Choose an image from the image library', figNone: 'No images in the library yet',
       noLesson: 'No summary content for this subject yet — more will be added over time. Meanwhile, use the notebook below to write your own summary.',
       readProg: 'Read {r}/{n} topics ({p}%)',
@@ -1519,15 +1535,18 @@
   var ttsState = null; // { rate, chunks, chunkIdx, paused, label, playlist:{parts,idxs,cur}|null }
   var ttsGen = 0;
   function renderTtsBar() {
-    var controls = $('clTtsControls');
-    if (!controls) return; // อาจสลับหน้าไปแล้ว ไม่มีแถบให้อัปเดต
-    if (!ttsState) { controls.style.display = 'none'; return; }
-    controls.style.display = '';
-    var nowEl = $('clTtsNow'); if (nowEl) nowEl.innerHTML = esc(T('reading')) + '<span data-i18n-skip>' + esc(ttsState.label) + '</span>';
-    var pauseBtn = $('clTtsPauseBtn'); if (pauseBtn) pauseBtn.innerHTML = ttsState.paused ? icon('play') + ' ' + esc(T('resume')) : icon('pause') + ' ' + esc(T('pause'));
-    var prevBtn = $('clTtsPrev'), nextBtn = $('clTtsNext');
-    if (prevBtn) prevBtn.style.display = ttsState.playlist ? '' : 'none';
-    if (nextBtn) nextBtn.style.display = ttsState.playlist ? '' : 'none';
+    ['clTts', 'clStTts'].forEach(function (p) { // แถบของบทเรียน + แถบของแท็บตัวบท (เห็นทีละมุมมอง)
+      var controls = $(p + 'Controls');
+      if (!controls) return; // อาจสลับหน้าไปแล้ว ไม่มีแถบให้อัปเดต
+      if (!ttsState) { controls.style.display = 'none'; return; }
+      controls.style.display = '';
+      var nowEl = $(p + 'Now'); if (nowEl) nowEl.innerHTML = esc(T('reading')) + '<span data-i18n-skip>' + esc(ttsState.label) + '</span>';
+      var pauseBtn = $(p + 'PauseBtn'); if (pauseBtn) pauseBtn.innerHTML = ttsState.paused ? icon('play') + ' ' + esc(T('resume')) : icon('pause') + ' ' + esc(T('pause'));
+      var prevBtn = $(p + 'Prev'), nextBtn = $(p + 'Next'), stopBtn = $(p + 'StopBtn');
+      if (prevBtn) { prevBtn.innerHTML = icon('chevron-left') + ' ' + esc(T('prev')); prevBtn.style.display = ttsState.playlist ? '' : 'none'; }
+      if (nextBtn) { nextBtn.innerHTML = esc(T('next')) + ' ' + icon('chevron-right'); nextBtn.style.display = ttsState.playlist ? '' : 'none'; }
+      if (stopBtn) stopBtn.innerHTML = icon('square') + ' ' + esc(T('stop'));
+    });
   }
   function stopTts() {
     ttsGen++;
@@ -3036,8 +3055,188 @@
     }
   }
 
+  /* ══════════════════ ตัวบท + ท่องมาตรา (ROADMAP แถว 9d/9e · docs/law-classroom-design.md 5.1–5.5) ══════════════════
+     ชุดตัวบทจาก law-packs/ ผ่าน TanotLawPacks (law-pack-load.js) — แสดงข้อความเต็มทุกตัวอักษร (กฎ 5.0 ห้ามย่อ)
+     ติดดาว = tanot:law:stars (sync map) + การ์ด 3 แบบใน tanot:law:cards (LawCalc.starCards) → ทบทวนใน review.html#law
+     เขียนด้วย TanotData.update (อ่านสด → แก้ → เขียน, ไม่ถือคีย์) · ข้อมูลที่ซิงก์มาผ่าน LawCalc.clean* ทุกครั้ง */
+  var LCALC = window.LawCalc, LPACKS = window.TanotLawPacks;
+  var STARS_KEY = 'tanot:law:stars', LAW_CARDS_KEY = 'tanot:law:cards', LAW_UI_KEY = 'tanot:law:ui', ST_PAGE = 100;
+  var st = { packs: null, code: '', pack: null, err: null, q: '', starOnly: false, shown: ST_PAGE, started: false };
+  function isPlainObj(v) { return !!v && typeof v === 'object' && !Array.isArray(v); }
+  function readStars() { return LCALC.cleanStars(TanotData.read(STARS_KEY, {})); }
+  function readStCards() {
+    var a = TanotData.read(LAW_CARDS_KEY, []);
+    return (Array.isArray(a) ? a : []).map(LCALC.cleanCard).filter(function (c) { return c && c.kind === 'st'; });
+  }
+  function lawUi() { try { var u = JSON.parse(localStorage.getItem(LAW_UI_KEY) || '{}'); return isPlainObj(u) ? u : {}; } catch (e) { return {}; } }
+  function saveLawUi(patch) { try { localStorage.setItem(LAW_UI_KEY, JSON.stringify(Object.assign(lawUi(), patch))); } catch (e) {} }
+
+  function renderMemo() {
+    var stars = readStars(), cards = readStCards(), now = Date.now();
+    var due = cards.filter(function (c) { return c.dueAt <= now; }).length;
+    function cell(k, v) { return '<div class="strip-cell"><span class="k">' + esc(k) + '</span><span class="v">' + esc(OME_I18N.number(v)) + '</span></div>'; }
+    $('stMemoStrip').innerHTML = cell(T('stStars'), Object.keys(stars).length) + cell(T('stCards'), cards.length) + cell(T('stDue'), due);
+    $('stReviewLbl').textContent = T('stReview', { n: OME_I18N.number(due) });
+    $('stReviewBtn').classList.toggle('primary', due > 0);
+  }
+
+  function stLoadingMsg(on) { liveStatus($('stStatus'), on ? function () { return T('stLoading'); } : function () { return ''; }); }
+  function stStart() {
+    if (st.started) { stRender(); return; }
+    st.started = true; st.err = null;
+    stLoadingMsg(true);
+    LPACKS.index().then(function (list) {
+      st.packs = list;
+      if (!list.length) { stLoadingMsg(false); stRender(); return; }
+      var want = lawUi().pack;
+      st.code = list.some(function (p) { return p.code === want; }) ? want : list[0].code;
+      $('stPack').innerHTML = list.map(function (p) { return '<option value="' + esc(p.code) + '">' + esc(p.name) + '</option>'; }).join('');
+      $('stPack').value = st.code;
+      stLoad();
+    }, function () { st.started = false; st.err = 'net'; stLoadingMsg(false); stRender(); });
+  }
+  function stLoad() {
+    st.pack = null; st.err = null; st.shown = ST_PAGE;
+    stLoadingMsg(true);
+    stRender();
+    var code = st.code;
+    LPACKS.load(code).then(function (p) {
+      if (code !== st.code) return;
+      st.pack = p; st.err = p ? null : 'net';
+      stLoadingMsg(false); stRender();
+    }, function (e) {
+      if (code !== st.code) return;
+      st.err = e && e.code === 'unsupported' ? 'gzip' : 'net';
+      stLoadingMsg(false); stRender();
+    });
+  }
+  function stSecHtml(sec, r, starred) {
+    var label = LCALC.secLabel(st.code, sec.n), t = sec.t;
+    var body = r && r.len ? esc(t.slice(0, r.at)) + '<mark>' + esc(t.substr(r.at, r.len)) + '</mark>' + esc(t.slice(r.at + r.len)) : esc(t);
+    return '<article class="st-sec' + (r && r.exact ? ' hit' : '') + '" data-n="' + esc(sec.n) + '">' +
+      '<div class="st-hd"><span class="st-no">' + esc(LCALC.secLabel(st.code, sec.n, true)) + '</span><span class="st-act">' +
+      (window.speechSynthesis ? '<button class="btn ghost icon sm" type="button" data-stplay="' + esc(sec.n) + '" aria-label="' + esc(T('stListen', { s: label })) + '">' + icon('play') + '</button>' : '') +
+      '<button class="btn ghost icon sm" type="button" data-star="' + esc(sec.n) + '" aria-pressed="' + starred + '" aria-label="' +
+        esc(T(starred ? 'stUnstar' : 'stStar', { s: label })) + '">' + icon('star') + '</button></span></div>' +
+      '<p class="st-t">' + body + '</p>' +
+      (sec.f || []).map(function (f) { return '<p class="st-f">' + esc(f) + '</p>'; }).join('') +
+      '</article>';
+  }
+  function stRender() {
+    var list = $('stList'), meta = $('stMeta');
+    $('stStarOnly').setAttribute('aria-pressed', String(st.starOnly));
+    if (st.err) {
+      meta.textContent = '';
+      list.innerHTML = '<div class="callout err"><span>' + esc(T(st.err === 'gzip' ? 'stNoGzip' : 'stLoadFail')) + '</span> ' +
+        '<button class="btn sm" type="button" data-stretry>' + icon('refresh-cw') + ' ' + esc(T('stRetry')) + '</button></div>';
+      return;
+    }
+    if (st.packs && !st.packs.length) { meta.textContent = ''; list.innerHTML = '<p class="empty compact">' + esc(T('stNoPack')) + '</p>'; return; }
+    if (!st.pack) { meta.textContent = ''; list.innerHTML = ''; return; }
+    var p = st.pack;
+    meta.textContent = p.asOf ? T('stMeta', { n: OME_I18N.number(p.s.length), d: dateStr(new Date(p.asOf + 'T00:00:00')) }) : T('stMetaNoDate', { n: OME_I18N.number(p.s.length) });
+    var stars = readStars(), q = st.q.trim(), rows;
+    if (q) rows = LCALC.searchPack(p, q, { limit: 50 }).map(function (r) { return { sec: LCALC.findSection(p, r.n), r: r }; });
+    else rows = p.s.map(function (sec) { return { sec: sec, r: null }; });
+    if (st.starOnly) rows = rows.filter(function (x) { return stars[st.code + ':' + x.sec.n]; });
+    if (!rows.length) {
+      list.innerHTML = '<p class="empty compact">' + esc(q ? T('stNoHit', { q: q }) : T('stNoStar')) + '</p>';
+      return;
+    }
+    var more = !q && rows.length > st.shown ? rows.length - st.shown : 0, lastB = null, html = '';
+    rows.slice(0, more ? st.shown : rows.length).forEach(function (x) {
+      if (x.sec.b && x.sec.b !== lastB) html += '<h3 class="sub-head">' + esc(x.sec.b) + '</h3>';
+      lastB = x.sec.b;
+      html += stSecHtml(x.sec, x.r, !!stars[st.code + ':' + x.sec.n]);
+    });
+    if (more) html += '<button class="btn sm st-more" type="button" data-stmore>' + esc(T('stMore', { n: OME_I18N.number(more) })) + '</button>';
+    else if (!q && !st.starOnly) (p.x || []).forEach(function (e) { html += '<h3 class="sub-head">' + esc(e.h) + '</h3><p class="st-t">' + esc(e.t) + '</p>'; });
+    list.innerHTML = html;
+  }
+  function stToggleStar(n) {
+    var sec = st.pack && LCALC.findSection(st.pack, n);
+    if (!sec) return;
+    var code = st.code, key = code + ':' + sec.n, label = LCALC.secLabel(code, sec.n);
+    if (readStars()[key]) {
+      var reviewed = readStCards().some(function (c) { return c.ref === key && c.reps > 0; });
+      (reviewed ? window.tanotConfirm(T('stUnstarAsk', { s: label, n: sec.n }), { danger: true, okLabel: T('stUnstarOk') }) : Promise.resolve(true)).then(function (ok) {
+        if (!ok) return;
+        TanotData.update(STARS_KEY, function (m) { m = isPlainObj(m) ? m : {}; delete m[key]; return m; });
+        TanotData.update(LAW_CARDS_KEY, function (a) { return (Array.isArray(a) ? a : []).filter(function (c) { return !(c && c.ref === key); }); });
+        stAfterChange();
+        window.tanotToast(T('stUnstarred'), 'ok');
+      });
+      return;
+    }
+    var now = Date.now(), added = 0;
+    TanotData.update(STARS_KEY, function (m) { m = isPlainObj(m) ? m : {}; m[key] = { at: now }; return m; });
+    TanotData.update(LAW_CARDS_KEY, function (a) {
+      a = Array.isArray(a) ? a.slice() : [];
+      var at = {}, ex = {};
+      a.forEach(function (c, i) { if (c && typeof c.id === 'string') { at[c.id] = i; ex[c.id] = c; } });
+      LCALC.starCards(code, sec, now, ex).forEach(function (c) {
+        if (at[c.id] != null) a[at[c.id]] = c; else { a.push(c); added++; }
+      });
+      return a;
+    });
+    stAfterChange();
+    window.tanotToast(T('stStarred', { n: OME_I18N.number(added) }), 'ok');
+  }
+  function stAfterChange() {
+    renderMemo();
+    if (st.pack) stRender();
+  }
+  function stRate() { return parseFloat($('clStTtsRate').value) || 1; }
+  function stPlay(n) {
+    var sec = st.pack && LCALC.findSection(st.pack, n);
+    if (sec) speakRaw(LCALC.secLabel(st.code, sec.n), sec.t, stRate());
+  }
+  function stPlayStars() {
+    if (!st.pack) return;
+    var stars = readStars();
+    var parts = st.pack.s.filter(function (sec) { return stars[st.code + ':' + sec.n]; })
+      .map(function (sec) { return { title: LCALC.secLabel(st.code, sec.n), md: sec.t }; });
+    if (!parts.length) { window.tanotToast(T('stNoStar')); return; }
+    speakPlaylist(parts, 0, stRate());
+  }
+  function bindStatutes() {
+    var searchTimer = 0;
+    $('stPack').addEventListener('change', function () {
+      st.code = this.value; st.q = ''; $('stSearch').value = '';
+      saveLawUi({ pack: st.code });
+      stLoad();
+    });
+    $('stSearch').addEventListener('input', function () {
+      var v = this.value;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () { st.q = v; stRender(); }, 200);
+    });
+    $('stStarOnly').addEventListener('click', function () { st.starOnly = !st.starOnly; st.shown = ST_PAGE; stRender(); });
+    if (window.speechSynthesis) {
+      $('stPlayStars').addEventListener('click', stPlayStars);
+      $('clStTtsPauseBtn').addEventListener('click', toggleTtsPause);
+      $('clStTtsStopBtn').addEventListener('click', stopTts);
+      $('clStTtsPrev').addEventListener('click', function () { ttsSkip(-1); });
+      $('clStTtsNext').addEventListener('click', function () { ttsSkip(1); });
+    } else {
+      $('stPlayStars').hidden = true; $('clStTtsRate').hidden = true;
+    }
+    $('stList').addEventListener('click', function (e) {
+      var b = e.target.closest('button');
+      if (!b) return;
+      if (b.hasAttribute('data-star')) stToggleStar(b.getAttribute('data-star'));
+      else if (b.hasAttribute('data-stplay')) stPlay(b.getAttribute('data-stplay'));
+      else if (b.hasAttribute('data-stmore')) { st.shown += ST_PAGE; stRender(); }
+      else if (b.hasAttribute('data-stretry')) { if (st.packs && st.packs.length) stLoad(); else stStart(); }
+    });
+    if (TanotData.onChange) TanotData.onChange(function (keys) {
+      if (keys.length && !keys.some(function (k) { return k === STARS_KEY || k === LAW_CARDS_KEY; })) return;
+      if ($('viewStatutes').style.display !== 'none') stAfterChange();
+    });
+  }
+
   /* ══════════════════ router (hash → มุมมอง .view) ══════════════════ */
-  var VIEW_IDS = { dashboard: 'viewDashboard', goals: 'viewGoals', notes: 'viewNotes', tools: 'viewTools' };
+  var VIEW_IDS = { dashboard: 'viewDashboard', goals: 'viewGoals', notes: 'viewNotes', tools: 'viewTools', statutes: 'viewStatutes' };
   function navigate(hash) {
     hash = String(hash || '').replace(/^#/, '') || 'dashboard';
     var subjMatch = /^subject-(.+)$/.exec(hash);
@@ -3046,7 +3245,7 @@
     var viewName;
     if (subjMatch || courseMatch) { viewName = subject ? 'notes' : 'dashboard'; }
     else if (hash === 'allnotes') { viewName = 'notes'; }
-    else if (hash === 'goals' || hash === 'tools' || hash === 'dashboard') { viewName = hash; }
+    else if (hash === 'goals' || hash === 'tools' || hash === 'dashboard' || hash === 'statutes') { viewName = hash; }
     else { viewName = 'dashboard'; }
     currentSubjectFilter = subject;
     if (editingNoteId) cancelEditNote();
@@ -3085,6 +3284,9 @@
       renderWritingHistory();
     } else if (viewName === 'dashboard') {
       renderDashboard();
+    } else if (viewName === 'statutes') {
+      renderMemo();
+      stStart();
     }
     closeHamburger();
   }
@@ -3243,6 +3445,7 @@
     $('bpWrSave').addEventListener('click', saveWritingResult);
 
     bindOcr();
+    bindStatutes();
 
     renderSubjectNav();
     document.title = T('pageTitle');
@@ -3262,6 +3465,7 @@
       renderDashboard();
       renderTtsBar();
       if ($('clRefSearch').value) renderRefSearchResults($('clRefSearch').value);
+      if ($('viewStatutes').style.display !== 'none') { renderMemo(); stRender(); }
       Array.prototype.forEach.call(document.querySelectorAll('.clhb-list a'), function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + (location.hash.replace(/^#/, '') || 'dashboard')); });
     });
     $('clHbToggle').addEventListener('click', function () {
@@ -3285,7 +3489,7 @@
     showTextForReview: showTextForReview, cleanExistingNotes: cleanExistingNotes,
     matraSortKey: matraSortKey, notesReady: notesReady, idbGetAllNotes: idbGetAllNotes,
     renderStorageInfo: renderStorageInfo,
-    SUBJECTS: SUBJECTS, navigate: navigate, loadActivity: loadActivity,
+    SUBJECTS: SUBJECTS, navigate: navigate, loadActivity: loadActivity, statutes: st,
     getCurrentSubjectFilter: function () { return currentSubjectFilter; }
   };
 })();

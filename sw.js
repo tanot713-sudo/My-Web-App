@@ -49,6 +49,8 @@ const PRECACHE = [
   './soon.html',
   './classroom-law.html',
   './law-figure-calc.js',
+  './law-calc.js',
+  './law-pack-load.js',
   './classroom-law.js',
   './fsrs.js',
   './lang-calc.js',

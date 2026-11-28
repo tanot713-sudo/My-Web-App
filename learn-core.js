@@ -325,6 +325,7 @@
     if (now == null) now = Date.now();
     var law = 0;
     (lawNotes || []).forEach(function (n) { if (n && Number(n.dueAt) <= now) law++; });
+    law += countDueList(list('tanot:law:cards'), 'dueAt', now); // การ์ดมาตรา (9e) — ถึงกำหนดก็นับ แม้ชุดตัวบทยังโหลดไม่ได้
     return {
       law: law,
       lang: countDue(read('lang-practice:srs', {}), 'dueAt', now),
@@ -356,7 +357,7 @@
     var keys = [XP_KEY, LEGACY_KEY, SETTINGS_KEY];
     function h() { fn(); }
     win.addEventListener('tanot:learn', h);
-    var off = TD() && TD().onChange ? TD().onChange(function (ks) { if (!ks.length || ks.some(function (k) { return keys.indexOf(k) !== -1 || /srs|barprep/.test(k); })) fn(); }) : null;
+    var off = TD() && TD().onChange ? TD().onChange(function (ks) { if (!ks.length || ks.some(function (k) { return keys.indexOf(k) !== -1 || /srs|barprep|^tanot:law:cards$/.test(k); })) fn(); }) : null;
     return function () { win.removeEventListener('tanot:learn', h); if (off) off(); };
   };
   return api;
