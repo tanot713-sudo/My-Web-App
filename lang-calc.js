@@ -1356,8 +1356,27 @@
       c.names.forEach(function (n, j) { var k = n.replace(/-/g, ' '); if (!Object.prototype.hasOwnProperty.call(NAME, k)) NAME[k] = c.id; });
     });
     function has(o, k) { return Object.prototype.hasOwnProperty.call(o, k); }
-    function known(id) { return typeof id === 'string' && has(ORDER, id); }
-    function promptOf(id) { return known(id) ? id.replace(/-/g, ' ') : ''; }
+    // L9b ภาพประกอบข้อสอบ TOEIC Part 1 (preset scene — คนทำกิจกรรม, 768×512) · id = 's-' + id ของภาพ unDraw เดิม (svg ของ TOEIC_PHOTO_ITEMS) แยกจาก concept คำศัพท์ไม่ให้ชน
+    // prompt ต้องตรงกับ SCENE_PROMPTS ของ functions/api/ai/image.js ทุกตัวอักษร (เซิร์ฟเวอร์ไม่รับข้อความอื่น) · เพิ่มต่อท้ายได้ ห้ามเปลี่ยน id/prompt ที่สร้างภาพไปแล้ว
+    var PHOTOS = [
+      { id: 's-newspaper', svg: 'newspaper', prompt: 'man reading a newspaper at his desk' },
+      { id: 's-meeting', svg: 'meeting', prompt: 'two colleagues working together in a meeting' },
+      { id: 's-businesswoman', svg: 'businesswoman', prompt: 'woman walking while carrying a briefcase' },
+      { id: 's-delivery-truck', svg: 'delivery-truck', prompt: 'workers loading boxes onto a truck' },
+      { id: 's-business-call', svg: 'business-call', prompt: 'man walking while talking on the phone' },
+      { id: 's-maintenance', svg: 'maintenance', prompt: 'technician repairing a machine' }
+    ];
+    var PHOTO = {};
+    PHOTOS.forEach(function (x) { PHOTO[x.id] = x; });
+    function known(id) { return typeof id === 'string' && (has(ORDER, id) || has(PHOTO, id)); }
+    function promptOf(id) { return has(PHOTO, id) ? PHOTO[id].prompt : known(id) ? id.replace(/-/g, ' ') : ''; }
+    // preset ที่ใช้สร้างภาพของ id นี้ (ฝั่งเซิร์ฟเวอร์ตรวจ prompt ตาม preset เอง)
+    function presetOf(id) { return has(PHOTO, id) ? 'scene' : 'vocab'; }
+    function photoId(svg) { return typeof svg === 'string' && has(PHOTO, 's-' + svg) ? 's-' + svg : ''; }
+    // URL ภาพของข้อสอบ Part 1 (เฉพาะที่ผ่านแล้ว) — '' = ใช้ภาพ unDraw เดิม
+    function photoPic(map, svg) { var c = photoId(svg); return c ? urlOf(okId(map, c)) : ''; }
+    // ภาพข้อสอบที่ยังไม่มีรายการ (ลำดับตามตาราง) — สร้างก่อนคำศัพท์เพราะมีแค่ 6 ภาพและใช้ในข้อสอบโดยตรง
+    function nextPhotos(map) { return PHOTOS.filter(function (x) { return !map || !has(map, x.id); }).map(function (x) { return x.id; }); }
 
     // gloss/คำอังกฤษ → concept id ('' = ไม่ใช่คำที่ทำภาพ) — ตัดที่ ; , ( : แล้วตัดคำนำหน้า a/an/the
     function lookup(text) {
@@ -1407,10 +1426,12 @@
     function counts(map) {
       var c = { pending: 0, ok: 0, no: 0, todo: 0, total: CONCEPTS.length };
       CONCEPTS.forEach(function (x) { var e = map && has(map, x.id) ? map[x.id] : null; if (e) c[e.status]++; else c.todo++; });
+      PHOTOS.forEach(function (x) { if (map && has(map, x.id)) c[map[x.id].status]++; });   // ภาพข้อสอบที่มีรายการแล้วนับตามสถานะ (total/todo = คำศัพท์เท่านั้น)
+      c.photosTodo = nextPhotos(map).length;
       return c;
     }
     function list(map, status) {
-      return CONCEPTS.filter(function (x) { return map && has(map, x.id) && map[x.id].status === status; })
+      return PHOTOS.concat(CONCEPTS).filter(function (x) { return map && has(map, x.id) && map[x.id].status === status; })
         .map(function (x) { return { concept: x.id, id: map[x.id].id || '' }; });
     }
     // คำในชุดที่มีภาพที่ผ่านแล้ว · แต่ละ concept ใช้คำเดียว (คำอันดับดีสุดก่อน) → [{item, concept, id}]
@@ -1444,7 +1465,7 @@
 
     return {
       KEY: KEY, MAX_BATCH: MAX_BATCH, MIN_REMAINING: MIN_REMAINING, CONCEPTS: CONCEPTS.map(function (c) { return c.id; }),
-      known: known, promptOf: promptOf, lookup: lookup, conceptOf: conceptOf, clean: clean, urlOf: urlOf, okId: okId,
+      known: known, promptOf: promptOf, presetOf: presetOf, PHOTOS: PHOTOS.map(function (x) { return x.id; }), photoId: photoId, photoPic: photoPic, nextPhotos: nextPhotos, lookup: lookup, conceptOf: conceptOf, clean: clean, urlOf: urlOf, okId: okId,
       sceneConcept: sceneConcept, scenePic: scenePic, nextBatch: nextBatch, shouldStop: shouldStop, counts: counts, list: list, withPics: withPics, picPairs: picPairs
     };
   })();

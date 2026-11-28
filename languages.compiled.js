@@ -651,6 +651,7 @@
     "\u0E14\u0E39\u0E04\u0E33": "Show word",
     "\u0E20\u0E32\u0E1E": "Pictures",
     "\u0E20\u0E32\u0E1E\u0E17\u0E35\u0E48 {n}": "Picture {n}",
+    "\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E20\u0E32\u0E1E\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A TOEIC {n} \u0E20\u0E32\u0E1E": "Make {n} TOEIC picture(s)",
     "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27 {ok} \xB7 \u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08 {p} \xB7 \u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E2A\u0E23\u0E49\u0E32\u0E07 {t}": "Approved {ok} \xB7 to review {p} \xB7 not made {t}",
     "\u0E42\u0E04\u0E27\u0E15\u0E32 AI \u0E27\u0E31\u0E19\u0E19\u0E35\u0E49\u0E40\u0E2B\u0E25\u0E37\u0E2D {r}": "AI quota left today: {r}",
     "\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E": "Number of pictures",
@@ -3679,9 +3680,12 @@
     }));
   }
   function ToeicPhotoIllustration({ id }) {
-    return /* @__PURE__ */ React.createElement(
+    const picMap = usePics();
+    const gen = LP_PICS && LP_PICS.enabled() ? LangCalc.pics.photoPic(picMap, id) : "";
+    return gen ? /* @__PURE__ */ React.createElement("img", { "data-k": "toeic-pic", src: gen, alt: "", className: "w-full h-40 sm:h-52 object-contain", draggable: "false" }) : /* @__PURE__ */ React.createElement(
       "img",
       {
+        "data-k": "toeic-pic-fallback",
         src: `./images/toeic/${id}.svg`,
         alt: "",
         className: "w-full h-40 sm:h-52 object-contain",
@@ -15186,14 +15190,15 @@
       if (abortRef.current) abortRef.current.abort();
       onClose();
     };
-    const start = () => {
+    const start = (photos) => {
       if (run) return;
       const ctl = new AbortController();
       abortRef.current = ctl;
       setNote(null);
-      setRun({ i: 0, n: PC.nextBatch(pics, nn).length });
+      setRun({ i: 0, n: photos ? PC.nextPhotos(pics).length : PC.nextBatch(pics, nn).length });
       LP_PICS.run({
         n: nn,
+        photos: !!photos,
         signal: ctl.signal,
         onProgress: (p) => {
           setRun({ i: p.i, n: p.n });
@@ -15247,7 +15252,7 @@
           onChange: (e) => setN(e.target.value),
           "aria-label": tx("\u0E08\u0E33\u0E19\u0E27\u0E19\u0E20\u0E32\u0E1E")
         }
-      ), !run ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run", className: "btn primary", onClick: start, disabled: !c.todo }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E", { n: nn })) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-stop", className: "btn", onClick: stop }, tx("\u0E2B\u0E22\u0E38\u0E14"))), run && /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", role: "status", "data-k": "pics-progress" }, /* @__PURE__ */ React.createElement("span", { className: "spinner mr-2", "aria-hidden": "true" }), tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E", run)), note && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "status", "data-k": "pics-note" }, txs(note)), /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E20\u0E32\u0E1E") }, tab("pending", "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08", c.pending), tab("ok", "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27", c.ok)), !items.length ? /* @__PURE__ */ React.createElement("div", { className: "empty", "data-k": "pics-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("ul", { className: "space-y-3", "data-k": "pics-list" }, items.map(({ concept, id }) => {
+      ), !run ? /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run", className: "btn primary", onClick: () => start(false), disabled: !c.todo }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E2D\u0E35\u0E01 {n} \u0E20\u0E32\u0E1E", { n: nn })) : /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-stop", className: "btn", onClick: stop }, tx("\u0E2B\u0E22\u0E38\u0E14")), !run && c.photosTodo > 0 && /* @__PURE__ */ React.createElement("button", { type: "button", "data-k": "pics-run-photos", className: "btn", onClick: () => start(true) }, tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E20\u0E32\u0E1E\u0E02\u0E49\u0E2D\u0E2A\u0E2D\u0E1A TOEIC {n} \u0E20\u0E32\u0E1E", { n: c.photosTodo }))), run && /* @__PURE__ */ React.createElement("p", { className: "text-sm font-semibold", role: "status", "data-k": "pics-progress" }, /* @__PURE__ */ React.createElement("span", { className: "spinner mr-2", "aria-hidden": "true" }), tx("\u0E2A\u0E23\u0E49\u0E32\u0E07\u0E41\u0E25\u0E49\u0E27 {i}/{n} \u0E20\u0E32\u0E1E", run)), note && /* @__PURE__ */ React.createElement("p", { className: "form-msg", role: "status", "data-k": "pics-note" }, txs(note)), /* @__PURE__ */ React.createElement("div", { className: "segmented", role: "group", "aria-label": tx("\u0E20\u0E32\u0E1E") }, tab("pending", "\u0E23\u0E2D\u0E15\u0E23\u0E27\u0E08", c.pending), tab("ok", "\u0E1C\u0E48\u0E32\u0E19\u0E41\u0E25\u0E49\u0E27", c.ok)), !items.length ? /* @__PURE__ */ React.createElement("div", { className: "empty", "data-k": "pics-empty" }, tx("\u0E22\u0E31\u0E07\u0E44\u0E21\u0E48\u0E21\u0E35\u0E20\u0E32\u0E1E\u0E43\u0E19\u0E01\u0E25\u0E38\u0E48\u0E21\u0E19\u0E35\u0E49")) : /* @__PURE__ */ React.createElement("ul", { className: "space-y-3", "data-k": "pics-list" }, items.map(({ concept, id }) => {
         const busy = !!acting[concept];
         return /* @__PURE__ */ React.createElement("li", { key: concept, className: "flex gap-3 items-start border border-gray-200 rounded-lg p-3", "data-k": "pic-row", "data-concept": concept }, /* @__PURE__ */ React.createElement(
           "img",

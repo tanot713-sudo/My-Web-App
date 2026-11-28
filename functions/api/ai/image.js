@@ -5,6 +5,8 @@
      ไม่ผ่าน = 400 code ref_model|ref_type|ref_size|ref_bytes · ส่งเข้าโมเดลเป็นฟิลด์ multipart input_image_0
    preset 'vocab' (ภาพประกอบคำศัพท์ของหน้าเรียนภาษา L9): prompt = ชื่อสิ่งของสั้นๆ เท่านั้น (a-z/ขีด/เว้นวรรค ≤ 40 ตัวอักษร — ไม่ผ่าน = 400 code concept)
      บังคับ quality 512×512 (ไม่รับ model/mode/ratio/ref จาก client) · เหลือโควตาต่ำกว่า VOCAB_RESERVE หลังภาพนี้ = 429 quota (เผื่อแชท/ถอดเสียง)
+   preset 'scene' (ภาพประกอบข้อสอบ TOEIC Part 1 ของหน้าเรียนภาษา L9b): prompt ต้องตรงกับรายการปิด SCENE_PROMPTS ทุกตัวอักษร (ไม่ตรง = 400 code concept — ไม่รับข้อความอิสระแม้เป็น a-z สั้นๆ)
+     คำบรรยายภาพจริง (คนการ์ตูน/พื้นเรียบ/ไม่มีตัวอักษร-โลโก้-ใบหน้าเหมือนจริง) อยู่ใน PRESET_SUFFIX.scene · บังคับ quality 768×512 · กติกาอื่น/โควตาเผื่อเหมือน vocab
    ตอบ { id, name, mime, size, model, seed, neurons, width, height, preset, mode, prompt(เต็ม) }
    โมเดล (เอกสาร: https://developers.cloudflare.com/workers-ai/models/flux-1-schnell/ · .../flux-2-klein-4b/):
      fast    = @cf/black-forest-labs/flux-1-schnell — input JSON { prompt (≤2048), steps (≤8) } → { image: base64 } ขนาดคงที่ 1024×1024 (ไม่มี seed/width/height)
@@ -14,7 +16,7 @@ import { MODELS, json, readBody, clampInt, checkQuota, recordUsage, aiErrorRespo
 import { putFile } from '../../_lib/files.js';
 
 export const MAX_PROMPT = 1500;
-export const PRESETS = ['background', 'icon', 'free', 'vocab'];
+export const PRESETS = ['background', 'icon', 'free', 'vocab', 'scene'];
 export const MODES = ['light', 'dark'];
 export const IMAGE_MODELS = { fast: MODELS.imageFast, quality: MODELS.imageQuality };
 /* ภาพอ้างอิง: เอกสาร klein-4b บอก "smaller than 512x512" — ยังไม่ได้ลองกับ Workers AI ว่า 512 พอดีผ่านไหม; ถ้าไม่ผ่านแก้เป็น 511
@@ -27,6 +29,7 @@ export const PRESET_SUFFIX = {
   background: 'soft minimal illustration, muted colors, subtle and calm, large empty negative space on the left and center, objects only near the right edge, no people, no hands, no faces, no text, no letters, no numbers, no logo, no watermark',
   icon: 'app icon, flat vector style, one simple bold symbol centered, symbol fills about 60 percent of the canvas with generous even margin, solid flat background color filling the whole square edge to edge, no border, no frame, no shadow, no text, no letters, crisp clean edges, readable when very small',
   free: '',
+  scene: 'simple flat illustration, clean bold outlines, plain light background, one clear everyday workplace scene, stylized cartoon people with simple faces, no photorealistic faces, no real person likeness, no text, no letters, no numbers, no signs, no logo, no brand names, no watermark',
   vocab: 'one single object centered in the frame, simple flat illustration, clean bold outlines, plain solid light background, no shadow, no other objects, no people, no hands, no text, no letters, no numbers, no logo, no watermark',
 };
 /* vocab: ภาพประกอบคำศัพท์ — client ส่งได้แค่ชื่อสิ่งของ (ตัวพิมพ์เล็ก a-z ขีด เว้นวรรค ≤ 40 ตัว ไม่เกิน 4 คำ) ห้าม prompt อิสระ
@@ -37,6 +40,20 @@ export const VOCAB_RESERVE = 3000;
 export function vocabConcept(s) {
   const t = typeof s === 'string' ? s.trim() : '';
   return t && t.length <= VOCAB_MAX && VOCAB_RE.test(t) ? t.replace(/-/g, ' ') : '';
+}
+/* scene: รายการปิดของประโยคบรรยายฉาก (ข้อสอบ TOEIC Part 1) — client ส่งได้แค่ประโยคที่อยู่ในรายการนี้ ห้าม prompt อิสระ · เผื่อโควตาเท่า vocab
+   ต้องตรงกับ prompt ของ PHOTOS ใน lang-calc.js (เทสต์ตรวจ) · เพิ่มภาพ = เพิ่มทั้งสองที่ */
+export const SCENE_PROMPTS = [
+  'man reading a newspaper at his desk',
+  'two colleagues working together in a meeting',
+  'woman walking while carrying a briefcase',
+  'workers loading boxes onto a truck',
+  'man walking while talking on the phone',
+  'technician repairing a machine',
+];
+export function sceneConcept(s) {
+  const t = typeof s === 'string' ? s.trim() : '';
+  return SCENE_PROMPTS.includes(t) ? t : '';
 }
 export const MODE_SUFFIX = {
   light: 'light airy pastel tones on an off-white background, bright and clean',
@@ -55,13 +72,14 @@ export const ASPECTS = {
 export function sizeFor(preset, model, ratio) {
   if (!model.sized) return { width: 1024, height: 1024 };
   if (preset === 'vocab') return { width: 512, height: 512 };
+  if (preset === 'scene') return { width: 768, height: 512 };
   if (preset === 'background') return { width: 1024, height: 576 };
   if (preset === 'free' && ratio) return ASPECTS[ratio];
   return { width: 1024, height: 1024 };
 }
 
 export function buildPrompt(prompt, preset, mode) {
-  const parts = [preset === 'vocab' ? 'a single ' + prompt : prompt];
+  const parts = [preset === 'vocab' ? 'a single ' + prompt : preset === 'scene' ? 'flat illustration of ' + prompt : prompt];
   if (PRESET_SUFFIX[preset]) parts.push(PRESET_SUFFIX[preset]);
   if (preset === 'background') parts.push(MODE_SUFFIX[mode]);
   return parts.join(', ');
@@ -151,12 +169,12 @@ export async function onRequestPost({ request, env }) {
   if (!PRESETS.includes(preset)) return json(400, { error: 'preset must be one of ' + PRESETS.join('|') });
   const mode = body.mode === undefined ? 'light' : body.mode;
   if (!MODES.includes(mode)) return json(400, { error: 'mode must be one of ' + MODES.join('|') });
-  const vocab = preset === 'vocab';
+  const vocab = preset === 'vocab' || preset === 'scene';   // preset ที่ client ส่งได้แค่ concept สั้นๆ: ขนาด/โมเดลตายตัว + เผื่อโควตา
   let concept = '';
   if (vocab) {
-    concept = vocabConcept(prompt);
-    if (!concept) return json(400, { error: 'concept must be 1-4 lowercase English words (a-z, max ' + VOCAB_MAX + ' chars)', code: 'concept' });
-    if (body.ref !== undefined && body.ref !== null) return json(400, { error: 'ref is not supported with preset vocab', code: 'ref_model' });
+    concept = preset === 'scene' ? sceneConcept(prompt) : vocabConcept(prompt);
+    if (!concept) return json(400, { error: preset === 'scene' ? 'scene must be one of the fixed scene prompts' : 'concept must be 1-4 lowercase English words (a-z, max ' + VOCAB_MAX + ' chars)', code: 'concept' });
+    if (body.ref !== undefined && body.ref !== null) return json(400, { error: 'ref is not supported with preset ' + preset, code: 'ref_model' });
   }
   const modelKey = vocab ? 'quality' : (body.model === undefined ? 'fast' : body.model);
   if (!Object.prototype.hasOwnProperty.call(IMAGE_MODELS, modelKey)) return json(400, { error: 'model must be fast|quality' });
