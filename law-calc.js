@@ -1,6 +1,7 @@
 /* ══════════════════════════════════════════════════════════════════
    law-calc.js — ตรรกะล้วนของห้องเรียนกฎหมายแบบใหม่ (UMD, window.LawCalc, ไม่มี DOM/storage, require() ได้ใน test)
    แบบ: docs/law-classroom-design.md หัวข้อ 5.2 ท่องมาตรา · 5.3 ฎีกา · 5.5 โครงข้อมูล (ROADMAP แถว 9b)
+   ชุดตัวบท law-packs (แถว 9c): packFile / isGzip / preparePack / findSection / searchPack — ไม่ตัดข้อความ
    กฎเนื้อหา 5.0: ห้ามย่อ — parseDeka คืนข้อความเต็มเดิม, cleanDeka ตัดแค่เพดาน MAX_DEKA_TEXT
 
    คีย์ (ลงทะเบียนใน data-registry.js เหนือ {prefix:'tanot:'}):
@@ -367,7 +368,92 @@
     return { v: 1, exam: EXAMS.indexOf(t.exam) >= 0 ? t.exam : '', newPerDay: isFinite(n) && t.newPerDay != null ? Math.max(1, Math.min(50, n)) : 10 };
   }
 
+  // ── ชุดตัวบท law-packs (ROADMAP แถว 9c · แบบ 5.4/5.5) ─────────────────────────────────────────
+  // ไฟล์ law-packs/<code>-<hash>.json.gz จาก tools/law-data: {v:1, code, name, src, asOf, s:[{n, b, t, f?}], x?:[{h, t}]}
+  // f = เชิงอรรถของมาตรา (ประวัติการแก้ไข) · x = ส่วนท้าย (บัญชี/อัตราท้ายพระราชบัญญัติ — เป็นตัวบท)
+  // กฎ 5.0 ห้ามย่อ: preparePack ไม่ตัดข้อความ — รายการที่ผิดรูปแบบหรือยาวเกินเพดานถูกทิ้งทั้งรายการ ไม่ถูกตัดสั้น
+  var MAX_PACK_SECTIONS = 6000, MAX_SECTION_TEXT = 100000, MAX_PACK_HEAD = 500, MAX_PACK_SRC = 500;
+  var N_ONLY = new RegExp('^' + N_CANON + '$');
+
+  // ชื่อไฟล์จาก index.json ใช้ได้เฉพาะรูป <code>-<hex>.json(.gz) ของรหัสนั้น (กันข้อมูลชี้ไปที่อื่น)
+  function packFile(index, code) {
+    if (CODE_IDS.indexOf(code) < 0) return null;
+    var p = index && isObj(index.packs) && Object.prototype.hasOwnProperty.call(index.packs, code) ? index.packs[code] : null;
+    var f = p && typeof p.file === 'string' ? p.file : '';
+    return new RegExp('^' + code + '-[0-9a-f]{6,64}\\.json(\\.gz)?$').test(f) ? 'law-packs/' + f : null;
+  }
+  function isGzip(bytes) { return !!bytes && bytes.length > 2 && bytes[0] === 0x1f && bytes[1] === 0x8b; }
+
+  function textOk(v, max) { return typeof v === 'string' && v.length > 0 && v.length <= max; }
+  // ข้อมูลภายนอก → ชุดที่ใช้ได้ หรือ null (รุ่น/รหัสไม่ตรง/ไม่มีมาตราที่ใช้ได้)
+  // ชื่อมาจาก CODES (ไม่เชื่อชื่อในไฟล์) · มาตราซ้ำเก็บตัวแรก · ลำดับคงตามไฟล์ · byN = ดัชนีเลขมาตรา → ลำดับใน s
+  function preparePack(raw, code) {
+    if (!isObj(raw) || raw.v !== 1 || CODE_IDS.indexOf(raw.code) < 0 || (code && raw.code !== code) || !Array.isArray(raw.s)) return null;
+    var c = CODES[CODE_IDS.indexOf(raw.code)];
+    var s = [], byN = Object.create(null);
+    for (var i = 0; i < raw.s.length && s.length < MAX_PACK_SECTIONS; i++) {
+      var r = raw.s[i];
+      if (!isObj(r) || typeof r.n !== 'string' || !N_ONLY.test(r.n) || byN[r.n] != null || !textOk(r.t, MAX_SECTION_TEXT)) continue;
+      var o = { n: r.n, b: typeof r.b === 'string' ? r.b.slice(0, MAX_PACK_HEAD) : '', t: r.t };
+      if (Array.isArray(r.f)) {
+        var f = r.f.filter(function (x) { return textOk(x, MAX_NOTE); });
+        if (f.length) o.f = f;
+      }
+      byN[r.n] = s.length;
+      s.push(o);
+    }
+    if (!s.length) return null;
+    var pack = { v: 1, code: c.code, name: c.name, src: str(raw.src, MAX_PACK_SRC),
+      asOf: /^\d{4}-\d{2}-\d{2}$/.test(raw.asOf) ? raw.asOf : '', s: s, byN: byN };
+    if (Array.isArray(raw.x)) {
+      var x = raw.x.filter(function (e) { return isObj(e) && textOk(e.h, MAX_PACK_HEAD) && textOk(e.t, MAX_SECTION_TEXT); })
+        .map(function (e) { return { h: e.h, t: e.t }; });
+      if (x.length) pack.x = x;
+    }
+    return pack;
+  }
+
+  // เลขที่ผู้ใช้พิมพ์ ("๑๕๐", "150 / 1", "7 ทวิ", "มาตรา 52", "ข้อ 21") → เลขแบบ canon หรือ ''
+  function packN(q, code) {
+    if (typeof q !== 'string') return '';
+    var r = parseSectionRef(q, code) || parseSectionRef(q.replace(/^\s*(?:มาตรา|ม\.|ข้อ)\s*/, ''), code);
+    return r && (!r.code || r.code === code) && N_ONLY.test(r.n) ? r.n : '';
+  }
+  function findSection(pack, n) {
+    if (!pack || !pack.byN) return null;
+    var k = packN(String(n == null ? '' : n), pack.code);
+    return k && pack.byN[k] != null ? pack.s[pack.byN[k]] : null;
+  }
+
+  // ค้นในชุด: เลขมาตรา (ถ้าพิมพ์เป็นเลข) ขึ้นก่อน แล้วค้นคำในข้อความ/หัวหมวด
+  // เลขไทย/อารบิกเทียบกันได้ ไม่สนช่องว่างซ้ำ/ตัวพิมพ์ละติน → [{n, b, exact?, at, len, pre, hit, post}] ≤ limit
+  function foldSearch(s) { return arabic(String(s).normalize('NFC')).toLowerCase(); }
+  function searchPack(pack, q, opts) {
+    var out = [];
+    if (!pack || !pack.s || typeof q !== 'string' || !q.trim()) return out;
+    var limit = opts && opts.limit > 0 ? opts.limit : 50, ctx = opts && opts.ctx > 0 ? opts.ctx : 40;
+    // เลขอย่างเดียว ("52", "มาตรา ๕๒", "ข้อ 21") — ข้อความยาวที่มีคำว่ามาตราอยู่กลางประโยคเป็นการค้นคำ
+    var hit = q.length <= 24 && /^s*(?:มาตรา|ม.|ข้อ)?s*[0-9๐-๙]/.test(q) ? findSection(pack, q) : null;
+    if (hit) out.push({ n: hit.n, b: hit.b, exact: true, at: 0, len: 0, pre: '', hit: '', post: hit.t.slice(0, ctx * 2) });
+    var words = foldSearch(q).trim().split(/\s+/).map(esc);
+    var re = new RegExp(words.join('\\s+'));
+    for (var i = 0; i < pack.s.length && out.length < limit; i++) {
+      var sec = pack.s[i];
+      if (hit && sec === hit) continue;
+      var t = sec.t, m = re.exec(foldSearch(t)); // arabic() เปลี่ยนเลขทีละตัว — ตำแหน่งตรงกับข้อความเดิม
+      if (!m) {
+        if (re.test(foldSearch(sec.b))) out.push({ n: sec.n, b: sec.b, at: 0, len: 0, pre: '', hit: '', post: t.slice(0, ctx * 2) });
+        continue;
+      }
+      out.push({ n: sec.n, b: sec.b, at: m.index, len: m[0].length,
+        pre: t.slice(Math.max(0, m.index - ctx), m.index), hit: t.substr(m.index, m[0].length), post: t.substr(m.index + m[0].length, ctx) });
+    }
+    return out;
+  }
+
   return {
+    packFile: packFile, isGzip: isGzip, preparePack: preparePack, findSection: findSection, searchPack: searchPack,
+    MAX_SECTION_TEXT: MAX_SECTION_TEXT,
     CODES: CODES, SUBJECT_IDS: SUBJECT_IDS, EXAMS: EXAMS, MAX_DEKA_TEXT: MAX_DEKA_TEXT,
     normalizeCode: normalizeCode, parseSectionRef: parseSectionRef, extractSections: extractSections, refKey: refKey,
     parseDeka: parseDeka, dekaId: dekaId, cleanDeka: cleanDeka,

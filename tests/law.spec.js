@@ -181,3 +181,214 @@ test.describe('law-calc.js — เติมคำ + การ์ด', () => {
     expect(L.cleanTrack(null)).toEqual({ v: 1, exam: '', newPerDay: 10 });
   });
 });
+
+// ── ชุดตัวบท law-packs (ROADMAP แถว 9c) ─────────────────────────────────────────────────────────────
+// ไฟล์จริงใน law-packs/ สร้างด้วย tools/law-data/build.mjs จาก PDF + เทียบตัวอักษรทุกมาตรากับฉบับกฤษฎีกา (thailaw-v1.0)
+// ตัวเลขด้านล่าง = ค่าที่ต้องได้หลังสร้างใหม่ทุกครั้ง (กฎ 5.0 ห้ามย่อ: จำนวนตัวอักษรลดลง = ข้อความหาย → เทสต์ล้ม)
+const fs = require('fs');
+const zlib = require('zlib');
+const LD = require(path.join(__dirname, '..', 'tools', 'law-data', 'lib.js'));
+const PACK_DIR = path.join(__dirname, '..', 'law-packs');
+function loadPack(code) {
+  const idx = JSON.parse(fs.readFileSync(path.join(PACK_DIR, 'index.json'), 'utf8'));
+  const rel = L.packFile(idx, code);
+  expect(rel, code).toBeTruthy();
+  const bytes = fs.readFileSync(path.join(__dirname, '..', rel));
+  expect(L.isGzip(bytes)).toBe(true);
+  const raw = JSON.parse(zlib.gunzipSync(bytes).toString('utf8'));
+  return { idx, raw, pack: L.preparePack(raw, code) };
+}
+const range = (n) => Array.from({ length: n }, (_, i) => String(i + 1));
+
+test.describe('law-packs — ชุดตัวบทจริง', () => {
+  test('index.json: รหัสจาก LawCalc.CODES เท่านั้น · ไฟล์มีจริง · ≤ 25 MiB · ไม่มีไฟล์ค้าง', () => {
+    const idx = JSON.parse(fs.readFileSync(path.join(PACK_DIR, 'index.json'), 'utf8'));
+    expect(idx.v).toBe(1);
+    const codes = L.CODES.map((c) => c.code);
+    const files = [];
+    for (const [code, p] of Object.entries(idx.packs)) {
+      expect(codes).toContain(code);
+      const rel = L.packFile(idx, code);
+      expect(rel).toBe('law-packs/' + p.file);
+      const st = fs.statSync(path.join(__dirname, '..', rel));
+      expect(st.size).toBe(p.bytes);
+      expect(st.size).toBeLessThanOrEqual(25 * 1024 * 1024);
+      expect(p.name).toBe(L.CODES.find((c) => c.code === code).name);
+      files.push(p.file);
+    }
+    expect(fs.readdirSync(PACK_DIR).filter((f) => f !== 'index.json').sort()).toEqual(files.sort());
+  });
+
+  test('พ.ร.บ.ทนายความ 2528: 89 มาตราเรียง 1–89 · ข้อความเต็ม · หัวหมวด · อัตราค่าธรรมเนียมท้าย พ.ร.บ.', () => {
+    const { raw, pack, idx } = loadPack('lawyer');
+    expect(raw.s.length).toBe(89); // preparePack ไม่ทิ้งมาตราไหน
+    expect(pack.s.map((s) => s.n)).toEqual(range(89));
+    expect(idx.packs.lawyer.sections).toBe(89);
+    expect(pack.s.reduce((a, s) => a + s.t.length, 0)).toBe(30618);
+    expect(pack.asOf).toBe('1985-09-19');
+    expect(L.findSection(pack, '1').t).toBe('พระราชบัญญัตินี้เรียกว่า “พระราชบัญญัติทนายความ พ.ศ. ๒๕๒๘”');
+    expect(L.findSection(pack, '2').f).toEqual(['ราชกิจจานุเบกษา เล่ม ๑๐๒/ตอนที่ ๑๒๙/ฉบับพิเศษ หน้า ๑/๑๙ กันยายน ๒๕๒๘']);
+    const s52 = L.findSection(pack, 'มาตรา ๕๒');
+    expect(s52.b).toBe('หมวด ๖ มรรยาททนายความ');
+    expect(s52.t).toBe('โทษผิดมรรยาททนายความมี ๓ สถาน คือ\n(๑) ภาคทัณฑ์\n(๒) ห้ามทำการเป็นทนายความมีกำหนดไม่เกินสามปี หรือ\n(๓) ลบชื่อออกจากทะเบียนทนายความ\n'
+      + 'ในกรณีประพฤติผิดมรรยาททนายความเล็กน้อยและเป็นความผิดครั้งแรก ถ้าผู้มีอำนาจสั่งลงโทษตามมาตรา ๖๖ มาตรา ๖๗ หรือมาตรา ๖๘ แล้วแต่กรณี '
+      + 'เห็นว่ามีเหตุอันควรงดโทษ จะงดโทษให้โดยว่ากล่าวตักเตือน หรือให้ทำทัณฑ์บนเป็นหนังสือไว้ก่อนก็ได้');
+    expect(L.findSection(pack, '89').b).toBe('บทเฉพาะกาล');
+    expect([...new Set(pack.s.map((s) => s.b))]).toEqual(['', 'หมวด ๑ สภาทนายความ', 'หมวด ๒ สมาชิกสภาทนายความ',
+      'หมวด ๓ คณะกรรมการสภาทนายความ', 'หมวด ๔ การขอจดทะเบียนและรับใบอนุญาตให้เป็นทนายความ', 'หมวด ๕ การประชุมใหญ่ของสภาทนายความ',
+      'หมวด ๖ มรรยาททนายความ', 'หมวด ๗ คณะกรรมการมรรยาททนายความ', 'หมวด ๘ กองทุนสวัสดิการทนายความ',
+      'หมวด ๙ การช่วยเหลือประชาชนทางกฎหมาย', 'หมวด ๑๐ บทกำหนดโทษ', 'บทเฉพาะกาล']);
+    expect(pack.x).toEqual([{ h: 'อัตราค่าธรรมเนียม', t: '(๑) การจดทะเบียนเป็นทนายความ ๘๐๐ บาท\n(๒) การรับใบอนุญาตให้เป็นทนายความตลอดชีพ\nฉบับละ ๔,๐๐๐ บาท\n'
+      + '(๓) การรับใบอนุญาตให้เป็นทนายความสองปี\nฉบับละ ๘๐๐ บาท\n(๔) การต่อใบอนุญาตให้เป็นทนายความ\nฉบับละ ๘๐๐ บาท\n(๕) การออกใบแทนใบอนุญาตให้เป็นทนายความ\nฉบับละ ๑๐๐ บาท' }]);
+    expect(LD.checkPack(raw)).toEqual([]);
+  });
+
+  test('ข้อบังคับมรรยาททนายความ 2529: 21 ข้อเรียง 1–21 · แก้ตามฉบับกฤษฎีกา · รอยตัดบรรทัดมีช่องว่างตามต้นฉบับ', () => {
+    const { raw, pack } = loadPack('ethics');
+    expect(pack.s.map((s) => s.n)).toEqual(range(21));
+    expect(pack.s.reduce((a, s) => a + s.t.length, 0)).toBe(4778);
+    expect(pack.asOf).toBe('1986-02-18');
+    // ฉบับกฤษฎีกาเองไม่มีช่องว่างก่อน "พ.ศ." ในข้อนี้ — คงตามต้นฉบับ
+    expect(L.findSection(pack, 'ข้อ ๑').t).toBe('ข้อบังคับนี้เรียกว่า “ข้อบังคับสภาทนายความว่าด้วยมรรยาททนายความพ.ศ. ๒๕๒๙”');
+    expect(L.findSection(pack, '21').t).toBe('ทนายความจะต้องปฏิบัติตนอย่างเคร่งครัดเพื่อให้เป็นไปตามคำสั่งของสภานายกพิเศษแห่งสภาทนายความ คณะกรรมการสภาทนายความ '
+      + 'และคณะกรรมการมรรยาททนายความ ตลอดจนบรรดาข้อบังคับหรือข้อกำหนดที่บุคคลหรือคณะบุคคลดังกล่าวได้สั่งหรือมีไว้ แล้วแต่กรณี ตามอำนาจหน้าที่ซึ่งมีอยู่ตามบทบัญญัติแห่งกฎหมาย');
+    const s20 = L.findSection(pack, '20');
+    expect(s20.t).toContain('สีอื่นที่ไม่ฉูดฉาด เชิ้ตขาวผ้าผูกคอสีดำ'); // บรรทัดใน PDF ตัดตรงช่องว่าง
+    expect(s20.t).toContain('แบบเงื่อนกลาสี');
+    expect(s20.b).toBe('หมวด ๕ มรรยาทในการแต่งกาย');
+    expect(L.findSection(pack, '10').t).toContain('ถ้าไม่ให้ตนว่าคดีนั้นแล้วจะหาหนทาง');
+    expect(LD.checkPack(raw)).toEqual([]);
+  });
+
+  test('ทุกชุด: ไม่มีลายน้ำ/อักขระควบคุม/ฟอนต์เพี้ยน · ำ ไม่แตกเป็น ํ+า', () => {
+    for (const code of ['lawyer', 'ethics']) {
+      const { pack } = loadPack(code);
+      const all = pack.s.map((s) => s.b + '\n' + s.t + '\n' + (s.f || []).join('\n')).join('\n') + (pack.x || []).map((e) => e.h + e.t).join('');
+      expect(all).not.toContain('สำนักงานคณะกรรมการกฤษฎีกา');
+      expect(all).not.toMatch(/[\u0000-\u0008\u000b-\u001f�]/); // eslint-disable-line no-control-regex
+      expect(all).not.toMatch(/ํ\s*า/);
+      expect(LD.garbleReport(all)).toEqual([]);
+    }
+  });
+});
+
+test.describe('law-calc.js — อ่านชุดตัวบท', () => {
+  const RAW = {
+    v: 1, code: 'ppk', name: 'ชื่อในไฟล์ไม่ถูกใช้', src: 'ทดสอบ', asOf: '2025-01-02',
+    s: [
+      { n: '150', b: 'บรรพ ๑ หลักทั่วไป', t: 'การใดมีวัตถุประสงค์เป็นการต้องห้ามชัดแจ้งโดยกฎหมาย การนั้นเป็นโมฆะ' },
+      { n: '150/1', b: 'บรรพ ๑ หลักทั่วไป', t: 'ข้อความทดสอบมาตรา ๑๕๐/๑ ภายใน   ๓๐ วัน' },
+      { n: '7ทวิ', b: '', t: 'ข้อความทดสอบเจ็ดทวิ', f: ['เชิงอรรถ', 42, ''] },
+      { n: '150', b: '', t: 'มาตราซ้ำ — ทิ้ง' },
+      { n: '__proto__', t: 'ทิ้ง' },
+      { n: '151 ', t: 'เลขมีช่องว่าง — ทิ้ง' },
+      { n: '152', t: '' },
+      { n: '153', t: 'ก'.repeat(L.MAX_SECTION_TEXT + 1) },
+      { n: 154, t: 'เลขไม่ใช่สตริง' },
+      null,
+    ],
+    x: [{ h: 'บัญชีท้าย', t: 'รายการ' }, { h: '', t: 'ทิ้ง' }],
+  };
+
+  test('packFile: เฉพาะ <code>-<hex>.json(.gz) ของรหัสนั้น', () => {
+    const idx = (file) => ({ v: 1, packs: { ppk: { file } } });
+    expect(L.packFile(idx('ppk-0a1b2c3d.json.gz'), 'ppk')).toBe('law-packs/ppk-0a1b2c3d.json.gz');
+    expect(L.packFile(idx('ppk-0a1b2c3d.json'), 'ppk')).toBe('law-packs/ppk-0a1b2c3d.json');
+    for (const bad of ['../ppk-0a1b2c3d.json.gz', 'pa-0a1b2c3d.json.gz', 'ppk-XYZ12345.json.gz', 'ppk-0a1b2c3d.json.gz?x', 'https://x/ppk-0a1b2c3d.json.gz', 'ppk-0a1.json']) {
+      expect(L.packFile(idx(bad), 'ppk'), bad).toBeNull();
+    }
+    expect(L.packFile(idx('ppk-0a1b2c3d.json.gz'), 'pa')).toBeNull();
+    expect(L.packFile(idx('ppk-0a1b2c3d.json.gz'), '__proto__')).toBeNull();
+    expect(L.packFile(JSON.parse('{"packs":{"__proto__":{"file":"ppk-0a1b2c3d.json.gz"}}}'), 'ppk')).toBeNull();
+    expect(L.packFile(null, 'ppk')).toBeNull();
+    expect(L.isGzip(new Uint8Array([0x1f, 0x8b, 8]))).toBe(true);
+    expect(L.isGzip(new Uint8Array([0x7b, 0x22, 0x76]))).toBe(false);
+    expect(L.isGzip(null)).toBe(false);
+  });
+
+  test('preparePack: ตรวจทุกช่อง · ทิ้งรายการผิด ไม่ตัดข้อความ · ชื่อจาก CODES', () => {
+    const p = L.preparePack(JSON.parse(JSON.stringify(RAW)), 'ppk');
+    expect(p.name).toBe('ประมวลกฎหมายแพ่งและพาณิชย์');
+    expect(p.s.map((s) => s.n)).toEqual(['150', '150/1', '7ทวิ']);
+    expect(p.s[0].t).toBe(RAW.s[0].t);
+    expect(p.s[2].f).toEqual(['เชิงอรรถ']);
+    expect(p.x).toEqual([{ h: 'บัญชีท้าย', t: 'รายการ' }]);
+    expect(p.asOf).toBe('2025-01-02');
+    expect(Object.getPrototypeOf(p.byN)).toBeNull();
+    // ข้อความยาวเท่าเพดานพอดีเก็บครบ ไม่ตัด
+    const big = L.preparePack({ v: 1, code: 'pa', s: [{ n: '1', t: 'ข'.repeat(L.MAX_SECTION_TEXT) }] }, 'pa');
+    expect(big.s[0].t.length).toBe(L.MAX_SECTION_TEXT);
+    expect(L.preparePack({ ...RAW, v: 2 }, 'ppk')).toBeNull();
+    expect(L.preparePack(RAW, 'pa')).toBeNull();
+    expect(L.preparePack({ ...RAW, code: 'xx' })).toBeNull();
+    expect(L.preparePack({ v: 1, code: 'ppk', s: [{ n: 'x', t: 'y' }] }, 'ppk')).toBeNull();
+    expect(L.preparePack({ ...RAW, asOf: '2568-01-01x' }, 'ppk').asOf).toBe('');
+    expect(L.preparePack(null)).toBeNull();
+    expect(L.preparePack([1])).toBeNull();
+  });
+
+  test('findSection: เลขไทย/อารบิก · /1 · ทวิ · มาตรา/ข้อ นำหน้า', () => {
+    const p = L.preparePack(RAW, 'ppk');
+    expect(L.findSection(p, '150/1').n).toBe('150/1');
+    expect(L.findSection(p, '๑๕๐ / ๑').n).toBe('150/1');
+    expect(L.findSection(p, 'มาตรา 150/1').n).toBe('150/1');
+    expect(L.findSection(p, '7 ทวิ').n).toBe('7ทวิ');
+    expect(L.findSection(p, 'ป.พ.พ. ม.150').n).toBe('150');
+    expect(L.findSection(p, 'ป.อ. มาตรา 150')).toBeNull(); // คนละประมวล
+    expect(L.findSection(p, '151')).toBeNull();
+    expect(L.findSection(p, '')).toBeNull();
+    expect(L.findSection(null, '150')).toBeNull();
+  });
+
+  test('searchPack: เลขมาตราขึ้นก่อน · ค้นคำ (เลขไทย = อารบิก, ช่องว่างกี่ตัวก็ได้) · หัวหมวด · limit', () => {
+    const p = L.preparePack(RAW, 'ppk');
+    expect(L.searchPack(p, '150/1')[0]).toMatchObject({ n: '150/1', exact: true });
+    const r2 = L.searchPack(p, 'ภายใน 30 วัน', { ctx: 10 });
+    expect(r2).toHaveLength(1);
+    expect(r2[0]).toMatchObject({ n: '150/1', hit: 'ภายใน   ๓๐ วัน', pre: 'ตรา ๑๕๐/๑ ', post: '' });
+    expect(r2[0].pre + r2[0].hit + r2[0].post).toBe(p.s[1].t.slice(r2[0].at - r2[0].pre.length));
+    expect(L.searchPack(p, 'โมฆะ').map((r) => r.n)).toEqual(['150']);
+    expect(L.searchPack(p, 'หลักทั่วไป').map((r) => r.n)).toEqual(['150', '150/1']); // ตรงหัวหมวด
+    // ข้อความยาวที่มีคำว่ามาตราอยู่กลาง = ค้นคำ ไม่ใช่เปิดมาตรา
+    expect(L.searchPack(p, 'ข้อความทดสอบมาตรา ๑๕๐/๑').map((r) => [r.n, !!r.exact])).toEqual([['150/1', false]]);
+    expect(L.searchPack(p, 'ข้อความ', { limit: 1 })).toHaveLength(1);
+    expect(L.searchPack(p, '(.*)')).toEqual([]); // ไม่ใช่ regex
+    expect(L.searchPack(p, '   ')).toEqual([]);
+    expect(L.searchPack(null, 'x')).toEqual([]);
+  });
+});
+
+test.describe('tools/law-data/lib.js — ตัวสร้างชุด', () => {
+  test('normalizeText: ํ+า / U+FFFD → ำ · คำพูด ` ′ → “ ”', () => {
+    expect(LD.normalizeText('นํ้า')).toBe('น้ำ');
+    expect(LD.normalizeText('ส� า')).toBe('สำ');
+    expect(LD.normalizeText('`ทนายความ′')).toBe('“ทนายความ”');
+  });
+
+  test('resolveWraps: รอยตัดบรรทัดไทย → ช่องว่างตามฉบับอ้างอิง · ไม่มีอ้างอิง/หาไม่พบ = ต่อติด', () => {
+    const W = LD.WRAP;
+    const t = 'สีอื่นที่ไม่ฉูดฉาด' + W + 'เชิ้ตขาวผ้าผูก' + W + 'คอสีดำ';
+    const ref = 'สีอื่นที่ไม่ฉูดฉาด\r\nเชิ้ตขาวผ้าผูกคอ[๑]สีดำ';
+    expect(LD.resolveWraps(t, ref)).toBe('สีอื่นที่ไม่ฉูดฉาด เชิ้ตขาวผ้าผูกคอสีดำ');
+    expect(LD.resolveWraps(t, null)).toBe('สีอื่นที่ไม่ฉูดฉาดเชิ้ตขาวผ้าผูกคอสีดำ');
+    expect(LD.resolveWraps(t, 'ข้อความอื่นทั้งหมด')).toBe('สีอื่นที่ไม่ฉูดฉาดเชิ้ตขาวผ้าผูกคอสีดำ');
+    expect(LD.resolveWraps('ไม่มีรอย', 'x')).toBe('ไม่มีรอย');
+    expect(LD.joinWrap('ทนาย', 'ความ')).toBe('ทนาย' + W + 'ความ');
+    expect(LD.joinWrap('(๑)', 'ภาค')).toBe('(๑) ภาค');
+  });
+
+  test('checkPack: ลำดับย้อน/ซ้ำ/ลายน้ำ/รอยตัดค้าง/เลขผิดรูปแบบ', () => {
+    const ok = { v: 1, code: 'pa', asOf: '2020-01-01', s: [{ n: '1', b: '', t: 'ก' }, { n: '1/1', b: '', t: 'ข' }, { n: '2', b: '', t: 'ค' }, { n: '2ทวิ', b: '', t: 'ง' }, { n: '3', b: '', t: 'จ' }] };
+    expect(LD.checkPack(ok)).toEqual([]);
+    const bad = { v: 1, code: 'pa', asOf: '', s: [{ n: '2', b: '', t: 'ก' }, { n: '1', b: '', t: 'ข' + LD.WATERMARK }, { n: '1', b: '', t: 'ค' + LD.WRAP + 'ง' }, { n: 'x', b: '', t: '' }] };
+    const msgs = LD.checkPack(bad).join('\n');
+    for (const k of ['asOf', 'ลำดับมาตราย้อน', 'ลายน้ำ', 'มาตราซ้ำ', 'resolveWraps', 'รูปแบบ', 'ไม่มีข้อความ']) expect(msgs).toContain(k);
+  });
+
+  test('compareLetters: ไม่นับช่องว่าง/คำพูด/เลขเชิงอรรถ · ต่างหนึ่งตัวก็ไม่ผ่าน', () => {
+    expect(LD.compareLetters('“ก ข” ค', 'ก\r\nข\u0093ค[๑]').same).toBe(true);
+    const c = LD.compareLetters('อำนาจห้าที่', 'อำนาจหน้าที่');
+    expect(c.same).toBe(false);
+    expect(c.at).toBe(6); // อำนาจห แล้ว ้ ≠ น
+  });
+});
