@@ -47,8 +47,9 @@
 
   var THAI = '\\u0E01-\\u0E4E';
   var SUFFIX = 'ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|อัฎฐ|นว|ทศ';
-  var N_SRC = '(\\d{1,4}(?:\\s*\\/\\s*\\d{1,3})?)(?:\\s*(' + SUFFIX + ')(?![' + THAI + ']))?';
-  var N_CANON = '\\d{1,4}(?:\\/\\d{1,3})?(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)?';
+  // "172 ทวิ/1" (ป.วิ.อ.) = มาตราที่แทรกหลัง 172 ทวิ → canon "172ทวิ/1"
+  var N_SRC = '(\\d{1,4}(?:\\s*\\/\\s*\\d{1,3})?)(?:\\s*(' + SUFFIX + ')(?![' + THAI + '])(?:\\s*\\/\\s*(\\d{1,3}))?)?';
+  var N_CANON = '\\d{1,4}(?:\\/\\d{1,3})?(?:(?:ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)(?:\\/\\d{1,3})?)?';
   var CODE_ALT = CODE_IDS.join('|');
   var REF_RE = new RegExp('^(' + CODE_ALT + '):(' + N_CANON + ')$');
   var ST_RE = new RegExp('^st-(' + CODE_ALT + ')-(' + N_CANON + ')-([abc])$');
@@ -100,6 +101,7 @@
   function canonN(m) {
     var n = m[1].replace(/\s+/g, '');
     if (m[2]) n += m[2] === 'อัฎฐ' ? 'อัฏฐ' : m[2];
+    if (m[2] && m[3]) n += '/' + m[3];
     return n;
   }
   var NUM_AT = new RegExp('^\\s*' + N_SRC);
@@ -433,7 +435,7 @@
     if (!pack || !pack.s || typeof q !== 'string' || !q.trim()) return out;
     var limit = opts && opts.limit > 0 ? opts.limit : 50, ctx = opts && opts.ctx > 0 ? opts.ctx : 40;
     // เลขอย่างเดียว ("52", "มาตรา ๕๒", "ข้อ 21") — ข้อความยาวที่มีคำว่ามาตราอยู่กลางประโยคเป็นการค้นคำ
-    var hit = q.length <= 24 && /^s*(?:มาตรา|ม.|ข้อ)?s*[0-9๐-๙]/.test(q) ? findSection(pack, q) : null;
+    var hit = q.length <= 24 && /^\s*(?:มาตรา|ม\.|ข้อ)?\s*[0-9๐-๙]/.test(q) ? findSection(pack, q) : null;
     if (hit) out.push({ n: hit.n, b: hit.b, exact: true, at: 0, len: 0, pre: '', hit: '', post: hit.t.slice(0, ctx * 2) });
     var words = foldSearch(q).trim().split(/\s+/).map(esc);
     var re = new RegExp(words.join('\\s+'));

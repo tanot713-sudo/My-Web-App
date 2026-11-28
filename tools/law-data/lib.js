@@ -13,9 +13,50 @@ const WATERMARK = 'สำนักงานคณะกรรมการกฤ�
 const THAI_RE = /[ก-๎]/;
 const HEAD_RE = /^(ภาค|ลักษณะ|หมวด|ส่วนที่|ส่วน|บรรพ)\s*[๐-๙0-9]+|^บทเฉพาะกาล$|^บทนิยาม$/;
 const END_RE = /^(ผู้รับสนองพระบรมราชโองการ|ประกาศ ณ วันที่|หมายเหตุ\s*:-)/;
+const ACT_TITLE_RE = /^(พระราชบัญญัติ|พระราชกฤษฎีกา|พระราชกำหนด|รัฐธรรมนูญ|ประกาศของคณะ|คำสั่งหัวหน้าคณะ)/;
 const DIGIT_TH = '๐๑๒๓๔๕๖๗๘๙';
 
 function arabic(s) { return String(s).replace(/[๐-๙]/g, (d) => String(DIGIT_TH.indexOf(d))); }
+
+// glyph ของฟอนต์ Bai Jamjuree (OFL, cadsondemak/Bai-Jamjuree) ที่ PDF "ฉบับ Update ล่าสุด" ของกฤษฎีกาฝังไว้แต่ ToUnicode
+// ไม่มีรหัสกำกับ — pdf.js คืน U+0000 ("เมื อ", "ฟ อง"). รหัส CID ใน PDF = ลำดับ glyph (GID) ของฟอนต์ต้นฉบับ (ตรวจแล้ว:
+// CID ที่มี ToUnicode เช่น 731 ่ 734 ้ 742 ์ 745 ็ ตรงกับ cmap ของ BaiJamjuree-Regular/SemiBold.ttf ใน google/fonts)
+// ตารางนี้ถอดจากชื่อ glyph ในตาราง post ของฟอนต์ต้นฉบับ (Regular และ SemiBold ชุดเดียวกัน) — ไม่ใช่การเดา:
+// .small = ยกสูงเหนือสระบน · .narrow = เลื่อนซ้ายหลัง ป ฝ ฟ ฬ · .less/.short = ตัดหางเมื่อมีสระล่าง · uni0E4D0E48 = ํ+่ (ใน "ค่ำ")
+const BAI_JAMJUREE_UNMAPPED = {
+  442: 'ฤๅ', 443: 'ฦๅ', 445: 'ญ', 447: 'ฎ', 449: 'ฏ', 451: 'ฐ', 472: 'ฤ', 475: 'ฦ', 482: 'ฬ',
+  730: 'ั', 732: '่', 733: '่', 735: '้', 736: '้', 738: '๊', 739: '๊', 741: '๋', 743: '์', 744: '์', 746: '็',
+  749: 'ิ', 751: 'ี', 753: 'ึ', 755: 'ื',
+  // วรรณยุกต์ + นิคหิตของ "ำ" — เขียนตามลำดับ Unicode (วรรณยุกต์ก่อน ํ) แล้ว normalizeText รวม ํ+า เป็น ำ
+  757: '่ํ', 758: '้ํ', 759: '๊ํ', 760: '๋ํ', 769: '่ํ', 770: '้ํ', 771: '๊ํ', 772: '๋ํ',
+  762: 'ฺ', 764: 'ุ', 766: 'ู', 767: '๋', 768: 'ํ',
+};
+
+// แทน U+0000 ในชิ้นข้อความ (getTextContent) ด้วยตัวอักษรของ glyph ตามลำดับเดียวกับ operator list ของหน้าเดียวกัน
+// glyphs = [{font: ชื่อฟอนต์ใน PDF, cid, prev: ตัวอักษรของ glyph ก่อนหน้าใน showText เดียวกัน | null}] เฉพาะ glyph ที่คืน U+0000
+// คืน {items, problems} — problems ไม่ว่าง = ห้ามใช้หน้านี้ (จำนวนไม่ตรง / ฟอนต์อื่น / CID ไม่มีในตาราง / ลำดับไม่ตรงกัน)
+function fillUnmappedGlyphs(items, glyphs) {
+  const problems = [];
+  let k = 0;
+  const out = items.map((it) => {
+    if (!it.str || it.str.indexOf('\u0000') < 0) return it;
+    let s = '';
+    for (let i = 0; i < it.str.length; i++) {
+      const ch = it.str[i];
+      if (ch !== '\u0000') { s += ch; continue; }
+      const g = glyphs[k++];
+      if (!g) { problems.push('U+0000 ในข้อความมากกว่า glyph ใน operator list'); s += ch; continue; }
+      const rep = /BaiJamjuree/.test(g.font) ? BAI_JAMJUREE_UNMAPPED[g.cid] : undefined;
+      if (rep === undefined) { problems.push('glyph ไม่มีรหัสในตาราง: ' + g.font + ' CID ' + g.cid); s += ch; continue; }
+      const before = it.str[i - 1];
+      if (g.prev && before && before !== '\u0000' && before !== g.prev) problems.push('ลำดับ glyph ไม่ตรงกับข้อความ (CID ' + g.cid + ')');
+      s += rep;
+    }
+    return Object.assign({}, it, { str: s });
+  });
+  if (k !== glyphs.length) problems.push('glyph U+0000 ใน operator list ' + glyphs.length + ' ตัว แต่ข้อความมี ' + k);
+  return { items: out, problems };
+}
 
 // รหัสตัวอักษรที่ฟอนต์ของ PDF กฤษฎีกาเขียนเพี้ยน (ไม่ใช่การแก้ถ้อยคำ):
 //  - "ำ" ถูกเก็บเป็น ํ (U+0E4D) + า หรือ U+FFFD + า และวรรณยุกต์อาจคั่นกลาง ("น�้า" = น้ำ) หรือมีช่องว่างแทรก ("ส� า")
@@ -62,8 +103,15 @@ function pageLines(items, bodyH) {
     if (s.trim() === WATERMARK) continue; // ลายน้ำทุกหน้า + หัวกระดาษ
     parts.push({ s, x: it.x, y: it.y, w: it.w || 0, h: it.h });
   }
-  const sup = parts.filter((p) => p.s.trim() && p.h < bodyH * 0.7);
-  const txt = parts.filter((p) => p.h >= bodyH * 0.7);
+  // เลขเชิงอรรถ: ตัวยกเล็ก (ไฟล์เดิม) หรือ "[12]" ขนาด ~0.75 ของตัวเนื้อ (ไฟล์ "ฉบับ Update ล่าสุด" — ชิ้นเดียวอาจมีหลายเลข)
+  const isBracketNote = (p) => BRACKET_NOTE_RE.test(p.s) && p.h < bodyH * 0.9;
+  const sup = [];
+  for (const p of parts) {
+    if (!p.s.trim()) continue;
+    if (isBracketNote(p)) { for (const m of p.s.match(/[0-9๐-๙]+/g)) sup.push(Object.assign({}, p, { s: m })); }
+    else if (p.h < bodyH * 0.7) sup.push(p);
+  }
+  const txt = parts.filter((p) => p.h >= bodyH * 0.7 && !isBracketNote(p));
   const lines = [];
   for (const p of txt) {
     let ln = lines.find((l) => Math.abs(l.y - p.y) < Math.max(2, p.h * 0.3));
@@ -94,10 +142,15 @@ function pageLines(items, bodyH) {
     text = normalizeText(text);
     const last = l.items[l.items.length - 1];
     return { y: l.y, x: l.items[0].x, x2: last.x + last.w, h, kind: h < bodyH - 1 ? 'note' : 'body', text: text.replace(/\s+$/, ''), marks };
-  }).filter((l) => l.text.trim() || l.marks.length);
+  }).filter((l) => (l.text.trim() || l.marks.length) && !MARK_ONLY_RE.test(l.text));
 }
 
-const PAGE_NO_RE = /^\s*(?:-\s*)?[๐-๙0-9]+(?:\s*-)?\s*$/;
+// บรรทัดที่มีแต่สระบน/ล่าง/วรรณยุกต์ ไม่มีพยัญชนะ = เศษ glyph ที่ PDF วางไว้นอกบรรทัดจริง (เช่นท้ายหน้า) ไม่ใช่ข้อความ
+const MARK_ONLY_RE = /^[\sัิ-ฺ็-๎]+$/;
+const BRACKET_NOTE_RE = /^(?:\s*\[\s*[0-9๐-๙]+\s*\])+\s*$/;
+
+// เลขหน้า "- ๕ -" / "20" / "| 16" (ไฟล์ "ฉบับ Update ล่าสุด")
+const PAGE_NO_RE = /^\s*(?:-\s*|\|\s*)?[๐-๙0-9]+(?:\s*-)?\s*$/;
 
 // ทุกหน้า → {body: [บรรทัดเนื้อ], notes: Map(เลข → ข้อความเชิงอรรถ)}
 function documentLines(pages) {
@@ -105,6 +158,9 @@ function documentLines(pages) {
   const body = [];
   const notes = new Map();
   let lastNote = null;
+  // เชิงอรรถท้ายเล่ม (ไฟล์ "ฉบับ Update ล่าสุด"): หลังบรรทัดจบตัวบท (END_RE) บรรทัดตัวเนื้อที่ขึ้นต้นด้วยเลขเชิงอรรถ
+  // = เริ่มเชิงอรรถเลขนั้น และทุกบรรทัดหลังจากนั้นเป็นเชิงอรรถ (บรรทัดต่อของเลขล่าสุด)
+  let afterEnd = false, endnotes = false;
   pages.forEach((pg, pi) => {
     const lines = pageLines(pg.items, bodyH);
     // เลขหน้า "- ๕ -" / "20" อยู่บรรทัดบนสุดหรือล่างสุดของหน้า (บางไฟล์ "-" แยกบรรทัด)
@@ -118,11 +174,45 @@ function documentLines(pages) {
         else if (lastNote) notes.set(lastNote, notes.get(lastNote) + ' ' + ln.text.trim()); // เชิงอรรถยาวต่อบรรทัด
         continue;
       }
+      if (END_RE.test(ln.text.trim())) afterEnd = true;
+      if (afterEnd && ln.marks.length && ln.marks[0].at === 0 && ln.text.trim()) {
+        endnotes = true; lastNote = ln.marks[0].n; notes.set(lastNote, ln.text.trim()); continue;
+      }
+      if (endnotes) { if (lastNote) notes.set(lastNote, notes.get(lastNote) + ' ' + ln.text.trim()); continue; }
       ln.page = pi + 1;
       body.push(ln);
     }
   });
   return { body, notes, bodyH };
+}
+
+// กล่องความเห็นกฤษฎีกาที่ไฟล์ "ฉบับ Update ล่าสุด" แทรกไว้ระหว่างบรรทัดตัวบท (ไม่ใช่ตัวบท — เป็นลิงก์ไปเรื่องเสร็จ):
+//   "เรื่องเสร็จที่ ๑๒๔/๒๕๔๖" → "บันทึกสำนักงานคณะกรรมการกฤษฎีกา" / "บันทึก" → "เรื่อง …" (หลายบรรทัด)
+//   → "สำหรับรายละเอียดของความเห็นฯ โปรดดูที่ไฟล์ PDF"
+// ตัดระดับบรรทัดก่อนรวมย่อหน้า (บรรทัดตัวบทที่ต่อหลังกล่องจึงต่อกับย่อหน้าเดิมได้ถูก) · รูปแบบไม่ครบ = problems ห้ามใช้ไฟล์
+const BOX_START_RE = /^(เรื่องเสร็จที่\s*[๐-๙0-9][๐-๙0-9\s\-–,]*\/\s*[๐-๙0-9]+|บันทึกสำนักงานคณะกรรมการกฤษฎีกา.*|บันทึก)$/;
+const BOX_END_RE = /^สำหรับรายละเอียดของความเห็นฯ\s*โปรดดูที่ไฟล์\s*PDF$/;
+// ยาวสุดที่พบจริง 9 บรรทัด (ชื่อเรื่องยาว/ข้ามหน้า) · ในกล่องมีบรรทัด "มาตรา ๑๔๙๗ แห่ง…" ได้ (ชื่อเรื่อง) จึงไม่ใช้เลขมาตราเป็นตัวหยุด
+const BOX_MAX_LINES = 12;
+function stripOpinionBoxes(body) {
+  const out = [];
+  const problems = [];
+  let boxes = 0;
+  for (let i = 0; i < body.length; i++) {
+    const t = body[i].text.trim();
+    if (BOX_END_RE.test(t)) { problems.push('หน้า ' + body[i].page + ': ท้ายกล่องความเห็นไม่มีหัวกล่อง'); continue; }
+    if (!BOX_START_RE.test(t)) { out.push(body[i]); continue; }
+    let j = i + 1;
+    while (j < body.length && j - i < BOX_MAX_LINES && !BOX_END_RE.test(body[j].text.trim())) j++;
+    if (j >= body.length || !BOX_END_RE.test(body[j].text.trim())) {
+      problems.push('หน้า ' + body[i].page + ': กล่องความเห็นไม่มีบรรทัดท้าย "โปรดดูที่ไฟล์ PDF" ภายใน ' + BOX_MAX_LINES + ' บรรทัด: ' + t.slice(0, 40));
+      out.push(body[i]);
+      continue;
+    }
+    boxes++;
+    i = j;
+  }
+  return { body: out, boxes, problems };
 }
 
 // ต่อบรรทัดที่ตัดคำ: ไทยชนไทย = ใส่ WRAP ไว้ก่อน (ต้นฉบับอาจตัดกลางคำ หรือตรงช่องว่างก็ได้ — resolveWraps ตัดสิน
@@ -142,8 +232,15 @@ function paragraphs(body, bodyH) {
   const left = median(body.map((l) => l.x).filter((x) => x < 200));
   const right = median(body.map((l) => l.x2));
   const center = (left + right) / 2;
+  // ระยะบรรทัดปกติ (ค่ากลางของระยะห่างบรรทัดติดกันในหน้าเดียวกัน)
+  const steps = [];
+  for (let i = 1; i < body.length; i++) {
+    const d = body[i - 1].y - body[i].y;
+    if (body[i].page === body[i - 1].page && d > 0 && d < bodyH * 3) steps.push(d);
+  }
+  const step = median(steps) || bodyH * 1.5;
   const out = [];
-  let cur = null;
+  let cur = null, prev = null;
   for (const ln of body) {
     let t = '';
     let at = 0;
@@ -154,8 +251,17 @@ function paragraphs(body, bodyH) {
     const mid = (ln.x + ln.x2) / 2;
     const centered = indent && Math.abs(mid - center) < bodyH * 2 && ln.x2 < right - bodyH * 2;
     const pageBreak = cur && ln.page !== cur.page;
-    if (!cur || indent || (centered && !(cur.centered && pageBreak))) {
+    const plain = t.replace(/\u0001[^\u0002]*\u0002/g, '');
+    // บรรทัดจบตัวบท ("หมายเหตุ :-" ฯลฯ) ขึ้นย่อหน้าใหม่เสมอ — ไฟล์ "ฉบับ Update ล่าสุด" พิมพ์ชิดซ้ายไม่เยื้อง
+    const endLine = END_RE.test(plain);
+    // ชื่อกฎหมายฉบับแก้ไขท้ายเล่ม (ป.พ.พ.): ชิดซ้าย + เว้นห่างจากบรรทัดก่อน > 2 บรรทัด — ตัวบทจริงขึ้นย่อหน้าด้วยบรรทัดเยื้องเสมอ
+    // บรรทัดชิดซ้ายจึงเป็นบรรทัดต่อได้อย่างเดียว ยกเว้นมีช่องว่างใหญ่คั่น
+    const gap = prev && prev.page === ln.page ? prev.y - ln.y : 0;
+    const actTitle = !indent && gap > step * 2.2 && ACT_TITLE_RE.test(plain);
+    prev = ln;
+    if (!cur || indent || endLine || actTitle || (centered && !(cur.centered && pageBreak))) {
       cur = { text: t, centered, page: ln.page, x: ln.x };
+      if (actTitle) cur.end = true;
       out.push(cur);
     } else {
       cur.text = joinWrap(cur.text, t);
@@ -165,39 +271,41 @@ function paragraphs(body, bodyH) {
   return out;
 }
 
-const SEC_RE = /^(มาตรา|ข้อ)\s*([๐-๙0-9]{1,4}(?:\s*\/\s*[๐-๙0-9]{1,3})?)(?:\s*(ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|อัฎฐ|นว|ทศ)(?![ก-๎]))?/;
+// "มาตรา ๑๗๒ ทวิ/๑" (ป.วิ.อ.) = มาตราที่แทรกหลัง ๑๗๒ ทวิ → "172ทวิ/1" (รูปแบบเดียวกับ LawCalc)
+const SEC_RE = /^(มาตรา|ข้อ)\s*([๐-๙0-9]{1,4}(?:\s*\/\s*[๐-๙0-9]{1,3})?)(?:\s*(ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|อัฎฐ|นว|ทศ)(?![ก-๎])(?:\s*\/\s*([๐-๙0-9]{1,3}))?)?/;
 
-function canonN(num, suf) {
+function canonN(num, suf, sub) {
   let n = arabic(num).replace(/\s+/g, '');
   if (suf) n += suf === 'อัฎฐ' ? 'อัฏฐ' : suf;
+  if (suf && sub) n += '/' + arabic(sub);
   return n;
 }
-// ลำดับมาตราเพื่อเทียบ: 7 < 7/1 < 7/2 < 7ทวิ < 7ตรี < 8
+// ลำดับมาตราเพื่อเทียบ: เลข › /เลข › ทวิ ตรี … › /เลขหลังคำต่อท้าย (7 < 7ทวิ < 7ทวิ/1 < 7ตรี < 7/1 < 8)
 const SUF_ORDER = ['ทวิ', 'ตรี', 'จัตวา', 'เบญจ', 'ฉ', 'สัตต', 'อัฏฐ', 'นว', 'ทศ'];
 function nKey(n) {
-  const m = /^(\d+)(?:\/(\d+))?(.*)$/.exec(n) || [];
-  return [+m[1] || 0, +m[2] || 0, m[3] ? SUF_ORDER.indexOf(m[3]) + 1 : 0];
+  const m = /^(\d+)(?:\/(\d+))?([^/\d]*)(?:\/(\d+))?$/.exec(n) || [];
+  return [+m[1] || 0, +m[2] || 0, m[3] ? SUF_ORDER.indexOf(m[3]) + 1 : 0, +m[4] || 0];
 }
 function nLess(a, b) {
   const x = nKey(a), y = nKey(b);
-  for (let i = 0; i < 3; i++) if (x[i] !== y[i]) return x[i] < y[i];
+  for (let i = 0; i < 4; i++) if (x[i] !== y[i]) return x[i] < y[i];
   return false;
 }
 
 // ย่อหน้า → มาตรา: หัว (ภาค/ลักษณะ/หมวด/ส่วน + ชื่อบรรทัดถัดไปที่อยู่กลางหน้า) สะสมเป็น b ·
 // เลือกช่วงมาตราที่เรียงขึ้นต่อเนื่องที่ยาวที่สุด (ตัด พ.ร.บ.ให้ใช้ประมวล ข้างหน้า และบทเฉพาะกาลของฉบับแก้ไขข้างท้าย)
-// marker = 'มาตรา' | 'ข้อ'
-function splitSections(paras, notes, marker) {
+// marker = 'มาตรา' | 'ข้อ' · stopHeads = หัวส่วนท้าย (บัญชี/ตารางท้ายประมวล) — มาตราก่อนหน้าจบที่หัวนั้น ไม่กินส่วนท้ายเข้าไป
+function splitSections(paras, notes, marker, stopHeads) {
   const runs = [];
   let run = null, sec = null, heads = [], tail = null, pendingTitle = false;
   const close = () => { sec = null; };
   for (const p of paras) {
     const raw = p.text;
     const plain = raw.replace(/\u0001[^\u0002]*\u0002/g, '');
-    if (END_RE.test(plain)) { close(); tail = 'end'; continue; }
+    if (END_RE.test(plain) || p.end || (stopHeads && stopHeads.indexOf(plain.trim()) >= 0)) { close(); tail = 'end'; continue; }
     const m = SEC_RE.exec(plain);
     if (m && m[1] === marker) { // บรรทัดแรกของมาตราที่สั้นอาจบังเอิญอยู่กลางหน้า — เลขมาตราชนะเสมอ
-      const n = canonN(m[2], m[3]);
+      const n = canonN(m[2], m[3], m[4]);
       if (!run || !nLess(run.last, n)) { run = { secs: [], last: n }; runs.push(run); }
       run.last = n;
       tail = null;
@@ -257,8 +365,13 @@ function appendices(paras, heads) {
   let cur = null;
   for (const p of paras) {
     const plain = p.text.replace(/\u0001[^\u0002]*\u0002/g, '').trim();
-    if (/^หมายเหตุ\s*:-/.test(plain)) { cur = null; continue; }
-    if (heads.indexOf(plain) >= 0) { cur = { h: plain, t: [] }; out.push(cur); continue; }
+    // ส่วนท้ายจบที่บรรทัดจบตัวบท หรือชื่อกฎหมายฉบับแก้ไขที่ตามมา (p.end จาก paragraphs)
+    if (END_RE.test(plain) || p.end) { cur = null; continue; }
+    // หัวเดียวกันที่โผล่อีกในฉบับแก้ไขท้ายเล่ม ("ให้ใช้ตาราง ๑ ท้าย … แทน") ไม่ใช่ส่วนท้ายฉบับปัจจุบัน — ใช้ครั้งแรกเท่านั้น
+    if (heads.indexOf(plain) >= 0) {
+      if (out.some((a) => a.h === plain)) { cur = null; continue; }
+      cur = { h: plain, t: [] }; out.push(cur); continue;
+    }
     if (cur) cur.t.push(plain);
   }
   return out.map((a) => ({ h: a.h, t: a.t.join('\n') }));
@@ -344,16 +457,26 @@ function compareLetters(a, b) {
 // แยกข้อความ thailaw (HTML ของกฤษฎีกา) เป็นมาตรา เพื่อเทียบรายมาตรา
 function refSections(text, marker) {
   const out = new Map();
-  const re = new RegExp('(?:^|\\n)\\s*' + marker + '\\s*([๐-๙0-9]{1,4}(?:\\s*\\/\\s*[๐-๙0-9]{1,3})?)(?:\\s*(ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)(?![\\u0E01-\\u0E4E]))?', 'g');
+  const re = new RegExp('(?:^|\\n)\\s*' + marker + '\\s*([๐-๙0-9]{1,4}(?:\\s*\\/\\s*[๐-๙0-9]{1,3})?)(?:\\s*(ทวิ|ตรี|จัตวา|เบญจ|ฉ|สัตต|อัฏฐ|นว|ทศ)(?![\\u0E01-\\u0E4E])(?:\\s*\\/\\s*([๐-๙0-9]{1,3}))?)?', 'g');
   const hits = [];
   let m;
-  while ((m = re.exec(text))) hits.push({ n: canonN(m[1], m[2]), at: m.index, start: m.index + m[0].length });
-  hits.forEach((h, i) => {
-    let t = text.slice(h.start, i + 1 < hits.length ? hits[i + 1].at : text.length);
+  while ((m = re.exec(text))) hits.push({ n: canonN(m[1], m[2], m[3]), at: m.index, start: m.index + m[0].length });
+  hits.forEach((h, i) => { h.end = i + 1 < hits.length ? hits[i + 1].at : text.length; });
+  // ช่วงเลขที่เรียงขึ้นยาวที่สุด แบบเดียวกับ splitSections (ข้าม พ.ร.บ.ให้ใช้ ข้างหน้าที่มีเลขมาตราซ้ำกับตัวประมวล)
+  const runs = [];
+  let run = null;
+  for (const h of hits) {
+    if (!run || !nLess(run[run.length - 1].n, h.n)) { run = []; runs.push(run); }
+    run.push(h);
+  }
+  let best = [];
+  for (const r of runs) if (r.length > best.length) best = r;
+  for (const h of best) {
+    let t = text.slice(h.start, h.end);
     t = t.replace(/\n\s*(หมวด|ภาค|ลักษณะ|ส่วนที่|บรรพ)\s*[๐-๙0-9]+[\s\S]*$/, '').replace(/\n\s*บทเฉพาะกาล[\s\S]*$/, '')
-      .replace(/\n\s*(ผู้รับสนองพระบรมราชโองการ|ประกาศ ณ วันที่)[\s\S]*$/, '');
+      .replace(/\n\s*(ผู้รับสนองพระบรมราชโองการ|ประกาศ ณ วันที่|หมายเหตุ\s*:-)[\s\S]*$/, '');
     if (!out.has(h.n)) out.set(h.n, t);
-  });
+  }
   return out;
 }
 
@@ -391,5 +514,5 @@ function resolveWraps(t, ref) {
 module.exports = {
   WRAP, resolveWraps, WATERMARK, normalizeText, garbleReport, pageLines, documentLines, paragraphs, joinWrap,
   splitSections, appendices, canonN, nLess, thaiDateIso, latestGazette, applyCorrections, makePack, checkPack,
-  compareLetters, refSections, arabic,
+  compareLetters, refSections, arabic, BAI_JAMJUREE_UNMAPPED, fillUnmappedGlyphs, stripOpinionBoxes,
 };

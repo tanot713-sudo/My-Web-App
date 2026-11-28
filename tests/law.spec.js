@@ -260,8 +260,67 @@ test.describe('law-packs — ชุดตัวบทจริง', () => {
     expect(LD.checkPack(raw)).toEqual([]);
   });
 
+  // PDF "ฉบับ Update ล่าสุด" ของกฤษฎีกา (ฟอนต์ Bai Jamjuree, กล่องความเห็นกฤษฎีกา, เชิงอรรถ [n] ท้ายเล่ม)
+  const UPDATED = {
+    court: { n: 34, max: 33, chars: 19084, asOf: '2019-03-20' },
+    pva: { n: 325, max: 267, chars: 148941, asOf: '2019-03-20' },
+    pvp: { n: 474, max: 367, chars: 316611, asOf: '2025-09-09' },
+    pa: { n: 448, max: 398, chars: 156249, asOf: '2025-12-29' },
+    // ม.1275–1297 ไม่มีในต้นฉบับ: "มาตรา ๑๒๗๔ ถึง มาตรา ๑๒๙๗ (ยกเลิก)" อยู่ในมาตรา 1274 ตามที่เขียน
+    ppk: { n: 1849, max: 1755, chars: 510439, asOf: '2025-03-24', gap: [1275, 1297] },
+  };
+  for (const [code, e] of Object.entries(UPDATED)) {
+    test(`${code}: ${e.n} มาตรา · เลขจำนวนเต็มครบ 1–${e.max} · ตัวอักษร/asOf ตรึง · checkPack ผ่าน`, () => {
+      const { raw, pack, idx } = loadPack(code);
+      expect(raw.s.length).toBe(e.n);
+      expect(pack.s.length).toBe(e.n); // preparePack ไม่ทิ้งมาตราไหน
+      expect(idx.packs[code].sections).toBe(e.n);
+      const ints = range(e.max).filter((n) => !e.gap || +n < e.gap[0] || +n > e.gap[1]);
+      expect(pack.s.filter((s) => /^\d+$/.test(s.n)).map((s) => s.n)).toEqual(ints);
+      expect(pack.s.reduce((a, s) => a + s.t.length, 0)).toBe(e.chars);
+      expect(pack.asOf).toBe(e.asOf);
+      expect(LD.checkPack(raw)).toEqual([]);
+    });
+  }
+
+  test('ฉบับ Update ล่าสุด: ข้อความตัวอย่าง · เลข 172ทวิ/1 · ส่วนท้าย · ไม่มีกล่องความเห็น/เชิงอรรถ [n] หลุด', () => {
+    const court = loadPack('court').pack;
+    expect(L.findSection(court, '1').t).toBe('ศาลยุติธรรมตามพระธรรมนูญนี้มีสามชั้น คือ ศาลชั้นต้น ศาลชั้นอุทธรณ์ และศาลฎีกา เว้นแต่จะมีกฎหมายบัญญัติไว้เป็นอย่างอื่น');
+    expect(L.findSection(court, '1').b).toBe('หมวด ๑ บททั่วไป');
+
+    const pva = loadPack('pva').pack;
+    const s172 = L.findSection(pva, 'มาตรา ๑๗๒ ทวิ/๑');
+    expect(s172.n).toBe('172ทวิ/1');
+    expect(s172.t.startsWith('ภายหลังที่ศาลได้ดำเนินการตามมาตรา ๑๗๒ วรรคสอง แล้ว')).toBe(true);
+    expect(s172.f).toEqual(['มาตรา ๑๗๒ ทวิ/๑ เพิ่มโดยพระราชบัญญัติแก้ไขเพิ่มเติมประมวลกฎหมายวิธี พิจารณาความอาญา (ฉบับที่ ๓๓) พ.ศ. ๒๕๖๒']);
+    expect(L.findSection(pva, '267').t).toBe('บทบัญญัติในหมวดนี้ ให้นำมาบังคับโดยอนุโลมแก่เรื่องราวขอพระราชทานเปลี่ยนโทษหนักเป็นเบาหรือลดโทษ');
+    expect(pva.x.map((e) => e.h)).toEqual(['บัญชีแนบท้ายประมวลกฎหมายวิธีพิจารณาความอาญา']);
+
+    const pvp = loadPack('pvp').pack;
+    expect(pvp.x.map((e) => e.h)).toEqual(['ตาราง ๑', 'ตาราง ๒', 'ตาราง ๓', 'ตาราง ๔', 'ตาราง ๕', 'ตาราง ๖', 'ตาราง ๗']);
+    expect(L.findSection(pvp, '367').t.endsWith('การขอและการดำเนินการตามมาตรานี้ ไม่ต้องเสียค่าธรรมเนียมศาล')).toBe(true);
+
+    const pa = loadPack('pa').pack;
+    expect(L.findSection(pa, '288').t).toBe('ผู้ใดฆ่าผู้อื่น ต้องระวางโทษประหารชีวิต จำคุกตลอดชีวิตหรือจำคุกตั้งแต่สิบห้าปีถึงยี่สิบปี');
+    expect(L.findSection(pa, '288').b).toBe('ภาค ๒ ความผิด › ลักษณะ ๑๐ ความผิดเกี่ยวกับชีวิตและร่างกาย › หมวด ๑ ความผิดต่อชีวิต');
+
+    const ppk = loadPack('ppk').pack;
+    expect(L.findSection(ppk, '1').t).toBe('กฎหมายนี้ให้เรียกว่า ประมวลกฎหมายแพ่งและพาณิชย์');
+    expect(L.findSection(ppk, '1274').t).toBe('ถึง มาตรา ๑๒๙๗ (ยกเลิก)');
+    expect(L.findSection(ppk, '1755').t).toBe('อายุความหนึ่งปีนั้น จะยกขึ้นต่อสู้ได้ก็แต่โดยบุคคลซึ่งเป็นทายาท หรือบุคคลซึ่งชอบที่จะใช้สิทธิของทายาท หรือโดยผู้จัดการมรดก');
+    expect(L.findSection(ppk, '1755').b).toBe('บรรพ ๖ มรดก › ลักษณะ ๖ อายุความ');
+
+    for (const code of Object.keys(UPDATED)) {
+      const { pack } = loadPack(code);
+      const all = pack.s.map((s) => s.t + '\n' + (s.f || []).join('\n')).join('\n') + (pack.x || []).map((e) => e.t).join('\n');
+      expect(all, code).not.toMatch(/เรื่องเสร็จที่|โปรดดูที่ไฟล์|บันทึกสำนักงานคณะกรรมการ/);
+      expect(all, code).not.toMatch(/\[\s*[0-9๐-๙]+\s*\]/);
+      expect(pack.s.every((s) => !/^[\sัิ-ฺ็-๎]/.test(s.t)), code).toBe(true); // ไม่ขึ้นต้นด้วยสระบน/ล่าง/วรรณยุกต์ลอย
+    }
+  });
+
   test('ทุกชุด: ไม่มีลายน้ำ/อักขระควบคุม/ฟอนต์เพี้ยน · ำ ไม่แตกเป็น ํ+า', () => {
-    for (const code of ['lawyer', 'ethics']) {
+    for (const code of L.CODES.map((c) => c.code)) {
       const { pack } = loadPack(code);
       const all = pack.s.map((s) => s.b + '\n' + s.t + '\n' + (s.f || []).join('\n')).join('\n') + (pack.x || []).map((e) => e.h + e.t).join('');
       expect(all).not.toContain('สำนักงานคณะกรรมการกฤษฎีกา');
@@ -336,6 +395,9 @@ test.describe('law-calc.js — อ่านชุดตัวบท', () => {
     expect(L.findSection(p, 'ป.พ.พ. ม.150').n).toBe('150');
     expect(L.findSection(p, 'ป.อ. มาตรา 150')).toBeNull(); // คนละประมวล
     expect(L.findSection(p, '151')).toBeNull();
+    expect(L.parseSectionRef('๑๗๒ ทวิ/๑', 'pva')).toEqual({ code: 'pva', n: '172ทวิ/1' }); // ป.วิ.อ. แทรกหลัง ๑๗๒ ทวิ
+    expect(L.parseSectionRef('มาตรา 172 ทวิ / 2 ป.วิ.อ.')).toEqual({ code: 'pva', n: '172ทวิ/2' });
+    expect(L.refKey({ code: 'pva', n: '172ทวิ/1' })).toBe('pva:172ทวิ/1');
     expect(L.findSection(p, '')).toBeNull();
     expect(L.findSection(null, '150')).toBeNull();
   });
@@ -343,6 +405,8 @@ test.describe('law-calc.js — อ่านชุดตัวบท', () => {
   test('searchPack: เลขมาตราขึ้นก่อน · ค้นคำ (เลขไทย = อารบิก, ช่องว่างกี่ตัวก็ได้) · หัวหมวด · limit', () => {
     const p = L.preparePack(RAW, 'ppk');
     expect(L.searchPack(p, '150/1')[0]).toMatchObject({ n: '150/1', exact: true });
+    expect(L.searchPack(p, 'มาตรา ๑๕๐/๑')[0]).toMatchObject({ n: '150/1', exact: true });
+    expect(L.searchPack(p, 'ม. 150')[0]).toMatchObject({ n: '150', exact: true });
     const r2 = L.searchPack(p, 'ภายใน 30 วัน', { ctx: 10 });
     expect(r2).toHaveLength(1);
     expect(r2[0]).toMatchObject({ n: '150/1', hit: 'ภายใน   ๓๐ วัน', pre: 'ตรา ๑๕๐/๑ ', post: '' });
@@ -385,10 +449,80 @@ test.describe('tools/law-data/lib.js — ตัวสร้างชุด', () 
     for (const k of ['asOf', 'ลำดับมาตราย้อน', 'ลายน้ำ', 'มาตราซ้ำ', 'resolveWraps', 'รูปแบบ', 'ไม่มีข้อความ']) expect(msgs).toContain(k);
   });
 
+  test('nLess/canonN: 7 < 7ทวิ < 7ทวิ/1 < 7ทวิ/2 < 7ตรี < 8 · 7 < 7/1 < 7/2 < 8', () => {
+    for (const order of [['7', '7ทวิ', '7ทวิ/1', '7ทวิ/2', '7ตรี', '8'], ['7', '7/1', '7/2', '8']])
+      for (let i = 0; i + 1 < order.length; i++) { expect(LD.nLess(order[i], order[i + 1])).toBe(true); expect(LD.nLess(order[i + 1], order[i])).toBe(false); }
+    expect(LD.canonN('๑๗๒', 'ทวิ', '๑')).toBe('172ทวิ/1');
+    expect(LD.canonN('๑๗๒', undefined, '๑')).toBe('172');
+  });
+
   test('compareLetters: ไม่นับช่องว่าง/คำพูด/เลขเชิงอรรถ · ต่างหนึ่งตัวก็ไม่ผ่าน', () => {
     expect(LD.compareLetters('“ก ข” ค', 'ก\r\nข\u0093ค[๑]').same).toBe(true);
     const c = LD.compareLetters('อำนาจห้าที่', 'อำนาจหน้าที่');
     expect(c.same).toBe(false);
     expect(c.at).toBe(6); // อำนาจห แล้ว ้ ≠ น
+  });
+
+  test('fillUnmappedGlyphs: glyph Bai Jamjuree ที่ไม่มีรหัส → ตัวอักษรตามชื่อ glyph · ลำดับ/จำนวน/ฟอนต์ไม่ตรง = ปัญหา', () => {
+    const F = 'AAAAAA+BaiJamjuree-Regular';
+    const items = [{ str: 'เมื\u0000อ' }, { str: 'ฟ\u0000อง' }, { str: 'ค\u0000า' }, { str: 'ไม่มี' }];
+    const glyphs = [{ font: F, cid: 732, prev: 'ื' }, { font: F, cid: 736, prev: 'ฟ' }, { font: F, cid: 757, prev: 'ค' }];
+    const r = LD.fillUnmappedGlyphs(items, glyphs);
+    expect(r.problems).toEqual([]);
+    expect(r.items.map((i) => LD.normalizeText(i.str))).toEqual(['เมื่อ', 'ฟ้อง', 'ค่ำ', 'ไม่มี']);
+    expect(LD.fillUnmappedGlyphs(items, glyphs.slice(0, 2)).problems.join()).toContain('มากกว่า');
+    expect(LD.fillUnmappedGlyphs(items, glyphs.concat([{ font: F, cid: 731, prev: null }])).problems.join()).toContain('operator list');
+    expect(LD.fillUnmappedGlyphs([{ str: 'ก\u0000' }], [{ font: F, cid: 1, prev: 'ก' }]).problems.join()).toContain('ไม่มีรหัสในตาราง');
+    expect(LD.fillUnmappedGlyphs([{ str: 'ก\u0000' }], [{ font: 'X+Sarabun', cid: 732, prev: 'ก' }]).problems.join()).toContain('ไม่มีรหัสในตาราง');
+    expect(LD.fillUnmappedGlyphs([{ str: 'ก\u0000' }], [{ font: F, cid: 732, prev: 'ข' }]).problems.join()).toContain('ลำดับ');
+    // ทุกค่าในตารางเป็นอักษรไทยล้วน (สระ/วรรณยุกต์/พยัญชนะ)
+    for (const v of Object.values(LD.BAI_JAMJUREE_UNMAPPED)) expect(v).toMatch(/^[ก-๎]+$/);
+  });
+
+  test('pageLines: เลขเชิงอรรถ "[n]" ขนาดเล็กเป็นเครื่องหมาย ไม่ใช่ข้อความ · บรรทัดที่มีแต่วรรณยุกต์ถูกทิ้ง · เลขหน้า "| 16"', () => {
+    const items = [
+      { str: 'มาตรา ๑๑ ประธานศาล', h: 10, x: 100, y: 500, w: 90 },
+      { str: '[6]', h: 7.5, x: 190, y: 503, w: 10 },
+      { str: 'ฎีกา', h: 10, x: 200, y: 500, w: 20 },
+      { str: '่', h: 10, x: 300, y: 300, w: 0 },
+      { str: '้', h: 10, x: 340, y: 300, w: 0 },
+    ];
+    const lines = LD.pageLines(items, 10);
+    expect(lines.length).toBe(1);
+    expect(lines[0].text).toBe('มาตรา ๑๑ ประธานศาล ฎีกา');
+    expect(lines[0].marks).toEqual([{ at: 'มาตรา ๑๑ ประธานศาล'.length, n: '6' }]);
+    const doc = LD.documentLines([{ items: [{ str: '| 16', h: 10, x: 470, y: 780, w: 20 }, { str: 'มาตรา ๑ ข้อความ', h: 10, x: 100, y: 700, w: 100 }] }]);
+    expect(doc.body.map((l) => l.text)).toEqual(['มาตรา ๑ ข้อความ']);
+  });
+
+  test('documentLines: เชิงอรรถท้ายเล่ม (หลังบรรทัดจบตัวบท บรรทัดขึ้นต้นด้วย [n]) → notes', () => {
+    const it = (str, x, y, h = 10) => ({ str, h, x, y, w: str.length * 5 });
+    const doc = LD.documentLines([{ items: [
+      it('มาตรา ๑ ข้อความ', 100, 700), it('[1]', 160, 703, 7.5),
+      it('ผู้รับสนองพระบรมราชโองการ', 100, 650),
+      it('[1]', 100, 603, 7.5), it('มาตรา ๑ แก้ไขเพิ่มเติมโดย', 110, 600),
+      it('(ฉบับที่ ๒) พ.ศ. ๒๕๖๒', 100, 584),
+    ] }]);
+    expect(doc.notes.get('1')).toBe('มาตรา ๑ แก้ไขเพิ่มเติมโดย (ฉบับที่ ๒) พ.ศ. ๒๕๖๒');
+    expect(doc.body.map((l) => l.text)).toEqual(['มาตรา ๑ ข้อความ', 'ผู้รับสนองพระบรมราชโองการ']);
+  });
+
+  test('stripOpinionBoxes: ตัดกล่องความเห็นกฤษฎีกาทีละบรรทัด · บรรทัดตัวบทหลังกล่องยังอยู่ · กล่องไม่ครบ = ปัญหา', () => {
+    const ln = (text) => ({ text, page: 3 });
+    const body = [ln('มาตรา ๑๔๕/๑ ในกรณีที่'), ln('เรื่องเสร็จที่ ๕๗-๕๘/๒๕๐๐'), ln('บันทึก'), ln('เรื่อง ปัญหาข้อปฏิบัติ'), ln('สำหรับรายละเอียดของความเห็นฯ โปรดดูที่ไฟล์ PDF'),
+      ln('พนักงานสอบสวน'), ln('บันทึกสำนักงานคณะกรรมการกฤษฎีกาเรื่อง อำนาจการสอบสวน'), ln('สำหรับรายละเอียดของความเห็นฯ โปรดดูที่ไฟล์ PDF'), ln('มาตรา ๑๔๖ ข้อความ')];
+    const r = LD.stripOpinionBoxes(body);
+    expect(r.problems).toEqual([]);
+    expect(r.boxes).toBe(2);
+    expect(r.body.map((l) => l.text)).toEqual(['มาตรา ๑๔๕/๑ ในกรณีที่', 'พนักงานสอบสวน', 'มาตรา ๑๔๖ ข้อความ']);
+    expect(LD.stripOpinionBoxes([ln('เรื่องเสร็จที่ ๑/๒๕๖๐'), ln('มาตรา ๒ ข้อความ')]).problems.join()).toContain('โปรดดูที่ไฟล์');
+    expect(LD.stripOpinionBoxes([ln('สำหรับรายละเอียดของความเห็นฯ โปรดดูที่ไฟล์ PDF')]).problems.join()).toContain('ไม่มีหัวกล่อง');
+  });
+
+  test('refSections: ใช้ช่วงเลขเรียงขึ้นยาวที่สุด (ข้าม พ.ร.บ.ให้ใช้ ที่มีเลขมาตราซ้ำ)', () => {
+    const ref = 'มาตรา ๑ ชื่อพระราชบัญญัติ\nมาตรา ๒ วันใช้บังคับ\nมาตรา ๑ ศาลยุติธรรม\nมาตรา ๒ ศาลชั้นต้น\nมาตรา ๓ ศาลชั้นอุทธรณ์';
+    const m = LD.refSections(ref, 'มาตรา');
+    expect([...m.keys()]).toEqual(['1', '2', '3']);
+    expect(m.get('1').trim()).toBe('ศาลยุติธรรม');
   });
 });

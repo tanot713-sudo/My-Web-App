@@ -42,18 +42,47 @@ for (const base of [path.join(root, 'tests'), path.join(root, '..', '..', '..', 
 }
 if (!pdfjs) die('ไม่พบ pdfjs-dist — รัน `cd tests && npm ci` ก่อน');
 const bytes = new Uint8Array(fs.readFileSync(args.pdf));
-const doc = await pdfjs.getDocument({ data: bytes, verbosity: 0, useSystemFonts: false }).promise;
+const doc = await pdfjs.getDocument({ data: bytes, verbosity: 0, useSystemFonts: false, fontExtraProperties: true }).promise;
 const pages = [];
+let filled = 0;
 for (let p = 1; p <= doc.numPages; p++) {
-  const tc = await (await doc.getPage(p)).getTextContent();
-  pages.push({ items: tc.items.map((it) => ({ str: it.str, h: it.height, x: it.transform[4], y: it.transform[5], w: it.width })) });
+  const page = await doc.getPage(p);
+  const tc = await page.getTextContent();
+  let items = tc.items.map((it) => ({ str: it.str, h: it.height, x: it.transform[4], y: it.transform[5], w: it.width }));
+  if (items.some((it) => it.str && it.str.indexOf('\u0000') >= 0)) {
+    // glyph ที่ ToUnicode ไม่มีรหัส → หา CID ตามลำดับจาก operator list แล้วแทนด้วยตาราง BAI_JAMJUREE_UNMAPPED (lib.js)
+    const ol = await page.getOperatorList();
+    const glyphs = [];
+    let font = '';
+    for (let i = 0; i < ol.fnArray.length; i++) {
+      const a = ol.argsArray[i];
+      if (ol.fnArray[i] === pdfjs.OPS.setFont) font = page.commonObjs.get(a[0]).name || '';
+      if (ol.fnArray[i] !== pdfjs.OPS.showText) continue;
+      let prev = null;
+      for (const g of a[0]) {
+        if (!g || typeof g === 'number') continue;
+        if (g.unicode === '\u0000') glyphs.push({ font, cid: g.originalCharCode, prev });
+        prev = g.unicode === '\u0000' ? null : g.unicode;
+      }
+    }
+    const r = L.fillUnmappedGlyphs(items, glyphs);
+    if (r.problems.length) die('หน้า ' + p + ': แปลง glyph ที่ไม่มีรหัสไม่ได้ — ไม่สร้างชุด:\n  ' + [...new Set(r.problems)].slice(0, 8).join('\n  '));
+    items = r.items;
+    filled += glyphs.length;
+  }
+  pages.push({ items });
 }
 
-const { body, notes, bodyH } = L.documentLines(pages);
+const docLines = L.documentLines(pages);
+const { notes, bodyH } = docLines;
+// กล่องความเห็นกฤษฎีกาที่แทรกระหว่างบรรทัด (ไม่ใช่ตัวบท) — รูปแบบไม่ครบ = หยุด
+const boxed = L.stripOpinionBoxes(docLines.body);
+if (boxed.problems.length) die('กล่องความเห็นกฤษฎีกาไม่ครบรูปแบบ — ไม่สร้างชุด:\n  ' + boxed.problems.slice(0, 8).join('\n  '));
+const body = boxed.body;
 const paras = L.paragraphs(body, bodyH);
 const garble = L.garbleReport(paras.map((p) => L.resolveWraps(p.text, null)).join('\n'));
 if (garble.length) die('PDF นี้ฟอนต์เพี้ยน (วรรณยุกต์/สระถูกแทนด้วยอักษรอื่น) — ไม่สร้างชุด ใช้ไฟล์จากกฤษฎีกาที่คัดลอกข้อความได้ถูกต้อง:\n  ' + garble.slice(0, 8).join('\n  '));
-const sections = L.splitSections(paras, notes, marker);
+const sections = L.splitSections(paras, notes, marker, args.appendix);
 if (!sections.length) die('ไม่พบ ' + marker + ' ในไฟล์');
 // ข้อความอ้างอิง thailaw (ถ้าให้มา): ใช้ตัดสินรอยตัดบรรทัด (resolveWraps) และยืนยันว่าทุกมาตรามีตัวอักษรตรงกันทุกตัว
 let refText = null, ref = null;
@@ -98,6 +127,8 @@ const gz = zlib.gzipSync(Buffer.from(json), { level: 9 });
 const hash = crypto.createHash('sha256').update(json).digest('hex').slice(0, 8);
 const file = code + '-' + hash + '.json.gz';
 const chars = sections.reduce((a, s) => a + s.t.length, 0);
+if (boxed.boxes) console.log(`  ตัดกล่องความเห็นกฤษฎีกา ${boxed.boxes} กล่อง (ไม่ใช่ตัวบท)`);
+if (filled) console.log(`  แปลง glyph ไม่มีรหัส ${filled} ตัว (ตารางชื่อ glyph ของ Bai Jamjuree)`);
 console.log(`${code}: ${sections.length} ${marker} (${sections[0].n}–${sections[sections.length - 1].n}) · ${chars} ตัวอักษร · asOf ${asOf} · ${json.length} → ${gz.length} ไบต์ gzip · ${file}`);
 if (x.length) console.log('  ส่วนท้าย: ' + x.map((e) => e.h).join(', '));
 for (const f of fixLog) console.log('  แก้ตามฉบับกฤษฎีกา ' + marker + ' ' + f);
