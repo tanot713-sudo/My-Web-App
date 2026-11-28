@@ -133,6 +133,22 @@ details.lesson > summary button{flex-shrink:0}
 .career-box ul{margin:6px 0 0;padding-left:18px;font-size:var(--ome-fs-xs)}
 .career-box li{margin-bottom:3px}
 
+/* ── ตัวบท + ท่องมาตรา (9d/9e) ── */
+.cl-page .frow > .st-pick,.cl-page .frow > .st-q{flex:1 1 280px}
+.st-tools{flex-wrap:wrap;gap:var(--ome-sp-2)}
+.st-tools .ttsbar-rate{width:auto;flex:0 0 auto}
+.st-sec{padding:12px 0;border-bottom:1px solid var(--ome-border);scroll-margin-top:72px}
+.st-sec:last-child{border-bottom:0}
+.st-sec.hit{background:var(--ome-accent-soft);border-radius:var(--ome-radius-sm)}
+.st-hd{display:flex;align-items:center;justify-content:space-between;gap:var(--ome-sp-2)}
+.st-no{font-weight:700;color:var(--ome-accent-strong)}
+.st-act{display:flex;gap:var(--ome-sp-2);flex-shrink:0}
+.st-t{margin:6px 0 0;white-space:pre-wrap;line-height:1.75}
+.st-f{margin:6px 0 0;font-size:var(--ome-fs-sm);color:var(--ome-text-2);white-space:pre-wrap}
+.st-sec [data-star][aria-pressed="true"]{background:transparent;border-color:transparent}
+.st-sec [data-star][aria-pressed="true"] .ome-icon{fill:currentColor;color:var(--ome-warn-ink)}
+.st-more{margin-top:var(--ome-sp-3)}
+
 /* ── โน้ต + flashcard ── */
 .note-list{list-style:none;margin:12px 0 0;padding:0}
 .note-item{border-bottom:1px solid var(--ome-border);padding:10px 0}
@@ -206,6 +222,7 @@ button.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
     <li><a href="#dashboard" data-view="dashboard" data-i18n="cl.navStats">สถิติ</a></li>
     <li><a href="#goals" data-view="goals" data-i18n="cl.navGoals">เป้าหมาย</a></li>
     <li><a href="#allnotes" data-view="allnotes" data-i18n="cl.navNotes">โน้ตทั้งหมด</a></li>
+    <li><a href="#statutes" data-view="statutes" data-i18n="cl.navStatutes">ตัวบท</a></li>
   </ul>
   <div class="clhb-group-hd" data-i18n="cl.grpExam">วิชาที่ใช้สอบจริง</div>
   <ul class="clhb-list" id="clSubjectNav"></ul>
@@ -428,6 +445,40 @@ button.fsrs-easy:hover:not(:disabled){background:var(--ome-ok-soft)}
   </div>
 </div>
 
+<!-- ══════════════════ ตัวบท + ท่องมาตรา (ROADMAP แถว 9d/9e) — ชุดตัวบทจาก law-packs/ ข้อความเต็มทุกตัวอักษร ══════════════════ -->
+<div class="view" id="viewStatutes" style="display:none">
+  <div class="card" id="stMemoCard">
+    <div class="lhd-row"><h2 data-i18n="cl.stMemo">ท่องมาตรา</h2>
+      <a class="btn primary sm" id="stReviewBtn" href="review.html#law"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-brain"/></svg> <span id="stReviewLbl"></span></a></div>
+    <div class="strip three" id="stMemoStrip"></div>
+  </div>
+
+  <div class="card" id="stCard">
+    <h2 data-i18n="cl.stTitle">ตัวบท</h2>
+    <div class="frow">
+      <div class="field st-pick"><label for="stPack" data-i18n="cl.stPack">ชุดตัวบท</label>
+        <select class="select" id="stPack" data-i18n-skip></select></div>
+      <div class="field st-q"><label for="stSearch" data-i18n="cl.stSearch">ค้นเลขมาตราหรือคำ</label>
+        <input type="search" class="input" id="stSearch" enterkeyhint="search" autocomplete="off" placeholder="เช่น 52" data-i18n-attr="placeholder:cl.stSearchPh"></div>
+    </div>
+    <div class="row st-tools">
+      <button class="btn sm" id="stStarOnly" type="button" aria-pressed="false"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-star"/></svg> <span data-i18n="cl.stStarOnly">เฉพาะที่ติดดาว</span></button>
+      <button class="btn sm" id="stPlayStars" type="button"><svg class="ome-icon" aria-hidden="true"><use href="icons.svg#i-headphones"/></svg> <span data-i18n="cl.stPlayStars">ฟังที่ติดดาว</span></button>
+      <select class="select ttsbar-rate" id="clStTtsRate" aria-label="ความเร็ว" data-i18n-attr="aria-label:cl.speed"><option value="0.85">0.85x</option><option value="1" selected>1x</option><option value="1.15">1.15x</option><option value="1.3">1.3x</option></select>
+    </div>
+    <div class="ttsbar-controls" id="clStTtsControls" style="display:none">
+      <span class="ttsbar-now" id="clStTtsNow"></span>
+      <button class="btn sm" id="clStTtsPrev" type="button"></button>
+      <button class="btn sm" id="clStTtsPauseBtn" type="button"></button>
+      <button class="btn sm" id="clStTtsNext" type="button"></button>
+      <button class="btn sm" id="clStTtsStopBtn" type="button"></button>
+    </div>
+    <p class="mini" id="stMeta"></p>
+    <div class="status" id="stStatus" role="status"></div>
+    <div id="stList" data-i18n-skip></div>
+  </div>
+</div>
+
 <!-- ══════════════════ เครื่องมือรวม (ไม่ผูกกับวิชาใดวิชาหนึ่ง) ══════════════════ -->
 <div class="view" id="viewTools" style="display:none">
   <div class="card">
@@ -461,6 +512,8 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dis
 <script src="fsrs.js" defer></script>
 <script src="learn-core.js" defer></script>
 <script src="law-figure-calc.js"></script>
+<script src="law-calc.js"></script>
+<script src="law-pack-load.js"></script>
 <script src="classroom-law.js" defer></script>
 </body>
 </html>

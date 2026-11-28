@@ -2,6 +2,7 @@
    ทบทวนวันนี้ (ROADMAP Phase 5) — การ์ดที่ถึงกำหนดจากทุกหน้ารวมเป็นกองเดียว + XP/วันติดต่อกัน/เป้ารายวันจาก learn-core.js
    การ์ดอยู่ที่เดิมของแต่ละหน้า หน้านี้อ่านแล้วเขียนผลทบทวนกลับไปที่เดิมในรูปแบบเดียวกับที่หน้านั้นเขียนเอง:
      law  — IndexedDB tanot-barprep/notes (FSRS, ฟิลด์เดียวกับ classroom-law.js answerCard) + log tanot:barprep:activity
+            + การ์ดมาตรา tanot:law:cards (sync list, FSRS) · หน้าการ์ดจากชุดตัวบท law-packs/ (LawCalc.cardFace — ข้อความเต็ม)
      lang — lang-practice:srs {key: FSRS} · หน้าการ์ดจาก tanot:learn:faces:lang (หน้าภาษาเขียนไว้) + lang-practice:faces (การ์ด ::w::/::s:: ของชุดคำที่ใช้บ่อย)
      books — tanot:books:cards (sync list, FSRS ฟิลด์เดียวกับ law/lang) · หน้าการ์ด front/back อยู่ในแถวเอง
      biz/eng — lbe:<business|engineering>:srs {qKey: {interval, due}} ขั้นบันได · หน้าการ์ดจาก <script id="course-data"> ในหน้าห้องเรียน
@@ -42,6 +43,7 @@
   };
   var BOOK_CARDS = 'tanot:books:cards';
   var LEC_CARDS = 'tanot:lecture:cards';
+  var LAW_CARDS = 'tanot:law:cards';
   var DECK_SRC = ['law', 'lang', 'biz', 'eng', 'books', 'lecture'];
   var RATINGS = [
     { r: 1, cls: 'again', label: 'Again' },
@@ -101,6 +103,25 @@
     Object.keys(m).forEach(function (k) { var r = m[k]; if (isObj(r) && Number(r[field]) <= now) out.push([k, r]); });
     return out;
   }
+  // การ์ดมาตราที่ถึงกำหนด → โหลดเฉพาะชุดตัวบทที่ต้องใช้ · ชุดหาย/โหลดไม่ได้ = นับเป็น missing (ไปเปิดที่หน้ากฎหมาย)
+  function lawStatuteCards(now) {
+    var L = window.LawCalc, LP = window.TanotLawPacks;
+    if (!L || !LP) return Promise.resolve({ cards: [], missing: 0 });
+    var due = (LC.read(LAW_CARDS, []) || []).map(L.cleanCard).filter(function (c) { return c && c.kind === 'st' && c.dueAt <= now; });
+    var codes = {};
+    due.forEach(function (c) { codes[c.ref.split(':')[0]] = 1; });
+    return Promise.all(Object.keys(codes).map(function (code) {
+      return LP.load(code).then(function (p) { codes[code] = p; }, function () { codes[code] = null; });
+    })).then(function () {
+      var out = { cards: [], missing: 0 };
+      due.forEach(function (c) {
+        var f = L.cardFace(c, codes[c.ref.split(':')[0]]);
+        if (!f) { out.missing++; return; }
+        out.cards.push({ src: 'law', store: LAW_CARDS, id: c.id, front: f.front, back: f.back, sub: f.sub, due: c.dueAt, rec: c });
+      });
+      return out;
+    });
+  }
   function loadDeck() {
     var now = Date.now();
     var langDue = dueMap('lang-practice:srs', 'dueAt', now);
@@ -108,9 +129,10 @@
     return Promise.all([
       LC.lawNotes(),
       lbeDue.biz.length ? lbeQuestions('biz') : null,
-      lbeDue.eng.length ? lbeQuestions('eng') : null
+      lbeDue.eng.length ? lbeQuestions('eng') : null,
+      lawStatuteCards(now)
     ]).then(function (res) {
-      var cards = [], missing = { law: 0, lang: 0, biz: 0, eng: 0, books: 0, lecture: 0 };
+      var cards = res[3].cards.slice(), missing = { law: res[3].missing, lang: 0, biz: 0, eng: 0, books: 0, lecture: 0 };
       (res[0] || []).forEach(function (n) {
         if (n && n.id != null && Number(n.dueAt) <= now) cards.push({ src: 'law', id: n.id, front: n.q, back: n.a, sub: n.subj, due: Number(n.dueAt), rec: n });
       });
@@ -187,9 +209,9 @@
     rated[card.src + '|' + card.id] = 1;
     ratedCount++;
     var p;
-    if (card.src === 'law') p = writeLaw(card, rating, now);
-    else if (card.src === 'books' || card.src === 'lecture') {
-      LC.update(card.src === 'books' ? BOOK_CARDS : LEC_CARDS, function (rows) {
+    if (card.src === 'law' && !card.store) p = writeLaw(card, rating, now);
+    else if (card.store || card.src === 'books' || card.src === 'lecture') {
+      LC.update(card.store || (card.src === 'books' ? BOOK_CARDS : LEC_CARDS), function (rows) {
         rows = Array.isArray(rows) ? rows : [];
         for (var i = 0; i < rows.length; i++) if (rows[i] && rows[i].id === card.id) { rows[i] = Object.assign({}, rows[i], FS.schedule(rows[i], rating, now)); break; }
         return rows;
@@ -322,7 +344,7 @@
   window.addEventListener('tanot:learn', function () { renderKpis(); });
   if (window.TanotData && window.TanotData.onChange) {
     window.TanotData.onChange(function (keys) {
-      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^lang-practice:faces$|^tanot:(books:(cards|items)|lecture:cards)/.test(k); });
+      var deckChanged = !keys.length || keys.some(function (k) { return /srs$|^idb:tanot-barprep|^tanot:learn:faces|^lang-practice:faces$|^tanot:(books:(cards|items)|lecture:cards|law:cards)/.test(k); });
       if (deckChanged) loadDeck().then(renderDeck); else renderKpis();
     });
   }

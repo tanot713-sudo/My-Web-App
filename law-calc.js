@@ -34,7 +34,7 @@
       alias: ['ป.วิ.อ.', 'ป.วิ.อาญา', 'ประมวลกฎหมายวิธีพิจารณาความอาญา'] },
     { code: 'lawyer', name: 'พระราชบัญญัติทนายความ พ.ศ. 2528', short: 'พ.ร.บ.ทนายความ', subject: 'lawyer-act',
       alias: ['พ.ร.บ.ทนายความ', 'พระราชบัญญัติทนายความ'] },
-    { code: 'ethics', name: 'ข้อบังคับสภาทนายความว่าด้วยมรรยาททนายความ พ.ศ. 2529', short: 'มรรยาททนายความ', subject: 'lawyer-act',
+    { code: 'ethics', name: 'ข้อบังคับสภาทนายความว่าด้วยมรรยาททนายความ พ.ศ. 2529', short: 'มรรยาททนายความ', subject: 'lawyer-act', unit: 'ข้อ',
       alias: ['ข้อบังคับสภาทนายความว่าด้วยมรรยาททนายความ', 'ข้อบังคับว่าด้วยมรรยาททนายความ', 'ข้อบังคับมรรยาททนายความ', 'มรรยาททนายความ'] },
     { code: 'court', name: 'พระธรรมนูญศาลยุติธรรม', short: 'พระธรรมนูญศาลยุติธรรม', subject: 'court',
       alias: ['พระธรรมนูญศาลยุติธรรม'] }
@@ -433,7 +433,7 @@
     if (!pack || !pack.s || typeof q !== 'string' || !q.trim()) return out;
     var limit = opts && opts.limit > 0 ? opts.limit : 50, ctx = opts && opts.ctx > 0 ? opts.ctx : 40;
     // เลขอย่างเดียว ("52", "มาตรา ๕๒", "ข้อ 21") — ข้อความยาวที่มีคำว่ามาตราอยู่กลางประโยคเป็นการค้นคำ
-    var hit = q.length <= 24 && /^s*(?:มาตรา|ม.|ข้อ)?s*[0-9๐-๙]/.test(q) ? findSection(pack, q) : null;
+    var hit = q.length <= 24 && /^\s*(?:มาตรา|ม\.|ข้อ)?\s*[0-9๐-๙]/.test(q) ? findSection(pack, q) : null;
     if (hit) out.push({ n: hit.n, b: hit.b, exact: true, at: 0, len: 0, pre: '', hit: '', post: hit.t.slice(0, ctx * 2) });
     var words = foldSearch(q).trim().split(/\s+/).map(esc);
     var re = new RegExp(words.join('\\s+'));
@@ -451,7 +451,46 @@
     return out;
   }
 
+  // ── ท่องมาตรา (ROADMAP แถว 9d/9e · แบบ 5.2) ─────────────────────────────────────────────────────
+  var DAY = 86400000;
+  // 'lawyer','52' → 'พ.ร.บ.ทนายความ มาตรา 52' (bare = 'มาตรา 52') · ข้อบังคับใช้ "ข้อ" · รหัสไม่รู้จัก = ''
+  function secLabel(code, n, bare) {
+    var c = CODES[CODE_IDS.indexOf(code)];
+    return c ? (bare ? '' : c.short + ' ') + (c.unit || 'มาตรา') + ' ' + n : '';
+  }
+  // มาตราที่ติดดาว → การ์ด ก (เลข→หลัก) · ข (เติมคำ — เฉพาะเมื่อมีคำให้ซ่อน) · ค (หลัก→เลข)
+  // ถึงกำหนดทยอยวันละแบบ (ไม่ให้ 3 ใบของมาตราเดียวโผล่ติดกัน) · existing = {id: การ์ดเดิม} → ไม่ล้างตารางทบทวน
+  function starCards(code, sec, now, existing) {
+    if (!sec || typeof sec.t !== 'string' || CODE_IDS.indexOf(code) < 0) return [];
+    var out = [], ex = isObj(existing) ? existing : {}, cz = clozeCard(sec.t);
+    ['a', 'b', 'c'].forEach(function (type, i) {
+      if (type === 'b' && !cz) return;
+      var spec = { code: code, n: sec.n, type: type, cloze: type === 'b' ? cz.cloze : null };
+      var id = cardId(spec), old = id && Object.prototype.hasOwnProperty.call(ex, id) ? ex[id] : null;
+      var c = makeCard(spec, now, old || null);
+      if (!c) return;
+      if (!old) c.dueAt = now + i * DAY;
+      out.push(c);
+    });
+    return out;
+  }
+  // หน้าการ์ดมาตรา (review.html) จากชุดตัวบท — ข้อความเต็มไม่ตัด · ไม่มีมาตรานั้นในชุด = null
+  function cardFace(card, pack) {
+    var st = card && typeof card.id === 'string' ? ST_RE.exec(card.id) : null;
+    if (!st || !pack || pack.code !== st[1]) return null;
+    var sec = findSection(pack, st[2]);
+    if (!sec) return null;
+    var label = secLabel(st[1], sec.n), t = sec.t, sub = sec.b || '';
+    if (st[3] === 'a') return { front: label, back: t, sub: sub };
+    if (st[3] === 'c') return { front: card.front || t, back: label, sub: sub };
+    var words = (card.cloze || []).filter(function (w) { return t.indexOf(w) >= 0; });
+    var cz = clozeCard(t, { words: words, max: words.length || MAX_CLOZE }) || clozeCard(t);
+    if (!cz) return { front: label, back: t, sub: sub };
+    return { front: cz.masked, back: cz.cloze.join(' · ') + '\n\n' + t, sub: sub };
+  }
+
   return {
+    secLabel: secLabel, starCards: starCards, cardFace: cardFace,
     packFile: packFile, isGzip: isGzip, preparePack: preparePack, findSection: findSection, searchPack: searchPack,
     MAX_SECTION_TEXT: MAX_SECTION_TEXT,
     CODES: CODES, SUBJECT_IDS: SUBJECT_IDS, EXAMS: EXAMS, MAX_DEKA_TEXT: MAX_DEKA_TEXT,

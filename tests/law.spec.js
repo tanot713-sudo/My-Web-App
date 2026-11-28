@@ -392,3 +392,161 @@ test.describe('tools/law-data/lib.js — ตัวสร้างชุด', () 
     expect(c.at).toBe(6); // อำนาจห แล้ว ้ ≠ น
   });
 });
+
+// ── ด่าน 9d/9e: ป้ายมาตรา + การ์ดจากมาตราที่ติดดาว + หน้าการ์ด ─────────────────────────────────────
+test.describe('law-calc.js — ท่องมาตรา (9e)', () => {
+  const NOW = 1764300000000, DAY = 86400000;
+  const PACK = L.preparePack({ v: 1, code: 'lawyer', s: [
+    { n: '52', b: 'หมวด ๕', t: 'ทนายความผู้ใดประพฤติผิดมรรยาท ให้ลงโทษภายในสามสิบวัน' },
+    { n: '7ทวิ', b: '', t: 'ข้อความไม่มีคำให้ซ่อน' },
+  ] }, 'lawyer');
+
+  test('secLabel: ชื่อย่อ + มาตรา/ข้อ ตามชนิดกฎหมาย', () => {
+    expect(L.secLabel('lawyer', '52')).toBe('พ.ร.บ.ทนายความ มาตรา 52');
+    expect(L.secLabel('ethics', '21')).toBe('มรรยาททนายความ ข้อ 21');
+    expect(L.secLabel('ppk', '150/1')).toBe('ป.พ.พ. มาตรา 150/1');
+    expect(L.secLabel('ethics', '21', true)).toBe('ข้อ 21');
+    expect(L.secLabel('xx', '1')).toBe('');
+  });
+
+  test('searchPack: "มาตรา ๕๒" / "ข้อ 52" เปิดมาตรานั้นก่อน', () => {
+    expect(L.searchPack(PACK, 'มาตรา ๕๒')[0]).toMatchObject({ n: '52', exact: true });
+    expect(L.searchPack(PACK, 'ม. 52')[0]).toMatchObject({ n: '52', exact: true });
+  });
+
+  test('starCards: 3 แบบ (ข้ามเติมคำเมื่อไม่มีคำให้ซ่อน) · ทยอยวันละแบบ · ของเดิมไม่ล้าง FSRS', () => {
+    const cs = L.starCards('lawyer', PACK.s[0], NOW);
+    expect(cs.map((c) => [c.id, c.dueAt])).toEqual([
+      ['st-lawyer-52-a', NOW], ['st-lawyer-52-b', NOW + DAY], ['st-lawyer-52-c', NOW + 2 * DAY]]);
+    expect(cs[1].cloze.length).toBeGreaterThan(0);
+    for (const c of cs) expect(L.cleanCard(c)).toEqual(c);
+    expect(L.starCards('lawyer', PACK.s[1], NOW).map((c) => c.id)).toEqual(['st-lawyer-7ทวิ-a', 'st-lawyer-7ทวิ-c']);
+    const reviewed = { ...cs[0], ...FS.schedule(cs[0], 3, NOW + 1000) };
+    const again = L.starCards('lawyer', PACK.s[0], NOW + 9999, { 'st-lawyer-52-a': reviewed });
+    expect(again[0]).toEqual(reviewed);
+    expect(L.starCards('xx', PACK.s[0], NOW)).toEqual([]);
+    expect(L.starCards('lawyer', null, NOW)).toEqual([]);
+  });
+
+  test('cardFace: ก เลข→หลัก · ข เติมคำ · ค หลัก→เลข · ข้อความเต็มไม่ตัด · ไม่มีมาตราในชุด = null', () => {
+    const [a, b, c] = L.starCards('lawyer', PACK.s[0], NOW);
+    const t = PACK.s[0].t;
+    expect(L.cardFace(a, PACK)).toEqual({ front: 'พ.ร.บ.ทนายความ มาตรา 52', back: t, sub: 'หมวด ๕' });
+    const fb = L.cardFace(b, PACK);
+    expect(fb.front).toContain('[___]');
+    expect(fb.front).not.toContain(b.cloze[0]);
+    expect(fb.back).toBe(b.cloze.join(' · ') + '\n\n' + t);
+    expect(L.cardFace(c, PACK)).toEqual({ front: t, back: 'พ.ร.บ.ทนายความ มาตรา 52', sub: 'หมวด ๕' });
+    expect(L.cardFace({ ...c, front: 'หลักที่ตั้งเอง' }, PACK).front).toBe('หลักที่ตั้งเอง');
+    // คำที่เก็บไว้หายจากตัวบท (ชุดใหม่แก้ถ้อยคำ) → เลือกคำใหม่จากข้อความปัจจุบัน
+    expect(L.cardFace({ ...b, cloze: ['ไม่มีในตัวบท'] }, PACK).front).toContain('[___]');
+    expect(L.cardFace({ ...a, id: 'st-lawyer-99-a', ref: 'lawyer:99' }, PACK)).toBeNull();
+    expect(L.cardFace(a, null)).toBeNull();
+    expect(L.cardFace({ id: 'dk-1-2560', kind: 'dk', ref: 'dk-1-2560', dueAt: 1 }, PACK)).toBeNull();
+  });
+});
+
+// ── หน้า classroom-law#statutes (9d) + review.html การ์ดมาตรา (9e) ─────────────────────────────────
+test.describe('หน้า: ตัวบท + ท่องมาตรา', () => {
+  const lawyer = () => loadPack('lawyer').raw;
+  async function open(page, seed) {
+    await page.addInitScript((s) => {
+      if (!sessionStorage.getItem('seeded')) {
+        sessionStorage.setItem('seeded', '1');
+        localStorage.setItem('ome:lang', s.lang || 'th');
+        for (const [k, v] of Object.entries(s.ls || {})) localStorage.setItem(k, JSON.stringify(v));
+      }
+      window.__spoken = [];
+      if (window.speechSynthesis) window.speechSynthesis.speak = (u) => { window.__spoken.push(u.text); };
+    }, seed || {});
+    const errors = [];
+    page.on('pageerror', (e) => errors.push(String(e)));
+    await page.goto('/classroom-law.html#statutes');
+    await page.waitForSelector('.st-sec');
+    return errors;
+  }
+
+  test('อ่านรายมาตราครบทุกตัวอักษร + หัวหมวด + ส่วนท้าย · สลับชุด · ค้นเลข/คำ', async ({ page }) => {
+    const errors = await open(page);
+    const raw = lawyer();
+    await expect(page.locator('#stPack')).toHaveValue('lawyer');
+    await expect(page.locator('.st-sec')).toHaveCount(89);
+    const texts = await page.locator('.st-sec .st-t').allTextContents();
+    expect(texts).toEqual(raw.s.map((s) => s.t)); // ห้ามย่อ: ข้อความเต็มเท่าชุดทุกมาตรา
+    await expect(page.locator('.st-sec').first().locator('.st-no')).toHaveText('มาตรา 1');
+    for (const h of new Set(raw.s.map((s) => s.b).filter(Boolean))) await expect(page.locator('#stList .sub-head', { hasText: h }).first()).toBeVisible();
+    await expect(page.locator('#stList .sub-head', { hasText: raw.x[0].h })).toHaveCount(1);
+    await expect(page.locator('#stMeta')).toContainText('89');
+
+    await page.fill('#stSearch', 'มาตรา ๕๒');
+    await expect(page.locator('.st-sec.hit')).toHaveAttribute('data-n', '52');
+    await page.fill('#stSearch', 'ไม่มีคำนี้แน่นอน');
+    await expect(page.locator('#stList .empty')).toBeVisible();
+    await page.fill('#stSearch', 'มรรยาท');
+    await expect(page.locator('.st-sec mark').first()).toHaveText('มรรยาท');
+
+    await page.selectOption('#stPack', 'ethics');
+    await expect(page.locator('.st-sec')).toHaveCount(21);
+    await expect(page.locator('.st-sec').first().locator('.st-no')).toHaveText('ข้อ 1');
+    expect(await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:law:ui')).pack)).toBe('ethics');
+    await page.reload();
+    await page.waitForSelector('.st-sec');
+    await expect(page.locator('#stPack')).toHaveValue('ethics'); // จำชุดล่าสุด
+    expect(errors).toEqual([]);
+  });
+
+  test('ติดดาว → การ์ด 3 แบบ + ตัวนับ · เฉพาะที่ติดดาว · ฟัง · เอาดาวออก (ทบทวนแล้วถามก่อน)', async ({ page }) => {
+    const errors = await open(page);
+    const sec = page.locator('.st-sec[data-n="52"]');
+    await sec.locator('[data-star]').click();
+    await expect(sec.locator('[data-star]')).toHaveAttribute('aria-pressed', 'true');
+    const st = await page.evaluate(() => ({ stars: JSON.parse(localStorage.getItem('tanot:law:stars')), cards: JSON.parse(localStorage.getItem('tanot:law:cards')) }));
+    expect(Object.keys(st.stars)).toEqual(['lawyer:52']);
+    expect(st.cards.map((c) => c.id)).toEqual(['st-lawyer-52-a', 'st-lawyer-52-b', 'st-lawyer-52-c']);
+    await expect(page.locator('#stMemoStrip .v')).toHaveText(['1', '3', '1']);
+    await expect(page.locator('#stReviewLbl')).toHaveText('ทบทวน 1 ใบ');
+
+    await page.click('#stStarOnly');
+    await expect(page.locator('.st-sec')).toHaveCount(1);
+    await page.click('#stPlayStars');
+    await expect(page.locator('#clStTtsControls')).toBeVisible();
+    expect((await page.evaluate(() => window.__spoken)).join('')).toContain('ทนายความ');
+    await page.click('#clStTtsStopBtn');
+    await expect(page.locator('#clStTtsControls')).toBeHidden();
+
+    // ติดดาวซ้ำหลังทบทวนแล้ว → ไม่ล้าง FSRS · เอาดาวออกต้องยืนยัน
+    await page.evaluate(() => {
+      const a = JSON.parse(localStorage.getItem('tanot:law:cards'));
+      a[0] = { ...a[0], reps: 2, stability: 5 };
+      localStorage.setItem('tanot:law:cards', JSON.stringify(a));
+    });
+    await sec.locator('[data-star]').click();
+    await expect(page.locator('dialog[open]')).toBeVisible();
+    await page.locator('dialog[open] .btn.danger').click();
+    await expect(page.locator('#stList .empty')).toBeVisible();
+    expect(await page.evaluate(() => [localStorage.getItem('tanot:law:stars'), localStorage.getItem('tanot:law:cards')])).toEqual(['{}', '[]']);
+    expect(errors).toEqual([]);
+  });
+
+  test('review.html#law: การ์ดมาตรา 3 แบบจากชุดตัวบท · ให้คะแนนเขียน FSRS กลับ · นับใน dueCounts · ชุดหาย = ส่งไปหน้ากฎหมาย', async ({ page }) => {
+    const now = Date.now(), t52 = lawyer().s.find((s) => s.n === '52').t;
+    const card = (type, extra) => ({ id: 'st-lawyer-52-' + type, kind: 'st', ref: 'lawyer:52', createdAt: now - 9e5, dueAt: now - 1000, ...extra });
+    await page.addInitScript((s) => {
+      if (sessionStorage.getItem('seeded')) return;
+      sessionStorage.setItem('seeded', '1');
+      localStorage.setItem('ome:lang', 'th');
+      localStorage.setItem('tanot:law:cards', JSON.stringify(s));
+    }, [card('a'), card('c', { dueAt: now + 864e5 }), { id: 'st-ppk-150-a', kind: 'st', ref: 'ppk:150', dueAt: now - 5 }]);
+    await page.goto('/review.html#law');
+    await expect(page.locator('#rvCard .q')).toHaveText('พ.ร.บ.ทนายความ มาตรา 52');
+    await expect(page.locator('#rvCard .a')).toHaveText(t52);
+    await expect(page.locator('.rv-more a[href="classroom-law.html"]')).toBeVisible(); // ppk ยังไม่มีชุด
+    expect(await page.evaluate(() => LearnCore.dueCounts([]).law)).toBe(2);
+    await page.click('#rvCard');
+    await page.locator('.rv-rate [data-r="3"]').click();
+    const saved = await page.evaluate(() => JSON.parse(localStorage.getItem('tanot:law:cards')).find((c) => c.id === 'st-lawyer-52-a'));
+    expect(saved.reps).toBe(1);
+    expect(saved.dueAt).toBeGreaterThan(now);
+    expect(await page.evaluate(() => LearnCore.dueCounts([]).law)).toBe(1);
+  });
+});

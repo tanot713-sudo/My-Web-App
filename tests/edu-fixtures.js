@@ -47,6 +47,15 @@ const LEARN_SEED = {
   'tanot:music:streak': { count: 3, longest: 5, lastDate: '2026-10-01' }
 };
 
+/* การ์ดมาตรา (ROADMAP 9e) — tanot:law:cards: ก/ข ถึงกำหนด, ค ยังไม่ถึง · ppk ยังไม่มีชุดตัวบท (นับเป็นการ์ดที่ต้องไปเปิดหน้ากฎหมาย) */
+const LAW_ST_CARDS = (t0) => [
+  { id: 'st-lawyer-52-a', kind: 'st', ref: 'lawyer:52', createdAt: t0 - DAY, dueAt: t0 - 2000 },
+  { id: 'st-lawyer-52-b', kind: 'st', ref: 'lawyer:52', cloze: ['สามสิบวัน'], createdAt: t0 - DAY, dueAt: t0 - 1500 },
+  { id: 'st-lawyer-52-c', kind: 'st', ref: 'lawyer:52', createdAt: t0 - DAY, dueAt: t0 + DAY },
+  { id: 'st-lawyer-83-c', kind: 'st', ref: 'lawyer:83', createdAt: t0 - DAY, dueAt: t0 - 900 },
+  { id: 'st-ppk-150-a', kind: 'st', ref: 'ppk:150', createdAt: t0 - DAY, dueAt: t0 - 800 }
+];
+
 /* ───────── review.html ───────── */
 function seedLawIdb(notes) {
   return new Promise((res, rej) => {
@@ -81,6 +90,7 @@ function review(h) {
     'tanot:learn:faces:lang': { v: 1, langs: { 'lang-en': 'English' }, cards: { 'lang-en::vocab-basic::0': ['apple', 'a round fruit'], 'lang-en::vocab-basic::1': ['bridge', 'a structure over a river'] } },
     'lbe:business:srs': Object.fromEntries(bizKeys.map((k, i) => [k, { interval: 3, due: t0 - (i + 1) * 1000 }]).concat([['business:nope:0', { interval: 1, due: t0 - 1 }]])),
     'lbe:engineering:srs': Object.fromEntries(engKeys.map((k, i) => [k, { interval: 7, due: t0 - (i + 1) * 1000 }])),
+    'tanot:law:cards': LAW_ST_CARDS(t0),
     'tanot:books:items': [{ id: 'b1', title: 'Atomic Habits', author: 'James Clear', status: 'reading', pages: 320, current: 100, createdAt: t0 - 5 * DAY }],
     'tanot:books:cards': [
       { id: 'card-n1', noteId: 'n1', bookId: 'b1', front: 'Atomic Habits · p. 42', back: 'Systems beat goals.', createdAt: t0 - 3 * DAY, dueAt: t0 - 1000 },
@@ -301,7 +311,9 @@ function law(h) {
       { id: 'w3', subj: 'ป.พ.พ. บรรพ 1', prompt: 'Q', answer: 'A', minutes: 10, elapsedSec: 500, checklist: { matra: true, dika: true, complete: true }, ts: t0 - 6 * DAY }
     ],
     'tanot:barprep:examdates': { neti1: { applyStart: '2026-10-01', applyEnd: '2026-10-20', examDate: '2026-11-15' }, judge: { examDate: '2026-09-20' }, lawyer: { examDate: '2026-10-03' } },
-    'tanot:barprep:career': { neti: 'yes', exp: 3, master: 'th', lawyer: 'no' }
+    'tanot:barprep:career': { neti: 'yes', exp: 3, master: 'th', lawyer: 'no' },
+    'tanot:law:stars': { 'lawyer:52': { at: t0 - DAY }, 'lawyer:83': { at: t0 - DAY } },
+    'tanot:law:cards': LAW_ST_CARDS(t0)
   });
   const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
   const go = (hash) => async (p) => { await closeAll(p); await p.evaluate((x) => { location.hash = x; }, hash); await settle(p, 500); };
@@ -369,6 +381,16 @@ function law(h) {
     ['nitikam-drill-reveal', async (p) => { await dom(p, '#clDrillReveal'); await settle(p, 300); }],
     ['nitikam-drill-answer', async (p) => { await dom(p, '#clDrillRight'); await dom(p, '#clDrillReveal'); await dom(p, '#clDrillWrong'); await settle(p, 300); }],
     ['nitikam-drill-stop', async (p) => { await dom(p, '#clDrillStop'); await settle(p, 300); }],
+    ['statutes', go('#statutes')],
+    ['statutes-search', async (p) => { await val(p, '#stSearch', 'มาตรา 52'); await settle(p, 500); }],
+    ['statutes-search-word', async (p) => { await val(p, '#stSearch', 'มรรยาท'); await settle(p, 500); }],
+    ['statutes-search-none', async (p) => { await val(p, '#stSearch', 'zzqqxx'); await settle(p, 500); }],
+    ['statutes-star-only', async (p) => { await val(p, '#stSearch', ''); await settle(p, 400); await dom(p, '#stStarOnly'); await settle(p, 300); }],
+    ['statutes-play', async (p) => { await dom(p, '#stPlayStars'); await settle(p, 400); }],
+    ['statutes-stop', async (p) => { await dom(p, '#clStTtsStopBtn'); await settle(p, 300); await dom(p, '#stStarOnly'); await settle(p, 300); }],
+    ['statutes-star', async (p) => { await dom(p, '.st-sec[data-n="1"] [data-star]'); await settle(p, 400); }],
+    ['statutes-more', async (p) => { await dom(p, '[data-stmore]'); await settle(p, 300); }],
+    ['statutes-ethics', async (p) => { await sel(p, '#stPack', 'ethics'); await settle(p, 800); }],
     ['tools', go('#tools')],
     ['tools-clean', click('#bpCleanNotesBtn')],
     ['dashboard-final', go('#dashboard')]

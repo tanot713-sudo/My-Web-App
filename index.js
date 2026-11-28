@@ -5,7 +5,7 @@
    (3) ปุ่มทำทันทีที่เรียกตรรกะเดิมของหน้าเจ้าของ: "กินแล้ว" (HealthCalc.makeIntake → tanot:health:intake) และ "ทำแล้ว" (CookPlan.toggleDone + LearnCore.award)
    ตรรกะประกอบ/จัดเรียง/สรุปอยู่ใน home-calc.js (ห้ามมีสูตรของตัวเองที่นี่) · อ่านผ่าน TanotData.read / readIdb แล้ววาดใหม่เมื่อข้อมูลเปลี่ยน
    คีย์ที่อ่าน (รูปแบบต้องตรงกับหน้าเจ้าของข้อมูล — ดูหัว home-calc.js สำหรับคีย์ของหน้านี้เอง tanot:nav:last | tanot:home:layout | tanot:home:cache):
-     budget:records|budgets|categories · การ์ดทบทวน/XP/วันติดต่อกันผ่าน learn-core.js (lang-practice:srs, lbe:*:srs, tanot-barprep/notes, tanot:books:cards, tanot:learn:*)
+     budget:records|budgets|categories · การ์ดทบทวน/XP/วันติดต่อกันผ่าน learn-core.js (lang-practice:srs, lbe:*:srs, tanot-barprep/notes, tanot:law:cards, tanot:books:cards, tanot:learn:*)
      ความคืบหน้าวิชา: lang-practice:progress, lbe:business|engineering:completed, tanot:barprep:lessonread, tanot:music|sports|cooking:progress
      สินทรัพย์ลงทุน: tanot:invest:thstock|globalstock|btc|gold|thaifund|spfund|govbond|gsblottery|baaclottery + nav + แคชราคา (ชื่อคีย์/สูตรใน invest-calc.js) + tanot:invest:networth + tanot:invest:hub:watch:thai|global
      tanot:insurance:policies (insurance-calc.js) · tanot:receipts:items (receipts-calc.js) · tanot:car:vehicles|services (car-calc.js)
